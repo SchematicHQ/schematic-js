@@ -3,13 +3,7 @@
     "active_add_ons": [
       {
         "audience_type": "plan",
-        "created_at": "2025-10-01T14:41:46.369987Z",
-        "description": "A simple add-on",
-        "id": "plan_aDevbC1pNVr",
-        "icon": "pink",
-        "name": "Simple Add-on",
-        "plan_type": "add_on",
-        "updated_at": "2025-10-01T14:41:46.369987Z",
+        "available_periods": [],
         "billing_product": {
           "account_id": "acct_Rxs59v2X8BG",
           "created_at": "2025-10-01T14:41:47.355349Z",
@@ -20,10 +14,6 @@
           "name": "add_on Simple Add-on - Development",
           "price": 0,
           "price_decimal": null,
-          "product_id": "bilp_RaSBhLQM1Ye",
-          "provider_type": "stripe",
-          "quantity": 0,
-          "updated_at": "2025-10-01T14:41:48.004048Z",
           "prices": [
             {
               "currency": "usd",
@@ -46,12 +36,28 @@
               "scheme": "per_unit"
             }
           ],
-          "subscription_count": 0
+          "product_id": "bilp_RaSBhLQM1Ye",
+          "provider_type": "stripe",
+          "quantity": 0,
+          "subscription_count": 0,
+          "updated_at": "2025-10-01T14:41:48.004048Z"
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "compatible_plan_ids": [],
         "controlled_by": "schematic",
+        "created_at": "2025-10-01T14:41:46.369987Z",
+        "credits": [],
+        "currency_prices": [],
+        "custom": false,
+        "custom_plan_config": null,
+        "description": "A simple add-on",
+        "entitlements": [],
         "features": [],
+        "icon": "pink",
+        "id": "plan_aDevbC1pNVr",
+        "included_credit_grants": [],
+        "is_custom": false,
         "is_default": false,
         "is_free": false,
         "is_trialable": false,
@@ -65,8 +71,11 @@
           "provider_type": "stripe",
           "scheme": "per_unit"
         },
+        "name": "Simple Add-on",
         "one_time_price": null,
+        "plan_type": "add_on",
         "trial_days": null,
+        "updated_at": "2025-10-01T14:41:46.369987Z",
         "versions": [
           {
             "created_at": "2025-10-01T14:41:46.369987Z",
@@ -91,26 +100,11 @@
           "price_decimal": "5000",
           "provider_type": "stripe",
           "scheme": "per_unit"
-        },
-        "is_custom": false,
-        "entitlements": [],
-        "available_periods": [],
-        "compatible_plan_ids": [],
-        "custom": false,
-        "custom_plan_config": null,
-        "credits": [],
-        "included_credit_grants": [],
-        "currency_prices": []
+        }
       },
       {
         "audience_type": "plan",
-        "created_at": "2025-10-01T14:40:50.057358Z",
-        "description": "A one-time add-on",
-        "id": "plan_S9LDYYDpQ3X",
-        "icon": "trueGray",
-        "name": "One-time Add-on",
-        "plan_type": "add_on",
-        "updated_at": "2025-10-01T14:40:50.057358Z",
+        "available_periods": [],
         "billing_product": {
           "account_id": "acct_Rxs59v2X8BG",
           "created_at": "2025-10-01T14:40:50.987643Z",
@@ -121,10 +115,6 @@
           "name": "add_on One-time Add-on - Development",
           "price": 0,
           "price_decimal": null,
-          "product_id": "bilp_eUbNBKjPhUv",
-          "provider_type": "stripe",
-          "quantity": 0,
-          "updated_at": "2025-10-01T14:40:51.777901Z",
           "prices": [
             {
               "currency": "usd",
@@ -137,79 +127,150 @@
               "scheme": "per_unit"
             }
           ],
-          "subscription_count": 0
+          "product_id": "bilp_eUbNBKjPhUv",
+          "provider_type": "stripe",
+          "quantity": 0,
+          "subscription_count": 0,
+          "updated_at": "2025-10-01T14:40:51.777901Z"
         },
         "charge_type": "one_time",
         "company_count": 0,
+        "compatible_plan_ids": [],
         "controlled_by": "schematic",
+        "created_at": "2025-10-01T14:40:50.057358Z",
+        "credits": [],
+        "currency_prices": [],
+        "custom": false,
+        "custom_plan_config": null,
+        "description": "A one-time add-on",
+        "entitlements": [
+          {
+            "billing_threshold": null,
+            "consumption_rate": null,
+            "created_at": "2025-10-01T15:52:49.415474Z",
+            "currency_prices": [],
+            "environment_id": "env_66p5iXPxRJU",
+            "feature": {
+              "created_at": "2025-10-01T14:43:50.323983Z",
+              "description": "A trait-based feature",
+              "event_subtype": null,
+              "feature_type": "trait",
+              "icon": "\ud83d\udcd4",
+              "id": "feat_47NF6M6F1MD",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Trait-based Feature",
+              "plural_name": "trait-based features",
+              "singular_name": "trait-based feature",
+              "trait_id": "trt_U78jdcBghdn",
+              "updated_at": "2025-10-01T15:39:05.831304Z"
+            },
+            "feature_id": "feat_47NF6M6F1MD",
+            "id": "pltl_P2YYMJWVtJH",
+            "metered_monthly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "plan": {
+              "audience_type": "plan",
+              "created_at": "2025-10-01T14:40:50.057358Z",
+              "description": "A one-time add-on",
+              "icon": "trueGray",
+              "id": "plan_S9LDYYDpQ3X",
+              "name": "One-time Add-on",
+              "plan_type": "add_on",
+              "updated_at": "2025-10-01T14:40:50.057358Z"
+            },
+            "plan_id": "plan_S9LDYYDpQ3X",
+            "price_behavior": null,
+            "rule_id": "rule_gW6zKeEpFzQ",
+            "rule_id_usage_exceeded": null,
+            "soft_limit": null,
+            "updated_at": "2025-10-01T15:52:49.415474Z",
+            "usage_based_product": null,
+            "value_bool": null,
+            "value_credit": null,
+            "value_numeric": null,
+            "value_trait": null,
+            "value_trait_id": null,
+            "value_type": "unlimited"
+          }
+        ],
         "features": [
           {
-            "id": "feat_47NF6M6F1MD",
-            "name": "Trait-based Feature",
-            "singular_name": "trait-based feature",
-            "plural_name": "trait-based features",
-            "description": "A trait-based feature",
-            "feature_type": "trait",
-            "lifecycle_phase": null,
-            "event_subtype": null,
-            "trait_id": "trt_U78jdcBghdn",
-            "icon": "\ud83d\udcd4",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:43:50.323983Z",
-            "updated_at": "2025-10-01T15:39:05.831304Z",
+            "description": "A trait-based feature",
+            "event_subtype": null,
+            "event_summary": null,
+            "feature_type": "trait",
             "flags": [
               {
                 "created_at": "2025-10-01T14:43:50.332529Z",
                 "default_value": false,
                 "description": "",
+                "feature": null,
                 "feature_id": "feat_47NF6M6F1MD",
                 "flag_type": "boolean",
                 "id": "flag_Hm62kr3ptjw",
                 "key": "trait-based-feature",
+                "last_checked_at": null,
                 "maintainer_id": null,
                 "name": "Trait-based Feature",
-                "updated_at": "2025-10-01T15:39:05.834608Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
+                "rules": [],
+                "updated_at": "2025-10-01T15:39:05.834608Z"
               }
             ],
-            "event_summary": null,
+            "icon": "\ud83d\udcd4",
+            "id": "feat_47NF6M6F1MD",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Trait-based Feature",
             "plans": [
               {
+                "description": "A one-time add-on",
                 "id": "plan_S9LDYYDpQ3X",
                 "image_url": null,
-                "name": "One-time Add-on",
-                "description": "A one-time add-on"
+                "name": "One-time Add-on"
               },
               {
+                "description": "A professional plan",
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
+                "name": "Professional"
               },
               {
+                "description": "An enterprise plan",
                 "id": "plan_GiNhGS3KjDp",
                 "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
+                "name": "Enterprise"
               }
             ],
+            "plural_name": "trait-based features",
+            "singular_name": "trait-based feature",
             "trait": {
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": ["trait-based-feature"],
+              "hierarchy": [
+                "trait-based-feature"
+              ],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
-            }
+            },
+            "trait_id": "trt_U78jdcBghdn",
+            "updated_at": "2025-10-01T15:39:05.831304Z"
           }
         ],
+        "icon": "trueGray",
+        "id": "plan_S9LDYYDpQ3X",
+        "included_credit_grants": [],
+        "is_custom": false,
         "is_default": false,
         "is_free": false,
         "is_trialable": false,
         "monthly_price": null,
+        "name": "One-time Add-on",
         "one_time_price": {
           "currency": "usd",
           "external_price_id": "price_1SDRD5LCXzCTAHreTPDsTInJ",
@@ -220,7 +281,9 @@
           "provider_type": "stripe",
           "scheme": "per_unit"
         },
+        "plan_type": "add_on",
         "trial_days": null,
+        "updated_at": "2025-10-01T14:40:50.057358Z",
         "versions": [
           {
             "created_at": "2025-10-01T14:40:50.057358Z",
@@ -236,80 +299,13 @@
             "version": 1
           }
         ],
-        "yearly_price": null,
-        "is_custom": false,
-        "entitlements": [
-          {
-            "created_at": "2025-10-01T15:52:49.415474Z",
-            "environment_id": "env_66p5iXPxRJU",
-            "feature": {
-              "id": "feat_47NF6M6F1MD",
-              "name": "Trait-based Feature",
-              "singular_name": "trait-based feature",
-              "plural_name": "trait-based features",
-              "description": "A trait-based feature",
-              "feature_type": "trait",
-              "lifecycle_phase": null,
-              "event_subtype": null,
-              "trait_id": "trt_U78jdcBghdn",
-              "icon": "\ud83d\udcd4",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-              "created_at": "2025-10-01T14:43:50.323983Z",
-              "updated_at": "2025-10-01T15:39:05.831304Z"
-            },
-            "feature_id": "feat_47NF6M6F1MD",
-            "id": "pltl_P2YYMJWVtJH",
-            "metric_period": null,
-            "metric_period_month_reset": null,
-            "plan": {
-              "audience_type": "plan",
-              "created_at": "2025-10-01T14:40:50.057358Z",
-              "description": "A one-time add-on",
-              "id": "plan_S9LDYYDpQ3X",
-              "icon": "trueGray",
-              "name": "One-time Add-on",
-              "plan_type": "add_on",
-              "updated_at": "2025-10-01T14:40:50.057358Z"
-            },
-            "plan_id": "plan_S9LDYYDpQ3X",
-            "rule_id": "rule_gW6zKeEpFzQ",
-            "rule_id_usage_exceeded": null,
-            "updated_at": "2025-10-01T15:52:49.415474Z",
-            "value_bool": null,
-            "value_numeric": null,
-            "value_trait": null,
-            "value_trait_id": null,
-            "value_credit": null,
-            "value_type": "unlimited",
-            "metered_monthly_price": null,
-            "consumption_rate": null,
-            "metered_yearly_price": null,
-            "usage_based_product": null,
-            "price_behavior": null,
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
-          }
-        ],
-        "available_periods": [],
-        "compatible_plan_ids": [],
-        "custom": false,
-        "custom_plan_config": null,
-        "credits": [],
-        "included_credit_grants": [],
-        "currency_prices": []
+        "yearly_price": null
       }
     ],
     "active_plans": [
       {
         "audience_type": "plan",
-        "created_at": "2025-09-30T22:05:52.679328Z",
-        "description": "A basic plan",
-        "id": "plan_6Nne9wATKg2",
-        "icon": "gray",
-        "name": "Basic",
-        "plan_type": "plan",
-        "updated_at": "2025-10-01T15:39:24.026192Z",
+        "available_periods": [],
         "billing_product": {
           "account_id": "acct_Rxs59v2X8BG",
           "created_at": "2025-09-30T22:20:25.841135Z",
@@ -320,10 +316,6 @@
           "name": "plan Basic - Development",
           "price": 0,
           "price_decimal": null,
-          "product_id": "bilp_bBtSkBhLp2j",
-          "provider_type": "stripe",
-          "quantity": 0,
-          "updated_at": "2026-01-16T20:43:43.586154Z",
           "prices": [
             {
               "currency": "usd",
@@ -386,139 +378,258 @@
               "scheme": "per_unit"
             }
           ],
-          "subscription_count": 0
+          "product_id": "bilp_bBtSkBhLp2j",
+          "provider_type": "stripe",
+          "quantity": 0,
+          "subscription_count": 0,
+          "updated_at": "2026-01-16T20:43:43.586154Z"
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "compatible_plan_ids": [],
         "controlled_by": "schematic",
+        "created_at": "2025-09-30T22:05:52.679328Z",
+        "credits": [],
+        "currency_prices": [],
+        "custom": false,
+        "custom_plan_config": null,
+        "description": "A basic plan",
+        "entitlements": [
+          {
+            "billing_threshold": null,
+            "consumption_rate": null,
+            "created_at": "2025-09-30T22:07:19.132336Z",
+            "currency_prices": [],
+            "environment_id": "env_66p5iXPxRJU",
+            "feature": {
+              "created_at": "2025-09-30T22:07:09.016745Z",
+              "description": "A boolean feature",
+              "event_subtype": "boolean-feature",
+              "feature_type": "boolean",
+              "icon": "\u2611\ufe0f",
+              "id": "feat_ZqF9dmerf3s",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Boolean Feature",
+              "plural_name": "",
+              "singular_name": "",
+              "trait_id": null,
+              "updated_at": "2025-10-01T15:13:58.966969Z"
+            },
+            "feature_id": "feat_ZqF9dmerf3s",
+            "id": "pltl_MzdbCJuQR39",
+            "metered_monthly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "plan": {
+              "audience_type": "plan",
+              "created_at": "2025-09-30T22:05:52.679328Z",
+              "description": "A basic plan",
+              "icon": "gray",
+              "id": "plan_6Nne9wATKg2",
+              "name": "Basic",
+              "plan_type": "plan",
+              "updated_at": "2025-10-01T15:39:24.026192Z"
+            },
+            "plan_id": "plan_6Nne9wATKg2",
+            "price_behavior": null,
+            "rule_id": "rule_gkD2aLBukfk",
+            "rule_id_usage_exceeded": null,
+            "soft_limit": null,
+            "updated_at": "2025-09-30T22:07:19.132336Z",
+            "usage_based_product": null,
+            "value_bool": true,
+            "value_credit": null,
+            "value_numeric": null,
+            "value_trait": null,
+            "value_trait_id": null,
+            "value_type": "boolean"
+          },
+          {
+            "billing_threshold": null,
+            "consumption_rate": null,
+            "created_at": "2025-10-01T15:12:17.666052Z",
+            "currency_prices": [],
+            "environment_id": "env_66p5iXPxRJU",
+            "feature": {
+              "created_at": "2025-10-01T14:42:58.193974Z",
+              "description": "An event-based feature",
+              "event_subtype": "event-based-feature",
+              "feature_type": "event",
+              "icon": "\u2b50",
+              "id": "feat_EY47rex1M6P",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Event-based Feature",
+              "plural_name": "event-based features",
+              "singular_name": "event-based feature",
+              "trait_id": null,
+              "updated_at": "2025-10-01T15:16:41.374445Z"
+            },
+            "feature_id": "feat_EY47rex1M6P",
+            "id": "pltl_PNvxga6wA4z",
+            "metered_monthly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": "current_day",
+            "metric_period_month_reset": null,
+            "plan": {
+              "audience_type": "plan",
+              "created_at": "2025-09-30T22:05:52.679328Z",
+              "description": "A basic plan",
+              "icon": "gray",
+              "id": "plan_6Nne9wATKg2",
+              "name": "Basic",
+              "plan_type": "plan",
+              "updated_at": "2025-10-01T15:39:24.026192Z"
+            },
+            "plan_id": "plan_6Nne9wATKg2",
+            "price_behavior": null,
+            "rule_id": "rule_4wgDNJVUQo9",
+            "rule_id_usage_exceeded": "rule_Dh23xLJzxud",
+            "soft_limit": null,
+            "updated_at": "2025-10-01T15:12:17.666052Z",
+            "usage_based_product": null,
+            "value_bool": null,
+            "value_credit": null,
+            "value_numeric": 100,
+            "value_trait": null,
+            "value_trait_id": null,
+            "value_type": "numeric"
+          }
+        ],
         "features": [
           {
-            "id": "feat_ZqF9dmerf3s",
-            "name": "Boolean Feature",
-            "singular_name": "",
-            "plural_name": "",
-            "description": "A boolean feature",
-            "feature_type": "boolean",
-            "lifecycle_phase": null,
-            "event_subtype": "boolean-feature",
-            "trait_id": null,
-            "icon": "\u2611\ufe0f",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-09-30T22:07:09.016745Z",
-            "updated_at": "2025-10-01T15:13:58.966969Z",
+            "description": "A boolean feature",
+            "event_subtype": "boolean-feature",
+            "event_summary": null,
+            "feature_type": "boolean",
             "flags": [
               {
                 "created_at": "2025-09-30T22:07:09.05315Z",
                 "default_value": false,
                 "description": "",
+                "feature": null,
                 "feature_id": "feat_ZqF9dmerf3s",
                 "flag_type": "boolean",
                 "id": "flag_YoC68amLfk6",
                 "key": "boolean-feature",
+                "last_checked_at": null,
                 "maintainer_id": null,
                 "name": "Boolean Feature",
-                "updated_at": "2025-10-01T15:13:58.967996Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
+                "rules": [],
+                "updated_at": "2025-10-01T15:13:58.967996Z"
               }
             ],
-            "event_summary": null,
+            "icon": "\u2611\ufe0f",
+            "id": "feat_ZqF9dmerf3s",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Boolean Feature",
             "plans": [
               {
+                "description": "A basic plan",
                 "id": "plan_6Nne9wATKg2",
                 "image_url": null,
-                "name": "Basic",
-                "description": "A basic plan"
+                "name": "Basic"
               },
               {
+                "description": "A free add-on",
                 "id": "plan_BFXJjJrhYiE",
                 "image_url": null,
-                "name": "Free Add-on",
-                "description": "A free add-on"
+                "name": "Free Add-on"
               },
               {
+                "description": "A standard plan",
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
-                "name": "Standard",
-                "description": "A standard plan"
+                "name": "Standard"
               },
               {
+                "description": "A professional plan",
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
+                "name": "Professional"
               },
               {
+                "description": "An enterprise plan",
                 "id": "plan_GiNhGS3KjDp",
                 "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
+                "name": "Enterprise"
               }
             ],
-            "trait": null
+            "plural_name": "",
+            "singular_name": "",
+            "trait": null,
+            "trait_id": null,
+            "updated_at": "2025-10-01T15:13:58.966969Z"
           },
           {
-            "id": "feat_EY47rex1M6P",
-            "name": "Event-based Feature",
-            "singular_name": "event-based feature",
-            "plural_name": "event-based features",
-            "description": "An event-based feature",
-            "feature_type": "event",
-            "lifecycle_phase": null,
-            "event_subtype": "event-based-feature",
-            "trait_id": null,
-            "icon": "\u2b50",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:42:58.193974Z",
-            "updated_at": "2025-10-01T15:16:41.374445Z",
+            "description": "An event-based feature",
+            "event_subtype": "event-based-feature",
+            "event_summary": null,
+            "feature_type": "event",
             "flags": [
               {
                 "created_at": "2025-10-01T14:42:58.411295Z",
                 "default_value": false,
                 "description": "",
+                "feature": null,
                 "feature_id": "feat_EY47rex1M6P",
                 "flag_type": "boolean",
                 "id": "flag_Ci8xa7Br8kc",
                 "key": "event-based-feature",
+                "last_checked_at": null,
                 "maintainer_id": null,
                 "name": "Event-based Feature",
-                "updated_at": "2025-10-01T15:16:41.398595Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
+                "rules": [],
+                "updated_at": "2025-10-01T15:16:41.398595Z"
               }
             ],
-            "event_summary": null,
+            "icon": "\u2b50",
+            "id": "feat_EY47rex1M6P",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Event-based Feature",
             "plans": [
               {
+                "description": "A basic plan",
                 "id": "plan_6Nne9wATKg2",
                 "image_url": null,
-                "name": "Basic",
-                "description": "A basic plan"
+                "name": "Basic"
               },
               {
+                "description": "A standard plan",
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
-                "name": "Standard",
-                "description": "A standard plan"
+                "name": "Standard"
               },
               {
+                "description": "A professional plan",
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
+                "name": "Professional"
               },
               {
+                "description": "An enterprise plan",
                 "id": "plan_GiNhGS3KjDp",
                 "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
+                "name": "Enterprise"
               }
             ],
-            "trait": null
+            "plural_name": "event-based features",
+            "singular_name": "event-based feature",
+            "trait": null,
+            "trait_id": null,
+            "updated_at": "2025-10-01T15:16:41.374445Z"
           }
         ],
+        "icon": "gray",
+        "id": "plan_6Nne9wATKg2",
+        "included_credit_grants": [],
+        "is_custom": false,
         "is_default": false,
         "is_free": false,
         "is_trialable": true,
@@ -532,8 +643,11 @@
           "provider_type": "stripe",
           "scheme": "per_unit"
         },
+        "name": "Basic",
         "one_time_price": null,
+        "plan_type": "plan",
         "trial_days": 30,
+        "updated_at": "2025-10-01T15:39:24.026192Z",
         "versions": [
           {
             "created_at": "2025-09-30T22:05:52.679328Z",
@@ -558,129 +672,11 @@
           "price_decimal": "5000",
           "provider_type": "stripe",
           "scheme": "per_unit"
-        },
-        "is_custom": false,
-        "entitlements": [
-          {
-            "created_at": "2025-09-30T22:07:19.132336Z",
-            "environment_id": "env_66p5iXPxRJU",
-            "feature": {
-              "id": "feat_ZqF9dmerf3s",
-              "name": "Boolean Feature",
-              "singular_name": "",
-              "plural_name": "",
-              "description": "A boolean feature",
-              "feature_type": "boolean",
-              "lifecycle_phase": null,
-              "event_subtype": "boolean-feature",
-              "trait_id": null,
-              "icon": "\u2611\ufe0f",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-              "created_at": "2025-09-30T22:07:09.016745Z",
-              "updated_at": "2025-10-01T15:13:58.966969Z"
-            },
-            "feature_id": "feat_ZqF9dmerf3s",
-            "id": "pltl_MzdbCJuQR39",
-            "metric_period": null,
-            "metric_period_month_reset": null,
-            "plan": {
-              "audience_type": "plan",
-              "created_at": "2025-09-30T22:05:52.679328Z",
-              "description": "A basic plan",
-              "id": "plan_6Nne9wATKg2",
-              "icon": "gray",
-              "name": "Basic",
-              "plan_type": "plan",
-              "updated_at": "2025-10-01T15:39:24.026192Z"
-            },
-            "plan_id": "plan_6Nne9wATKg2",
-            "rule_id": "rule_gkD2aLBukfk",
-            "rule_id_usage_exceeded": null,
-            "updated_at": "2025-09-30T22:07:19.132336Z",
-            "value_bool": true,
-            "value_numeric": null,
-            "value_trait": null,
-            "value_trait_id": null,
-            "value_credit": null,
-            "value_type": "boolean",
-            "metered_monthly_price": null,
-            "consumption_rate": null,
-            "metered_yearly_price": null,
-            "usage_based_product": null,
-            "price_behavior": null,
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
-          },
-          {
-            "created_at": "2025-10-01T15:12:17.666052Z",
-            "environment_id": "env_66p5iXPxRJU",
-            "feature": {
-              "id": "feat_EY47rex1M6P",
-              "name": "Event-based Feature",
-              "singular_name": "event-based feature",
-              "plural_name": "event-based features",
-              "description": "An event-based feature",
-              "feature_type": "event",
-              "lifecycle_phase": null,
-              "event_subtype": "event-based-feature",
-              "trait_id": null,
-              "icon": "\u2b50",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-              "created_at": "2025-10-01T14:42:58.193974Z",
-              "updated_at": "2025-10-01T15:16:41.374445Z"
-            },
-            "feature_id": "feat_EY47rex1M6P",
-            "id": "pltl_PNvxga6wA4z",
-            "metric_period": "current_day",
-            "metric_period_month_reset": null,
-            "plan": {
-              "audience_type": "plan",
-              "created_at": "2025-09-30T22:05:52.679328Z",
-              "description": "A basic plan",
-              "id": "plan_6Nne9wATKg2",
-              "icon": "gray",
-              "name": "Basic",
-              "plan_type": "plan",
-              "updated_at": "2025-10-01T15:39:24.026192Z"
-            },
-            "plan_id": "plan_6Nne9wATKg2",
-            "rule_id": "rule_4wgDNJVUQo9",
-            "rule_id_usage_exceeded": "rule_Dh23xLJzxud",
-            "updated_at": "2025-10-01T15:12:17.666052Z",
-            "value_bool": null,
-            "value_numeric": 100,
-            "value_trait": null,
-            "value_trait_id": null,
-            "value_credit": null,
-            "value_type": "numeric",
-            "metered_monthly_price": null,
-            "consumption_rate": null,
-            "metered_yearly_price": null,
-            "usage_based_product": null,
-            "price_behavior": null,
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
-          }
-        ],
-        "available_periods": [],
-        "compatible_plan_ids": [],
-        "custom": false,
-        "custom_plan_config": null,
-        "credits": [],
-        "included_credit_grants": [],
-        "currency_prices": []
+        }
       },
       {
         "audience_type": "plan",
-        "created_at": "2025-10-01T15:08:30.567389Z",
-        "description": "A standard plan",
-        "id": "plan_8HMdwCRkuc8",
-        "icon": "emerald",
-        "name": "Standard",
-        "plan_type": "plan",
-        "updated_at": "2025-10-01T15:40:35.771758Z",
+        "available_periods": [],
         "billing_product": {
           "account_id": "acct_Rxs59v2X8BG",
           "created_at": "2025-10-01T15:08:30.976362Z",
@@ -691,10 +687,6 @@
           "name": "plan Standard - Development",
           "price": 0,
           "price_decimal": null,
-          "product_id": "bilp_JaJKE3Chcak",
-          "provider_type": "stripe",
-          "quantity": 0,
-          "updated_at": "2025-10-01T15:08:31.457848Z",
           "prices": [
             {
               "currency": "usd",
@@ -777,139 +769,344 @@
               "scheme": "per_unit"
             }
           ],
-          "subscription_count": 0
+          "product_id": "bilp_JaJKE3Chcak",
+          "provider_type": "stripe",
+          "quantity": 0,
+          "subscription_count": 0,
+          "updated_at": "2025-10-01T15:08:31.457848Z"
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "compatible_plan_ids": [],
         "controlled_by": "schematic",
+        "created_at": "2025-10-01T15:08:30.567389Z",
+        "credits": [],
+        "currency_prices": [],
+        "custom": false,
+        "custom_plan_config": null,
+        "description": "A standard plan",
+        "entitlements": [
+          {
+            "billing_threshold": null,
+            "consumption_rate": null,
+            "created_at": "2025-10-01T15:43:48.989693Z",
+            "currency_prices": [],
+            "environment_id": "env_66p5iXPxRJU",
+            "feature": {
+              "created_at": "2025-09-30T22:07:09.016745Z",
+              "description": "A boolean feature",
+              "event_subtype": "boolean-feature",
+              "feature_type": "boolean",
+              "icon": "\u2611\ufe0f",
+              "id": "feat_ZqF9dmerf3s",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Boolean Feature",
+              "plural_name": "",
+              "singular_name": "",
+              "trait_id": null,
+              "updated_at": "2025-10-01T15:13:58.966969Z"
+            },
+            "feature_id": "feat_ZqF9dmerf3s",
+            "id": "pltl_iBpYzC1zBPL",
+            "metered_monthly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "plan": {
+              "audience_type": "plan",
+              "created_at": "2025-10-01T15:08:30.567389Z",
+              "description": "A standard plan",
+              "icon": "emerald",
+              "id": "plan_8HMdwCRkuc8",
+              "name": "Standard",
+              "plan_type": "plan",
+              "updated_at": "2025-10-01T15:40:35.771758Z"
+            },
+            "plan_id": "plan_8HMdwCRkuc8",
+            "price_behavior": null,
+            "rule_id": "rule_8kGtotVYJgZ",
+            "rule_id_usage_exceeded": null,
+            "soft_limit": null,
+            "updated_at": "2025-10-01T15:43:48.989693Z",
+            "usage_based_product": null,
+            "value_bool": true,
+            "value_credit": null,
+            "value_numeric": null,
+            "value_trait": null,
+            "value_trait_id": null,
+            "value_type": "boolean"
+          },
+          {
+            "billing_threshold": 500,
+            "consumption_rate": null,
+            "created_at": "2025-10-01T15:45:30.611471Z",
+            "currency_prices": [],
+            "environment_id": "env_66p5iXPxRJU",
+            "feature": {
+              "created_at": "2025-10-01T14:42:58.193974Z",
+              "description": "An event-based feature",
+              "event_subtype": "event-based-feature",
+              "feature_type": "event",
+              "icon": "\u2b50",
+              "id": "feat_EY47rex1M6P",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Event-based Feature",
+              "plural_name": "event-based features",
+              "singular_name": "event-based feature",
+              "trait_id": null,
+              "updated_at": "2025-10-01T15:16:41.374445Z"
+            },
+            "feature_id": "feat_EY47rex1M6P",
+            "id": "pltl_NP3qWjHPA6G",
+            "metered_monthly_price": {
+              "billing_scheme": "tiered",
+              "created_at": "2025-10-01T15:45:30.539441Z",
+              "currency": "usd",
+              "id": "bilpp_AU8A5DyXiSS",
+              "interval": "month",
+              "is_active": true,
+              "meter_event_name": "usage.event-basedfeature",
+              "meter_event_payload_key": "value",
+              "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
+              "package_size": 1,
+              "price": 0,
+              "price_decimal": "0",
+              "price_external_id": "price_1SDSDeLCXzCTAHre1ui3fGuY",
+              "price_id": "bilpp_AU8A5DyXiSS",
+              "price_tier": [
+                {
+                  "flat_amount": null,
+                  "per_unit_price": 0,
+                  "per_unit_price_decimal": null,
+                  "up_to": 200
+                },
+                {
+                  "flat_amount": null,
+                  "per_unit_price": 2,
+                  "per_unit_price_decimal": "2",
+                  "up_to": null
+                }
+              ],
+              "product_external_id": "prod_T9llS80mvbW661",
+              "product_id": "bilp_WKw1cyTfFSt",
+              "product_name": "Event-based Feature",
+              "provider_type": "stripe",
+              "tiers_mode": "graduated",
+              "updated_at": "2025-10-01T15:45:31.123933Z",
+              "usage_type": "metered"
+            },
+            "metered_yearly_price": {
+              "billing_scheme": "tiered",
+              "created_at": "2025-10-01T15:45:29.910576Z",
+              "currency": "usd",
+              "id": "bilpp_2phGGmckY9p",
+              "interval": "year",
+              "is_active": true,
+              "meter_event_name": "usage.event-basedfeature",
+              "meter_event_payload_key": "value",
+              "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
+              "package_size": 1,
+              "price": 0,
+              "price_decimal": "0",
+              "price_external_id": "price_1SDSDdLCXzCTAHreVErB5OWT",
+              "price_id": "bilpp_2phGGmckY9p",
+              "price_tier": [
+                {
+                  "flat_amount": null,
+                  "per_unit_price": 0,
+                  "per_unit_price_decimal": null,
+                  "up_to": 200
+                },
+                {
+                  "flat_amount": null,
+                  "per_unit_price": 1,
+                  "per_unit_price_decimal": "1",
+                  "up_to": null
+                }
+              ],
+              "product_external_id": "prod_T9llS80mvbW661",
+              "product_id": "bilp_WKw1cyTfFSt",
+              "product_name": "Event-based Feature",
+              "provider_type": "stripe",
+              "tiers_mode": "graduated",
+              "updated_at": "2025-10-01T15:45:30.710042Z",
+              "usage_type": "metered"
+            },
+            "metric_period": "current_day",
+            "metric_period_month_reset": null,
+            "plan": {
+              "audience_type": "plan",
+              "created_at": "2025-10-01T15:08:30.567389Z",
+              "description": "A standard plan",
+              "icon": "emerald",
+              "id": "plan_8HMdwCRkuc8",
+              "name": "Standard",
+              "plan_type": "plan",
+              "updated_at": "2025-10-01T15:40:35.771758Z"
+            },
+            "plan_id": "plan_8HMdwCRkuc8",
+            "price_behavior": "overage",
+            "rule_id": "rule_MoTPHCWKZ7M",
+            "rule_id_usage_exceeded": "rule_bFfaDrYtsYD",
+            "soft_limit": 200,
+            "updated_at": "2025-10-01T15:45:30.611471Z",
+            "usage_based_product": {
+              "account_id": "acct_Rxs59v2X8BG",
+              "created_at": "2025-10-01T15:45:28.964231Z",
+              "currency": "USD",
+              "environment_id": "env_66p5iXPxRJU",
+              "external_id": "prod_T9llS80mvbW661",
+              "is_active": true,
+              "name": "Event-based Feature",
+              "price": 0,
+              "price_decimal": null,
+              "product_id": "bilp_WKw1cyTfFSt",
+              "provider_type": "stripe",
+              "quantity": 0,
+              "updated_at": "2025-10-01T15:45:29.504319Z"
+            },
+            "value_bool": null,
+            "value_credit": null,
+            "value_numeric": 1000,
+            "value_trait": null,
+            "value_trait_id": null,
+            "value_type": "numeric"
+          }
+        ],
         "features": [
           {
-            "id": "feat_ZqF9dmerf3s",
-            "name": "Boolean Feature",
-            "singular_name": "",
-            "plural_name": "",
-            "description": "A boolean feature",
-            "feature_type": "boolean",
-            "lifecycle_phase": null,
-            "event_subtype": "boolean-feature",
-            "trait_id": null,
-            "icon": "\u2611\ufe0f",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-09-30T22:07:09.016745Z",
-            "updated_at": "2025-10-01T15:13:58.966969Z",
+            "description": "A boolean feature",
+            "event_subtype": "boolean-feature",
+            "event_summary": null,
+            "feature_type": "boolean",
             "flags": [
               {
                 "created_at": "2025-09-30T22:07:09.05315Z",
                 "default_value": false,
                 "description": "",
+                "feature": null,
                 "feature_id": "feat_ZqF9dmerf3s",
                 "flag_type": "boolean",
                 "id": "flag_YoC68amLfk6",
                 "key": "boolean-feature",
+                "last_checked_at": null,
                 "maintainer_id": null,
                 "name": "Boolean Feature",
-                "updated_at": "2025-10-01T15:13:58.967996Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
+                "rules": [],
+                "updated_at": "2025-10-01T15:13:58.967996Z"
               }
             ],
-            "event_summary": null,
+            "icon": "\u2611\ufe0f",
+            "id": "feat_ZqF9dmerf3s",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Boolean Feature",
             "plans": [
               {
+                "description": "A basic plan",
                 "id": "plan_6Nne9wATKg2",
                 "image_url": null,
-                "name": "Basic",
-                "description": "A basic plan"
+                "name": "Basic"
               },
               {
+                "description": "A free add-on",
                 "id": "plan_BFXJjJrhYiE",
                 "image_url": null,
-                "name": "Free Add-on",
-                "description": "A free add-on"
+                "name": "Free Add-on"
               },
               {
+                "description": "A standard plan",
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
-                "name": "Standard",
-                "description": "A standard plan"
+                "name": "Standard"
               },
               {
+                "description": "A professional plan",
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
+                "name": "Professional"
               },
               {
+                "description": "An enterprise plan",
                 "id": "plan_GiNhGS3KjDp",
                 "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
+                "name": "Enterprise"
               }
             ],
-            "trait": null
+            "plural_name": "",
+            "singular_name": "",
+            "trait": null,
+            "trait_id": null,
+            "updated_at": "2025-10-01T15:13:58.966969Z"
           },
           {
-            "id": "feat_EY47rex1M6P",
-            "name": "Event-based Feature",
-            "singular_name": "event-based feature",
-            "plural_name": "event-based features",
-            "description": "An event-based feature",
-            "feature_type": "event",
-            "lifecycle_phase": null,
-            "event_subtype": "event-based-feature",
-            "trait_id": null,
-            "icon": "\u2b50",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:42:58.193974Z",
-            "updated_at": "2025-10-01T15:16:41.374445Z",
+            "description": "An event-based feature",
+            "event_subtype": "event-based-feature",
+            "event_summary": null,
+            "feature_type": "event",
             "flags": [
               {
                 "created_at": "2025-10-01T14:42:58.411295Z",
                 "default_value": false,
                 "description": "",
+                "feature": null,
                 "feature_id": "feat_EY47rex1M6P",
                 "flag_type": "boolean",
                 "id": "flag_Ci8xa7Br8kc",
                 "key": "event-based-feature",
+                "last_checked_at": null,
                 "maintainer_id": null,
                 "name": "Event-based Feature",
-                "updated_at": "2025-10-01T15:16:41.398595Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
+                "rules": [],
+                "updated_at": "2025-10-01T15:16:41.398595Z"
               }
             ],
-            "event_summary": null,
+            "icon": "\u2b50",
+            "id": "feat_EY47rex1M6P",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Event-based Feature",
             "plans": [
               {
+                "description": "A basic plan",
                 "id": "plan_6Nne9wATKg2",
                 "image_url": null,
-                "name": "Basic",
-                "description": "A basic plan"
+                "name": "Basic"
               },
               {
+                "description": "A standard plan",
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
-                "name": "Standard",
-                "description": "A standard plan"
+                "name": "Standard"
               },
               {
+                "description": "A professional plan",
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
+                "name": "Professional"
               },
               {
+                "description": "An enterprise plan",
                 "id": "plan_GiNhGS3KjDp",
                 "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
+                "name": "Enterprise"
               }
             ],
-            "trait": null
+            "plural_name": "event-based features",
+            "singular_name": "event-based feature",
+            "trait": null,
+            "trait_id": null,
+            "updated_at": "2025-10-01T15:16:41.374445Z"
           }
         ],
+        "icon": "emerald",
+        "id": "plan_8HMdwCRkuc8",
+        "included_credit_grants": [],
+        "is_custom": false,
         "is_default": false,
         "is_free": false,
         "is_trialable": false,
@@ -923,8 +1120,11 @@
           "provider_type": "stripe",
           "scheme": "per_unit"
         },
+        "name": "Standard",
         "one_time_price": null,
+        "plan_type": "plan",
         "trial_days": null,
+        "updated_at": "2025-10-01T15:40:35.771758Z",
         "versions": [
           {
             "created_at": "2025-10-01T15:08:30.567389Z",
@@ -949,215 +1149,11 @@
           "price_decimal": "10000",
           "provider_type": "stripe",
           "scheme": "per_unit"
-        },
-        "is_custom": false,
-        "entitlements": [
-          {
-            "created_at": "2025-10-01T15:43:48.989693Z",
-            "environment_id": "env_66p5iXPxRJU",
-            "feature": {
-              "id": "feat_ZqF9dmerf3s",
-              "name": "Boolean Feature",
-              "singular_name": "",
-              "plural_name": "",
-              "description": "A boolean feature",
-              "feature_type": "boolean",
-              "lifecycle_phase": null,
-              "event_subtype": "boolean-feature",
-              "trait_id": null,
-              "icon": "\u2611\ufe0f",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-              "created_at": "2025-09-30T22:07:09.016745Z",
-              "updated_at": "2025-10-01T15:13:58.966969Z"
-            },
-            "feature_id": "feat_ZqF9dmerf3s",
-            "id": "pltl_iBpYzC1zBPL",
-            "metric_period": null,
-            "metric_period_month_reset": null,
-            "plan": {
-              "audience_type": "plan",
-              "created_at": "2025-10-01T15:08:30.567389Z",
-              "description": "A standard plan",
-              "id": "plan_8HMdwCRkuc8",
-              "icon": "emerald",
-              "name": "Standard",
-              "plan_type": "plan",
-              "updated_at": "2025-10-01T15:40:35.771758Z"
-            },
-            "plan_id": "plan_8HMdwCRkuc8",
-            "rule_id": "rule_8kGtotVYJgZ",
-            "rule_id_usage_exceeded": null,
-            "updated_at": "2025-10-01T15:43:48.989693Z",
-            "value_bool": true,
-            "value_numeric": null,
-            "value_trait": null,
-            "value_trait_id": null,
-            "value_credit": null,
-            "value_type": "boolean",
-            "metered_monthly_price": null,
-            "consumption_rate": null,
-            "metered_yearly_price": null,
-            "usage_based_product": null,
-            "price_behavior": null,
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
-          },
-          {
-            "created_at": "2025-10-01T15:45:30.611471Z",
-            "environment_id": "env_66p5iXPxRJU",
-            "feature": {
-              "id": "feat_EY47rex1M6P",
-              "name": "Event-based Feature",
-              "singular_name": "event-based feature",
-              "plural_name": "event-based features",
-              "description": "An event-based feature",
-              "feature_type": "event",
-              "lifecycle_phase": null,
-              "event_subtype": "event-based-feature",
-              "trait_id": null,
-              "icon": "\u2b50",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-              "created_at": "2025-10-01T14:42:58.193974Z",
-              "updated_at": "2025-10-01T15:16:41.374445Z"
-            },
-            "feature_id": "feat_EY47rex1M6P",
-            "id": "pltl_NP3qWjHPA6G",
-            "metric_period": "current_day",
-            "metric_period_month_reset": null,
-            "plan": {
-              "audience_type": "plan",
-              "created_at": "2025-10-01T15:08:30.567389Z",
-              "description": "A standard plan",
-              "id": "plan_8HMdwCRkuc8",
-              "icon": "emerald",
-              "name": "Standard",
-              "plan_type": "plan",
-              "updated_at": "2025-10-01T15:40:35.771758Z"
-            },
-            "plan_id": "plan_8HMdwCRkuc8",
-            "rule_id": "rule_MoTPHCWKZ7M",
-            "rule_id_usage_exceeded": "rule_bFfaDrYtsYD",
-            "updated_at": "2025-10-01T15:45:30.611471Z",
-            "value_bool": null,
-            "value_numeric": 1000,
-            "value_trait": null,
-            "value_trait_id": null,
-            "value_credit": null,
-            "value_type": "numeric",
-            "metered_monthly_price": {
-              "id": "bilpp_AU8A5DyXiSS",
-              "billing_scheme": "tiered",
-              "created_at": "2025-10-01T15:45:30.539441Z",
-              "currency": "usd",
-              "interval": "month",
-              "is_active": true,
-              "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
-              "package_size": 1,
-              "price": 0,
-              "price_decimal": "0",
-              "price_external_id": "price_1SDSDeLCXzCTAHre1ui3fGuY",
-              "product_external_id": "prod_T9llS80mvbW661",
-              "provider_type": "stripe",
-              "tiers_mode": "graduated",
-              "updated_at": "2025-10-01T15:45:31.123933Z",
-              "usage_type": "metered",
-              "price_id": "bilpp_AU8A5DyXiSS",
-              "product_id": "bilp_WKw1cyTfFSt",
-              "meter_event_name": "usage.event-basedfeature",
-              "meter_event_payload_key": "value",
-              "product_name": "Event-based Feature",
-              "price_tier": [
-                {
-                  "flat_amount": null,
-                  "per_unit_price": 0,
-                  "per_unit_price_decimal": null,
-                  "up_to": 200
-                },
-                {
-                  "flat_amount": null,
-                  "per_unit_price": 2,
-                  "per_unit_price_decimal": "2",
-                  "up_to": null
-                }
-              ]
-            },
-            "consumption_rate": null,
-            "metered_yearly_price": {
-              "id": "bilpp_2phGGmckY9p",
-              "billing_scheme": "tiered",
-              "created_at": "2025-10-01T15:45:29.910576Z",
-              "currency": "usd",
-              "interval": "year",
-              "is_active": true,
-              "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
-              "package_size": 1,
-              "price": 0,
-              "price_decimal": "0",
-              "price_external_id": "price_1SDSDdLCXzCTAHreVErB5OWT",
-              "product_external_id": "prod_T9llS80mvbW661",
-              "provider_type": "stripe",
-              "tiers_mode": "graduated",
-              "updated_at": "2025-10-01T15:45:30.710042Z",
-              "usage_type": "metered",
-              "price_id": "bilpp_2phGGmckY9p",
-              "product_id": "bilp_WKw1cyTfFSt",
-              "meter_event_name": "usage.event-basedfeature",
-              "meter_event_payload_key": "value",
-              "product_name": "Event-based Feature",
-              "price_tier": [
-                {
-                  "flat_amount": null,
-                  "per_unit_price": 0,
-                  "per_unit_price_decimal": null,
-                  "up_to": 200
-                },
-                {
-                  "flat_amount": null,
-                  "per_unit_price": 1,
-                  "per_unit_price_decimal": "1",
-                  "up_to": null
-                }
-              ]
-            },
-            "usage_based_product": {
-              "account_id": "acct_Rxs59v2X8BG",
-              "created_at": "2025-10-01T15:45:28.964231Z",
-              "currency": "USD",
-              "environment_id": "env_66p5iXPxRJU",
-              "external_id": "prod_T9llS80mvbW661",
-              "is_active": true,
-              "name": "Event-based Feature",
-              "price": 0,
-              "price_decimal": null,
-              "product_id": "bilp_WKw1cyTfFSt",
-              "provider_type": "stripe",
-              "quantity": 0,
-              "updated_at": "2025-10-01T15:45:29.504319Z"
-            },
-            "price_behavior": "overage",
-            "soft_limit": 200,
-            "billing_threshold": 500,
-            "currency_prices": []
-          }
-        ],
-        "available_periods": [],
-        "compatible_plan_ids": [],
-        "custom": false,
-        "custom_plan_config": null,
-        "credits": [],
-        "included_credit_grants": [],
-        "currency_prices": []
+        }
       },
       {
         "audience_type": "plan",
-        "created_at": "2025-10-01T15:09:35.11325Z",
-        "description": "A professional plan",
-        "id": "plan_9Qeb3Aqc6jY",
-        "icon": "blue",
-        "name": "Professional",
-        "plan_type": "plan",
-        "updated_at": "2025-10-01T15:39:37.845431Z",
+        "available_periods": [],
         "billing_product": {
           "account_id": "acct_Rxs59v2X8BG",
           "created_at": "2025-10-01T15:09:36.668927Z",
@@ -1168,10 +1164,6 @@
           "name": "plan Professional - Development",
           "price": 0,
           "price_decimal": null,
-          "product_id": "bilp_Ld9PEPu1ZEN",
-          "provider_type": "stripe",
-          "quantity": 0,
-          "updated_at": "2025-10-01T15:09:37.41502Z",
           "prices": [
             {
               "currency": "usd",
@@ -1214,358 +1206,112 @@
               "scheme": "per_unit"
             }
           ],
-          "subscription_count": 0
+          "product_id": "bilp_Ld9PEPu1ZEN",
+          "provider_type": "stripe",
+          "quantity": 0,
+          "subscription_count": 0,
+          "updated_at": "2025-10-01T15:09:37.41502Z"
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "compatible_plan_ids": [],
         "controlled_by": "schematic",
-        "features": [
-          {
-            "id": "feat_ZqF9dmerf3s",
-            "name": "Boolean Feature",
-            "singular_name": "",
-            "plural_name": "",
-            "description": "A boolean feature",
-            "feature_type": "boolean",
-            "lifecycle_phase": null,
-            "event_subtype": "boolean-feature",
-            "trait_id": null,
-            "icon": "\u2611\ufe0f",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-            "created_at": "2025-09-30T22:07:09.016745Z",
-            "updated_at": "2025-10-01T15:13:58.966969Z",
-            "flags": [
-              {
-                "created_at": "2025-09-30T22:07:09.05315Z",
-                "default_value": false,
-                "description": "",
-                "feature_id": "feat_ZqF9dmerf3s",
-                "flag_type": "boolean",
-                "id": "flag_YoC68amLfk6",
-                "key": "boolean-feature",
-                "maintainer_id": null,
-                "name": "Boolean Feature",
-                "updated_at": "2025-10-01T15:13:58.967996Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
-              }
-            ],
-            "event_summary": null,
-            "plans": [
-              {
-                "id": "plan_6Nne9wATKg2",
-                "image_url": null,
-                "name": "Basic",
-                "description": "A basic plan"
-              },
-              {
-                "id": "plan_BFXJjJrhYiE",
-                "image_url": null,
-                "name": "Free Add-on",
-                "description": "A free add-on"
-              },
-              {
-                "id": "plan_8HMdwCRkuc8",
-                "image_url": null,
-                "name": "Standard",
-                "description": "A standard plan"
-              },
-              {
-                "id": "plan_9Qeb3Aqc6jY",
-                "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
-              },
-              {
-                "id": "plan_GiNhGS3KjDp",
-                "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
-              }
-            ],
-            "trait": null
-          },
-          {
-            "id": "feat_EY47rex1M6P",
-            "name": "Event-based Feature",
-            "singular_name": "event-based feature",
-            "plural_name": "event-based features",
-            "description": "An event-based feature",
-            "feature_type": "event",
-            "lifecycle_phase": null,
-            "event_subtype": "event-based-feature",
-            "trait_id": null,
-            "icon": "\u2b50",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-            "created_at": "2025-10-01T14:42:58.193974Z",
-            "updated_at": "2025-10-01T15:16:41.374445Z",
-            "flags": [
-              {
-                "created_at": "2025-10-01T14:42:58.411295Z",
-                "default_value": false,
-                "description": "",
-                "feature_id": "feat_EY47rex1M6P",
-                "flag_type": "boolean",
-                "id": "flag_Ci8xa7Br8kc",
-                "key": "event-based-feature",
-                "maintainer_id": null,
-                "name": "Event-based Feature",
-                "updated_at": "2025-10-01T15:16:41.398595Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
-              }
-            ],
-            "event_summary": null,
-            "plans": [
-              {
-                "id": "plan_6Nne9wATKg2",
-                "image_url": null,
-                "name": "Basic",
-                "description": "A basic plan"
-              },
-              {
-                "id": "plan_8HMdwCRkuc8",
-                "image_url": null,
-                "name": "Standard",
-                "description": "A standard plan"
-              },
-              {
-                "id": "plan_9Qeb3Aqc6jY",
-                "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
-              },
-              {
-                "id": "plan_GiNhGS3KjDp",
-                "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
-              }
-            ],
-            "trait": null
-          },
-          {
-            "id": "feat_47NF6M6F1MD",
-            "name": "Trait-based Feature",
-            "singular_name": "trait-based feature",
-            "plural_name": "trait-based features",
-            "description": "A trait-based feature",
-            "feature_type": "trait",
-            "lifecycle_phase": null,
-            "event_subtype": null,
-            "trait_id": "trt_U78jdcBghdn",
-            "icon": "\ud83d\udcd4",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-            "created_at": "2025-10-01T14:43:50.323983Z",
-            "updated_at": "2025-10-01T15:39:05.831304Z",
-            "flags": [
-              {
-                "created_at": "2025-10-01T14:43:50.332529Z",
-                "default_value": false,
-                "description": "",
-                "feature_id": "feat_47NF6M6F1MD",
-                "flag_type": "boolean",
-                "id": "flag_Hm62kr3ptjw",
-                "key": "trait-based-feature",
-                "maintainer_id": null,
-                "name": "Trait-based Feature",
-                "updated_at": "2025-10-01T15:39:05.834608Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
-              }
-            ],
-            "event_summary": null,
-            "plans": [
-              {
-                "id": "plan_S9LDYYDpQ3X",
-                "image_url": null,
-                "name": "One-time Add-on",
-                "description": "A one-time add-on"
-              },
-              {
-                "id": "plan_9Qeb3Aqc6jY",
-                "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
-              },
-              {
-                "id": "plan_GiNhGS3KjDp",
-                "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
-              }
-            ],
-            "trait": {
-              "created_at": "2025-10-01T14:43:37.694471Z",
-              "display_name": "trait-based-feature",
-              "entity_type": "company",
-              "hierarchy": ["trait-based-feature"],
-              "id": "trt_U78jdcBghdn",
-              "trait_type": "number",
-              "updated_at": "2025-10-01T14:43:37.694471Z"
-            }
-          }
-        ],
-        "is_default": false,
-        "is_free": false,
-        "is_trialable": false,
-        "monthly_price": {
-          "currency": "usd",
-          "external_price_id": "price_1SDS7yLCXzCTAHrevEUgH9Nj",
-          "id": "bilpp_sveL74sgZQ",
-          "interval": "month",
-          "price": 2000,
-          "price_decimal": "2000",
-          "provider_type": "stripe",
-          "scheme": "per_unit"
-        },
-        "one_time_price": null,
-        "trial_days": null,
-        "versions": [
-          {
-            "created_at": "2025-10-01T15:09:35.11325Z",
-            "description": "A professional plan",
-            "environment_id": "env_66p5iXPxRJU",
-            "icon": "blue",
-            "id": "plnv_ercKgKoJGDU",
-            "name": "Professional",
-            "original_plan_id": "plan_9Qeb3Aqc6jY",
-            "plan_type": "plan",
-            "status": "published",
-            "updated_at": "2025-10-01T15:39:37.845431Z",
-            "version": 1
-          }
-        ],
-        "yearly_price": {
-          "currency": "usd",
-          "external_price_id": "price_1SDS7yLCXzCTAHreITwew7ZU",
-          "id": "bilpp_Dudw6UyrWJA",
-          "interval": "year",
-          "price": 20000,
-          "price_decimal": "20000",
-          "provider_type": "stripe",
-          "scheme": "per_unit"
-        },
-        "is_custom": false,
+        "created_at": "2025-10-01T15:09:35.11325Z",
+        "credits": [],
+        "currency_prices": [],
+        "custom": false,
+        "custom_plan_config": null,
+        "description": "A professional plan",
         "entitlements": [
           {
+            "billing_threshold": null,
+            "consumption_rate": null,
             "created_at": "2025-10-01T15:45:47.739377Z",
+            "currency_prices": [],
             "environment_id": "env_66p5iXPxRJU",
             "feature": {
-              "id": "feat_ZqF9dmerf3s",
-              "name": "Boolean Feature",
-              "singular_name": "",
-              "plural_name": "",
-              "description": "A boolean feature",
-              "feature_type": "boolean",
-              "lifecycle_phase": null,
-              "event_subtype": "boolean-feature",
-              "trait_id": null,
-              "icon": "\u2611\ufe0f",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-09-30T22:07:09.016745Z",
+              "description": "A boolean feature",
+              "event_subtype": "boolean-feature",
+              "feature_type": "boolean",
+              "icon": "\u2611\ufe0f",
+              "id": "feat_ZqF9dmerf3s",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Boolean Feature",
+              "plural_name": "",
+              "singular_name": "",
+              "trait_id": null,
               "updated_at": "2025-10-01T15:13:58.966969Z"
             },
             "feature_id": "feat_ZqF9dmerf3s",
             "id": "pltl_eG4zewcDdjr",
+            "metered_monthly_price": null,
+            "metered_yearly_price": null,
             "metric_period": null,
             "metric_period_month_reset": null,
             "plan": {
               "audience_type": "plan",
               "created_at": "2025-10-01T15:09:35.11325Z",
               "description": "A professional plan",
-              "id": "plan_9Qeb3Aqc6jY",
               "icon": "blue",
+              "id": "plan_9Qeb3Aqc6jY",
               "name": "Professional",
               "plan_type": "plan",
               "updated_at": "2025-10-01T15:39:37.845431Z"
             },
             "plan_id": "plan_9Qeb3Aqc6jY",
+            "price_behavior": null,
             "rule_id": "rule_TXWprNHan44",
             "rule_id_usage_exceeded": null,
+            "soft_limit": null,
             "updated_at": "2025-10-01T15:45:47.739377Z",
+            "usage_based_product": null,
             "value_bool": true,
+            "value_credit": null,
             "value_numeric": null,
             "value_trait": null,
             "value_trait_id": null,
-            "value_credit": null,
-            "value_type": "boolean",
-            "metered_monthly_price": null,
-            "consumption_rate": null,
-            "metered_yearly_price": null,
-            "usage_based_product": null,
-            "price_behavior": null,
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
+            "value_type": "boolean"
           },
           {
+            "billing_threshold": null,
+            "consumption_rate": null,
             "created_at": "2025-10-01T15:47:38.28802Z",
+            "currency_prices": [],
             "environment_id": "env_66p5iXPxRJU",
             "feature": {
-              "id": "feat_EY47rex1M6P",
-              "name": "Event-based Feature",
-              "singular_name": "event-based feature",
-              "plural_name": "event-based features",
-              "description": "An event-based feature",
-              "feature_type": "event",
-              "lifecycle_phase": null,
-              "event_subtype": "event-based-feature",
-              "trait_id": null,
-              "icon": "\u2b50",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:42:58.193974Z",
+              "description": "An event-based feature",
+              "event_subtype": "event-based-feature",
+              "feature_type": "event",
+              "icon": "\u2b50",
+              "id": "feat_EY47rex1M6P",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Event-based Feature",
+              "plural_name": "event-based features",
+              "singular_name": "event-based feature",
+              "trait_id": null,
               "updated_at": "2025-10-01T15:16:41.374445Z"
             },
             "feature_id": "feat_EY47rex1M6P",
             "id": "pltl_Cnyx4V8u5z8",
-            "metric_period": null,
-            "metric_period_month_reset": null,
-            "plan": {
-              "audience_type": "plan",
-              "created_at": "2025-10-01T15:09:35.11325Z",
-              "description": "A professional plan",
-              "id": "plan_9Qeb3Aqc6jY",
-              "icon": "blue",
-              "name": "Professional",
-              "plan_type": "plan",
-              "updated_at": "2025-10-01T15:39:37.845431Z"
-            },
-            "plan_id": "plan_9Qeb3Aqc6jY",
-            "rule_id": "rule_8jH1v5nz4wV",
-            "rule_id_usage_exceeded": null,
-            "updated_at": "2025-10-01T15:47:38.28802Z",
-            "value_bool": null,
-            "value_numeric": null,
-            "value_trait": null,
-            "value_trait_id": null,
-            "value_credit": null,
-            "value_type": "unlimited",
             "metered_monthly_price": {
-              "id": "bilpp_XWt1ejuNBEx",
               "billing_scheme": "tiered",
               "created_at": "2025-10-01T15:47:38.279355Z",
               "currency": "usd",
+              "id": "bilpp_XWt1ejuNBEx",
               "interval": "month",
               "is_active": true,
+              "meter_event_name": "usage.event-basedfeature",
+              "meter_event_payload_key": "value",
               "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
               "package_size": 1,
               "price": 0,
               "price_decimal": "0",
               "price_external_id": "price_1SDSFiLCXzCTAHrej2VRuPe2",
-              "product_external_id": "prod_T9lnfmj1beHm74",
-              "provider_type": "stripe",
-              "tiers_mode": "graduated",
-              "updated_at": "2025-10-01T15:47:38.991473Z",
-              "usage_type": "metered",
               "price_id": "bilpp_XWt1ejuNBEx",
-              "product_id": "bilp_doxLS64oX4a",
-              "meter_event_name": "usage.event-basedfeature",
-              "meter_event_payload_key": "value",
-              "product_name": "Event-based Feature",
               "price_tier": [
                 {
                   "flat_amount": null,
@@ -1591,31 +1337,30 @@
                   "per_unit_price_decimal": null,
                   "up_to": null
                 }
-              ]
+              ],
+              "product_external_id": "prod_T9lnfmj1beHm74",
+              "product_id": "bilp_doxLS64oX4a",
+              "product_name": "Event-based Feature",
+              "provider_type": "stripe",
+              "tiers_mode": "graduated",
+              "updated_at": "2025-10-01T15:47:38.991473Z",
+              "usage_type": "metered"
             },
-            "consumption_rate": null,
             "metered_yearly_price": {
-              "id": "bilpp_Rujy4rmRYpR",
               "billing_scheme": "tiered",
               "created_at": "2025-10-01T15:47:37.728566Z",
               "currency": "usd",
+              "id": "bilpp_Rujy4rmRYpR",
               "interval": "year",
               "is_active": true,
+              "meter_event_name": "usage.event-basedfeature",
+              "meter_event_payload_key": "value",
               "meter_id": "mtr_test_61TMqAzS92gVNOviO41LCXzCTAHre9Wi",
               "package_size": 1,
               "price": 0,
               "price_decimal": "0",
               "price_external_id": "price_1SDSFhLCXzCTAHrema5r1oDw",
-              "product_external_id": "prod_T9lnfmj1beHm74",
-              "provider_type": "stripe",
-              "tiers_mode": "graduated",
-              "updated_at": "2025-10-01T15:47:38.503129Z",
-              "usage_type": "metered",
               "price_id": "bilpp_Rujy4rmRYpR",
-              "product_id": "bilp_doxLS64oX4a",
-              "meter_event_name": "usage.event-basedfeature",
-              "meter_event_payload_key": "value",
-              "product_name": "Event-based Feature",
               "price_tier": [
                 {
                   "flat_amount": null,
@@ -1641,8 +1386,33 @@
                   "per_unit_price_decimal": null,
                   "up_to": null
                 }
-              ]
+              ],
+              "product_external_id": "prod_T9lnfmj1beHm74",
+              "product_id": "bilp_doxLS64oX4a",
+              "product_name": "Event-based Feature",
+              "provider_type": "stripe",
+              "tiers_mode": "graduated",
+              "updated_at": "2025-10-01T15:47:38.503129Z",
+              "usage_type": "metered"
             },
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "plan": {
+              "audience_type": "plan",
+              "created_at": "2025-10-01T15:09:35.11325Z",
+              "description": "A professional plan",
+              "icon": "blue",
+              "id": "plan_9Qeb3Aqc6jY",
+              "name": "Professional",
+              "plan_type": "plan",
+              "updated_at": "2025-10-01T15:39:37.845431Z"
+            },
+            "plan_id": "plan_9Qeb3Aqc6jY",
+            "price_behavior": "tier",
+            "rule_id": "rule_8jH1v5nz4wV",
+            "rule_id_usage_exceeded": null,
+            "soft_limit": null,
+            "updated_at": "2025-10-01T15:47:38.28802Z",
             "usage_based_product": {
               "account_id": "acct_Rxs59v2X8BG",
               "created_at": "2025-10-01T15:47:37.149253Z",
@@ -1658,124 +1428,116 @@
               "quantity": 0,
               "updated_at": "2025-10-01T15:47:37.641065Z"
             },
-            "price_behavior": "tier",
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
+            "value_bool": null,
+            "value_credit": null,
+            "value_numeric": null,
+            "value_trait": null,
+            "value_trait_id": null,
+            "value_type": "unlimited"
           },
           {
+            "billing_threshold": null,
+            "consumption_rate": null,
             "created_at": "2025-10-01T15:48:40.543137Z",
+            "currency_prices": [],
             "environment_id": "env_66p5iXPxRJU",
             "feature": {
-              "id": "feat_47NF6M6F1MD",
-              "name": "Trait-based Feature",
-              "singular_name": "trait-based feature",
-              "plural_name": "trait-based features",
-              "description": "A trait-based feature",
-              "feature_type": "trait",
-              "lifecycle_phase": null,
-              "event_subtype": null,
-              "trait_id": "trt_U78jdcBghdn",
-              "icon": "\ud83d\udcd4",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
               "created_at": "2025-10-01T14:43:50.323983Z",
+              "description": "A trait-based feature",
+              "event_subtype": null,
+              "feature_type": "trait",
+              "icon": "\ud83d\udcd4",
+              "id": "feat_47NF6M6F1MD",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Trait-based Feature",
+              "plural_name": "trait-based features",
+              "singular_name": "trait-based feature",
+              "trait_id": "trt_U78jdcBghdn",
               "updated_at": "2025-10-01T15:39:05.831304Z"
             },
             "feature_id": "feat_47NF6M6F1MD",
             "id": "pltl_3yDZBCpw3We",
+            "metered_monthly_price": {
+              "billing_scheme": "per_unit",
+              "created_at": "2025-10-01T15:48:40.444126Z",
+              "currency": "usd",
+              "id": "bilpp_3878NewBpts",
+              "interval": "month",
+              "is_active": true,
+              "meter_event_name": null,
+              "meter_event_payload_key": null,
+              "meter_id": null,
+              "package_size": 1,
+              "price": 100,
+              "price_decimal": "100",
+              "price_external_id": "price_1SDSGiLCXzCTAHreKgKGrWKC",
+              "price_id": "bilpp_3878NewBpts",
+              "price_tier": [
+                {
+                  "flat_amount": null,
+                  "per_unit_price": null,
+                  "per_unit_price_decimal": null,
+                  "up_to": null
+                }
+              ],
+              "product_external_id": "prod_T9lofG1eTIV1jY",
+              "product_id": "bilp_7vCWGgUQVgL",
+              "product_name": "Trait-based Feature",
+              "provider_type": "stripe",
+              "tiers_mode": null,
+              "updated_at": "2025-10-01T15:48:40.819091Z",
+              "usage_type": "licensed"
+            },
+            "metered_yearly_price": {
+              "billing_scheme": "per_unit",
+              "created_at": "2025-10-01T15:48:40.012007Z",
+              "currency": "usd",
+              "id": "bilpp_5dRTXefcPca",
+              "interval": "year",
+              "is_active": true,
+              "meter_event_name": null,
+              "meter_event_payload_key": null,
+              "meter_id": null,
+              "package_size": 1,
+              "price": 90,
+              "price_decimal": "90",
+              "price_external_id": "price_1SDSGhLCXzCTAHreHUlOhCa3",
+              "price_id": "bilpp_5dRTXefcPca",
+              "price_tier": [
+                {
+                  "flat_amount": null,
+                  "per_unit_price": null,
+                  "per_unit_price_decimal": null,
+                  "up_to": null
+                }
+              ],
+              "product_external_id": "prod_T9lofG1eTIV1jY",
+              "product_id": "bilp_7vCWGgUQVgL",
+              "product_name": "Trait-based Feature",
+              "provider_type": "stripe",
+              "tiers_mode": null,
+              "updated_at": "2025-10-01T15:48:40.345414Z",
+              "usage_type": "licensed"
+            },
             "metric_period": null,
             "metric_period_month_reset": null,
             "plan": {
               "audience_type": "plan",
               "created_at": "2025-10-01T15:09:35.11325Z",
               "description": "A professional plan",
-              "id": "plan_9Qeb3Aqc6jY",
               "icon": "blue",
+              "id": "plan_9Qeb3Aqc6jY",
               "name": "Professional",
               "plan_type": "plan",
               "updated_at": "2025-10-01T15:39:37.845431Z"
             },
             "plan_id": "plan_9Qeb3Aqc6jY",
+            "price_behavior": "pay_in_advance",
             "rule_id": "rule_67TP6cutJgf",
             "rule_id_usage_exceeded": "rule_CpWy98Hy8ze",
+            "soft_limit": null,
             "updated_at": "2025-10-01T15:48:40.543137Z",
-            "value_bool": null,
-            "value_numeric": null,
-            "value_trait": {
-              "created_at": "2025-10-01T15:48:38.898863Z",
-              "display_name": "trait-based-feature-schematic-system-trait",
-              "entity_type": "company",
-              "hierarchy": ["trait-based-feature-schematic-system-trait"],
-              "id": "trt_E6V7hTVPSyV",
-              "trait_type": "number",
-              "updated_at": "2025-10-01T15:48:38.898863Z"
-            },
-            "value_trait_id": "trt_E6V7hTVPSyV",
-            "value_credit": null,
-            "value_type": "trait",
-            "metered_monthly_price": {
-              "id": "bilpp_3878NewBpts",
-              "billing_scheme": "per_unit",
-              "created_at": "2025-10-01T15:48:40.444126Z",
-              "currency": "usd",
-              "interval": "month",
-              "is_active": true,
-              "meter_id": null,
-              "package_size": 1,
-              "price": 100,
-              "price_decimal": "100",
-              "price_external_id": "price_1SDSGiLCXzCTAHreKgKGrWKC",
-              "product_external_id": "prod_T9lofG1eTIV1jY",
-              "provider_type": "stripe",
-              "tiers_mode": null,
-              "updated_at": "2025-10-01T15:48:40.819091Z",
-              "usage_type": "licensed",
-              "price_id": "bilpp_3878NewBpts",
-              "product_id": "bilp_7vCWGgUQVgL",
-              "meter_event_name": null,
-              "meter_event_payload_key": null,
-              "product_name": "Trait-based Feature",
-              "price_tier": [
-                {
-                  "flat_amount": null,
-                  "per_unit_price": null,
-                  "per_unit_price_decimal": null,
-                  "up_to": null
-                }
-              ]
-            },
-            "consumption_rate": null,
-            "metered_yearly_price": {
-              "id": "bilpp_5dRTXefcPca",
-              "billing_scheme": "per_unit",
-              "created_at": "2025-10-01T15:48:40.012007Z",
-              "currency": "usd",
-              "interval": "year",
-              "is_active": true,
-              "meter_id": null,
-              "package_size": 1,
-              "price": 90,
-              "price_decimal": "90",
-              "price_external_id": "price_1SDSGhLCXzCTAHreHUlOhCa3",
-              "product_external_id": "prod_T9lofG1eTIV1jY",
-              "provider_type": "stripe",
-              "tiers_mode": null,
-              "updated_at": "2025-10-01T15:48:40.345414Z",
-              "usage_type": "licensed",
-              "price_id": "bilpp_5dRTXefcPca",
-              "product_id": "bilp_7vCWGgUQVgL",
-              "meter_event_name": null,
-              "meter_event_payload_key": null,
-              "product_name": "Trait-based Feature",
-              "price_tier": [
-                {
-                  "flat_amount": null,
-                  "per_unit_price": null,
-                  "per_unit_price_decimal": null,
-                  "up_to": null
-                }
-              ]
-            },
             "usage_based_product": {
               "account_id": "acct_Rxs59v2X8BG",
               "created_at": "2025-10-01T15:48:39.553766Z",
@@ -1791,58 +1553,296 @@
               "quantity": 0,
               "updated_at": "2025-10-01T15:48:40.069129Z"
             },
-            "price_behavior": "pay_in_advance",
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
+            "value_bool": null,
+            "value_credit": null,
+            "value_numeric": null,
+            "value_trait": {
+              "created_at": "2025-10-01T15:48:38.898863Z",
+              "display_name": "trait-based-feature-schematic-system-trait",
+              "entity_type": "company",
+              "hierarchy": [
+                "trait-based-feature-schematic-system-trait"
+              ],
+              "id": "trt_E6V7hTVPSyV",
+              "trait_type": "number",
+              "updated_at": "2025-10-01T15:48:38.898863Z"
+            },
+            "value_trait_id": "trt_E6V7hTVPSyV",
+            "value_type": "trait"
           }
         ],
-        "available_periods": [],
-        "compatible_plan_ids": [],
-        "custom": false,
-        "custom_plan_config": null,
-        "credits": [],
+        "features": [
+          {
+            "created_at": "2025-09-30T22:07:09.016745Z",
+            "description": "A boolean feature",
+            "event_subtype": "boolean-feature",
+            "event_summary": null,
+            "feature_type": "boolean",
+            "flags": [
+              {
+                "created_at": "2025-09-30T22:07:09.05315Z",
+                "default_value": false,
+                "description": "",
+                "feature": null,
+                "feature_id": "feat_ZqF9dmerf3s",
+                "flag_type": "boolean",
+                "id": "flag_YoC68amLfk6",
+                "key": "boolean-feature",
+                "last_checked_at": null,
+                "maintainer_id": null,
+                "name": "Boolean Feature",
+                "rules": [],
+                "updated_at": "2025-10-01T15:13:58.967996Z"
+              }
+            ],
+            "icon": "\u2611\ufe0f",
+            "id": "feat_ZqF9dmerf3s",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Boolean Feature",
+            "plans": [
+              {
+                "description": "A basic plan",
+                "id": "plan_6Nne9wATKg2",
+                "image_url": null,
+                "name": "Basic"
+              },
+              {
+                "description": "A free add-on",
+                "id": "plan_BFXJjJrhYiE",
+                "image_url": null,
+                "name": "Free Add-on"
+              },
+              {
+                "description": "A standard plan",
+                "id": "plan_8HMdwCRkuc8",
+                "image_url": null,
+                "name": "Standard"
+              },
+              {
+                "description": "A professional plan",
+                "id": "plan_9Qeb3Aqc6jY",
+                "image_url": null,
+                "name": "Professional"
+              },
+              {
+                "description": "An enterprise plan",
+                "id": "plan_GiNhGS3KjDp",
+                "image_url": null,
+                "name": "Enterprise"
+              }
+            ],
+            "plural_name": "",
+            "singular_name": "",
+            "trait": null,
+            "trait_id": null,
+            "updated_at": "2025-10-01T15:13:58.966969Z"
+          },
+          {
+            "created_at": "2025-10-01T14:42:58.193974Z",
+            "description": "An event-based feature",
+            "event_subtype": "event-based-feature",
+            "event_summary": null,
+            "feature_type": "event",
+            "flags": [
+              {
+                "created_at": "2025-10-01T14:42:58.411295Z",
+                "default_value": false,
+                "description": "",
+                "feature": null,
+                "feature_id": "feat_EY47rex1M6P",
+                "flag_type": "boolean",
+                "id": "flag_Ci8xa7Br8kc",
+                "key": "event-based-feature",
+                "last_checked_at": null,
+                "maintainer_id": null,
+                "name": "Event-based Feature",
+                "rules": [],
+                "updated_at": "2025-10-01T15:16:41.398595Z"
+              }
+            ],
+            "icon": "\u2b50",
+            "id": "feat_EY47rex1M6P",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Event-based Feature",
+            "plans": [
+              {
+                "description": "A basic plan",
+                "id": "plan_6Nne9wATKg2",
+                "image_url": null,
+                "name": "Basic"
+              },
+              {
+                "description": "A standard plan",
+                "id": "plan_8HMdwCRkuc8",
+                "image_url": null,
+                "name": "Standard"
+              },
+              {
+                "description": "A professional plan",
+                "id": "plan_9Qeb3Aqc6jY",
+                "image_url": null,
+                "name": "Professional"
+              },
+              {
+                "description": "An enterprise plan",
+                "id": "plan_GiNhGS3KjDp",
+                "image_url": null,
+                "name": "Enterprise"
+              }
+            ],
+            "plural_name": "event-based features",
+            "singular_name": "event-based feature",
+            "trait": null,
+            "trait_id": null,
+            "updated_at": "2025-10-01T15:16:41.374445Z"
+          },
+          {
+            "created_at": "2025-10-01T14:43:50.323983Z",
+            "description": "A trait-based feature",
+            "event_subtype": null,
+            "event_summary": null,
+            "feature_type": "trait",
+            "flags": [
+              {
+                "created_at": "2025-10-01T14:43:50.332529Z",
+                "default_value": false,
+                "description": "",
+                "feature": null,
+                "feature_id": "feat_47NF6M6F1MD",
+                "flag_type": "boolean",
+                "id": "flag_Hm62kr3ptjw",
+                "key": "trait-based-feature",
+                "last_checked_at": null,
+                "maintainer_id": null,
+                "name": "Trait-based Feature",
+                "rules": [],
+                "updated_at": "2025-10-01T15:39:05.834608Z"
+              }
+            ],
+            "icon": "\ud83d\udcd4",
+            "id": "feat_47NF6M6F1MD",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Trait-based Feature",
+            "plans": [
+              {
+                "description": "A one-time add-on",
+                "id": "plan_S9LDYYDpQ3X",
+                "image_url": null,
+                "name": "One-time Add-on"
+              },
+              {
+                "description": "A professional plan",
+                "id": "plan_9Qeb3Aqc6jY",
+                "image_url": null,
+                "name": "Professional"
+              },
+              {
+                "description": "An enterprise plan",
+                "id": "plan_GiNhGS3KjDp",
+                "image_url": null,
+                "name": "Enterprise"
+              }
+            ],
+            "plural_name": "trait-based features",
+            "singular_name": "trait-based feature",
+            "trait": {
+              "created_at": "2025-10-01T14:43:37.694471Z",
+              "display_name": "trait-based-feature",
+              "entity_type": "company",
+              "hierarchy": [
+                "trait-based-feature"
+              ],
+              "id": "trt_U78jdcBghdn",
+              "trait_type": "number",
+              "updated_at": "2025-10-01T14:43:37.694471Z"
+            },
+            "trait_id": "trt_U78jdcBghdn",
+            "updated_at": "2025-10-01T15:39:05.831304Z"
+          }
+        ],
+        "icon": "blue",
+        "id": "plan_9Qeb3Aqc6jY",
         "included_credit_grants": [
           {
-            "id": "bilpcg_QpMeApHmLLw",
-            "credit_id": "bilcr_SEzUjtGmNaD",
-            "plan_id": "plan_9Qeb3Aqc6jY",
-            "plan_name": "Professional",
-            "credit_amount": 80,
-            "credit_icon": "\ud83e\ude99",
-            "credit_name": "Normal Token",
-            "singular_name": "normal token",
-            "plural_name": "normal tokens",
-            "credit_description": "A normal token",
-            "reset_cadence": "monthly",
-            "reset_start": "billing_period",
-            "reset_type": "plan_period",
-            "billing_credit_auto_topup_enabled": false,
-            "billing_credit_auto_topup_threshold_percent": null,
-            "billing_credit_auto_topup_threshold_credits": null,
             "billing_credit_auto_topup_amount": null,
             "billing_credit_auto_topup_amount_type": null,
+            "billing_credit_auto_topup_enabled": false,
             "billing_credit_auto_topup_expiry_type": null,
             "billing_credit_auto_topup_expiry_unit": null,
             "billing_credit_auto_topup_expiry_unit_count": null,
+            "billing_credit_auto_topup_threshold_credits": null,
+            "billing_credit_auto_topup_threshold_percent": null,
+            "created_at": "2025-10-01T15:50:59.57081Z",
+            "credit_amount": 80,
+            "credit_description": "A normal token",
+            "credit_icon": "\ud83e\ude99",
+            "credit_id": "bilcr_SEzUjtGmNaD",
+            "credit_name": "Normal Token",
             "expiry_type": null,
             "expiry_unit": null,
             "expiry_unit_count": null,
-            "created_at": "2025-10-01T15:50:59.57081Z",
+            "id": "bilpcg_QpMeApHmLLw",
+            "plan_id": "plan_9Qeb3Aqc6jY",
+            "plan_name": "Professional",
+            "plural_name": "normal tokens",
+            "reset_cadence": "monthly",
+            "reset_start": "billing_period",
+            "reset_type": "plan_period",
+            "singular_name": "normal token",
             "updated_at": "2025-10-01T15:50:59.57081Z"
           }
         ],
-        "currency_prices": []
+        "is_custom": false,
+        "is_default": false,
+        "is_free": false,
+        "is_trialable": false,
+        "monthly_price": {
+          "currency": "usd",
+          "external_price_id": "price_1SDS7yLCXzCTAHrevEUgH9Nj",
+          "id": "bilpp_sveL74sgZQ",
+          "interval": "month",
+          "price": 2000,
+          "price_decimal": "2000",
+          "provider_type": "stripe",
+          "scheme": "per_unit"
+        },
+        "name": "Professional",
+        "one_time_price": null,
+        "plan_type": "plan",
+        "trial_days": null,
+        "updated_at": "2025-10-01T15:39:37.845431Z",
+        "versions": [
+          {
+            "created_at": "2025-10-01T15:09:35.11325Z",
+            "description": "A professional plan",
+            "environment_id": "env_66p5iXPxRJU",
+            "icon": "blue",
+            "id": "plnv_ercKgKoJGDU",
+            "name": "Professional",
+            "original_plan_id": "plan_9Qeb3Aqc6jY",
+            "plan_type": "plan",
+            "status": "published",
+            "updated_at": "2025-10-01T15:39:37.845431Z",
+            "version": 1
+          }
+        ],
+        "yearly_price": {
+          "currency": "usd",
+          "external_price_id": "price_1SDS7yLCXzCTAHreITwew7ZU",
+          "id": "bilpp_Dudw6UyrWJA",
+          "interval": "year",
+          "price": 20000,
+          "price_decimal": "20000",
+          "provider_type": "stripe",
+          "scheme": "per_unit"
+        }
       },
       {
         "audience_type": "plan",
-        "created_at": "2025-10-01T15:41:16.879857Z",
-        "description": "An enterprise plan",
-        "id": "plan_GiNhGS3KjDp",
-        "icon": "violet",
-        "name": "Enterprise",
-        "plan_type": "plan",
-        "updated_at": "2025-10-01T15:41:43.873855Z",
+        "available_periods": [],
         "billing_product": {
           "account_id": "acct_Rxs59v2X8BG",
           "created_at": "2025-10-01T15:41:17.558266Z",
@@ -1853,10 +1853,6 @@
           "name": "plan Enterprise - Development",
           "price": 0,
           "price_decimal": null,
-          "product_id": "bilp_Z4Y2Ga5E4PD",
-          "provider_type": "stripe",
-          "quantity": 0,
-          "updated_at": "2025-10-01T15:41:18.135553Z",
           "prices": [
             {
               "currency": "usd",
@@ -1899,201 +1895,387 @@
               "scheme": "per_unit"
             }
           ],
-          "subscription_count": 0
+          "product_id": "bilp_Z4Y2Ga5E4PD",
+          "provider_type": "stripe",
+          "quantity": 0,
+          "subscription_count": 0,
+          "updated_at": "2025-10-01T15:41:18.135553Z"
         },
         "charge_type": "recurring",
         "company_count": 0,
+        "compatible_plan_ids": [],
         "controlled_by": "schematic",
+        "created_at": "2025-10-01T15:41:16.879857Z",
+        "credits": [],
+        "currency_prices": [],
+        "custom": true,
+        "custom_plan_config": {
+          "cta_text": "Talk to us",
+          "cta_web_site": "https://schematichq.com",
+          "price_text": "Custom"
+        },
+        "description": "An enterprise plan",
+        "entitlements": [
+          {
+            "billing_threshold": null,
+            "consumption_rate": null,
+            "created_at": "2025-10-01T15:48:51.370388Z",
+            "currency_prices": [],
+            "environment_id": "env_66p5iXPxRJU",
+            "feature": {
+              "created_at": "2025-09-30T22:07:09.016745Z",
+              "description": "A boolean feature",
+              "event_subtype": "boolean-feature",
+              "feature_type": "boolean",
+              "icon": "\u2611\ufe0f",
+              "id": "feat_ZqF9dmerf3s",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Boolean Feature",
+              "plural_name": "",
+              "singular_name": "",
+              "trait_id": null,
+              "updated_at": "2025-10-01T15:13:58.966969Z"
+            },
+            "feature_id": "feat_ZqF9dmerf3s",
+            "id": "pltl_CsBpaed5JVS",
+            "metered_monthly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "plan": {
+              "audience_type": "plan",
+              "created_at": "2025-10-01T15:41:16.879857Z",
+              "description": "An enterprise plan",
+              "icon": "violet",
+              "id": "plan_GiNhGS3KjDp",
+              "name": "Enterprise",
+              "plan_type": "plan",
+              "updated_at": "2025-10-01T15:41:43.873855Z"
+            },
+            "plan_id": "plan_GiNhGS3KjDp",
+            "price_behavior": null,
+            "rule_id": "rule_fayMWvxqBbW",
+            "rule_id_usage_exceeded": null,
+            "soft_limit": null,
+            "updated_at": "2025-10-01T15:48:51.370388Z",
+            "usage_based_product": null,
+            "value_bool": true,
+            "value_credit": null,
+            "value_numeric": null,
+            "value_trait": null,
+            "value_trait_id": null,
+            "value_type": "boolean"
+          },
+          {
+            "billing_threshold": null,
+            "consumption_rate": null,
+            "created_at": "2025-10-01T15:49:00.519908Z",
+            "currency_prices": [],
+            "environment_id": "env_66p5iXPxRJU",
+            "feature": {
+              "created_at": "2025-10-01T14:42:58.193974Z",
+              "description": "An event-based feature",
+              "event_subtype": "event-based-feature",
+              "feature_type": "event",
+              "icon": "\u2b50",
+              "id": "feat_EY47rex1M6P",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Event-based Feature",
+              "plural_name": "event-based features",
+              "singular_name": "event-based feature",
+              "trait_id": null,
+              "updated_at": "2025-10-01T15:16:41.374445Z"
+            },
+            "feature_id": "feat_EY47rex1M6P",
+            "id": "pltl_DDhXbgU9CVG",
+            "metered_monthly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "plan": {
+              "audience_type": "plan",
+              "created_at": "2025-10-01T15:41:16.879857Z",
+              "description": "An enterprise plan",
+              "icon": "violet",
+              "id": "plan_GiNhGS3KjDp",
+              "name": "Enterprise",
+              "plan_type": "plan",
+              "updated_at": "2025-10-01T15:41:43.873855Z"
+            },
+            "plan_id": "plan_GiNhGS3KjDp",
+            "price_behavior": null,
+            "rule_id": "rule_CX4XSCeuAEU",
+            "rule_id_usage_exceeded": null,
+            "soft_limit": null,
+            "updated_at": "2025-10-01T15:49:00.519908Z",
+            "usage_based_product": null,
+            "value_bool": null,
+            "value_credit": null,
+            "value_numeric": 0,
+            "value_trait": null,
+            "value_trait_id": null,
+            "value_type": "unlimited"
+          },
+          {
+            "billing_threshold": null,
+            "consumption_rate": null,
+            "created_at": "2025-10-01T15:49:24.894337Z",
+            "currency_prices": [],
+            "environment_id": "env_66p5iXPxRJU",
+            "feature": {
+              "created_at": "2025-10-01T14:43:50.323983Z",
+              "description": "A trait-based feature",
+              "event_subtype": null,
+              "feature_type": "trait",
+              "icon": "\ud83d\udcd4",
+              "id": "feat_47NF6M6F1MD",
+              "lifecycle_phase": null,
+              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+              "name": "Trait-based Feature",
+              "plural_name": "trait-based features",
+              "singular_name": "trait-based feature",
+              "trait_id": "trt_U78jdcBghdn",
+              "updated_at": "2025-10-01T15:39:05.831304Z"
+            },
+            "feature_id": "feat_47NF6M6F1MD",
+            "id": "pltl_WzUig9EKBHk",
+            "metered_monthly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "plan": {
+              "audience_type": "plan",
+              "created_at": "2025-10-01T15:41:16.879857Z",
+              "description": "An enterprise plan",
+              "icon": "violet",
+              "id": "plan_GiNhGS3KjDp",
+              "name": "Enterprise",
+              "plan_type": "plan",
+              "updated_at": "2025-10-01T15:41:43.873855Z"
+            },
+            "plan_id": "plan_GiNhGS3KjDp",
+            "price_behavior": null,
+            "rule_id": "rule_Fp5syN4G6SQ",
+            "rule_id_usage_exceeded": "rule_XkkuZ5S3pV3",
+            "soft_limit": null,
+            "updated_at": "2025-10-01T15:49:24.894337Z",
+            "usage_based_product": null,
+            "value_bool": null,
+            "value_credit": null,
+            "value_numeric": 0,
+            "value_trait": {
+              "created_at": "2025-10-01T14:43:37.694471Z",
+              "display_name": "trait-based-feature",
+              "entity_type": "company",
+              "hierarchy": [
+                "trait-based-feature"
+              ],
+              "id": "trt_U78jdcBghdn",
+              "trait_type": "number",
+              "updated_at": "2025-10-01T14:43:37.694471Z"
+            },
+            "value_trait_id": "trt_U78jdcBghdn",
+            "value_type": "trait"
+          }
+        ],
         "features": [
           {
-            "id": "feat_ZqF9dmerf3s",
-            "name": "Boolean Feature",
-            "singular_name": "",
-            "plural_name": "",
-            "description": "A boolean feature",
-            "feature_type": "boolean",
-            "lifecycle_phase": null,
-            "event_subtype": "boolean-feature",
-            "trait_id": null,
-            "icon": "\u2611\ufe0f",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-09-30T22:07:09.016745Z",
-            "updated_at": "2025-10-01T15:13:58.966969Z",
+            "description": "A boolean feature",
+            "event_subtype": "boolean-feature",
+            "event_summary": null,
+            "feature_type": "boolean",
             "flags": [
               {
                 "created_at": "2025-09-30T22:07:09.05315Z",
                 "default_value": false,
                 "description": "",
+                "feature": null,
                 "feature_id": "feat_ZqF9dmerf3s",
                 "flag_type": "boolean",
                 "id": "flag_YoC68amLfk6",
                 "key": "boolean-feature",
+                "last_checked_at": null,
                 "maintainer_id": null,
                 "name": "Boolean Feature",
-                "updated_at": "2025-10-01T15:13:58.967996Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
+                "rules": [],
+                "updated_at": "2025-10-01T15:13:58.967996Z"
               }
             ],
-            "event_summary": null,
+            "icon": "\u2611\ufe0f",
+            "id": "feat_ZqF9dmerf3s",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Boolean Feature",
             "plans": [
               {
+                "description": "A basic plan",
                 "id": "plan_6Nne9wATKg2",
                 "image_url": null,
-                "name": "Basic",
-                "description": "A basic plan"
+                "name": "Basic"
               },
               {
+                "description": "A free add-on",
                 "id": "plan_BFXJjJrhYiE",
                 "image_url": null,
-                "name": "Free Add-on",
-                "description": "A free add-on"
+                "name": "Free Add-on"
               },
               {
+                "description": "A standard plan",
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
-                "name": "Standard",
-                "description": "A standard plan"
+                "name": "Standard"
               },
               {
+                "description": "A professional plan",
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
+                "name": "Professional"
               },
               {
+                "description": "An enterprise plan",
                 "id": "plan_GiNhGS3KjDp",
                 "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
+                "name": "Enterprise"
               }
             ],
-            "trait": null
+            "plural_name": "",
+            "singular_name": "",
+            "trait": null,
+            "trait_id": null,
+            "updated_at": "2025-10-01T15:13:58.966969Z"
           },
           {
-            "id": "feat_EY47rex1M6P",
-            "name": "Event-based Feature",
-            "singular_name": "event-based feature",
-            "plural_name": "event-based features",
-            "description": "An event-based feature",
-            "feature_type": "event",
-            "lifecycle_phase": null,
-            "event_subtype": "event-based-feature",
-            "trait_id": null,
-            "icon": "\u2b50",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:42:58.193974Z",
-            "updated_at": "2025-10-01T15:16:41.374445Z",
+            "description": "An event-based feature",
+            "event_subtype": "event-based-feature",
+            "event_summary": null,
+            "feature_type": "event",
             "flags": [
               {
                 "created_at": "2025-10-01T14:42:58.411295Z",
                 "default_value": false,
                 "description": "",
+                "feature": null,
                 "feature_id": "feat_EY47rex1M6P",
                 "flag_type": "boolean",
                 "id": "flag_Ci8xa7Br8kc",
                 "key": "event-based-feature",
+                "last_checked_at": null,
                 "maintainer_id": null,
                 "name": "Event-based Feature",
-                "updated_at": "2025-10-01T15:16:41.398595Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
+                "rules": [],
+                "updated_at": "2025-10-01T15:16:41.398595Z"
               }
             ],
-            "event_summary": null,
+            "icon": "\u2b50",
+            "id": "feat_EY47rex1M6P",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Event-based Feature",
             "plans": [
               {
+                "description": "A basic plan",
                 "id": "plan_6Nne9wATKg2",
                 "image_url": null,
-                "name": "Basic",
-                "description": "A basic plan"
+                "name": "Basic"
               },
               {
+                "description": "A standard plan",
                 "id": "plan_8HMdwCRkuc8",
                 "image_url": null,
-                "name": "Standard",
-                "description": "A standard plan"
+                "name": "Standard"
               },
               {
+                "description": "A professional plan",
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
+                "name": "Professional"
               },
               {
+                "description": "An enterprise plan",
                 "id": "plan_GiNhGS3KjDp",
                 "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
+                "name": "Enterprise"
               }
             ],
-            "trait": null
+            "plural_name": "event-based features",
+            "singular_name": "event-based feature",
+            "trait": null,
+            "trait_id": null,
+            "updated_at": "2025-10-01T15:16:41.374445Z"
           },
           {
-            "id": "feat_47NF6M6F1MD",
-            "name": "Trait-based Feature",
-            "singular_name": "trait-based feature",
-            "plural_name": "trait-based features",
-            "description": "A trait-based feature",
-            "feature_type": "trait",
-            "lifecycle_phase": null,
-            "event_subtype": null,
-            "trait_id": "trt_U78jdcBghdn",
-            "icon": "\ud83d\udcd4",
-            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
             "created_at": "2025-10-01T14:43:50.323983Z",
-            "updated_at": "2025-10-01T15:39:05.831304Z",
+            "description": "A trait-based feature",
+            "event_subtype": null,
+            "event_summary": null,
+            "feature_type": "trait",
             "flags": [
               {
                 "created_at": "2025-10-01T14:43:50.332529Z",
                 "default_value": false,
                 "description": "",
+                "feature": null,
                 "feature_id": "feat_47NF6M6F1MD",
                 "flag_type": "boolean",
                 "id": "flag_Hm62kr3ptjw",
                 "key": "trait-based-feature",
+                "last_checked_at": null,
                 "maintainer_id": null,
                 "name": "Trait-based Feature",
-                "updated_at": "2025-10-01T15:39:05.834608Z",
-                "feature": null,
-                "last_checked_at": null,
-                "rules": []
+                "rules": [],
+                "updated_at": "2025-10-01T15:39:05.834608Z"
               }
             ],
-            "event_summary": null,
+            "icon": "\ud83d\udcd4",
+            "id": "feat_47NF6M6F1MD",
+            "lifecycle_phase": null,
+            "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
+            "name": "Trait-based Feature",
             "plans": [
               {
+                "description": "A one-time add-on",
                 "id": "plan_S9LDYYDpQ3X",
                 "image_url": null,
-                "name": "One-time Add-on",
-                "description": "A one-time add-on"
+                "name": "One-time Add-on"
               },
               {
+                "description": "A professional plan",
                 "id": "plan_9Qeb3Aqc6jY",
                 "image_url": null,
-                "name": "Professional",
-                "description": "A professional plan"
+                "name": "Professional"
               },
               {
+                "description": "An enterprise plan",
                 "id": "plan_GiNhGS3KjDp",
                 "image_url": null,
-                "name": "Enterprise",
-                "description": "An enterprise plan"
+                "name": "Enterprise"
               }
             ],
+            "plural_name": "trait-based features",
+            "singular_name": "trait-based feature",
             "trait": {
               "created_at": "2025-10-01T14:43:37.694471Z",
               "display_name": "trait-based-feature",
               "entity_type": "company",
-              "hierarchy": ["trait-based-feature"],
+              "hierarchy": [
+                "trait-based-feature"
+              ],
               "id": "trt_U78jdcBghdn",
               "trait_type": "number",
               "updated_at": "2025-10-01T14:43:37.694471Z"
-            }
+            },
+            "trait_id": "trt_U78jdcBghdn",
+            "updated_at": "2025-10-01T15:39:05.831304Z"
           }
         ],
+        "icon": "violet",
+        "id": "plan_GiNhGS3KjDp",
+        "included_credit_grants": [],
+        "is_custom": false,
         "is_default": false,
         "is_free": false,
         "is_trialable": false,
@@ -2107,8 +2289,11 @@
           "provider_type": "stripe",
           "scheme": "per_unit"
         },
+        "name": "Enterprise",
         "one_time_price": null,
+        "plan_type": "plan",
         "trial_days": 30,
+        "updated_at": "2025-10-01T15:41:43.873855Z",
         "versions": [
           {
             "created_at": "2025-10-01T15:41:16.879857Z",
@@ -2133,208 +2318,33 @@
           "price_decimal": "500000",
           "provider_type": "stripe",
           "scheme": "per_unit"
-        },
-        "is_custom": false,
-        "entitlements": [
-          {
-            "created_at": "2025-10-01T15:48:51.370388Z",
-            "environment_id": "env_66p5iXPxRJU",
-            "feature": {
-              "id": "feat_ZqF9dmerf3s",
-              "name": "Boolean Feature",
-              "singular_name": "",
-              "plural_name": "",
-              "description": "A boolean feature",
-              "feature_type": "boolean",
-              "lifecycle_phase": null,
-              "event_subtype": "boolean-feature",
-              "trait_id": null,
-              "icon": "\u2611\ufe0f",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-              "created_at": "2025-09-30T22:07:09.016745Z",
-              "updated_at": "2025-10-01T15:13:58.966969Z"
-            },
-            "feature_id": "feat_ZqF9dmerf3s",
-            "id": "pltl_CsBpaed5JVS",
-            "metric_period": null,
-            "metric_period_month_reset": null,
-            "plan": {
-              "audience_type": "plan",
-              "created_at": "2025-10-01T15:41:16.879857Z",
-              "description": "An enterprise plan",
-              "id": "plan_GiNhGS3KjDp",
-              "icon": "violet",
-              "name": "Enterprise",
-              "plan_type": "plan",
-              "updated_at": "2025-10-01T15:41:43.873855Z"
-            },
-            "plan_id": "plan_GiNhGS3KjDp",
-            "rule_id": "rule_fayMWvxqBbW",
-            "rule_id_usage_exceeded": null,
-            "updated_at": "2025-10-01T15:48:51.370388Z",
-            "value_bool": true,
-            "value_numeric": null,
-            "value_trait": null,
-            "value_trait_id": null,
-            "value_credit": null,
-            "value_type": "boolean",
-            "metered_monthly_price": null,
-            "consumption_rate": null,
-            "metered_yearly_price": null,
-            "usage_based_product": null,
-            "price_behavior": null,
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
-          },
-          {
-            "created_at": "2025-10-01T15:49:00.519908Z",
-            "environment_id": "env_66p5iXPxRJU",
-            "feature": {
-              "id": "feat_EY47rex1M6P",
-              "name": "Event-based Feature",
-              "singular_name": "event-based feature",
-              "plural_name": "event-based features",
-              "description": "An event-based feature",
-              "feature_type": "event",
-              "lifecycle_phase": null,
-              "event_subtype": "event-based-feature",
-              "trait_id": null,
-              "icon": "\u2b50",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-              "created_at": "2025-10-01T14:42:58.193974Z",
-              "updated_at": "2025-10-01T15:16:41.374445Z"
-            },
-            "feature_id": "feat_EY47rex1M6P",
-            "id": "pltl_DDhXbgU9CVG",
-            "metric_period": null,
-            "metric_period_month_reset": null,
-            "plan": {
-              "audience_type": "plan",
-              "created_at": "2025-10-01T15:41:16.879857Z",
-              "description": "An enterprise plan",
-              "id": "plan_GiNhGS3KjDp",
-              "icon": "violet",
-              "name": "Enterprise",
-              "plan_type": "plan",
-              "updated_at": "2025-10-01T15:41:43.873855Z"
-            },
-            "plan_id": "plan_GiNhGS3KjDp",
-            "rule_id": "rule_CX4XSCeuAEU",
-            "rule_id_usage_exceeded": null,
-            "updated_at": "2025-10-01T15:49:00.519908Z",
-            "value_bool": null,
-            "value_numeric": 0,
-            "value_trait": null,
-            "value_trait_id": null,
-            "value_credit": null,
-            "value_type": "unlimited",
-            "metered_monthly_price": null,
-            "consumption_rate": null,
-            "metered_yearly_price": null,
-            "usage_based_product": null,
-            "price_behavior": null,
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
-          },
-          {
-            "created_at": "2025-10-01T15:49:24.894337Z",
-            "environment_id": "env_66p5iXPxRJU",
-            "feature": {
-              "id": "feat_47NF6M6F1MD",
-              "name": "Trait-based Feature",
-              "singular_name": "trait-based feature",
-              "plural_name": "trait-based features",
-              "description": "A trait-based feature",
-              "feature_type": "trait",
-              "lifecycle_phase": null,
-              "event_subtype": null,
-              "trait_id": "trt_U78jdcBghdn",
-              "icon": "\ud83d\udcd4",
-              "maintainer_id": "user_33RB7uYR2ULsR3RPRxZ6nb0bnwH",
-              "created_at": "2025-10-01T14:43:50.323983Z",
-              "updated_at": "2025-10-01T15:39:05.831304Z"
-            },
-            "feature_id": "feat_47NF6M6F1MD",
-            "id": "pltl_WzUig9EKBHk",
-            "metric_period": null,
-            "metric_period_month_reset": null,
-            "plan": {
-              "audience_type": "plan",
-              "created_at": "2025-10-01T15:41:16.879857Z",
-              "description": "An enterprise plan",
-              "id": "plan_GiNhGS3KjDp",
-              "icon": "violet",
-              "name": "Enterprise",
-              "plan_type": "plan",
-              "updated_at": "2025-10-01T15:41:43.873855Z"
-            },
-            "plan_id": "plan_GiNhGS3KjDp",
-            "rule_id": "rule_Fp5syN4G6SQ",
-            "rule_id_usage_exceeded": "rule_XkkuZ5S3pV3",
-            "updated_at": "2025-10-01T15:49:24.894337Z",
-            "value_bool": null,
-            "value_numeric": 0,
-            "value_trait": {
-              "created_at": "2025-10-01T14:43:37.694471Z",
-              "display_name": "trait-based-feature",
-              "entity_type": "company",
-              "hierarchy": ["trait-based-feature"],
-              "id": "trt_U78jdcBghdn",
-              "trait_type": "number",
-              "updated_at": "2025-10-01T14:43:37.694471Z"
-            },
-            "value_trait_id": "trt_U78jdcBghdn",
-            "value_credit": null,
-            "value_type": "trait",
-            "metered_monthly_price": null,
-            "consumption_rate": null,
-            "metered_yearly_price": null,
-            "usage_based_product": null,
-            "price_behavior": null,
-            "soft_limit": null,
-            "billing_threshold": null,
-            "currency_prices": []
-          }
-        ],
-        "available_periods": [],
-        "compatible_plan_ids": [],
-        "custom": true,
-        "custom_plan_config": {
-          "cta_web_site": "https://schematichq.com",
-          "cta_text": "Talk to us",
-          "price_text": "Custom"
-        },
-        "credits": [],
-        "included_credit_grants": [],
-        "currency_prices": []
+        }
       }
     ],
     "add_on_compatibilities": [
       {
-        "source_plan_id": "plan_aDevbC1pNVr",
-        "compatible_plan_ids": []
+        "compatible_plan_ids": [],
+        "source_plan_id": "plan_aDevbC1pNVr"
       },
       {
-        "source_plan_id": "plan_S9LDYYDpQ3X",
-        "compatible_plan_ids": []
+        "compatible_plan_ids": [],
+        "source_plan_id": "plan_S9LDYYDpQ3X"
       }
     ],
     "capabilities": {
-      "checkout": false,
-      "badge_visibility": false
+      "badge_visibility": false,
+      "checkout": false
     },
-    "show_as_monthly_prices": false,
-    "show_credits": true,
-    "show_period_toggle": true,
-    "show_zero_price_as_free": false,
     "display_settings": {
       "show_as_monthly_prices": false,
       "show_credits": true,
       "show_period_toggle": true,
       "show_zero_price_as_free": false
-    }
+    },
+    "show_as_monthly_prices": false,
+    "show_credits": true,
+    "show_period_toggle": true,
+    "show_zero_price_as_free": false
   },
   "params": {}
 }
