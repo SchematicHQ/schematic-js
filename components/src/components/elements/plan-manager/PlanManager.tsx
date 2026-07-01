@@ -23,6 +23,8 @@ import {
   getSubscriptionPeriod,
   groupCreditGrants,
   isAutoTopupEnabled,
+  isAutoTopupOff,
+  isSelfServiceAutoTopupAvailable,
   lighten,
   shortenPeriod,
   toPrettyDate,
@@ -224,9 +226,9 @@ export const PlanManager = forwardRef<
   }, [currentPlan, usageBasedEntitlements]);
 
   const hasAutoTopupSelfService =
-    currentPlan?.includedCreditGrants.some((grant) => {
-      return grant.billingCreditAutoTopupSelfService;
-    }) ?? false;
+    currentPlan?.includedCreditGrants.some((grant) =>
+      isSelfServiceAutoTopupAvailable(grant),
+    ) ?? false;
 
   return (
     <>
@@ -572,12 +574,14 @@ export const PlanManager = forwardRef<
                               $color={settings.theme.typography.text.color}
                             >
                               {group.total.used} {t("used")}
-                              {hasAutoTopup && planCreditGrant && (
-                                <AutoTopupNotice
-                                  thresholdCredits={thresholdCredits}
-                                  topupAmount={topupAmount}
-                                />
-                              )}
+                              {hasAutoTopup &&
+                                planCreditGrant &&
+                                !isAutoTopupOff(planCreditGrant) && (
+                                  <AutoTopupNotice
+                                    thresholdCredits={thresholdCredits}
+                                    topupAmount={topupAmount}
+                                  />
+                                )}
                             </Text>
                           </Flex>
                         )}
@@ -608,7 +612,7 @@ export const PlanManager = forwardRef<
                       (acc: React.ReactNode[], grant) => {
                         if (
                           !grant.credit ||
-                          !grant.billingCreditAutoTopupSelfService
+                          !isSelfServiceAutoTopupAvailable(grant)
                         ) {
                           return acc;
                         }

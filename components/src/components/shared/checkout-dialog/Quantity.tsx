@@ -42,7 +42,7 @@ export const Quantity = ({
 
   return (
     <Flex $flexDirection="column" $gap="1rem">
-      {entitlements.reduce((acc: React.ReactElement[], entitlement, index) => {
+      {entitlements.reduce((acc: React.ReactElement[], entitlement) => {
         if (entitlement.feature) {
           const entitlementBillingPrice = getEntitlementPrice(
             entitlement,
@@ -61,7 +61,7 @@ export const Quantity = ({
 
           acc.push(
             <Flex
-              key={index}
+              key={entitlement.id}
               $justifyContent="space-between"
               $alignItems="center"
               $gap="1rem"

@@ -5,7 +5,10 @@ import { PlanCreditGrantView } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
 import { AutoTopupConfig } from "../../../types";
-import { getFeatureName } from "../../../utils";
+import {
+  getFeatureName,
+  isSelfServiceAutoTopupAvailable,
+} from "../../../utils";
 import { cardBoxShadow } from "../../layout";
 import { Box, Flex, Input, Text, Toggle } from "../../ui";
 
@@ -31,7 +34,7 @@ export const AutoTopup = ({
   const configurableCreditGrants = useMemo(() => {
     return planCreditGrants.reduce(
       (acc: (PlanCreditGrantView & { cost?: number })[], grant) => {
-        if (grant.billingCreditAutoTopupSelfService) {
+        if (isSelfServiceAutoTopupAvailable(grant)) {
           const {
             companyAutoTopupEnabled,
             companyAutoTopupThresholdCredits,
@@ -71,11 +74,11 @@ export const AutoTopup = ({
 
   return (
     <Flex $flexDirection="column" $gap="1rem">
-      {configurableCreditGrants.map((grant, index) => {
+      {configurableCreditGrants.map((grant) => {
         return (
           <Box
             as="section"
-            key={index}
+            key={grant.id}
             $padding={`${cardPadding}rem`}
             $backgroundColor={settings.theme.card.background}
             $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}

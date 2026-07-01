@@ -1,5 +1,6 @@
 import {
   PlanCreditGrantView,
+  type CompatiblePlans,
   type UpdateAddOnRequestBody,
   type UpdateAutoTopupOverrideRequestBody,
   type UpdateCreditBundleRequestBody,
@@ -12,6 +13,7 @@ import type {
   UsageBasedEntitlement,
 } from "../../types";
 import { getAddOnPrice, getEntitlementPrice } from "./billing";
+import { isAutoTopupOff } from "./credit";
 
 export function buildAutoTopupRequestBody(options: {
   creditGrants: PlanCreditGrantView[];
@@ -21,7 +23,7 @@ export function buildAutoTopupRequestBody(options: {
 
   return creditGrants.reduce(
     (acc: UpdateAutoTopupOverrideRequestBody[], grant) => {
-      if (autoTopupConfigs?.has(grant.id)) {
+      if (!isAutoTopupOff(grant) && autoTopupConfigs?.has(grant.id)) {
         const config = autoTopupConfigs.get(grant.id);
 
         acc.push({
@@ -36,6 +38,37 @@ export function buildAutoTopupRequestBody(options: {
     },
     [],
   );
+}
+
+/**
+ * Builds an add-on-id → compatible-plan-ids lookup so repeated compatibility
+ * checks against the same `addOnCompatibilities` are O(1) instead of re-scanning
+ * the list per add-on. First entry wins, matching the prior `.find` semantics.
+ */
+export function buildAddOnCompatibilityLookup(
+  compatibilities: CompatiblePlans[] = [],
+): Map<string, string[]> {
+  const lookup = new Map<string, string[]>();
+  for (const compat of compatibilities) {
+    if (!lookup.has(compat.sourcePlanId)) {
+      lookup.set(compat.sourcePlanId, compat.compatiblePlanIds ?? []);
+    }
+  }
+  return lookup;
+}
+
+export function isAddOnCompatibleWithLookup(
+  lookup: Map<string, string[]>,
+  addOnId: string,
+  planId: string | undefined,
+): boolean {
+  const compatiblePlanIds = lookup.get(addOnId);
+
+  if (!compatiblePlanIds || compatiblePlanIds.length === 0) {
+    return true;
+  }
+
+  return !!planId && compatiblePlanIds.includes(planId);
 }
 
 export function buildPayInAdvanceRequestBody(options: {

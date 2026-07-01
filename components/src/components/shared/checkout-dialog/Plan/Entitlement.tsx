@@ -51,7 +51,7 @@ export const Entitlement = ({
 
   const showCredits = data?.displaySettings?.showCredits ?? true;
   const showFeatureDescription =
-    data?.displaySettings.showFeatureDescription ?? false;
+    data?.displaySettings?.showFeatureDescription ?? false;
 
   const secondaryTextSize = 0.875 * settings.theme.typography.text.fontSize;
   const secondaryTextColor = `color-mix(in oklch, ${settings.theme.typography.text.color} 62.5%, ${settings.theme.card.background})`;
