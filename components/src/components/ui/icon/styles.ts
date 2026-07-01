@@ -94,4 +94,13 @@ export const Icon = styled(SchematicIcon).attrs(({ name, title, onClick }) => ({
           background-color: ${$background};
         `;
   }}
+
+  /* Fallback monogram for an unknown icon name (see Icon.tsx getNameProps).
+     Font-size is left to the $size scale above so the letter tracks the icon
+     box; only weight/casing differ from a real glyph. */
+  &.icon-fallback-monogram {
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: 1;
+  }
 `;
