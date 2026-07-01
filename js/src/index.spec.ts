@@ -726,7 +726,7 @@ describe("Fallback Values", () => {
             flag: "advanced-feature",
             value: true,
             reason: "Company has premium plan",
-            ruleType: RuleType.PLAN_ENTITLEMENT,
+            ruleType: RuleType.PlanEntitlement,
             featureAllocation: 1000,
             featureUsage: 250,
             featureUsageEvent: "api_call",
@@ -746,7 +746,7 @@ describe("Fallback Values", () => {
             flag: "complex-fallback",
             value: false,
             reason: "Usage limit exceeded",
-            ruleType: RuleType.PLAN_ENTITLEMENT_USAGE_EXCEEDED,
+            ruleType: RuleType.PlanEntitlementUsageExceeded,
             featureUsageExceeded: true,
           },
         },
@@ -1000,7 +1000,7 @@ describe("Fallback Values", () => {
             flag: "priority-flag",
             value: false, // Rich default with different value
             reason: "Rich default takes priority",
-            ruleType: RuleType.PLAN_ENTITLEMENT,
+            ruleType: RuleType.PlanEntitlement,
             featureAllocation: 100,
           },
         },
@@ -1016,7 +1016,7 @@ describe("Fallback Values", () => {
       // Should use flagCheckDefaults, not construct from flagValueDefaults
       expect(result.value).toBe(false); // From flagCheckDefaults, not flagValueDefaults
       expect(result.reason).toBe("Rich default takes priority"); // From flagCheckDefaults
-      expect(result.ruleType).toBe(RuleType.PLAN_ENTITLEMENT); // Rich metadata preserved
+      expect(result.ruleType).toBe(RuleType.PlanEntitlement); // Rich metadata preserved
       expect(result.featureAllocation).toBe(100);
     });
   });
@@ -1044,7 +1044,7 @@ describe("Fallback Values", () => {
             flag: "sync-check-flag",
             value: true,
             reason: "Has premium plan",
-            ruleType: RuleType.PLAN_ENTITLEMENT,
+            ruleType: RuleType.PlanEntitlement,
             featureAllocation: 500,
             featureUsage: 100,
           },
