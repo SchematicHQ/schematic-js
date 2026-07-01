@@ -39,7 +39,7 @@
     "lodash": "^4.18.1",
     "pako": "^2.1.0",
     "react-i18next": "16.1.6",
-    "styled-components": "^6.4.2",
+    "styled-components": "^6.4.3",
     "uuid": "^14.0.1"
   },
   "devDependencies": {
