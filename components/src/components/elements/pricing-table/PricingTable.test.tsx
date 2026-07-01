@@ -1,14 +1,17 @@
 import {
   act,
   fireEvent,
+  render as rtlRender,
   screen,
   waitForElementToBeRemoved,
   within,
 } from "@testing-library/react";
 import cloneDeep from "lodash/cloneDeep";
 import { HttpResponse, delay, http } from "msw";
+import { useReducer } from "react";
 import { vi } from "vitest";
 
+import { EmbedProvider } from "../../../context/EmbedProvider";
 import hydrateJson from "../../../test/mocks/handlers/response/hydrate.json";
 import plansJson from "../../../test/mocks/handlers/response/plans.json";
 import { server } from "../../../test/mocks/node";
@@ -63,6 +66,48 @@ describe("`PricingTable`", () => {
       for (const button of buttons) {
         expect(button).toBeEnabled();
       }
+    });
+
+    test("Fetches public plans only once when the consumer re-renders with a new inline `apiConfig`", async () => {
+      let requestCount = 0;
+      server.use(
+        http.get("https://api.schematichq.com/public/plans", async () => {
+          requestCount += 1;
+          return HttpResponse.json(plansJson);
+        }),
+      );
+
+      // Mirrors the marketing-site integration: an inline `apiConfig={{}}` (new
+      // reference each render) in a parent that re-renders after mount. Guards
+      // against the public hydration effect re-firing into a duplicate fetch.
+      const Consumer = () => {
+        const [tick, rerender] = useReducer((n: number) => n + 1, 0);
+        return (
+          <>
+            <button data-testid="rerender" onClick={() => rerender()}>
+              {tick}
+            </button>
+            <EmbedProvider apiKey="api_0" apiConfig={{}}>
+              <PricingTable callToActionUrl="/" />
+            </EmbedProvider>
+          </>
+        );
+      };
+
+      rtlRender(<Consumer />);
+
+      const wrapper = await screen.findByTestId("sch-pricing-table");
+      expect(wrapper).toBeInTheDocument();
+      expect(requestCount).toBe(1);
+
+      // Force the consumer to re-render with fresh inline `apiConfig` references.
+      fireEvent.click(screen.getByTestId("rerender"));
+      fireEvent.click(screen.getByTestId("rerender"));
+
+      // Allow any debounced/trailing fetch to settle.
+      await act(() => new Promise((resolve) => setTimeout(resolve, 400)));
+
+      expect(requestCount).toBe(1);
     });
 
     test("Should hide plans when `plans.isVisible` is false", async () => {

@@ -91,6 +91,19 @@ export const EmbedProvider = ({
   const sessionId = useMemo(() => uuidv4(), []);
   const styleRef = useRef<HTMLLinkElement>(null);
 
+  // Stabilize `apiConfig` against inline object props (e.g. `apiConfig={{}}`): a
+  // new-but-equal reference each render would otherwise rebuild the API clients
+  // (and the debounced methods derived from them), re-firing the pricing table's
+  // public hydration into a duplicate `/public/plans` fetch. Keying on the
+  // serialized contents ignores that churn; function-typed fields drop out, as
+  // intended.
+  const apiConfigKey = JSON.stringify(apiConfig ?? {});
+  const stableApiConfig = useMemo(
+    () => apiConfig ?? {},
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on contents, not reference
+    [apiConfigKey],
+  );
+
   const [state, dispatch] = useReducer(reducer, options, (opts) => {
     const providedState = {
       settings: opts.settings || {},
@@ -104,21 +117,21 @@ export const EmbedProvider = ({
 
   const publicApi = useMemo(() => {
     if (!apiKey) return undefined;
-    const configParams = merge({}, apiConfig, {
+    const configParams = merge({}, stableApiConfig, {
       apiKey,
       headers: getCustomHeaders(sessionId),
     });
     return new ComponentspublicApi(new PublicConfiguration(configParams));
-  }, [apiKey, apiConfig, sessionId]);
+  }, [apiKey, stableApiConfig, sessionId]);
 
   const checkoutApi = useMemo(() => {
     if (!state.accessToken) return undefined;
-    const configParams = merge({}, apiConfig, {
+    const configParams = merge({}, stableApiConfig, {
       apiKey: state.accessToken,
       headers: getCustomHeaders(sessionId),
     });
     return new CheckoutexternalApi(new CheckoutConfiguration(configParams));
-  }, [state.accessToken, apiConfig, sessionId]);
+  }, [state.accessToken, stableApiConfig, sessionId]);
 
   const debug = useCallback(
     (message: string, ...args: unknown[]) => {
