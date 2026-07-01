@@ -14,8 +14,7 @@ import {
 import { type PublicPlansResponseData } from "../api/componentspublic";
 
 export type HydrateData =
-  | PublicPlansResponseData
-  | ComponentHydrateResponseData;
+  PublicPlansResponseData | ComponentHydrateResponseData;
 
 export type HydrateDataWithCompanyContext = ComponentHydrateResponseData;
 
@@ -63,8 +62,7 @@ export type CreditBundle = BillingCreditBundleView & { count: number };
 export type Feature = FeatureResponseData;
 
 export type Entitlement =
-  | PlanEntitlementResponseData
-  | FeatureUsageResponseData;
+  PlanEntitlementResponseData | FeatureUsageResponseData;
 
 export type SharedEntitlementUsageProps = {
   allocation: number;

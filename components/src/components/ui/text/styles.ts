@@ -75,36 +75,46 @@ export const Text = styled.span
 
     return css`
       font-family: ${fontFamily}, sans-serif;
-      font-size: ${typeof fontSize === "number"
-        ? `${fontSize / TEXT_BASE_SIZE}rem`
-        : fontSize};
+      font-size: ${
+        typeof fontSize === "number"
+          ? `${fontSize / TEXT_BASE_SIZE}rem`
+          : fontSize
+      };
       font-weight: ${fontWeight};
       font-variation-settings: "wght" ${fontWeight};
       color: ${color};
       text-wrap: pretty;
 
-      ${lineHeight &&
-      css`
-        line-height: ${lineHeight};
-      `}
+      ${
+        lineHeight &&
+        css`
+          line-height: ${lineHeight};
+        `
+      }
 
-      ${$align &&
-      css`
-        text-align: ${$align};
-      `};
+      ${
+        $align &&
+        css`
+          text-align: ${$align};
+        `
+      };
 
-      ${$width &&
-      css`
-        width: ${$width};
-      `};
+      ${
+        $width &&
+        css`
+          width: ${$width};
+        `
+      };
 
-      ${(onClick || as === "a" || display === "link") &&
-      css`
-        &:hover {
-          cursor: pointer;
-          text-decoration: underline;
-        }
-      `}
+      ${
+        (onClick || as === "a" || display === "link") &&
+        css`
+          &:hover {
+            cursor: pointer;
+            text-decoration: underline;
+          }
+        `
+      }
 
       &:focus-visible {
         outline: 2px solid ${({ theme }) => theme.primary};

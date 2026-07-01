@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from "./ApiError";
+export * from "./BillingCreditAutoTopupAvailability";
 export * from "./BillingCreditBundleStatus";
 export * from "./BillingCreditBundleType";
 export * from "./BillingCreditBundleView";

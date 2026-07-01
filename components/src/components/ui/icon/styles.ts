@@ -75,11 +75,13 @@ export const Icon = styled(SchematicIcon).attrs(({ name, title, onClick }) => ({
     return css`
       font-size: ${(base * scale) / TEXT_BASE_SIZE}rem;
 
-      ${$rounded &&
-      css`
-        width: ${(base * (11 / 6) * scale) / TEXT_BASE_SIZE}rem;
-        height: ${(base * (11 / 6) * scale) / TEXT_BASE_SIZE}rem;
-      `}
+      ${
+        $rounded &&
+        css`
+          width: ${(base * (11 / 6) * scale) / TEXT_BASE_SIZE}rem;
+          height: ${(base * (11 / 6) * scale) / TEXT_BASE_SIZE}rem;
+        `
+      }
     `;
   }}
 

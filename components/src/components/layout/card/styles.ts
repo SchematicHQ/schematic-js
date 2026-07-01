@@ -23,9 +23,11 @@ export const StyledCard = styled.div(({ theme }) => {
   return css`
     position: relative;
 
-    ${theme.sectionLayout === "merged"
-      ? `&:not(:has(${FussyChild}))`
-      : `${Element}:not(:is(${FussyChild}))`} {
+    ${
+      theme.sectionLayout === "merged"
+        ? `&:not(:has(${FussyChild}))`
+        : `${Element}:not(:is(${FussyChild}))`
+    } {
       color: ${theme.typography.text.color};
       background: ${theme.card.background};
       border-radius: ${borderRadius};
@@ -37,13 +39,15 @@ export const StyledCard = styled.div(({ theme }) => {
         ${theme.card.padding / TEXT_BASE_SIZE}rem;
 
       &:not(:last-child) {
-        ${theme.sectionLayout === "merged"
-          ? css`
-              border-bottom: 1px solid ${borderColor};
-            `
-          : css`
-              margin-bottom: 1rem;
-            `}
+        ${
+          theme.sectionLayout === "merged"
+            ? css`
+                border-bottom: 1px solid ${borderColor};
+              `
+            : css`
+                margin-bottom: 1rem;
+              `
+        }
       }
     }
 

@@ -119,9 +119,11 @@ export const Button = styled.button<ButtonProps>(
           return css`
             color: ${color};
             background-color: transparent;
-            border-color: ${l > 50
-              ? darken(theme.card.background, 0.2)
-              : lighten(theme.card.background, 0.2)};
+            border-color: ${
+              l > 50
+                ? darken(theme.card.background, 0.2)
+                : lighten(theme.card.background, 0.2)
+            };
 
             ${Text}, ${Icon} {
               color: ${color};
@@ -159,10 +161,12 @@ export const Button = styled.button<ButtonProps>(
       &::before {
         content: "";
         ${loaderStyles({ $color: theme[$color], $size, $isLoading })}
-        ${$isLoading &&
-        css`
-          margin-right: 0.5rem;
-        `}
+        ${
+          $isLoading &&
+          css`
+            margin-right: 0.5rem;
+          `
+        }
       }
 
       &:disabled {
@@ -203,13 +207,17 @@ export const Button = styled.button<ButtonProps>(
             const { l } = hexToHSL(theme.card.background);
 
             return css`
-              border-color: ${l > 50
-                ? darken(theme.card.background, 0.125)
-                : lighten(theme.card.background, 0.125)};
+              border-color: ${
+                l > 50
+                  ? darken(theme.card.background, 0.125)
+                  : lighten(theme.card.background, 0.125)
+              };
               box-shadow: 0 1px 2px
-                ${l > 50
-                  ? darken(theme.card.background, 0.075)
-                  : lighten(theme.card.background, 0.075)};
+                ${
+                  l > 50
+                    ? darken(theme.card.background, 0.075)
+                    : lighten(theme.card.background, 0.075)
+                };
             `;
           }
 

@@ -92,9 +92,11 @@ export const Input = styled.input<{
     }
 
     &::placeholder {
-      color: ${isLightBackground
-        ? "hsla(0, 0%, 0%, 0.375)"
-        : "hsla(0, 0%, 100%, 0.375)"};
+      color: ${
+        isLightBackground
+          ? "hsla(0, 0%, 0%, 0.375)"
+          : "hsla(0, 0%, 100%, 0.375)"
+      };
     }
   `;
 });
