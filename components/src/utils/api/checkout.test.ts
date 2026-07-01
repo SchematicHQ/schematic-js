@@ -660,15 +660,15 @@ describe("buildAddOnCompatibilityLookup / isAddOnCompatibleWithLookup", () => {
   });
 
   it("returns true when the plan is in compatiblePlanIds", () => {
-    expect(isAddOnCompatibleWithLookup(lookup, "addon-restricted", "plan-b")).toBe(
-      true,
-    );
+    expect(
+      isAddOnCompatibleWithLookup(lookup, "addon-restricted", "plan-b"),
+    ).toBe(true);
   });
 
   it("returns false when the plan is not in compatiblePlanIds", () => {
-    expect(isAddOnCompatibleWithLookup(lookup, "addon-restricted", "plan-c")).toBe(
-      false,
-    );
+    expect(
+      isAddOnCompatibleWithLookup(lookup, "addon-restricted", "plan-c"),
+    ).toBe(false);
   });
 
   it("returns false for a restricted add-on when no plan is provided", () => {
