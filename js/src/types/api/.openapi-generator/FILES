@@ -1,6 +1,7 @@
 index.ts
 models/ActorType.ts
 models/ApiError.ts
+models/BillingCreditAutoTopupAvailability.ts
 models/BillingCreditBurnStrategy.ts
 models/BillingCreditExpiryType.ts
 models/BillingCreditExpiryUnit.ts

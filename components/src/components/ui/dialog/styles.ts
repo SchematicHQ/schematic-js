@@ -39,9 +39,11 @@ export const Dialog = styled.dialog<DialogProps>(
       box-shadow:
         0px 1px 20px 0px #1018280f,
         0px 1px 3px 0px #1018281a;
-      scrollbar-color: ${isLightColor(theme.card.background)
+      scrollbar-color: ${
+        isLightColor(theme.card.background)
           ? "hsla(0, 0%, 0%, 0.15)"
-          : "hsla(0, 0%, 100%, 0.15)"}
+          : "hsla(0, 0%, 100%, 0.15)"
+      }
         transparent;
 
       &:focus-visible {
@@ -49,19 +51,19 @@ export const Dialog = styled.dialog<DialogProps>(
       }
 
       &::backdrop {
-        background-color: ${isLightColor(theme.card.background)
-          ? "hsla(0, 0%, 87.5%, 0.9)"
-          : "hsla(0, 0%, 12.5%, 0.9)"};
+        background-color: ${
+          isLightColor(theme.card.background)
+            ? "hsla(0, 0%, 87.5%, 0.9)"
+            : "hsla(0, 0%, 12.5%, 0.9)"
+        };
         backdrop-filter: blur(8px);
       }
 
       @media (min-width: 768px) {
         width: ${$size === "auto" ? "auto" : "100%"};
-        max-width: ${$size === "sm"
-          ? "480px"
-          : $size === "md"
-            ? "768px"
-            : "1356px"};
+        max-width: ${
+          $size === "sm" ? "480px" : $size === "md" ? "768px" : "1356px"
+        };
         height: ${$size === "lg" ? "100%" : "fit-content"};
         border-radius: 0.5rem;
 
@@ -69,10 +71,12 @@ export const Dialog = styled.dialog<DialogProps>(
           flex-direction: row;
           max-height: calc(100dvh - 5rem + 3px);
 
-          ${$size === "lg" &&
-          css`
-            height: calc(100% - 5rem + 3px);
-          `}
+          ${
+            $size === "lg" &&
+            css`
+              height: calc(100% - 5rem + 3px);
+            `
+          }
         }
       }
 

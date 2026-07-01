@@ -27,6 +27,13 @@ import {
   BillingCreditExpiryTypeToJSON,
   BillingCreditExpiryTypeToJSONTyped,
 } from "./BillingCreditExpiryType";
+import type { BillingCreditAutoTopupAvailability } from "./BillingCreditAutoTopupAvailability";
+import {
+  BillingCreditAutoTopupAvailabilityFromJSON,
+  BillingCreditAutoTopupAvailabilityFromJSONTyped,
+  BillingCreditAutoTopupAvailabilityToJSON,
+  BillingCreditAutoTopupAvailabilityToJSONTyped,
+} from "./BillingCreditAutoTopupAvailability";
 import type { BillingPlanCreditGrantResetStart } from "./BillingPlanCreditGrantResetStart";
 import {
   BillingPlanCreditGrantResetStartFromJSON,
@@ -83,8 +90,15 @@ export interface BillingPlanCreditGrantResponseData {
   autoTopupAmountType?: string | null;
   /**
    *
+   * @type {BillingCreditAutoTopupAvailability}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  autoTopupAvailability: BillingCreditAutoTopupAvailability;
+  /**
+   * Derived from auto_topup_availability; use that instead.
    * @type {boolean}
    * @memberof BillingPlanCreditGrantResponseData
+   * @deprecated
    */
   autoTopupEnabled: boolean;
   /**
@@ -106,9 +120,10 @@ export interface BillingPlanCreditGrantResponseData {
    */
   autoTopupExpiryUnitCount?: number | null;
   /**
-   *
+   * Derived from auto_topup_availability; use that instead.
    * @type {boolean}
    * @memberof BillingPlanCreditGrantResponseData
+   * @deprecated
    */
   autoTopupSelfService: boolean;
   /**
@@ -123,6 +138,12 @@ export interface BillingPlanCreditGrantResponseData {
    * @memberof BillingPlanCreditGrantResponseData
    */
   autoTopupThresholdPercent?: number | null;
+  /**
+   * Whether buyers can purchase one-time credit bundles on this grant, independent of auto top-up availability.
+   * @type {boolean}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  canBuyBundles: boolean;
   /**
    *
    * @type {Date}
@@ -255,12 +276,19 @@ export interface BillingPlanCreditGrantResponseData {
 export function instanceOfBillingPlanCreditGrantResponseData(
   value: object,
 ): value is BillingPlanCreditGrantResponseData {
+  if (
+    !("autoTopupAvailability" in value) ||
+    value["autoTopupAvailability"] === undefined
+  )
+    return false;
   if (!("autoTopupEnabled" in value) || value["autoTopupEnabled"] === undefined)
     return false;
   if (
     !("autoTopupSelfService" in value) ||
     value["autoTopupSelfService"] === undefined
   )
+    return false;
+  if (!("canBuyBundles" in value) || value["canBuyBundles"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditAmount" in value) || value["creditAmount"] === undefined)
@@ -300,6 +328,9 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
       json["auto_topup_amount_type"] == null
         ? undefined
         : json["auto_topup_amount_type"],
+    autoTopupAvailability: BillingCreditAutoTopupAvailabilityFromJSON(
+      json["auto_topup_availability"],
+    ),
     autoTopupEnabled: json["auto_topup_enabled"],
     autoTopupExpiryType:
       json["auto_topup_expiry_type"] == null
@@ -322,6 +353,7 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
       json["auto_topup_threshold_percent"] == null
         ? undefined
         : json["auto_topup_threshold_percent"],
+    canBuyBundles: json["can_buy_bundles"],
     createdAt: new Date(json["created_at"]),
     credit:
       json["credit"] == null
@@ -391,6 +423,9 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
   return {
     auto_topup_amount: value["autoTopupAmount"],
     auto_topup_amount_type: value["autoTopupAmountType"],
+    auto_topup_availability: BillingCreditAutoTopupAvailabilityToJSON(
+      value["autoTopupAvailability"],
+    ),
     auto_topup_enabled: value["autoTopupEnabled"],
     auto_topup_expiry_type: BillingCreditExpiryTypeToJSON(
       value["autoTopupExpiryType"],
@@ -402,6 +437,7 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     auto_topup_self_service: value["autoTopupSelfService"],
     auto_topup_threshold_credits: value["autoTopupThresholdCredits"],
     auto_topup_threshold_percent: value["autoTopupThresholdPercent"],
+    can_buy_bundles: value["canBuyBundles"],
     created_at: value["createdAt"].toISOString(),
     credit: BillingCreditResponseDataToJSON(value["credit"]),
     credit_amount: value["creditAmount"],

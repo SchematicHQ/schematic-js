@@ -2,6 +2,7 @@
 /* eslint-disable */
 export * from "./ActorType";
 export * from "./ApiError";
+export * from "./BillingCreditAutoTopupAvailability";
 export * from "./BillingCreditBurnStrategy";
 export * from "./BillingCreditExpiryType";
 export * from "./BillingCreditExpiryUnit";

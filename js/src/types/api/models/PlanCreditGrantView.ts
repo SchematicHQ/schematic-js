@@ -20,6 +20,13 @@ import {
   BillingCreditExpiryTypeToJSON,
   BillingCreditExpiryTypeToJSONTyped,
 } from "./BillingCreditExpiryType";
+import type { BillingCreditAutoTopupAvailability } from "./BillingCreditAutoTopupAvailability";
+import {
+  BillingCreditAutoTopupAvailabilityFromJSON,
+  BillingCreditAutoTopupAvailabilityFromJSONTyped,
+  BillingCreditAutoTopupAvailabilityToJSON,
+  BillingCreditAutoTopupAvailabilityToJSONTyped,
+} from "./BillingCreditAutoTopupAvailability";
 import type { BillingPlanCreditGrantResetStart } from "./BillingPlanCreditGrantResetStart";
 import {
   BillingPlanCreditGrantResetStartFromJSON,
@@ -83,6 +90,12 @@ export interface PlanCreditGrantView {
   billingCreditAutoTopupAmountType?: string | null;
   /**
    *
+   * @type {BillingCreditAutoTopupAvailability}
+   * @memberof PlanCreditGrantView
+   */
+  billingCreditAutoTopupAvailability?: BillingCreditAutoTopupAvailability | null;
+  /**
+   *
    * @type {boolean}
    * @memberof PlanCreditGrantView
    */
@@ -123,6 +136,12 @@ export interface PlanCreditGrantView {
    * @memberof PlanCreditGrantView
    */
   billingCreditAutoTopupThresholdPercent?: number | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PlanCreditGrantView
+   */
+  billingCreditCanBuyBundles: boolean;
   /**
    *
    * @type {Date}
@@ -272,6 +291,11 @@ export function instanceOfPlanCreditGrantView(
     value["billingCreditAutoTopupSelfService"] === undefined
   )
     return false;
+  if (
+    !("billingCreditCanBuyBundles" in value) ||
+    value["billingCreditCanBuyBundles"] === undefined
+  )
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditAmount" in value) || value["creditAmount"] === undefined)
     return false;
@@ -315,6 +339,12 @@ export function PlanCreditGrantViewFromJSONTyped(
       json["billing_credit_auto_topup_amount_type"] == null
         ? undefined
         : json["billing_credit_auto_topup_amount_type"],
+    billingCreditAutoTopupAvailability:
+      json["billing_credit_auto_topup_availability"] == null
+        ? undefined
+        : BillingCreditAutoTopupAvailabilityFromJSON(
+            json["billing_credit_auto_topup_availability"],
+          ),
     billingCreditAutoTopupEnabled: json["billing_credit_auto_topup_enabled"],
     billingCreditAutoTopupExpiryType:
       json["billing_credit_auto_topup_expiry_type"] == null
@@ -342,6 +372,7 @@ export function PlanCreditGrantViewFromJSONTyped(
       json["billing_credit_auto_topup_threshold_percent"] == null
         ? undefined
         : json["billing_credit_auto_topup_threshold_percent"],
+    billingCreditCanBuyBundles: json["billing_credit_can_buy_bundles"],
     createdAt: new Date(json["created_at"]),
     credit:
       json["credit"] == null
@@ -403,6 +434,10 @@ export function PlanCreditGrantViewToJSONTyped(
     billing_credit_auto_topup_amount: value["billingCreditAutoTopupAmount"],
     billing_credit_auto_topup_amount_type:
       value["billingCreditAutoTopupAmountType"],
+    billing_credit_auto_topup_availability:
+      BillingCreditAutoTopupAvailabilityToJSON(
+        value["billingCreditAutoTopupAvailability"],
+      ),
     billing_credit_auto_topup_enabled: value["billingCreditAutoTopupEnabled"],
     billing_credit_auto_topup_expiry_type: BillingCreditExpiryTypeToJSON(
       value["billingCreditAutoTopupExpiryType"],
@@ -418,6 +453,7 @@ export function PlanCreditGrantViewToJSONTyped(
       value["billingCreditAutoTopupThresholdCredits"],
     billing_credit_auto_topup_threshold_percent:
       value["billingCreditAutoTopupThresholdPercent"],
+    billing_credit_can_buy_bundles: value["billingCreditCanBuyBundles"],
     created_at: value["createdAt"].toISOString(),
     credit: BillingCreditViewToJSON(value["credit"]),
     credit_amount: value["creditAmount"],

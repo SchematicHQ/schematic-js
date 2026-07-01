@@ -131,25 +131,27 @@ export const Content = styled.div.withConfig({
     &::after {
       position: absolute;
       z-index: 0;
-      ${position === "top"
-        ? css`
-            top: 100%;
-            left: 50%;
-          `
-        : position === "right"
+      ${
+        position === "top"
           ? css`
-              top: 50%;
-              right: 100%;
+              top: 100%;
+              left: 50%;
             `
-          : position === "bottom"
+          : position === "right"
             ? css`
-                bottom: 100%;
-                left: 50%;
-              `
-            : css`
                 top: 50%;
-                left: 100%;
-              `};
+                right: 100%;
+              `
+            : position === "bottom"
+              ? css`
+                  bottom: 100%;
+                  left: 50%;
+                `
+              : css`
+                  top: 50%;
+                  left: 100%;
+                `
+      };
       transform: translate(${arrowTranslate.x}%, ${arrowTranslate.y}%);
       content: "";
       display: block;

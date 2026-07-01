@@ -118,11 +118,7 @@ export const defaultSettings: EmbedSettings = {
 };
 
 export type EmbedLayout =
-  | "portal"
-  | "checkout"
-  | "payment"
-  | "unsubscribe"
-  | "disabled";
+  "portal" | "checkout" | "payment" | "unsubscribe" | "disabled";
 
 /**
  * Explicit configuration for skipping checkout stages.
