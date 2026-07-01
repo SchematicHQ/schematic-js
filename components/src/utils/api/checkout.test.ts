@@ -42,6 +42,7 @@ function makeSelectedPlan(overrides: Partial<SelectedPlan> = {}): SelectedPlan {
     compatiblePlanIds: [],
     controlledBy: "self_serve" as any,
     createdAt: new Date(),
+    credits: [],
     currencyPrices: [],
     current: false,
     custom: false,
