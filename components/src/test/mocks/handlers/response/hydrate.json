@@ -100,6 +100,7 @@
         "current": false,
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [],
         "usage_violations": [],
         "valid": true,
@@ -300,6 +301,7 @@
         "current": false,
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [],
         "usage_violations": [],
         "valid": true,
@@ -676,6 +678,7 @@
         "current": true,
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [],
         "usage_violations": [],
         "valid": true,
@@ -1156,6 +1159,7 @@
         "current": false,
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [],
         "usage_violations": [],
         "valid": true,
@@ -1815,6 +1819,7 @@
         "current": false,
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [
           {
             "id": "bilpcg_QpMeApHmLLw",
@@ -2323,6 +2328,7 @@
           "cta_text": "Talk to us",
           "price_text": "Custom"
         },
+        "credits": [],
         "included_credit_grants": [],
         "usage_violations": [],
         "valid": true,
@@ -3483,6 +3489,7 @@
     "prevent_self_service_downgrade_button_text": null,
     "prevent_self_service_downgrade_url": null,
     "default_plan": {
+      "credits": [],
       "audience_type": "plan",
       "created_at": "2025-10-01T15:43:08.694843Z",
       "description": "A free plan",
@@ -3521,6 +3528,7 @@
       "currency_prices": []
     },
     "post_trial_plan": {
+      "credits": [],
       "audience_type": "plan",
       "created_at": "2025-10-01T15:43:08.694843Z",
       "description": "A free plan",

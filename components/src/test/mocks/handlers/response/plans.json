@@ -98,6 +98,7 @@
         "compatible_plan_ids": [],
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [],
         "currency_prices": []
       },
@@ -294,6 +295,7 @@
         "compatible_plan_ids": [],
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [],
         "currency_prices": []
       }
@@ -666,6 +668,7 @@
         "compatible_plan_ids": [],
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [],
         "currency_prices": []
       },
@@ -1142,6 +1145,7 @@
         "compatible_plan_ids": [],
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [],
         "currency_prices": []
       },
@@ -1797,6 +1801,7 @@
         "compatible_plan_ids": [],
         "custom": false,
         "custom_plan_config": null,
+        "credits": [],
         "included_credit_grants": [
           {
             "id": "bilpcg_QpMeApHmLLw",
@@ -2301,6 +2306,7 @@
           "cta_text": "Talk to us",
           "price_text": "Custom"
         },
+        "credits": [],
         "included_credit_grants": [],
         "currency_prices": []
       }
