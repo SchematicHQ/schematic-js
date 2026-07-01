@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingCreditResponseData } from "./BillingCreditResponseData";
+import {
+  BillingCreditResponseDataFromJSON,
+  BillingCreditResponseDataFromJSONTyped,
+  BillingCreditResponseDataToJSON,
+  BillingCreditResponseDataToJSONTyped,
+} from "./BillingCreditResponseData";
 import type { BillingLinkedResourceResponseData } from "./BillingLinkedResourceResponseData";
 import {
   BillingLinkedResourceResponseDataFromJSON,
@@ -218,6 +225,12 @@ export interface PlanViewPublicResponseData {
   createdAt: Date;
   /**
    *
+   * @type {Array<BillingCreditResponseData>}
+   * @memberof PlanViewPublicResponseData
+   */
+  credits: Array<BillingCreditResponseData>;
+  /**
+   *
    * @type {Array<PlanCurrencyPricesResponseData>}
    * @memberof PlanViewPublicResponseData
    */
@@ -380,6 +393,7 @@ export function instanceOfPlanViewPublicResponseData(
   if (!("controlledBy" in value) || value["controlledBy"] === undefined)
     return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
+  if (!("credits" in value) || value["credits"] === undefined) return false;
   if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
     return false;
   if (!("custom" in value) || value["custom"] === undefined) return false;
@@ -453,6 +467,9 @@ export function PlanViewPublicResponseDataFromJSONTyped(
         ? undefined
         : json["copied_from_plan_id"],
     createdAt: new Date(json["created_at"]),
+    credits: (json["credits"] as Array<any>).map(
+      BillingCreditResponseDataFromJSON,
+    ),
     currencyPrices: (json["currency_prices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataFromJSON,
     ),
@@ -546,6 +563,9 @@ export function PlanViewPublicResponseDataToJSONTyped(
     controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
     copied_from_plan_id: value["copiedFromPlanId"],
     created_at: value["createdAt"].toISOString(),
+    credits: (value["credits"] as Array<any>).map(
+      BillingCreditResponseDataToJSON,
+    ),
     currency_prices: (value["currencyPrices"] as Array<any>).map(
       PlanCurrencyPricesResponseDataToJSON,
     ),
