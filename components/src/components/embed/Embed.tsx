@@ -83,7 +83,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
         // `inflate` is not guaranteed to return a string
         const json: string | undefined = inflate(
           Uint8Array.from(Object.values(compressedAst)),
-          { to: "string" },
+          { toText: true },
         );
         const ast = getEditorState(json);
 
