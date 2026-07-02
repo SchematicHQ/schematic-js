@@ -140,17 +140,19 @@ describe("`HardLimitTooltip` component", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  test("throws when data exists but displaySettings is undefined", () => {
+  test("does not render when data exists but displaySettings is undefined", () => {
     mockUseEmbed.mockReturnValue({
       data: { displaySettings: undefined },
     });
     mockUseIsLightBackground.mockReturnValue(true);
 
-    // The component accesses data?.displaySettings.showHardLimit
-    // which throws if data exists but displaySettings is undefined
-    expect(() =>
-      render(<HardLimitTooltip feature={createMockFeature()} limit={500} />),
-    ).toThrow();
+    // The component reads data?.displaySettings?.showHardLimit, so a missing
+    // displaySettings resolves to `false` rather than throwing.
+    const { container } = render(
+      <HardLimitTooltip feature={createMockFeature()} limit={500} />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
   });
 
   test("uses feature name fallback when singularName and pluralName are not set", () => {

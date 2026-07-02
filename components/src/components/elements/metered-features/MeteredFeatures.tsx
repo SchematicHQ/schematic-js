@@ -20,6 +20,7 @@ import {
   entitlementHasHardLimit,
   formatCurrency,
   formatNumber,
+  getBundleOffCreditIds,
   getFeatureName,
   getSubscriptionPeriod,
   getUsageDetails,
@@ -91,7 +92,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
           : priceBehavior === EntitlementPriceBehavior.PayAsYouGo &&
               typeof cost === "number"
             ? formatCurrency(cost, billingPrice?.currency)
-            : data?.displaySettings.showCredits &&
+            : data?.displaySettings?.showCredits &&
                 priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
                 typeof planEntitlement?.valueCredit !== "undefined" &&
                 typeof planEntitlement?.consumptionRate === "number"
@@ -231,19 +232,33 @@ export const MeteredFeatures = forwardRef<
     );
   }, [props.visibleFeatures, data?.featureUsage?.features]);
 
-  const creditGroups = groupCreditGrants(data?.creditGrants || [], {
-    groupBy: "credit",
-  });
-  const [creditVisibility, setCreditVisibility] = useState(
-    creditGroups.map(({ id }) => ({ id, isExpanded: false })),
+  const creditGroups = useMemo(
+    () => groupCreditGrants(data?.creditGrants || [], { groupBy: "credit" }),
+    [data?.creditGrants],
+  );
+
+  const bundleOffCreditIds = useMemo(
+    () => getBundleOffCreditIds(data?.company?.plan?.includedCreditGrants),
+    [data?.company?.plan?.includedCreditGrants],
+  );
+
+  // Track expanded credits by id rather than seeding an array from creditGroups:
+  // the component can mount before credit data loads, and a seeded array would
+  // never resync, leaving the expand chevron a no-op for late-arriving credits.
+  const [expandedCreditIds, setExpandedCreditIds] = useState<Set<string>>(
+    () => new Set(),
   );
 
   const toggleBalanceDetails = useCallback((id: string) => {
-    setCreditVisibility((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, isExpanded: !item.isExpanded } : item,
-      ),
-    );
+    setExpandedCreditIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }, []);
 
   const shouldShowFeatures =
@@ -389,9 +404,7 @@ export const MeteredFeatures = forwardRef<
 
       {showCredits &&
         creditGroups.map((credit, index) => {
-          const isExpanded =
-            creditVisibility.find(({ id }) => credit.id === id)?.isExpanded ??
-            false;
+          const isExpanded = expandedCreditIds.has(credit.id);
 
           return (
             <Element key={index} as={Flex} $flexDirection="column" $gap="1rem">
@@ -444,7 +457,7 @@ export const MeteredFeatures = forwardRef<
                       }
                     />
 
-                    {canCheckout && (
+                    {canCheckout && !bundleOffCreditIds.has(credit.id) && (
                       <Button
                         type="button"
                         onClick={() => {
