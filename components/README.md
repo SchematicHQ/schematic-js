@@ -79,6 +79,32 @@ the final checkout step with the quantities already set.
 The Plans and Add-ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).
 
+## Programmatic Unsubscribe
+
+We provide a function `triggerUnsubscribeModal` for opening the unsubscribe
+modal from your own UI, without using the built-in `UnsubscribeButton`. Like
+`initializeWithPlan`, it's suitable for click handlers and must be extracted
+from the library's embedded context.
+
+```ts
+const { triggerUnsubscribeModal } = useEmbed();
+```
+
+This lets developers create their own button — for example, a custom
+"are you sure?" retention flow — that opens the same unsubscribe modal the
+built-in component uses.
+
+```ts
+triggerUnsubscribeModal();
+```
+
+The function takes no arguments. If there is no active subscription to cancel,
+the call is ignored and a warning is logged to the console.
+
+The modal is rendered by the embed itself, so a Schematic embed (the `Viewport`
+that hosts the modal) must be mounted on the page where you call
+`triggerUnsubscribeModal`. This is the same requirement as `initializeWithPlan`.
+
 ## License
 
 MIT
