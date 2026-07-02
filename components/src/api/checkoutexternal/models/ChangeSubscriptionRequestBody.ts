@@ -72,6 +72,12 @@ export interface ChangeSubscriptionRequestBody {
    * @type {string}
    * @memberof ChangeSubscriptionRequestBody
    */
+  billingEntityId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof ChangeSubscriptionRequestBody
+   */
   couponExternalId?: string | null;
   /**
    *
@@ -177,6 +183,8 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
     autoTopupOverrides: (json["auto_topup_overrides"] as Array<any>).map(
       UpdateAutoTopupOverrideRequestBodyFromJSON,
     ),
+    billingEntityId:
+      json["billing_entity_id"] == null ? undefined : json["billing_entity_id"],
     couponExternalId:
       json["coupon_external_id"] == null
         ? undefined
@@ -222,6 +230,7 @@ export function ChangeSubscriptionRequestBodyToJSONTyped(
     auto_topup_overrides: (value["autoTopupOverrides"] as Array<any>).map(
       UpdateAutoTopupOverrideRequestBodyToJSON,
     ),
+    billing_entity_id: value["billingEntityId"],
     coupon_external_id: value["couponExternalId"],
     credit_bundles: (value["creditBundles"] as Array<any>).map(
       UpdateCreditBundleRequestBodyToJSON,
