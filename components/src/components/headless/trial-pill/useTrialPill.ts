@@ -119,14 +119,14 @@ export function useTrialPill({
       getTimeRemainingProps: () => ({
         "data-schematic": "trial-pill-time-remaining",
         "data-part": "time-remaining",
-        children:
+        "children":
           amount !== undefined && units ? `${amount} ${units}` : undefined,
       }),
       getEndDateProps: () => ({
         "data-schematic": "trial-pill-end-date",
         "data-part": "end-date",
         ...(trialEndDate ? { dateTime: trialEndDate.toISOString() } : {}),
-        children: endDateLabel,
+        "children": endDateLabel,
       }),
     };
   }, [trialEndDate, trialStatus, now]);

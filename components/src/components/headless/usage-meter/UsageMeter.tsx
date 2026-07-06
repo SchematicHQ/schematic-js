@@ -23,14 +23,12 @@ const [UsageMeterProvider, useUsageMeterContext] =
   );
 
 /** Props shared by every non-root part. */
-export interface UsageMeterPartProps
-  extends React.HTMLAttributes<HTMLElement> {
+export interface UsageMeterPartProps extends React.HTMLAttributes<HTMLElement> {
   /** Render as the single child element instead of the default DOM node. */
   asChild?: boolean;
 }
 
-export interface UsageMeterRootProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface UsageMeterRootProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Current usage value (e.g. `entitlement.featureUsage`). */
   value: number;
   /** Maximum/allocation value (e.g. `entitlement.featureAllocation`). */
@@ -43,10 +41,7 @@ export interface UsageMeterRootProps
 }
 
 const Root = forwardRef<HTMLDivElement, UsageMeterRootProps>(
-  (
-    { value, max, min, label, asChild, className, children, ...rest },
-    ref,
-  ) => {
+  ({ value, max, min, label, asChild, className, children, ...rest }, ref) => {
     const [labelId, setLabelId] = useState<string>();
     const api = useUsageMeter({ value, max, min, label, labelId });
     const registerLabel = useCallback(

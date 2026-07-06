@@ -42,27 +42,28 @@ export interface SlotProps {
  * Ref handling supports both React 18 (`element.ref`) and React 19 (ref passed
  * as a normal `props.ref`).
  */
-export const Slot = forwardRef<HTMLElement, SlotProps & Record<string, unknown>>(
-  ({ children, ...slotProps }, ref) => {
-    if (!isValidElement(children)) {
-      return null;
-    }
+export const Slot = forwardRef<
+  HTMLElement,
+  SlotProps & Record<string, unknown>
+>(({ children, ...slotProps }, ref) => {
+  if (!isValidElement(children)) {
+    return null;
+  }
 
-    const { ref: childRef, ...childProps } = children.props as Record<
-      string,
-      unknown
-    > & { ref?: Ref<HTMLElement> };
+  const { ref: childRef, ...childProps } = children.props as Record<
+    string,
+    unknown
+  > & { ref?: Ref<HTMLElement> };
 
-    const merged = mergeProps(slotProps, childProps);
+  const merged = mergeProps(slotProps, childProps);
 
-    return cloneElement(children, {
-      ...merged,
-      ref: composeRefs(
-        ref,
-        childRef ?? (children as { ref?: Ref<HTMLElement> }).ref,
-      ),
-    } as Record<string, unknown>);
-  },
-);
+  return cloneElement(children, {
+    ...merged,
+    ref: composeRefs(
+      ref,
+      childRef ?? (children as { ref?: Ref<HTMLElement> }).ref,
+    ),
+  } as Record<string, unknown>);
+});
 
 Slot.displayName = "Slot";

@@ -19,8 +19,7 @@ export interface TrialPillPartProps extends React.HTMLAttributes<HTMLElement> {
   asChild?: boolean;
 }
 
-export interface TrialPillRootProps
-  extends React.HTMLAttributes<HTMLSpanElement> {
+export interface TrialPillRootProps extends React.HTMLAttributes<HTMLSpanElement> {
   /** Trial end date (e.g. `useSchematicPlan().trialEndDate`). */
   trialEndDate?: Date;
   /** Trial status (e.g. `useSchematicPlan().trialStatus`). */

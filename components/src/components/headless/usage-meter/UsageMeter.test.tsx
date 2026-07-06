@@ -1,7 +1,6 @@
 import { render, renderHook, screen } from "@testing-library/react";
 import { createRef } from "react";
 
-
 import { UsageMeter } from "./UsageMeter";
 import { useUsageMeter } from "./useUsageMeter";
 
@@ -13,7 +12,9 @@ describe("useUsageMeter", () => {
   });
 
   test("clamps value above max to 100%", () => {
-    const { result } = renderHook(() => useUsageMeter({ value: 150, max: 100 }));
+    const { result } = renderHook(() =>
+      useUsageMeter({ value: 150, max: 100 }),
+    );
     expect(result.current.percent).toBe(100);
     expect(result.current.value).toBe(100);
   });

@@ -64,7 +64,7 @@ export function useUsageMeter({
       max,
       percent,
       getRootProps: () => ({
-        role: "meter",
+        "role": "meter",
         "aria-valuenow": clampedValue,
         "aria-valuemin": min,
         "aria-valuemax": max,
@@ -82,7 +82,7 @@ export function useUsageMeter({
         "data-schematic": "usage-meter-fill",
         "data-part": "fill",
         // functional style only — visual styling is left to CSS
-        style: { width: `${percent}%` },
+        "style": { width: `${percent}%` },
       }),
       getLabelProps: () => ({
         "data-schematic": "usage-meter-label",
@@ -91,7 +91,7 @@ export function useUsageMeter({
       getValueTextProps: () => ({
         "data-schematic": "usage-meter-value-text",
         "data-part": "value-text",
-        children: `${roundedPercent}%`,
+        "children": `${roundedPercent}%`,
       }),
     };
   }, [value, max, min, label, labelId]);
