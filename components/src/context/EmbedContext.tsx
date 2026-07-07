@@ -66,6 +66,7 @@ export interface EmbedContextProps extends EmbedState {
   setCheckoutState: (state: CheckoutState) => void;
   clearCheckoutState: () => void;
   initializeWithPlan: (config: string | BypassConfig) => void;
+  requestUnsubscribe: () => void;
   setData: (data: HydrateDataWithCompanyContext) => void;
   updateSettings: (
     settings: DeepPartial<EmbedSettings>,
@@ -100,6 +101,7 @@ export const initialContext = {
   setCheckoutState: stub,
   clearCheckoutState: stub,
   initializeWithPlan: stub,
+  requestUnsubscribe: stub,
   setData: stub,
   updateSettings: stub,
   debug: stub,

@@ -79,6 +79,32 @@ the final checkout step with the quantities already set.
 The Plans and Add-ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).
 
+## Programmatic Unsubscribe
+
+We provide a function `requestUnsubscribe` for starting the unsubscribe flow
+from your own UI, without using the built-in `UnsubscribeButton`. Like
+`initializeWithPlan`, it's suitable for click handlers and must be extracted
+from the library's embedded context.
+
+```ts
+const { requestUnsubscribe } = useEmbed();
+```
+
+This lets developers create their own button — for example, a custom
+"are you sure?" retention flow — that hands off to the same unsubscribe
+experience the built-in component uses.
+
+```ts
+requestUnsubscribe();
+```
+
+The function takes no arguments. If there is no active subscription to cancel,
+the request is ignored and a warning is logged to the console.
+
+The unsubscribe flow is rendered by the embed itself, so a Schematic embed (the
+`Viewport` that hosts it) must be mounted on the page where you call
+`requestUnsubscribe`. This is the same requirement as `initializeWithPlan`.
+
 ## License
 
 MIT

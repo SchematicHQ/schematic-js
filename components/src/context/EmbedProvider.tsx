@@ -540,6 +540,25 @@ export const EmbedProvider = ({
     dispatch({ type: "SET_PLANID_BYPASS", config });
   }, []);
 
+  const requestUnsubscribe = useCallback(() => {
+    // Mirror the guard the built-in `UnsubscribeButton` applies before it
+    // renders: there is nothing to cancel unless a live subscription exists.
+    const subscription = state.data?.subscription;
+    const hasActiveSubscription =
+      subscription &&
+      subscription.status !== "cancelled" &&
+      !subscription.cancelAt;
+
+    if (!hasActiveSubscription) {
+      console.warn(
+        "[Schematic] `requestUnsubscribe` was called, but there is no active subscription to cancel; ignoring.",
+      );
+      return;
+    }
+
+    dispatch({ type: "CHANGE_LAYOUT", layout: "unsubscribe" });
+  }, [state.data?.subscription]);
+
   useEffect(() => {
     const element = document.getElementById(
       "schematic-fonts",
@@ -666,6 +685,7 @@ export const EmbedProvider = ({
         setCheckoutState,
         clearCheckoutState,
         initializeWithPlan,
+        requestUnsubscribe,
         setData,
         updateSettings,
         debug,
