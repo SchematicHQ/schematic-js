@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import { TEXT_BASE_SIZE } from "../../../const";
+import { MAXIMUM_FRACTION_DIGITS, TEXT_BASE_SIZE } from "../../../const";
 import { formatNumber } from "../../../utils";
 import { Box, Flex, Text } from "../../ui";
 
@@ -71,7 +71,18 @@ export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
 
         {total > 0 && (
           <Text $size={14} $weight={500}>
-            {formatNumber(value)}/{formatNumber(total)}
+            {/*
+              Credit balances can be consumed at rates with up to 10 decimal
+              places, so a very small `value` must render in full rather than
+              rounding down to `0`. Integer counts are unaffected.
+            */}
+            {formatNumber(value, {
+              maximumFractionDigits: MAXIMUM_FRACTION_DIGITS,
+            })}
+            /
+            {formatNumber(total, {
+              maximumFractionDigits: MAXIMUM_FRACTION_DIGITS,
+            })}
           </Text>
         )}
       </Flex>

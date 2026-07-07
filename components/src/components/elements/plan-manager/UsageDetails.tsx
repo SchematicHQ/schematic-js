@@ -11,6 +11,7 @@ import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
   entitlementHasHardLimit,
+  formatConsumptionRate,
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
@@ -102,7 +103,7 @@ export const UsageDetails = ({
     ) {
       acc.push(
         <Fragment key={index}>
-          {entitlement.planEntitlement.consumptionRate}{" "}
+          {formatConsumptionRate(entitlement.planEntitlement.consumptionRate)}{" "}
           {getFeatureName(
             entitlement.planEntitlement.valueCredit,
             entitlement.planEntitlement.consumptionRate,

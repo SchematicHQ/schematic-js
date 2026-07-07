@@ -3,6 +3,7 @@ import { describe, expect, test } from "vitest";
 import {
   adjectify,
   camelToHyphen,
+  formatConsumptionRate,
   formatCurrency,
   formatNumber,
   formatOrdinal,
@@ -61,6 +62,38 @@ describe("formatNumber", () => {
 
   test("formats negative numbers", () => {
     expect(formatNumber(-1500)).toBe("-1,500");
+  });
+
+  test("passes through Intl options", () => {
+    expect(formatNumber(0.0000000001, { maximumFractionDigits: 10 })).toBe(
+      "0.0000000001",
+    );
+  });
+});
+
+describe("formatConsumptionRate", () => {
+  test("renders whole-number rates without decimals", () => {
+    expect(formatConsumptionRate(1)).toBe("1");
+    expect(formatConsumptionRate(5)).toBe("5");
+  });
+
+  test("renders very small rates in full instead of scientific notation", () => {
+    expect(formatConsumptionRate(1e-10)).toBe("0.0000000001");
+    expect(formatConsumptionRate(0.0000000523)).toBe("0.0000000523");
+  });
+
+  test("does not round tiny rates down to zero", () => {
+    expect(formatConsumptionRate(0.0001)).toBe("0.0001");
+    expect(formatConsumptionRate(1e-10)).not.toBe("0");
+  });
+
+  test("keeps grouping for larger rates", () => {
+    expect(formatConsumptionRate(1000)).toBe("1,000");
+    expect(formatConsumptionRate(1500.5)).toBe("1,500.5");
+  });
+
+  test("formats zero", () => {
+    expect(formatConsumptionRate(0)).toBe("0");
   });
 });
 

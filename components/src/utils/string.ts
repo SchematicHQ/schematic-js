@@ -1,4 +1,8 @@
-import { DEFAULT_CURRENCY, MAXIMUM_SIGNIFICANT_DIGITS } from "../const";
+import {
+  DEFAULT_CURRENCY,
+  MAXIMUM_FRACTION_DIGITS,
+  MAXIMUM_SIGNIFICANT_DIGITS,
+} from "../const";
 
 /**
  * Zero-decimal currencies where amounts are already in the smallest unit
@@ -31,8 +35,22 @@ export function camelToHyphen(str: string) {
   return str.replace(/([a-z][A-Z])/g, (g) => `${g[0]}-${g[1].toLowerCase()}`);
 }
 
-export function formatNumber(num: number) {
-  return new Intl.NumberFormat("en-US").format(num);
+export function formatNumber(num: number, options?: Intl.NumberFormatOptions) {
+  return new Intl.NumberFormat("en-US", options).format(num);
+}
+
+/**
+ * Formats a credit consumption rate (credits consumed per use) for display.
+ *
+ * Rates can be as small as `1e-10`, which the default number formatter would
+ * either render in scientific notation or round down to `0`. Allowing up to
+ * `MAXIMUM_FRACTION_DIGITS` fraction digits keeps very small rates readable
+ * (e.g. `0.0000000001`) while still grouping larger values.
+ */
+export function formatConsumptionRate(rate: number) {
+  return formatNumber(rate, {
+    maximumFractionDigits: MAXIMUM_FRACTION_DIGITS,
+  });
 }
 
 interface FormatCurrencyOptions {
