@@ -18,6 +18,7 @@ import {
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   entitlementHasHardLimit,
+  formatConsumptionRate,
   formatCurrency,
   formatNumber,
   getBundleOffCreditIds,
@@ -97,7 +98,9 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
                 typeof planEntitlement?.valueCredit !== "undefined" &&
                 typeof planEntitlement?.consumptionRate === "number"
               ? t("X units per use", {
-                  amount: planEntitlement.consumptionRate,
+                  amount: formatConsumptionRate(
+                    planEntitlement.consumptionRate,
+                  ),
                   units: getFeatureName(
                     planEntitlement.valueCredit,
                     planEntitlement.consumptionRate,

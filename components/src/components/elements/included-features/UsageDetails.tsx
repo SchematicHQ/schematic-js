@@ -11,6 +11,7 @@ import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
 import {
   entitlementHasHardLimit,
+  formatConsumptionRate,
   formatCurrency,
   formatNumber,
   getFeatureName,
@@ -168,7 +169,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       typeof planEntitlement?.consumptionRate === "number"
     ) {
       return t("X units per use", {
-        amount: planEntitlement.consumptionRate,
+        amount: formatConsumptionRate(planEntitlement.consumptionRate),
         units: getFeatureName(
           planEntitlement.valueCredit,
           planEntitlement.consumptionRate,

@@ -11,6 +11,7 @@ import { useEmbed, useIsLightBackground } from "../../../../hooks";
 import type { Credit } from "../../../../types";
 import {
   entitlementHasHardLimit,
+  formatConsumptionRate,
   formatCurrency,
   formatNumber,
   getCreditBasedEntitlementLimit,
@@ -134,7 +135,9 @@ export const Entitlement = ({
     ) {
       return (
         <>
-          {entitlement.consumptionRate}{" "}
+          {typeof entitlement.consumptionRate === "number"
+            ? formatConsumptionRate(entitlement.consumptionRate)
+            : entitlement.consumptionRate}{" "}
           {getFeatureName(
             entitlement.valueCredit,
             entitlement.consumptionRate || undefined,
