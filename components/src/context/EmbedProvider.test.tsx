@@ -15,7 +15,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 const dataWithSubscription = (subscription: Record<string, unknown>) =>
   ({ subscription }) as unknown as HydrateDataWithCompanyContext;
 
-describe("triggerUnsubscribeModal", () => {
+describe("requestUnsubscribe", () => {
   test("opens the unsubscribe modal for an active subscription", () => {
     const { result } = renderHook(() => useEmbed(), { wrapper });
 
@@ -25,7 +25,7 @@ describe("triggerUnsubscribeModal", () => {
       );
     });
     act(() => {
-      result.current.triggerUnsubscribeModal();
+      result.current.requestUnsubscribe();
     });
 
     expect(result.current.layout).toBe("unsubscribe");
@@ -36,7 +36,7 @@ describe("triggerUnsubscribeModal", () => {
     const { result } = renderHook(() => useEmbed(), { wrapper });
 
     act(() => {
-      result.current.triggerUnsubscribeModal();
+      result.current.requestUnsubscribe();
     });
 
     expect(result.current.layout).toBe("portal");
@@ -57,7 +57,7 @@ describe("triggerUnsubscribeModal", () => {
       );
     });
     act(() => {
-      result.current.triggerUnsubscribeModal();
+      result.current.requestUnsubscribe();
     });
 
     expect(result.current.layout).toBe("portal");

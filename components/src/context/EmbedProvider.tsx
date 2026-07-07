@@ -540,7 +540,7 @@ export const EmbedProvider = ({
     dispatch({ type: "SET_PLANID_BYPASS", config });
   }, []);
 
-  const triggerUnsubscribeModal = useCallback(() => {
+  const requestUnsubscribe = useCallback(() => {
     // Mirror the guard the built-in `UnsubscribeButton` applies before it
     // renders: there is nothing to cancel unless a live subscription exists.
     const subscription = state.data?.subscription;
@@ -551,7 +551,7 @@ export const EmbedProvider = ({
 
     if (!hasActiveSubscription) {
       console.warn(
-        "[Schematic] `triggerUnsubscribeModal` was called, but there is no active subscription to cancel; ignoring.",
+        "[Schematic] `requestUnsubscribe` was called, but there is no active subscription to cancel; ignoring.",
       );
       return;
     }
@@ -685,7 +685,7 @@ export const EmbedProvider = ({
         setCheckoutState,
         clearCheckoutState,
         initializeWithPlan,
-        triggerUnsubscribeModal,
+        requestUnsubscribe,
         setData,
         updateSettings,
         debug,

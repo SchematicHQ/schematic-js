@@ -81,29 +81,29 @@ Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/o
 
 ## Programmatic Unsubscribe
 
-We provide a function `triggerUnsubscribeModal` for opening the unsubscribe
-modal from your own UI, without using the built-in `UnsubscribeButton`. Like
+We provide a function `requestUnsubscribe` for starting the unsubscribe flow
+from your own UI, without using the built-in `UnsubscribeButton`. Like
 `initializeWithPlan`, it's suitable for click handlers and must be extracted
 from the library's embedded context.
 
 ```ts
-const { triggerUnsubscribeModal } = useEmbed();
+const { requestUnsubscribe } = useEmbed();
 ```
 
 This lets developers create their own button — for example, a custom
-"are you sure?" retention flow — that opens the same unsubscribe modal the
-built-in component uses.
+"are you sure?" retention flow — that hands off to the same unsubscribe
+experience the built-in component uses.
 
 ```ts
-triggerUnsubscribeModal();
+requestUnsubscribe();
 ```
 
 The function takes no arguments. If there is no active subscription to cancel,
-the call is ignored and a warning is logged to the console.
+the request is ignored and a warning is logged to the console.
 
-The modal is rendered by the embed itself, so a Schematic embed (the `Viewport`
-that hosts the modal) must be mounted on the page where you call
-`triggerUnsubscribeModal`. This is the same requirement as `initializeWithPlan`.
+The unsubscribe flow is rendered by the embed itself, so a Schematic embed (the
+`Viewport` that hosts it) must be mounted on the page where you call
+`requestUnsubscribe`. This is the same requirement as `initializeWithPlan`.
 
 ## License
 
