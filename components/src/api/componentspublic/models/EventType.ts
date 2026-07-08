@@ -19,6 +19,7 @@
 export const EventType = {
   FlagCheck: "flag_check",
   Identify: "identify",
+  Inference: "inference",
   Track: "track",
 } as const;
 export type EventType = (typeof EventType)[keyof typeof EventType];
