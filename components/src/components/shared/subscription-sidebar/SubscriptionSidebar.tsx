@@ -817,24 +817,30 @@ export const SubscriptionSidebar = forwardRef<
     // Billing preview copy. When a coupon reduces the recurring amount, reflect
     // the discounted price and the window it applies for, then the full price
     // afterward, rather than asserting a single (inaccurate) recurring amount.
-    // TODO: localize
     const billingPreviewText = (() => {
       if (!subscriptionPrice) {
         return null;
       }
 
-      const usageClause =
-        usageBasedEntitlements.length > 0 ? "plus usage based costs " : "";
+      // Optional mid-sentence fragments carry a trailing space so they compose
+      // cleanly when present and collapse away when empty.
+      const usage =
+        usageBasedEntitlements.length > 0
+          ? `${t("plus usage based costs")} `
+          : "";
       // Anchor the renewal wording to the billing-cycle anchor (period end),
       // not the current period start — see the `renewDate` note above.
-      const dayClause = renewDate
-        ? `on the ${formatOrdinal(renewDate.getDate())} `
-        : "";
-      const monthClause =
-        planPeriod === "year" && renewDate
-          ? `of ${getMonthName(renewDate)} `
-          : "";
-      const recurringClause = `for this subscription every ${planPeriod} ${dayClause}${monthClause}`;
+      const scheduleParts = [];
+      if (renewDate) {
+        scheduleParts.push(
+          t("on the day", { day: formatOrdinal(renewDate.getDate()) }),
+        );
+      }
+      if (planPeriod === "year" && renewDate) {
+        scheduleParts.push(t("of month", { month: getMonthName(renewDate) }));
+      }
+      const schedule =
+        scheduleParts.length > 0 ? `${scheduleParts.join(" ")} ` : "";
 
       if (subscriptionDiscount) {
         const { duration, durationInMonths, discountedPrice } =
@@ -842,20 +848,35 @@ export const SubscriptionSidebar = forwardRef<
 
         // `forever` discounts never expire, so there is no full price afterward.
         if (duration === "forever") {
-          return `You will be billed ${discountedPrice} ${usageClause}${recurringClause}unless you unsubscribe.`;
+          return t("You will be billed", {
+            price: discountedPrice,
+            usage,
+            period: planPeriod,
+            schedule,
+          });
         }
 
-        const windowClause =
+        const windowLabel =
           duration === "repeating" && durationInMonths
-            ? durationInMonths === 1
-              ? "for the next month"
-              : `for the next ${durationInMonths} months`
-            : "on your next bill";
+            ? t("for the next months", { count: durationInMonths })
+            : t("on your next bill");
 
-        return `You will be billed ${discountedPrice} ${usageClause}${recurringClause}${windowClause}, then ${subscriptionPrice} every ${planPeriod} afterward, unless you unsubscribe.`;
+        return t("You will be billed with discount window", {
+          price: discountedPrice,
+          usage,
+          period: planPeriod,
+          schedule,
+          window: windowLabel,
+          fullPrice: subscriptionPrice,
+        });
       }
 
-      return `You will be billed ${subscriptionPrice} ${usageClause}${recurringClause}unless you unsubscribe.`;
+      return t("You will be billed", {
+        price: subscriptionPrice,
+        usage,
+        period: planPeriod,
+        schedule,
+      });
     })();
 
     return (
