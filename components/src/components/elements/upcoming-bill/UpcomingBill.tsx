@@ -71,16 +71,26 @@ export const UpcomingBill = forwardRef<
   >(data?.upcomingInvoice);
 
   const discounts = useMemo(() => {
-    return (data?.subscription?.discounts || []).map((discount) => ({
-      couponId: discount.couponId,
-      customerFacingCode: discount.customerFacingCode || undefined,
-      currency: discount.currency || undefined,
-      amountOff: discount.amountOff ?? undefined,
-      percentOff: discount.percentOff ?? undefined,
-      duration: discount.duration,
-      durationInMonths: discount.durationInMonths ?? undefined,
-      isActive: discount.isActive,
-    }));
+    return (data?.subscription?.discounts || [])
+      .filter(
+        (discount) =>
+          // Only surface discounts that are currently active and actually
+          // reduce the bill; the API computes `isActive` at read time, so an
+          // expired coupon must not linger in the account summary.
+          discount.isActive &&
+          ((typeof discount.percentOff === "number" &&
+            discount.percentOff > 0) ||
+            (typeof discount.amountOff === "number" && discount.amountOff > 0)),
+      )
+      .map((discount) => ({
+        couponId: discount.couponId,
+        customerFacingCode: discount.customerFacingCode || undefined,
+        currency: discount.currency || undefined,
+        amountOff: discount.amountOff ?? undefined,
+        percentOff: discount.percentOff ?? undefined,
+        duration: discount.duration,
+        durationInMonths: discount.durationInMonths ?? undefined,
+      }));
   }, [data?.subscription?.discounts]);
 
   const getInvoice = useCallback(async () => {
@@ -252,77 +262,65 @@ export const UpcomingBill = forwardRef<
                       $alignItems="end"
                       $gap="0.5rem"
                     >
-                      {discounts.reduce(
-                        (acc: React.ReactElement[], discount) => {
-                          const hasPercentOff =
-                            typeof discount.percentOff === "number" &&
-                            discount.percentOff > 0;
-                          const hasAmountOff =
-                            typeof discount.amountOff === "number" &&
-                            discount.amountOff > 0;
+                      {discounts.map((discount) => {
+                        const label =
+                          typeof discount.percentOff === "number" &&
+                          discount.percentOff > 0
+                            ? t("Percent off", {
+                                percent: discount.percentOff,
+                              })
+                            : t("Amount off", {
+                                amount: formatCurrency(
+                                  discount.amountOff as number, // active discounts always carry a positive amount or percent
+                                  discount?.currency,
+                                ),
+                              });
 
-                          if (hasPercentOff || hasAmountOff) {
-                            const label = hasPercentOff
-                              ? t("Percent off", {
-                                  percent: discount.percentOff,
-                                })
-                              : t("Amount off", {
-                                  amount: formatCurrency(
-                                    discount.amountOff as number, // we already checked for `number` type
-                                    discount?.currency,
-                                  ),
-                                });
-
-                            acc.push(
+                        return (
+                          <Flex
+                            key={discount.couponId}
+                            $alignItems="center"
+                            $gap="0.5rem"
+                          >
+                            {discount.customerFacingCode && (
                               <Flex
-                                key={discount.couponId}
                                 $alignItems="center"
-                                $gap="0.5rem"
+                                $padding="0.1875rem 0.375rem"
+                                $borderWidth="1px"
+                                $borderStyle="solid"
+                                $borderColor={
+                                  isLightBackground
+                                    ? "hsla(0, 0%, 0%, 0.15)"
+                                    : "hsla(0, 0%, 100%, 0.15)"
+                                }
+                                $borderRadius="0.3125rem"
                               >
-                                {discount.customerFacingCode && (
-                                  <Flex
-                                    $alignItems="center"
-                                    $padding="0.1875rem 0.375rem"
-                                    $borderWidth="1px"
-                                    $borderStyle="solid"
-                                    $borderColor={
-                                      isLightBackground
-                                        ? "hsla(0, 0%, 0%, 0.15)"
-                                        : "hsla(0, 0%, 100%, 0.15)"
-                                    }
-                                    $borderRadius="0.3125rem"
-                                  >
-                                    <Text
-                                      $size={
-                                        0.75 *
-                                        settings.theme.typography.text.fontSize
-                                      }
-                                      style={{ textTransform: "uppercase" }}
-                                    >
-                                      {discount.customerFacingCode}
-                                    </Text>
-                                  </Flex>
-                                )}
+                                <Text
+                                  $size={
+                                    0.75 *
+                                    settings.theme.typography.text.fontSize
+                                  }
+                                  style={{ textTransform: "uppercase" }}
+                                >
+                                  {discount.customerFacingCode}
+                                </Text>
+                              </Flex>
+                            )}
 
-                                <Box>
-                                  <Text>
-                                    {discount.duration === "repeating" &&
-                                    discount.durationInMonths
-                                      ? t("Discount for months", {
-                                          discount: label,
-                                          count: discount.durationInMonths,
-                                        })
-                                      : label}
-                                  </Text>
-                                </Box>
-                              </Flex>,
-                            );
-                          }
-
-                          return acc;
-                        },
-                        [],
-                      )}
+                            <Box>
+                              <Text>
+                                {discount.duration === "repeating" &&
+                                discount.durationInMonths
+                                  ? t("Discount for months", {
+                                      discount: label,
+                                      count: discount.durationInMonths,
+                                    })
+                                  : label}
+                              </Text>
+                            </Box>
+                          </Flex>
+                        );
+                      })}
                     </Flex>
                   </Flex>
                 )}

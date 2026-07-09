@@ -1,6 +1,7 @@
 export * from "./api";
 export * from "./color";
 export * from "./date";
+export * from "./discount";
 export * from "./error";
 export * from "./event";
 export * from "./markdown";

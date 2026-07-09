@@ -31,12 +31,12 @@ import {
   entitlementHasCost,
   extractCurrentUsageBasedEntitlements,
   formatCurrency,
-  formatOrdinal,
   getAddOnPrice,
+  getBillingPreviewText,
   getEntitlementPrice,
   getFeatureName,
-  getMonthName,
   getPlanPrice,
+  getSubscriptionDiscount,
   getSubscriptionPeriod,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
@@ -463,43 +463,15 @@ export const SubscriptionSidebar = forwardRef<
     // The active discount currently applied to the subscription (as opposed to
     // a promo code being applied during this checkout). Used to keep the
     // billing preview copy accurate when a coupon reduces the recurring amount.
-    const subscriptionDiscount = useMemo(() => {
-      const activeDiscounts = (data?.subscription?.discounts || []).filter(
-        (discount) =>
-          discount.isActive &&
-          ((typeof discount.percentOff === "number" &&
-            discount.percentOff > 0) ||
-            (typeof discount.amountOff === "number" && discount.amountOff > 0)),
-      );
-
-      // Precise preview copy is only well-defined for a single active
-      // discount. Fall back to the undiscounted copy when discounts stack.
-      if (activeDiscounts.length !== 1) {
-        return undefined;
-      }
-
-      const discount = activeDiscounts[0];
-      const discountedTotal =
-        typeof discount.percentOff === "number" && discount.percentOff > 0
-          ? subscriptionTotal * (1 - discount.percentOff / 100)
-          : Math.max(0, subscriptionTotal - (discount.amountOff ?? 0));
-
-      // No visible reduction (e.g. discount larger than the plan price on a
-      // $0 plan) — nothing meaningful to show.
-      if (discountedTotal >= subscriptionTotal) {
-        return undefined;
-      }
-
-      return {
-        duration: discount.duration,
-        durationInMonths: discount.durationInMonths ?? undefined,
-        discountedPrice: formatCurrency(discountedTotal, subscriptionCurrency),
-      };
-    }, [
-      data?.subscription?.discounts,
-      subscriptionTotal,
-      subscriptionCurrency,
-    ]);
+    const subscriptionDiscount = useMemo(
+      () =>
+        getSubscriptionDiscount(
+          data?.subscription?.discounts,
+          subscriptionTotal,
+          subscriptionCurrency,
+        ),
+      [data?.subscription?.discounts, subscriptionTotal, subscriptionCurrency],
+    );
 
     const handleCheckout = useCallback(async () => {
       const planId = selectedPlan?.id;
@@ -814,70 +786,19 @@ export const SubscriptionSidebar = forwardRef<
       trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
     }
 
-    // Billing preview copy. When a coupon reduces the recurring amount, reflect
-    // the discounted price and the window it applies for, then the full price
-    // afterward, rather than asserting a single (inaccurate) recurring amount.
-    const billingPreviewText = (() => {
-      if (!subscriptionPrice) {
-        return null;
-      }
-
-      // Optional mid-sentence fragments carry a trailing space so they compose
-      // cleanly when present and collapse away when empty.
-      const usage =
-        usageBasedEntitlements.length > 0
-          ? `${t("plus usage based costs")} `
-          : "";
-      // Anchor the renewal wording to the billing-cycle anchor (period end),
-      // not the current period start — see the `renewDate` note above.
-      const scheduleParts = [];
-      if (renewDate) {
-        scheduleParts.push(
-          t("on the day", { day: formatOrdinal(renewDate.getDate()) }),
-        );
-      }
-      if (planPeriod === "year" && renewDate) {
-        scheduleParts.push(t("of month", { month: getMonthName(renewDate) }));
-      }
-      const schedule =
-        scheduleParts.length > 0 ? `${scheduleParts.join(" ")} ` : "";
-
-      if (subscriptionDiscount) {
-        const { duration, durationInMonths, discountedPrice } =
-          subscriptionDiscount;
-
-        // `forever` discounts never expire, so there is no full price afterward.
-        if (duration === "forever") {
-          return t("You will be billed", {
-            price: discountedPrice,
-            usage,
-            period: planPeriod,
-            schedule,
-          });
-        }
-
-        const windowLabel =
-          duration === "repeating" && durationInMonths
-            ? t("for the next months", { count: durationInMonths })
-            : t("on your next bill");
-
-        return t("You will be billed with discount window", {
-          price: discountedPrice,
-          usage,
-          period: planPeriod,
-          schedule,
-          window: windowLabel,
-          fullPrice: subscriptionPrice,
-        });
-      }
-
-      return t("You will be billed", {
-        price: subscriptionPrice,
-        usage,
-        period: planPeriod,
-        schedule,
-      });
-    })();
+    // Anchor the renewal wording to the billing-cycle anchor (period end), not
+    // the current period start — see the `renewDate` note above. The helper's
+    // `periodStart` param is just the date the schedule copy is built from.
+    const billingPreviewText = getBillingPreviewText(
+      {
+        subscriptionPrice,
+        planPeriod,
+        periodStart: renewDate,
+        hasUsageBasedCosts: usageBasedEntitlements.length > 0,
+        discount: subscriptionDiscount,
+      },
+      t,
+    );
 
     return (
       <Flex
