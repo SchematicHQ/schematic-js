@@ -35,6 +35,7 @@ function makeUsageBasedEntitlement(
     ruleId: "rule-1",
     updatedAt: new Date(),
     valueType: "numeric" as any,
+    warningTiers: [],
     allocation: 0,
     usage: 0,
     quantity: 0,

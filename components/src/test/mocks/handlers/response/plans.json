@@ -193,7 +193,8 @@
             "value_numeric": null,
             "value_trait": null,
             "value_trait_id": null,
-            "value_type": "unlimited"
+            "value_type": "unlimited",
+            "warning_tiers": []
           }
         ],
         "features": [
@@ -444,7 +445,8 @@
             "value_numeric": null,
             "value_trait": null,
             "value_trait_id": null,
-            "value_type": "boolean"
+            "value_type": "boolean",
+            "warning_tiers": []
           },
           {
             "billing_threshold": null,
@@ -495,7 +497,8 @@
             "value_numeric": 100,
             "value_trait": null,
             "value_trait_id": null,
-            "value_type": "numeric"
+            "value_type": "numeric",
+            "warning_tiers": []
           }
         ],
         "features": [
@@ -835,7 +838,8 @@
             "value_numeric": null,
             "value_trait": null,
             "value_trait_id": null,
-            "value_type": "boolean"
+            "value_type": "boolean",
+            "warning_tiers": []
           },
           {
             "billing_threshold": 500,
@@ -972,7 +976,8 @@
             "value_numeric": 1000,
             "value_trait": null,
             "value_trait_id": null,
-            "value_type": "numeric"
+            "value_type": "numeric",
+            "warning_tiers": []
           }
         ],
         "features": [
@@ -1272,7 +1277,8 @@
             "value_numeric": null,
             "value_trait": null,
             "value_trait_id": null,
-            "value_type": "boolean"
+            "value_type": "boolean",
+            "warning_tiers": []
           },
           {
             "billing_threshold": null,
@@ -1433,7 +1439,8 @@
             "value_numeric": null,
             "value_trait": null,
             "value_trait_id": null,
-            "value_type": "unlimited"
+            "value_type": "unlimited",
+            "warning_tiers": []
           },
           {
             "billing_threshold": null,
@@ -1568,7 +1575,8 @@
               "updated_at": "2025-10-01T15:48:38.898863Z"
             },
             "value_trait_id": "trt_E6V7hTVPSyV",
-            "value_type": "trait"
+            "value_type": "trait",
+            "warning_tiers": []
           }
         ],
         "features": [
@@ -1965,7 +1973,8 @@
             "value_numeric": null,
             "value_trait": null,
             "value_trait_id": null,
-            "value_type": "boolean"
+            "value_type": "boolean",
+            "warning_tiers": []
           },
           {
             "billing_threshold": null,
@@ -2016,7 +2025,8 @@
             "value_numeric": 0,
             "value_trait": null,
             "value_trait_id": null,
-            "value_type": "unlimited"
+            "value_type": "unlimited",
+            "warning_tiers": []
           },
           {
             "billing_threshold": null,
@@ -2077,7 +2087,8 @@
               "updated_at": "2025-10-01T14:43:37.694471Z"
             },
             "value_trait_id": "trt_U78jdcBghdn",
-            "value_type": "trait"
+            "value_type": "trait",
+            "warning_tiers": []
           }
         ],
         "features": [

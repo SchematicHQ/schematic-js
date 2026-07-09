@@ -27,13 +27,6 @@ import {
   EntityTraitDefinitionResponseDataToJSON,
   EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
-import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
-import {
-  MetricPeriodMonthResetFromJSON,
-  MetricPeriodMonthResetFromJSONTyped,
-  MetricPeriodMonthResetToJSON,
-  MetricPeriodMonthResetToJSONTyped,
-} from "./MetricPeriodMonthReset";
 import type { BillingCreditResponseData } from "./BillingCreditResponseData";
 import {
   BillingCreditResponseDataFromJSON,
@@ -41,13 +34,6 @@ import {
   BillingCreditResponseDataToJSON,
   BillingCreditResponseDataToJSONTyped,
 } from "./BillingCreditResponseData";
-import type { BillingProductResponseData } from "./BillingProductResponseData";
-import {
-  BillingProductResponseDataFromJSON,
-  BillingProductResponseDataFromJSONTyped,
-  BillingProductResponseDataToJSON,
-  BillingProductResponseDataToJSONTyped,
-} from "./BillingProductResponseData";
 import type { EntitlementCurrencyPricesResponseData } from "./EntitlementCurrencyPricesResponseData";
 import {
   EntitlementCurrencyPricesResponseDataFromJSON,
@@ -90,6 +76,27 @@ import {
   BillingPriceViewToJSON,
   BillingPriceViewToJSONTyped,
 } from "./BillingPriceView";
+import type { WarningTierResponseData } from "./WarningTierResponseData";
+import {
+  WarningTierResponseDataFromJSON,
+  WarningTierResponseDataFromJSONTyped,
+  WarningTierResponseDataToJSON,
+  WarningTierResponseDataToJSONTyped,
+} from "./WarningTierResponseData";
+import type { MetricPeriodMonthReset } from "./MetricPeriodMonthReset";
+import {
+  MetricPeriodMonthResetFromJSON,
+  MetricPeriodMonthResetFromJSONTyped,
+  MetricPeriodMonthResetToJSON,
+  MetricPeriodMonthResetToJSONTyped,
+} from "./MetricPeriodMonthReset";
+import type { BillingProductResponseData } from "./BillingProductResponseData";
+import {
+  BillingProductResponseDataFromJSON,
+  BillingProductResponseDataFromJSONTyped,
+  BillingProductResponseDataToJSON,
+  BillingProductResponseDataToJSONTyped,
+} from "./BillingProductResponseData";
 import type { PlanResponseData } from "./PlanResponseData";
 import {
   PlanResponseDataFromJSON,
@@ -278,6 +285,12 @@ export interface PlanEntitlementResponseData {
    * @memberof PlanEntitlementResponseData
    */
   valueType: EntitlementValueType;
+  /**
+   *
+   * @type {Array<WarningTierResponseData>}
+   * @memberof PlanEntitlementResponseData
+   */
+  warningTiers: Array<WarningTierResponseData>;
 }
 
 /**
@@ -297,6 +310,8 @@ export function instanceOfPlanEntitlementResponseData(
   if (!("ruleId" in value) || value["ruleId"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   if (!("valueType" in value) || value["valueType"] === undefined) return false;
+  if (!("warningTiers" in value) || value["warningTiers"] === undefined)
+    return false;
   return true;
 }
 
@@ -389,6 +404,9 @@ export function PlanEntitlementResponseDataFromJSONTyped(
     valueTraitId:
       json["value_trait_id"] == null ? undefined : json["value_trait_id"],
     valueType: EntitlementValueTypeFromJSON(json["value_type"]),
+    warningTiers: (json["warning_tiers"] as Array<any>).map(
+      WarningTierResponseDataFromJSON,
+    ),
   };
 }
 
@@ -446,5 +464,8 @@ export function PlanEntitlementResponseDataToJSONTyped(
     value_trait: EntityTraitDefinitionResponseDataToJSON(value["valueTrait"]),
     value_trait_id: value["valueTraitId"],
     value_type: EntitlementValueTypeToJSON(value["valueType"]),
+    warning_tiers: (value["warningTiers"] as Array<any>).map(
+      WarningTierResponseDataToJSON,
+    ),
   };
 }
