@@ -26,6 +26,13 @@ import {
   EventBodyIdentifyFromJSONTyped,
   EventBodyIdentifyToJSON,
 } from "./EventBodyIdentify";
+import type { EventBodyInference } from "./EventBodyInference";
+import {
+  instanceOfEventBodyInference,
+  EventBodyInferenceFromJSON,
+  EventBodyInferenceFromJSONTyped,
+  EventBodyInferenceToJSON,
+} from "./EventBodyInference";
 import type { EventBodyTrack } from "./EventBodyTrack";
 import {
   instanceOfEventBodyTrack,
@@ -39,7 +46,8 @@ import {
  *
  * @export
  */
-export type EventBody = EventBodyFlagCheck | EventBodyIdentify | EventBodyTrack;
+export type EventBody =
+  EventBodyFlagCheck | EventBodyIdentify | EventBodyInference | EventBodyTrack;
 
 export function EventBodyFromJSON(json: any): EventBody {
   return EventBodyFromJSONTyped(json, false);
@@ -57,6 +65,9 @@ export function EventBodyFromJSONTyped(
   }
   if (instanceOfEventBodyIdentify(json)) {
     return EventBodyIdentifyFromJSONTyped(json, true);
+  }
+  if (instanceOfEventBodyInference(json)) {
+    return EventBodyInferenceFromJSONTyped(json, true);
   }
   if (instanceOfEventBodyTrack(json)) {
     return EventBodyTrackFromJSONTyped(json, true);
@@ -82,6 +93,9 @@ export function EventBodyToJSONTyped(
   }
   if (instanceOfEventBodyIdentify(value)) {
     return EventBodyIdentifyToJSON(value as EventBodyIdentify);
+  }
+  if (instanceOfEventBodyInference(value)) {
+    return EventBodyInferenceToJSON(value as EventBodyInference);
   }
   if (instanceOfEventBodyTrack(value)) {
     return EventBodyTrackToJSON(value as EventBodyTrack);

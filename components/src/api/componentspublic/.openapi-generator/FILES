@@ -69,6 +69,7 @@ models/EventBody.ts
 models/EventBodyFlagCheck.ts
 models/EventBodyIdentify.ts
 models/EventBodyIdentifyCompany.ts
+models/EventBodyInference.ts
 models/EventBodyTrack.ts
 models/EventSummaryResponseData.ts
 models/EventType.ts
@@ -111,6 +112,7 @@ models/RuleResponseData.ts
 models/RuleType.ts
 models/TraitType.ts
 models/TrialStatus.ts
+models/WarningTierResponseData.ts
 models/WhoAmIResponseData.ts
 models/index.ts
 runtime.ts

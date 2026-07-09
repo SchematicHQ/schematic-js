@@ -161,5 +161,6 @@ models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
 models/UpdatePaymentMethodResponse.ts
 models/UsageBasedEntitlementResponseData.ts
+models/WarningTierResponseData.ts
 models/index.ts
 runtime.ts
