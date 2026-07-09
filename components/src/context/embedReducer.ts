@@ -309,6 +309,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           ...(config.payInAdvanceQuantities && {
             payInAdvanceQuantities: config.payInAdvanceQuantities,
           }),
+          ...(config.promoCode && { promoCode: config.promoCode }),
           ...(config.currency && {
             selectedCurrency: config.currency.toUpperCase(),
           }),

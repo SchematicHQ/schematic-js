@@ -451,6 +451,49 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
       expect(result.checkoutState?.payInAdvanceQuantities).toBeUndefined();
     });
   });
+
+  describe("promoCode configuration", () => {
+    it("should pass promoCode through verbatim", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        promoCode: "SUMMER20",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.promoCode).toBe("SUMMER20");
+    });
+
+    it("should leave promoCode undefined when not provided", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.promoCode).toBeUndefined();
+    });
+
+    it("should not set promoCode for an empty string", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        promoCode: "",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.promoCode).toBeUndefined();
+    });
+  });
 });
 
 describe("embedReducer - SET_CHECKOUT_PREFILL", () => {
