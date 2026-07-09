@@ -214,71 +214,76 @@ export const SubscriptionSidebar = forwardRef<
       return { payAsYouGoEntitlements, payInAdvanceEntitlements };
     }, [usageBasedEntitlements]);
 
-    const subscriptionPrice = useMemo(() => {
-      let planPrice: number | undefined;
-      let resolvedCurrency: string | undefined;
+    const { subscriptionPrice, subscriptionTotal, subscriptionCurrency } =
+      useMemo(() => {
+        let planPrice: number | undefined;
+        let resolvedCurrency: string | undefined;
 
-      if (selectedPlan) {
-        const planBillingPrice = getPlanPrice(
-          selectedPlan,
-          planPeriod,
-          { useSelectedPeriod: true },
-          currency,
-        );
+        if (selectedPlan) {
+          const planBillingPrice = getPlanPrice(
+            selectedPlan,
+            planPeriod,
+            { useSelectedPeriod: true },
+            currency,
+          );
 
-        planPrice = planBillingPrice?.price;
-        resolvedCurrency = planBillingPrice?.currency;
-      } else if (typeof currentPlan?.planPrice === "number") {
-        planPrice = currentPlan.planPrice;
-      }
-
-      let total = 0;
-
-      if (planPrice) {
-        total += planPrice;
-      }
-
-      const addOnCost = addOns.reduce((sum, addOn) => {
-        // One-time charges are billed once at checkout and do not recur; they
-        // should not contribute to the recurring monthly/yearly total.
-        if (addOn.isSelected && addOn.chargeType !== ChargeType.oneTime) {
-          sum += getAddOnPrice(addOn, planPeriod, currency)?.price ?? 0;
+          planPrice = planBillingPrice?.price;
+          resolvedCurrency = planBillingPrice?.currency;
+        } else if (typeof currentPlan?.planPrice === "number") {
+          planPrice = currentPlan.planPrice;
         }
 
-        return sum;
-      }, 0);
-      total += addOnCost;
+        let total = 0;
 
-      const payInAdvanceCost = payInAdvanceEntitlements.reduce(
-        (sum, entitlement) =>
-          sum +
-          entitlement.quantity *
-            (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
-              0),
-        0,
-      );
-      total += payInAdvanceCost;
+        if (planPrice) {
+          total += planPrice;
+        }
 
-      const addOnPayInAdvanceCost = addOnPayInAdvanceEntitlements.reduce(
-        (sum, entitlement) =>
-          sum +
-          entitlement.quantity *
-            (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
-              0),
-        0,
-      );
-      total += addOnPayInAdvanceCost;
+        const addOnCost = addOns.reduce((sum, addOn) => {
+          // One-time charges are billed once at checkout and do not recur; they
+          // should not contribute to the recurring monthly/yearly total.
+          if (addOn.isSelected && addOn.chargeType !== ChargeType.oneTime) {
+            sum += getAddOnPrice(addOn, planPeriod, currency)?.price ?? 0;
+          }
 
-      return formatCurrency(total, resolvedCurrency);
-    }, [
-      selectedPlan,
-      currentPlan,
-      planPeriod,
-      addOns,
-      payInAdvanceEntitlements,
-      addOnPayInAdvanceEntitlements,
-      currency,
-    ]);
+          return sum;
+        }, 0);
+        total += addOnCost;
+
+        const payInAdvanceCost = payInAdvanceEntitlements.reduce(
+          (sum, entitlement) =>
+            sum +
+            entitlement.quantity *
+              (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
+                0),
+          0,
+        );
+        total += payInAdvanceCost;
+
+        const addOnPayInAdvanceCost = addOnPayInAdvanceEntitlements.reduce(
+          (sum, entitlement) =>
+            sum +
+            entitlement.quantity *
+              (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
+                0),
+          0,
+        );
+        total += addOnPayInAdvanceCost;
+
+        return {
+          subscriptionPrice: formatCurrency(total, resolvedCurrency),
+          subscriptionTotal: total,
+          subscriptionCurrency: resolvedCurrency,
+        };
+      }, [
+        selectedPlan,
+        currentPlan,
+        planPeriod,
+        addOns,
+        payInAdvanceEntitlements,
+        addOnPayInAdvanceEntitlements,
+        currency,
+      ]);
 
     const {
       amountOff,
@@ -454,6 +459,47 @@ export const SubscriptionSidebar = forwardRef<
       () => promoCode && (amountOff > 0 || percentOff > 0),
       [promoCode, amountOff, percentOff],
     );
+
+    // The active discount currently applied to the subscription (as opposed to
+    // a promo code being applied during this checkout). Used to keep the
+    // billing preview copy accurate when a coupon reduces the recurring amount.
+    const subscriptionDiscount = useMemo(() => {
+      const activeDiscounts = (data?.subscription?.discounts || []).filter(
+        (discount) =>
+          discount.isActive &&
+          ((typeof discount.percentOff === "number" &&
+            discount.percentOff > 0) ||
+            (typeof discount.amountOff === "number" && discount.amountOff > 0)),
+      );
+
+      // Precise preview copy is only well-defined for a single active
+      // discount. Fall back to the undiscounted copy when discounts stack.
+      if (activeDiscounts.length !== 1) {
+        return undefined;
+      }
+
+      const discount = activeDiscounts[0];
+      const discountedTotal =
+        typeof discount.percentOff === "number" && discount.percentOff > 0
+          ? subscriptionTotal * (1 - discount.percentOff / 100)
+          : Math.max(0, subscriptionTotal - (discount.amountOff ?? 0));
+
+      // No visible reduction (e.g. discount larger than the plan price on a
+      // $0 plan) — nothing meaningful to show.
+      if (discountedTotal >= subscriptionTotal) {
+        return undefined;
+      }
+
+      return {
+        duration: discount.duration,
+        durationInMonths: discount.durationInMonths ?? undefined,
+        discountedPrice: formatCurrency(discountedTotal, subscriptionCurrency),
+      };
+    }, [
+      data?.subscription?.discounts,
+      subscriptionTotal,
+      subscriptionCurrency,
+    ]);
 
     const handleCheckout = useCallback(async () => {
       const planId = selectedPlan?.id;
@@ -767,6 +813,50 @@ export const SubscriptionSidebar = forwardRef<
     if (isSelectedPlanTrialable && selectedPlan.trialDays) {
       trialEndsOn.setDate(trialEndsOn.getDate() + selectedPlan.trialDays);
     }
+
+    // Billing preview copy. When a coupon reduces the recurring amount, reflect
+    // the discounted price and the window it applies for, then the full price
+    // afterward, rather than asserting a single (inaccurate) recurring amount.
+    // TODO: localize
+    const billingPreviewText = (() => {
+      if (!subscriptionPrice) {
+        return null;
+      }
+
+      const usageClause =
+        usageBasedEntitlements.length > 0 ? "plus usage based costs " : "";
+      // Anchor the renewal wording to the billing-cycle anchor (period end),
+      // not the current period start — see the `renewDate` note above.
+      const dayClause = renewDate
+        ? `on the ${formatOrdinal(renewDate.getDate())} `
+        : "";
+      const monthClause =
+        planPeriod === "year" && renewDate
+          ? `of ${getMonthName(renewDate)} `
+          : "";
+      const recurringClause = `for this subscription every ${planPeriod} ${dayClause}${monthClause}`;
+
+      if (subscriptionDiscount) {
+        const { duration, durationInMonths, discountedPrice } =
+          subscriptionDiscount;
+
+        // `forever` discounts never expire, so there is no full price afterward.
+        if (duration === "forever") {
+          return `You will be billed ${discountedPrice} ${usageClause}${recurringClause}unless you unsubscribe.`;
+        }
+
+        const windowClause =
+          duration === "repeating" && durationInMonths
+            ? durationInMonths === 1
+              ? "for the next month"
+              : `for the next ${durationInMonths} months`
+            : "on your next bill";
+
+        return `You will be billed ${discountedPrice} ${usageClause}${recurringClause}${windowClause}, then ${subscriptionPrice} every ${planPeriod} afterward, unless you unsubscribe.`;
+      }
+
+      return `You will be billed ${subscriptionPrice} ${usageClause}${recurringClause}unless you unsubscribe.`;
+    })();
 
     return (
       <Flex
@@ -1416,10 +1506,7 @@ export const SubscriptionSidebar = forwardRef<
                         ),
                       },
                     )
-                  : subscriptionPrice &&
-                    // TODO: localize
-                    `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
-                every ${planPeriod} ${renewDate ? `on the ${formatOrdinal(renewDate.getDate())}` : ""} ${planPeriod === "year" && renewDate ? `of ${getMonthName(renewDate)}` : ""} unless you unsubscribe.`}
+                  : billingPreviewText}
               </Text>
             </Box>
           )}

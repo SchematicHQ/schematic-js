@@ -77,6 +77,8 @@ export const UpcomingBill = forwardRef<
       currency: discount.currency || undefined,
       amountOff: discount.amountOff ?? undefined,
       percentOff: discount.percentOff ?? undefined,
+      duration: discount.duration,
+      durationInMonths: discount.durationInMonths ?? undefined,
       isActive: discount.isActive,
     }));
   }, [data?.subscription?.discounts]);
@@ -252,10 +254,25 @@ export const UpcomingBill = forwardRef<
                     >
                       {discounts.reduce(
                         (acc: React.ReactElement[], discount) => {
-                          if (
-                            typeof discount.percentOff === "number" ||
-                            typeof discount.amountOff === "number"
-                          ) {
+                          const hasPercentOff =
+                            typeof discount.percentOff === "number" &&
+                            discount.percentOff > 0;
+                          const hasAmountOff =
+                            typeof discount.amountOff === "number" &&
+                            discount.amountOff > 0;
+
+                          if (hasPercentOff || hasAmountOff) {
+                            const label = hasPercentOff
+                              ? t("Percent off", {
+                                  percent: discount.percentOff,
+                                })
+                              : t("Amount off", {
+                                  amount: formatCurrency(
+                                    discount.amountOff as number, // we already checked for `number` type
+                                    discount?.currency,
+                                  ),
+                                });
+
                             acc.push(
                               <Flex
                                 key={discount.couponId}
@@ -289,16 +306,13 @@ export const UpcomingBill = forwardRef<
 
                                 <Box>
                                   <Text>
-                                    {typeof discount.percentOff === "number"
-                                      ? t("Percent off", {
-                                          percent: discount.percentOff,
+                                    {discount.duration === "repeating" &&
+                                    discount.durationInMonths
+                                      ? t("Discount for months", {
+                                          discount: label,
+                                          count: discount.durationInMonths,
                                         })
-                                      : t("Amount off", {
-                                          amount: formatCurrency(
-                                            discount.amountOff as number, // we already checked for `number` type
-                                            discount?.currency,
-                                          ),
-                                        })}
+                                      : label}
                                   </Text>
                                 </Box>
                               </Flex>,

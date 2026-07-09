@@ -17,6 +17,8 @@
     "Agreement": "Agreement",
     "Amount off": "{{amount}} off",
     "Applied balance towards next invoice": "Applied balance towards next invoice",
+    "Discount for months_one": "{{discount}} for next month",
+    "Discount for months_other": "{{discount}} for next {{count}} months",
     "Auto Top-up": "Auto top-up",
     "Auto top-up enabled": "Auto top-up enabled",
     "Auto top-up disabled": "Auto top-up disabled",
