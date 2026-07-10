@@ -59,6 +59,7 @@ const config = {
   payInAdvanceQuantities: {        // pre-fill pay-in-advance quantities, keyed by feature id (optional)
     feat_cns2asuKAG2: 3,           // "feat_cns2asuKAG2" is a feature id, 3 is the quantity
   },
+  promoCode: 'SUMMER20',           // pre-apply a Stripe promotion code (optional)
   skipped: {
     planStage: true,               // if true, skip Plan selection
     addOnStage: true,              // if true, skip Add-on selection
@@ -75,6 +76,12 @@ initializeWithPlan(config);
 pricing; entries for other (or unknown) features are ignored. Combine it with
 `skipped.usageStage` / `skipped.addOnUsageStage` to send the customer straight to
 the final checkout step with the quantities already set.
+
+`promoCode` pre-applies a discount to the checkout. It expects a Stripe
+[promotion code](https://docs.stripe.com/billing/subscriptions/coupons) — the
+customer-facing code such as `SUMMER20`, not the underlying coupon id. The
+discount is applied on load, so the previewed charges reflect it and it ships
+with the final checkout request.
 
 The Plans and Add-ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).
