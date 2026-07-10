@@ -33,6 +33,7 @@ interface CheckoutProps {
   optInAccepted: boolean;
   setOptInAccepted: (accepted: boolean) => void;
   setPaymentMethodId: (id: string) => void;
+  promoCode?: string | null;
   updatePromoCode: (code: string) => void;
   confirmPaymentIntentProps?: ConfirmPaymentIntentProps | null | undefined;
   financeData?: PreviewSubscriptionFinanceResponseData | null;
@@ -59,6 +60,7 @@ export const Checkout = ({
   optInAccepted,
   setOptInAccepted,
   setPaymentMethodId,
+  promoCode,
   updatePromoCode,
   confirmPaymentIntentProps,
   financeData,
@@ -68,7 +70,7 @@ export const Checkout = ({
 
   const isLightBackground = useIsLightBackground();
 
-  const [discount, setDiscount] = useState("");
+  const [discount, setDiscount] = useState(promoCode ?? "");
 
   const hasCustomFields =
     !!customCheckoutFields && customCheckoutFields.length > 0;

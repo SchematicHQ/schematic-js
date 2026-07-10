@@ -628,7 +628,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [addOnUsageBasedEntitlements],
   );
 
-  const [promoCode, setPromoCode] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState<string | null>(
+    () => checkoutState?.promoCode ?? null,
+  );
 
   const [customFieldValues, setCustomFieldValues] = useState<
     Record<string, string>
@@ -1935,6 +1937,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                 optInAccepted={optInAccepted}
                 setOptInAccepted={setOptInAccepted}
                 setPaymentMethodId={(id) => setPaymentMethodId(id)}
+                promoCode={promoCode}
                 updatePromoCode={updatePromoCode}
                 confirmPaymentIntentProps={confirmPaymentIntentProps}
                 financeData={charges}

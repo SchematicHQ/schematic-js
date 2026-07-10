@@ -328,6 +328,19 @@ export interface BypassConfig {
    * { planId: "plan_abc", payInAdvanceQuantities: { feat_seats: 3 } }
    */
   payInAdvanceQuantities?: Record<string, number>;
+  /**
+   * Promotion code to pre-apply to the checkout (a Stripe promotion code such
+   * as "SUMMER20" — the customer-facing code, not the underlying coupon id).
+   *
+   * The discount is applied on load: the previewed charges reflect it and it is
+   * sent with the final checkout request. The customer can still change or
+   * clear it via the discount field in the checkout form. Invalid codes are
+   * rejected by the backend the same way a manually entered code would be.
+   *
+   * @example
+   * { planId: "plan_abc", promoCode: "SUMMER20" }
+   */
+  promoCode?: string;
 }
 
 /**
@@ -374,6 +387,7 @@ export type CheckoutState = {
   showCurrencySelector?: boolean;
   startTrialIfAvailable?: boolean;
   payInAdvanceQuantities?: Record<string, number>;
+  promoCode?: string;
 };
 
 export type EmbedMode = "edit" | "view";
