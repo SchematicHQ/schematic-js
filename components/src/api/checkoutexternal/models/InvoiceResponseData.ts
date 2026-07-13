@@ -90,6 +90,12 @@ export interface InvoiceResponseData {
   dueDate?: Date | null;
   /**
    *
+   * @type {number}
+   * @memberof InvoiceResponseData
+   */
+  endingBalance: number;
+  /**
+   *
    * @type {string}
    * @memberof InvoiceResponseData
    */
@@ -118,6 +124,12 @@ export interface InvoiceResponseData {
    * @memberof InvoiceResponseData
    */
   providerType: BillingProviderType;
+  /**
+   *
+   * @type {number}
+   * @memberof InvoiceResponseData
+   */
+  startingBalance: number;
   /**
    *
    * @type {InvoiceStatus}
@@ -170,10 +182,14 @@ export function instanceOfInvoiceResponseData(
     value["customerExternalId"] === undefined
   )
     return false;
+  if (!("endingBalance" in value) || value["endingBalance"] === undefined)
+    return false;
   if (!("environmentId" in value) || value["environmentId"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("providerType" in value) || value["providerType"] === undefined)
+    return false;
+  if (!("startingBalance" in value) || value["startingBalance"] === undefined)
     return false;
   if (!("subtotal" in value) || value["subtotal"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
@@ -201,6 +217,7 @@ export function InvoiceResponseDataFromJSONTyped(
     currency: json["currency"],
     customerExternalId: json["customer_external_id"],
     dueDate: json["due_date"] == null ? undefined : new Date(json["due_date"]),
+    endingBalance: json["ending_balance"],
     environmentId: json["environment_id"],
     externalId: json["external_id"] == null ? undefined : json["external_id"],
     id: json["id"],
@@ -209,6 +226,7 @@ export function InvoiceResponseDataFromJSONTyped(
         ? undefined
         : json["payment_method_external_id"],
     providerType: BillingProviderTypeFromJSON(json["provider_type"]),
+    startingBalance: json["starting_balance"],
     status:
       json["status"] == null
         ? undefined
@@ -248,11 +266,13 @@ export function InvoiceResponseDataToJSONTyped(
       value["dueDate"] == null
         ? undefined
         : (value["dueDate"] as any).toISOString(),
+    ending_balance: value["endingBalance"],
     environment_id: value["environmentId"],
     external_id: value["externalId"],
     id: value["id"],
     payment_method_external_id: value["paymentMethodExternalId"],
     provider_type: BillingProviderTypeToJSON(value["providerType"]),
+    starting_balance: value["startingBalance"],
     status: InvoiceStatusToJSON(value["status"]),
     subscription_external_id: value["subscriptionExternalId"],
     subtotal: value["subtotal"],
