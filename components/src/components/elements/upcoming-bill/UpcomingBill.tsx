@@ -1,10 +1,7 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  type CurrencyBalance,
-  type InvoiceResponseData,
-} from "../../../api/checkoutexternal";
+import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -63,8 +60,7 @@ export const UpcomingBill = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, debug, getUpcomingInvoice, getCustomerBalance } =
-    useEmbed();
+  const { data, settings, getUpcomingInvoice } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -73,7 +69,6 @@ export const UpcomingBill = forwardRef<
   const [upcomingInvoice, setUpcomingInvoice] = useState<
     InvoiceResponseData | undefined
   >(data?.upcomingInvoice);
-  const [balances, setBalances] = useState<CurrencyBalance[]>([]);
 
   const discounts = useMemo(() => {
     return (data?.subscription?.discounts || []).map((discount) => ({
@@ -109,25 +104,9 @@ export const UpcomingBill = forwardRef<
     }
   }, [data?.component?.id, data?.subscription, getUpcomingInvoice]);
 
-  const getBalances = useCallback(async () => {
-    try {
-      const response = await getCustomerBalance();
-
-      if (response) {
-        setBalances(response.data.balances);
-      }
-    } catch (err) {
-      debug("Failed to fetch customer balance.", err);
-    }
-  }, [debug, getCustomerBalance]);
-
   useEffect(() => {
     getInvoice();
   }, [getInvoice]);
-
-  useEffect(() => {
-    getBalances();
-  }, [getBalances]);
 
   // ensure shared data updates are tracked
   // used to keep in sync with preview data
@@ -138,23 +117,30 @@ export const UpcomingBill = forwardRef<
     }
   }, [data?.upcomingInvoice]);
 
-  const balanceEntries = useMemo(() => {
-    const invoiceCurrency = upcomingInvoice?.currency?.toLowerCase();
+  const { currency, applied, remaining } = useMemo(() => {
+    const currency = upcomingInvoice?.currency;
+    // Stripe balances are negative when the customer holds credit.
+    const startingBalance = upcomingInvoice?.startingBalance ?? 0;
+    const endingBalance = upcomingInvoice?.endingBalance ?? 0;
+    const credit = Math.max(0, -startingBalance);
     const subtotal = Math.max(0, upcomingInvoice?.subtotal ?? 0);
 
-    return balances.map((item) => {
-      const matchesInvoice = item.currency.toLowerCase() === invoiceCurrency;
-      const applied = matchesInvoice ? Math.min(item.balance, subtotal) : 0;
-      return {
-        currency: item.currency,
-        applied,
-        remaining: item.balance - applied,
-      };
-    });
-  }, [balances, upcomingInvoice?.currency, upcomingInvoice?.subtotal]);
+    // Stripe only sets `ending_balance` once an invoice is finalized. On the
+    // upcoming (preview) invoice it comes back as 0, so derive the amount
+    // applied from the starting balance and the invoice subtotal in that case.
+    const applied =
+      endingBalance < 0 ? credit + endingBalance : Math.min(credit, subtotal);
 
-  const hasApplied = balanceEntries.some((entry) => entry.applied > 0);
-  const hasBalance = balances.some((item) => item.balance > 0);
+    return { currency, applied, remaining: credit - applied };
+  }, [
+    upcomingInvoice?.currency,
+    upcomingInvoice?.startingBalance,
+    upcomingInvoice?.endingBalance,
+    upcomingInvoice?.subtotal,
+  ]);
+
+  const hasApplied = applied > 0;
+  const hasBalance = remaining > 0 || applied > 0;
 
   if (!data?.subscription || data.subscription.cancelAt) {
     return null;
@@ -232,16 +218,7 @@ export const UpcomingBill = forwardRef<
                       {t("Applied balance towards next invoice")}
                     </Text>
 
-                    <Flex $flexDirection="column" $gap="0.5rem">
-                      {balanceEntries.map(
-                        (entry, idx) =>
-                          entry.applied > 0 && (
-                            <Text key={idx}>
-                              {formatCurrency(-entry.applied, entry.currency)}
-                            </Text>
-                          ),
-                      )}
-                    </Flex>
+                    <Text>{formatCurrency(-applied, currency)}</Text>
                   </Flex>
                 )}
 
@@ -256,13 +233,7 @@ export const UpcomingBill = forwardRef<
                       {t("Remaining balance after next invoice")}
                     </Text>
 
-                    <Flex $flexDirection="column" $gap="0.5rem">
-                      {balanceEntries.map((entry, idx) => (
-                        <Text key={idx}>
-                          {formatCurrency(entry.remaining, entry.currency)}
-                        </Text>
-                      ))}
-                    </Flex>
+                    <Text>{formatCurrency(remaining, currency)}</Text>
                   </Flex>
                 )}
 
