@@ -1,21 +1,18 @@
 import { describe, expect, test } from "vitest";
 
-import type { BillingSubscriptionDiscountView } from "../api/checkoutexternal";
+import type { PreviewSubscriptionDiscountResponseData } from "../api/checkoutexternal";
 import { i18n } from "../localization/i18n";
 
 import { getBillingPreviewText, getSubscriptionDiscount } from "./discount";
 
 function makeDiscount(
-  overrides: Partial<BillingSubscriptionDiscountView>,
-): BillingSubscriptionDiscountView {
+  overrides: Partial<PreviewSubscriptionDiscountResponseData>,
+): PreviewSubscriptionDiscountResponseData {
   return {
-    couponId: "coupon_1",
     couponName: "Coupon",
-    discountExternalId: "di_1",
     duration: "repeating",
     isActive: true,
     startedAt: new Date("2026-01-01"),
-    subscriptionExternalId: "sub_1",
     ...overrides,
   };
 }
@@ -81,8 +78,8 @@ describe("getSubscriptionDiscount", () => {
     expect(
       getSubscriptionDiscount(
         [
-          makeDiscount({ couponId: "a", amountOff: 5000, currency: "usd" }),
-          makeDiscount({ couponId: "b", percentOff: 10 }),
+          makeDiscount({ couponName: "a", amountOff: 5000, currency: "usd" }),
+          makeDiscount({ couponName: "b", percentOff: 10 }),
         ],
         20000,
         "usd",

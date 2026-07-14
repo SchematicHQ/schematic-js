@@ -460,17 +460,19 @@ export const SubscriptionSidebar = forwardRef<
       [promoCode, amountOff, percentOff],
     );
 
-    // The active discount currently applied to the subscription (as opposed to
-    // a promo code being applied during this checkout). Used to keep the
-    // billing preview copy accurate when a coupon reduces the recurring amount.
+    // The discount the checkout preview says will apply to the previewed
+    // subscription — including any promo code entered during this checkout, and
+    // richer coupon attributes (duration, duration_in_months) than the flat
+    // amount_off/percent_off summary. Used to keep the billing preview copy
+    // accurate when a coupon reduces the recurring amount.
     const subscriptionDiscount = useMemo(
       () =>
         getSubscriptionDiscount(
-          data?.subscription?.discounts,
+          charges?.discounts,
           subscriptionTotal,
           subscriptionCurrency,
         ),
-      [data?.subscription?.discounts, subscriptionTotal, subscriptionCurrency],
+      [charges?.discounts, subscriptionTotal, subscriptionCurrency],
     );
 
     const handleCheckout = useCallback(async () => {

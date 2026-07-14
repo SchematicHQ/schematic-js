@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 
-import type { BillingSubscriptionDiscountView } from "../api/checkoutexternal";
+import type { PreviewSubscriptionDiscountResponseData } from "../api/checkoutexternal";
 
 import { getMonthName } from "./date";
 import { formatCurrency, formatOrdinal } from "./string";
@@ -21,7 +21,7 @@ export interface SubscriptionDiscountPreview {
  *   subtraction would be meaningless.
  */
 export function getSubscriptionDiscount(
-  discounts: BillingSubscriptionDiscountView[] | undefined,
+  discounts: PreviewSubscriptionDiscountResponseData[] | undefined,
   subscriptionTotal: number,
   subscriptionCurrency?: string | null,
 ): SubscriptionDiscountPreview | undefined {

@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PreviewSubscriptionDiscountResponseData } from "./PreviewSubscriptionDiscountResponseData";
+import {
+  PreviewSubscriptionDiscountResponseDataFromJSON,
+  PreviewSubscriptionDiscountResponseDataFromJSONTyped,
+  PreviewSubscriptionDiscountResponseDataToJSON,
+  PreviewSubscriptionDiscountResponseDataToJSONTyped,
+} from "./PreviewSubscriptionDiscountResponseData";
 import type { PreviewSubscriptionUpcomingInvoiceLineItems } from "./PreviewSubscriptionUpcomingInvoiceLineItems";
 import {
   PreviewSubscriptionUpcomingInvoiceLineItemsFromJSON,
