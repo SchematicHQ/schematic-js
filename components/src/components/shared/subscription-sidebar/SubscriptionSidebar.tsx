@@ -307,9 +307,12 @@ export const SubscriptionSidebar = forwardRef<
     // The subscription renews on its billing-cycle anchor (period end), not the
     // start of the current period. These differ once a mid-cycle change made via
     // a Stripe subscription schedule shortens the current period while keeping
-    // the original anchor. Fall back to periodStart for older API responses that
-    // predate period_end.
-    const renewDate = periodEnd ?? periodStart;
+    // the original anchor. Fall back to periodStart for API responses that predate
+    // period_end: the generated model always calls `new Date(json["period_end"])`,
+    // so an absent field deserializes to an Invalid Date (not undefined) — guard on
+    // validity rather than nullishness.
+    const renewDate =
+      periodEnd && !Number.isNaN(periodEnd.getTime()) ? periodEnd : periodStart;
 
     const updatedUsageBasedEntitlements = useMemo(() => {
       const changedUsageBasedEntitlements: {
