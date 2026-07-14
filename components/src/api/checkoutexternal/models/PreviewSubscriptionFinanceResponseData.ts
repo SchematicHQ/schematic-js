@@ -56,6 +56,12 @@ export interface PreviewSubscriptionFinanceResponseData {
    * @type {Date}
    * @memberof PreviewSubscriptionFinanceResponseData
    */
+  periodEnd: Date;
+  /**
+   *
+   * @type {Date}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
   periodStart: Date;
   /**
    *
@@ -119,6 +125,7 @@ export function instanceOfPreviewSubscriptionFinanceResponseData(
     return false;
   if (!("percentOff" in value) || value["percentOff"] === undefined)
     return false;
+  if (!("periodEnd" in value) || value["periodEnd"] === undefined) return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
   if (!("promoCodeApplied" in value) || value["promoCodeApplied"] === undefined)
@@ -160,6 +167,7 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
     dueNow: json["due_now"],
     newCharges: json["new_charges"],
     percentOff: json["percent_off"],
+    periodEnd: new Date(json["period_end"]),
     periodStart: new Date(json["period_start"]),
     promoCodeApplied: json["promo_code_applied"],
     proration: json["proration"],
@@ -195,6 +203,7 @@ export function PreviewSubscriptionFinanceResponseDataToJSONTyped(
     due_now: value["dueNow"],
     new_charges: value["newCharges"],
     percent_off: value["percentOff"],
+    period_end: value["periodEnd"].toISOString(),
     period_start: value["periodStart"].toISOString(),
     promo_code_applied: value["promoCodeApplied"],
     proration: value["proration"],
