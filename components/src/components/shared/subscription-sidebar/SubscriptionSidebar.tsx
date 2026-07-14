@@ -285,6 +285,7 @@ export const SubscriptionSidebar = forwardRef<
       dueNow,
       newCharges,
       percentOff,
+      periodEnd,
       periodStart,
       proration,
       taxAmount,
@@ -295,12 +296,23 @@ export const SubscriptionSidebar = forwardRef<
         dueNow: charges?.dueNow ?? 0,
         newCharges: charges?.newCharges ?? 0,
         percentOff: charges?.percentOff ?? 0,
+        periodEnd: charges?.periodEnd,
         periodStart: charges?.periodStart,
         proration: charges?.proration ?? 0,
         taxAmount: charges?.taxAmount ?? 0,
         taxDescription: charges?.taxDisplayName,
       };
     }, [charges]);
+
+    // The subscription renews on its billing-cycle anchor (period end), not the
+    // start of the current period. These differ once a mid-cycle change made via
+    // a Stripe subscription schedule shortens the current period while keeping
+    // the original anchor. Fall back to periodStart for API responses that predate
+    // period_end: the generated model always calls `new Date(json["period_end"])`,
+    // so an absent field deserializes to an Invalid Date (not undefined) — guard on
+    // validity rather than nullishness.
+    const renewDate =
+      periodEnd && !Number.isNaN(periodEnd.getTime()) ? periodEnd : periodStart;
 
     const updatedUsageBasedEntitlements = useMemo(() => {
       const changedUsageBasedEntitlements: {
@@ -1407,7 +1419,7 @@ export const SubscriptionSidebar = forwardRef<
                   : subscriptionPrice &&
                     // TODO: localize
                     `You will be billed ${subscriptionPrice} ${usageBasedEntitlements.length > 0 ? "plus usage based costs" : ""} for this subscription
-                every ${planPeriod} ${periodStart ? `on the ${formatOrdinal(periodStart.getDate())}` : ""} ${planPeriod === "year" && periodStart ? `of ${getMonthName(periodStart)}` : ""} unless you unsubscribe.`}
+                every ${planPeriod} ${renewDate ? `on the ${formatOrdinal(renewDate.getDate())}` : ""} ${planPeriod === "year" && renewDate ? `of ${getMonthName(renewDate)}` : ""} unless you unsubscribe.`}
               </Text>
             </Box>
           )}
