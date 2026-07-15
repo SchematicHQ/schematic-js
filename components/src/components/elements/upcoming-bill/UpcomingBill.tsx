@@ -1,10 +1,7 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  type CurrencyBalance,
-  type InvoiceResponseData,
-} from "../../../api/checkoutexternal";
+import { type InvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -63,8 +60,7 @@ export const UpcomingBill = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, debug, getUpcomingInvoice, getCustomerBalance } =
-    useEmbed();
+  const { data, settings, getUpcomingInvoice } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -73,7 +69,6 @@ export const UpcomingBill = forwardRef<
   const [upcomingInvoice, setUpcomingInvoice] = useState<
     InvoiceResponseData | undefined
   >(data?.upcomingInvoice);
-  const [balances, setBalances] = useState<CurrencyBalance[]>([]);
 
   const discounts = useMemo(() => {
     return (data?.subscription?.discounts || []).map((discount) => ({
@@ -109,25 +104,9 @@ export const UpcomingBill = forwardRef<
     }
   }, [data?.component?.id, data?.subscription, getUpcomingInvoice]);
 
-  const getBalances = useCallback(async () => {
-    try {
-      const response = await getCustomerBalance();
-
-      if (response) {
-        setBalances(response.data.balances);
-      }
-    } catch (err) {
-      debug("Failed to fetch customer balance.", err);
-    }
-  }, [debug, getCustomerBalance]);
-
   useEffect(() => {
     getInvoice();
   }, [getInvoice]);
-
-  useEffect(() => {
-    getBalances();
-  }, [getBalances]);
 
   // ensure shared data updates are tracked
   // used to keep in sync with preview data
@@ -137,6 +116,31 @@ export const UpcomingBill = forwardRef<
       setUpcomingInvoice(data.upcomingInvoice);
     }
   }, [data?.upcomingInvoice]);
+
+  const { currency, applied, remaining } = useMemo(() => {
+    const currency = upcomingInvoice?.currency;
+    // Stripe balances are negative when the customer holds credit.
+    const startingBalance = upcomingInvoice?.startingBalance ?? 0;
+    const endingBalance = upcomingInvoice?.endingBalance ?? 0;
+    const credit = Math.max(0, -startingBalance);
+    const subtotal = Math.max(0, upcomingInvoice?.subtotal ?? 0);
+
+    // Stripe only sets `ending_balance` once an invoice is finalized. On the
+    // upcoming (preview) invoice it comes back as 0, so derive the amount
+    // applied from the starting balance and the invoice subtotal in that case.
+    const applied =
+      endingBalance < 0 ? credit + endingBalance : Math.min(credit, subtotal);
+
+    return { currency, applied, remaining: credit - applied };
+  }, [
+    upcomingInvoice?.currency,
+    upcomingInvoice?.startingBalance,
+    upcomingInvoice?.endingBalance,
+    upcomingInvoice?.subtotal,
+  ]);
+
+  const hasApplied = applied > 0;
+  const hasBalance = remaining > 0 || applied > 0;
 
   if (!data?.subscription || data.subscription.cancelAt) {
     return null;
@@ -203,22 +207,33 @@ export const UpcomingBill = forwardRef<
                   </Box>
                 </Flex>
 
-                {balances.length > 0 && (
+                {hasApplied && (
                   <Flex
                     as={TransitionBox}
                     $justifyContent="space-between"
                     $alignItems="start"
                     $gap="1rem"
                   >
-                    <Text $weight={600}>{t("Remaining balance")}</Text>
+                    <Text $weight={600}>
+                      {t("Applied balance towards next invoice")}
+                    </Text>
 
-                    <Flex $flexDirection="column" $gap="0.5rem">
-                      {balances.map((item, idx) => (
-                        <Text key={idx}>
-                          {formatCurrency(item.balance, item.currency)}
-                        </Text>
-                      ))}
-                    </Flex>
+                    <Text>{formatCurrency(-applied, currency)}</Text>
+                  </Flex>
+                )}
+
+                {hasBalance && (
+                  <Flex
+                    as={TransitionBox}
+                    $justifyContent="space-between"
+                    $alignItems="start"
+                    $gap="1rem"
+                  >
+                    <Text $weight={600}>
+                      {t("Remaining balance after next invoice")}
+                    </Text>
+
+                    <Text>{formatCurrency(remaining, currency)}</Text>
                   </Flex>
                 )}
 
