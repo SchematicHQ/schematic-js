@@ -13,6 +13,7 @@ import {
   getAddOnPrice,
   getEntitlementFeatureName,
   getEntitlementPrice,
+  getEntitlementWarningThreshold,
   getFeatureName,
   getSubscriptionPeriod,
   hexToHSL,
@@ -178,12 +179,24 @@ export const AddOn = ({
           currency,
         );
 
+        const warningThreshold = layout.showWarningThresholdAsLimit
+          ? getEntitlementWarningThreshold(entitlement.warningTiers)
+          : undefined;
+
         return {
           isUnlimited: false,
           featureName: entitlement.feature?.name,
           feature: entitlement.feature,
           priceBehavior: entitlement.priceBehavior,
           softLimit: entitlement.softLimit,
+          // The limit shown next to the feature: the warning threshold when the
+          // option is on and one is configured, else the overage soft limit.
+          limit:
+            typeof warningThreshold === "number"
+              ? warningThreshold
+              : entitlement.priceBehavior === EntitlementPriceBehavior.Overage
+                ? entitlement.softLimit
+                : undefined,
           price: priceData?.price ?? 0,
           currency: priceData?.currency || addOnCurrency,
           packageSize: priceData?.packageSize ?? 1,
@@ -351,6 +364,7 @@ export const AddOn = ({
                   isUnlimited: false;
                   priceBehavior?: string;
                   softLimit?: number;
+                  limit?: number;
                   price: number;
                   currency: string;
                   packageSize: number;
@@ -384,10 +398,8 @@ export const AddOn = ({
 
                       <Flex $flexDirection="column" $justifyContent="center">
                         <Text>
-                          {meteredEntitlement.priceBehavior ===
-                            EntitlementPriceBehavior.Overage &&
-                          meteredEntitlement.softLimit
-                            ? `${meteredEntitlement.softLimit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
+                          {typeof meteredEntitlement.limit === "number"
+                            ? `${meteredEntitlement.limit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
                             : getEntitlementFeatureName(meteredEntitlement)}
                         </Text>
                       </Flex>
@@ -434,6 +446,8 @@ export const AddOn = ({
                             period: selectedPeriod,
                             addOnId: isActiveAddOn ? null : addOn.id,
                             usage: false,
+                            showWarningThresholdAsLimit:
+                              sharedProps.layout.showWarningThresholdAsLimit,
                           });
                         }
                       },

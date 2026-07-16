@@ -26,6 +26,7 @@ export interface UsageDetailsProps {
   period: string;
   currency?: string;
   showCredits: boolean;
+  showWarningThresholdAsLimit?: boolean;
   layout: {
     addOns: {
       isVisible: boolean;
@@ -40,6 +41,7 @@ export const UsageDetails = ({
   period,
   currency,
   showCredits,
+  showWarningThresholdAsLimit,
   layout,
 }: UsageDetailsProps) => {
   const { t } = useTranslation();
@@ -51,8 +53,11 @@ export const UsageDetails = ({
     limit,
     cost = 0,
   } = useMemo(
-    () => getUsageDetails(entitlement, period, currency),
-    [entitlement, period, currency],
+    () =>
+      getUsageDetails(entitlement, period, currency, {
+        showWarningThresholdAsLimit,
+      }),
+    [entitlement, period, currency, showWarningThresholdAsLimit],
   );
 
   const description = useMemo(() => {

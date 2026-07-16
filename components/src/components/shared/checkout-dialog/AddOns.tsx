@@ -13,6 +13,7 @@ import {
   getAddOnPrice,
   getEntitlementFeatureName,
   getEntitlementPrice,
+  getEntitlementWarningThreshold,
   getFeatureName,
   hexToHSL,
   isTieredPrice,
@@ -119,7 +120,7 @@ export const AddOns = ({
 }: AddOnsProps) => {
   const { t } = useTranslation();
 
-  const { settings } = useEmbed();
+  const { checkoutState, settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -176,10 +177,23 @@ export const AddOns = ({
                 currency,
               );
 
+              const warningThreshold = checkoutState?.showWarningThresholdAsLimit
+                ? getEntitlementWarningThreshold(entitlement.warningTiers)
+                : undefined;
+
               return {
                 isUnlimited: false,
                 priceBehavior: entitlement.priceBehavior,
                 softLimit: entitlement.softLimit,
+                // The limit shown next to the feature: the warning threshold when
+                // the option is on and one is configured, else the overage soft limit.
+                limit:
+                  typeof warningThreshold === "number"
+                    ? warningThreshold
+                    : entitlement.priceBehavior ===
+                        EntitlementPriceBehavior.Overage
+                      ? entitlement.softLimit
+                      : undefined,
                 price: priceData?.price ?? 0,
                 currency: priceData?.currency || addOnCurrency,
                 featureName: entitlement.feature?.name,
@@ -347,6 +361,7 @@ export const AddOns = ({
                         isUnlimited: false;
                         priceBehavior?: string;
                         softLimit?: number;
+                        limit?: number;
                         price: number;
                         currency: string;
                         packageSize: number;
@@ -379,10 +394,8 @@ export const AddOns = ({
                             $justifyContent="center"
                           >
                             <Text>
-                              {meteredEntitlement.priceBehavior ===
-                                EntitlementPriceBehavior.Overage &&
-                              meteredEntitlement.softLimit
-                                ? `${meteredEntitlement.softLimit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
+                              {typeof meteredEntitlement.limit === "number"
+                                ? `${meteredEntitlement.limit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
                                 : getEntitlementFeatureName(meteredEntitlement)}
                             </Text>
                           </Flex>

@@ -385,6 +385,7 @@ export type CheckoutState = {
   hideSkippedStages?: boolean;
   selectedCurrency?: string;
   showCurrencySelector?: boolean;
+  showWarningThresholdAsLimit?: boolean;
   startTrialIfAvailable?: boolean;
   payInAdvanceQuantities?: Record<string, number>;
   promoCode?: string;

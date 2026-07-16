@@ -412,6 +412,8 @@ export const Plan = ({
                               period: selectedPeriod,
                               planId: isActivePlan ? null : plan.id,
                               usage: false,
+                              showWarningThresholdAsLimit:
+                                sharedProps.layout.showWarningThresholdAsLimit,
                             });
                           }
                         },

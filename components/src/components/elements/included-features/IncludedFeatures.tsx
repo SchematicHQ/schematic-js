@@ -14,6 +14,12 @@ import { UsageDetails } from "./UsageDetails";
 
 interface DesignProps {
   visibleFeatures?: string[];
+  /**
+   * When true, display each entitlement's configured warning threshold in place
+   * of its hard limit (the advertised number in a fair-use setup). Falls back to
+   * the hard limit for entitlements without a threshold. Defaults to false.
+   */
+  showWarningThresholdAsLimit: boolean;
   header: {
     isVisible: boolean;
     fontStyle: FontStyle;
@@ -46,6 +52,7 @@ function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
   return {
     // there is a typescript bug with `DeepPartial` so we must cast to `string[] | undefined`
     visibleFeatures: props.visibleFeatures as string[] | undefined,
+    showWarningThresholdAsLimit: props.showWarningThresholdAsLimit ?? false,
     header: {
       isVisible: props.header?.isVisible ?? true,
       fontStyle: props.header?.fontStyle ?? "heading4",

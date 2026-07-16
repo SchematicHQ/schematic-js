@@ -16,6 +16,7 @@ import {
   formatNumber,
   getCreditBasedEntitlementLimit,
   getEntitlementPrice,
+  getEntitlementWarningThreshold,
   getFeatureName,
   getMetricPeriodName,
   isTieredPrice,
@@ -46,7 +47,7 @@ export const Entitlement = ({
 }: EntitlementProps) => {
   const { t } = useTranslation();
 
-  const { data, settings } = useEmbed();
+  const { checkoutState, data, settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -84,11 +85,16 @@ export const Entitlement = ({
       entitlement.valueType === EntitlementValueType.Unlimited ||
       entitlement.valueType === EntitlementValueType.Trait;
 
+    const warningThreshold = checkoutState?.showWarningThresholdAsLimit
+      ? getEntitlementWarningThreshold(entitlement.warningTiers)
+      : undefined;
     const limit =
-      entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
-      typeof entitlement.softLimit === "number"
-        ? entitlement.softLimit
-        : (entitlement.valueNumeric ?? undefined);
+      typeof warningThreshold === "number"
+        ? warningThreshold
+        : entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
+            typeof entitlement.softLimit === "number"
+          ? entitlement.softLimit
+          : (entitlement.valueNumeric ?? undefined);
     const creditBasedEntitlementLimit = getCreditBasedEntitlementLimit(
       entitlement,
       credits,
@@ -210,6 +216,7 @@ export const Entitlement = ({
     packageSize,
     tiered,
     selectedCurrency,
+    checkoutState?.showWarningThresholdAsLimit,
   ]);
 
   const usageText = useMemo(() => {

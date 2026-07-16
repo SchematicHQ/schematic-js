@@ -48,10 +48,21 @@ export interface UsageDetails {
   currentTier?: PriceTier;
 }
 
+export interface GetUsageDetailsOptions {
+  /**
+   * When true, display the entitlement's configured warning threshold in place
+   * of its hard limit. In a fair-use setup the limit is the burst ceiling and
+   * the warning threshold is the advertised number; enabling this surfaces the
+   * advertised number. Falls back to the hard limit when no threshold is set.
+   */
+  showWarningThresholdAsLimit?: boolean;
+}
+
 export function getUsageDetails(
   entitlement: FeatureUsageResponseData,
   period?: string,
   currency?: string,
+  options?: GetUsageDetailsOptions,
 ): UsageDetails {
   // billing price associated with the current period
   const billingPrice = currency
@@ -154,7 +165,44 @@ export function getUsageDetails(
     }
   }
 
+  // When configured, display the warning threshold in place of the hard limit
+  // (the advertised number in a fair-use setup). Only overrides when a threshold
+  // is actually configured, so it is a no-op for entitlements without one.
+  if (options?.showWarningThresholdAsLimit) {
+    const warningThreshold = getEntitlementWarningThreshold(
+      entitlement.planEntitlement?.warningTiers,
+    );
+    if (typeof warningThreshold === "number") {
+      limit = warningThreshold;
+    }
+  }
+
   return { billingPrice, limit, amount, cost, currentTier };
+}
+
+/**
+ * The key the dashboard assigns to the single warning tier it configures per
+ * entitlement. Mirrors `DefaultWarningTierKey` on the API. Consumers resolve the
+ * threshold by this key rather than by array position, so a future named tier
+ * can't be mistaken for the default one.
+ */
+export const WARNING_TIER_DEFAULT_KEY = "default";
+
+/**
+ * Resolves the configured warning threshold (the "default" warning tier's value)
+ * from an entitlement's `warningTiers`, or undefined when none is configured.
+ * Used across every limit-display surface: usage responses expose the tiers under
+ * `planEntitlement.warningTiers`, while the plan-catalog/checkout surfaces carry
+ * them directly on the plan entitlement.
+ */
+export function getEntitlementWarningThreshold(
+  warningTiers:
+    | Pick<PlanEntitlementResponseData, "warningTiers">["warningTiers"]
+    | undefined
+    | null,
+): number | undefined {
+  const tier = warningTiers?.find((t) => t?.key === WARNING_TIER_DEFAULT_KEY);
+  return typeof tier?.value === "number" ? tier.value : undefined;
 }
 
 export function getCreditBasedEntitlementLimit(
