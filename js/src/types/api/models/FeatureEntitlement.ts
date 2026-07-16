@@ -27,6 +27,13 @@ import {
   MetricPeriodMonthResetToJSON,
   MetricPeriodMonthResetToJSONTyped,
 } from "./MetricPeriodMonthReset";
+import type { WarningTier } from "./WarningTier";
+import {
+  WarningTierFromJSON,
+  WarningTierFromJSONTyped,
+  WarningTierToJSON,
+  WarningTierToJSONTyped,
+} from "./WarningTier";
 import type { MetricPeriod } from "./MetricPeriod";
 import {
   MetricPeriodFromJSON,
@@ -149,6 +156,12 @@ export interface FeatureEntitlement {
    * @memberof FeatureEntitlement
    */
   valueType: EntitlementValueType;
+  /**
+   * Customer-defined usage warning thresholds configured on this entitlement
+   * @type {Array<WarningTier>}
+   * @memberof FeatureEntitlement
+   */
+  warningTiers?: Array<WarningTier>;
 }
 
 /**
@@ -209,6 +222,10 @@ export function FeatureEntitlementFromJSONTyped(
     softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
     usage: json["usage"] == null ? undefined : json["usage"],
     valueType: EntitlementValueTypeFromJSON(json["value_type"]),
+    warningTiers:
+      json["warning_tiers"] == null
+        ? undefined
+        : (json["warning_tiers"] as Array<any>).map(WarningTierFromJSON),
   };
 }
 
@@ -246,5 +263,9 @@ export function FeatureEntitlementToJSONTyped(
     soft_limit: value["softLimit"],
     usage: value["usage"],
     value_type: EntitlementValueTypeToJSON(value["valueType"]),
+    warning_tiers:
+      value["warningTiers"] == null
+        ? undefined
+        : (value["warningTiers"] as Array<any>).map(WarningTierToJSON),
   };
 }

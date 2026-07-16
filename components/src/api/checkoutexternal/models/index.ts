@@ -159,4 +159,5 @@ export * from "./UpdatePayInAdvanceRequestBody";
 export * from "./UpdatePaymentMethodRequestBody";
 export * from "./UpdatePaymentMethodResponse";
 export * from "./UsageBasedEntitlementResponseData";
+export * from "./WarningTier";
 export * from "./WarningTierResponseData";

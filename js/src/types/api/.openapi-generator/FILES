@@ -106,6 +106,7 @@ models/RuleResponseData.ts
 models/RuleType.ts
 models/TraitType.ts
 models/TrialStatus.ts
+models/WarningTier.ts
 models/WarningTierResponseData.ts
 models/WhoAmIResponseData.ts
 models/index.ts

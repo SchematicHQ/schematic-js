@@ -107,5 +107,6 @@ export * from "./RuleResponseData";
 export * from "./RuleType";
 export * from "./TraitType";
 export * from "./TrialStatus";
+export * from "./WarningTier";
 export * from "./WarningTierResponseData";
 export * from "./WhoAmIResponseData";
