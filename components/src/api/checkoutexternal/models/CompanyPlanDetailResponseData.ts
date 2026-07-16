@@ -83,6 +83,13 @@ import {
   PlanCreditGrantViewToJSON,
   PlanCreditGrantViewToJSONTyped,
 } from "./PlanCreditGrantView";
+import type { PlanCatalogMembershipResponseData } from "./PlanCatalogMembershipResponseData";
+import {
+  PlanCatalogMembershipResponseDataFromJSON,
+  PlanCatalogMembershipResponseDataFromJSONTyped,
+  PlanCatalogMembershipResponseDataToJSON,
+  PlanCatalogMembershipResponseDataToJSONTyped,
+} from "./PlanCatalogMembershipResponseData";
 import type { PlanCurrencyPricesResponseData } from "./PlanCurrencyPricesResponseData";
 import {
   PlanCurrencyPricesResponseDataFromJSON,
@@ -183,6 +190,12 @@ export interface CompanyPlanDetailResponseData {
    * @memberof CompanyPlanDetailResponseData
    */
   billingStrategy: BillingStrategy;
+  /**
+   *
+   * @type {Array<PlanCatalogMembershipResponseData>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  catalogs?: Array<PlanCatalogMembershipResponseData>;
   /**
    *
    * @type {ChargeType}
@@ -503,6 +516,12 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
     billingStrategy: BillingStrategyFromJSON(json["billing_strategy"]),
+    catalogs:
+      json["catalogs"] == null
+        ? undefined
+        : (json["catalogs"] as Array<any>).map(
+            PlanCatalogMembershipResponseDataFromJSON,
+          ),
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCanTrial: json["company_can_trial"],
     companyCount: json["company_count"],
@@ -614,6 +633,12 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
       value["billingProduct"],
     ),
     billing_strategy: BillingStrategyToJSON(value["billingStrategy"]),
+    catalogs:
+      value["catalogs"] == null
+        ? undefined
+        : (value["catalogs"] as Array<any>).map(
+            PlanCatalogMembershipResponseDataToJSON,
+          ),
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_can_trial: value["companyCanTrial"],
     company_count: value["companyCount"],

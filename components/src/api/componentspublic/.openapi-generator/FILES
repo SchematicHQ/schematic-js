@@ -86,6 +86,7 @@ models/GetPublicPlansResponse.ts
 models/GetWhoAmIResponse.ts
 models/MetricPeriod.ts
 models/MetricPeriodMonthReset.ts
+models/PlanCatalogMembershipResponseData.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts

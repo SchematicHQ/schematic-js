@@ -62,6 +62,13 @@ import {
   BillingPlanCreditGrantResponseDataToJSON,
   BillingPlanCreditGrantResponseDataToJSONTyped,
 } from "./BillingPlanCreditGrantResponseData";
+import type { PlanCatalogMembershipResponseData } from "./PlanCatalogMembershipResponseData";
+import {
+  PlanCatalogMembershipResponseDataFromJSON,
+  PlanCatalogMembershipResponseDataFromJSONTyped,
+  PlanCatalogMembershipResponseDataToJSON,
+  PlanCatalogMembershipResponseDataToJSONTyped,
+} from "./PlanCatalogMembershipResponseData";
 import type { PlanCurrencyPricesResponseData } from "./PlanCurrencyPricesResponseData";
 import {
   PlanCurrencyPricesResponseDataFromJSON,
@@ -149,6 +156,12 @@ export interface PlanDetailResponseData {
    * @memberof PlanDetailResponseData
    */
   billingStrategy: BillingStrategy;
+  /**
+   *
+   * @type {Array<PlanCatalogMembershipResponseData>}
+   * @memberof PlanDetailResponseData
+   */
+  catalogs?: Array<PlanCatalogMembershipResponseData>;
   /**
    *
    * @type {ChargeType}
@@ -392,6 +405,12 @@ export function PlanDetailResponseDataFromJSONTyped(
         ? undefined
         : BillingProductDetailResponseDataFromJSON(json["billing_product"]),
     billingStrategy: BillingStrategyFromJSON(json["billing_strategy"]),
+    catalogs:
+      json["catalogs"] == null
+        ? undefined
+        : (json["catalogs"] as Array<any>).map(
+            PlanCatalogMembershipResponseDataFromJSON,
+          ),
     chargeType: ChargeTypeFromJSON(json["charge_type"]),
     companyCount: json["company_count"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
@@ -486,6 +505,12 @@ export function PlanDetailResponseDataToJSONTyped(
       value["billingProduct"],
     ),
     billing_strategy: BillingStrategyToJSON(value["billingStrategy"]),
+    catalogs:
+      value["catalogs"] == null
+        ? undefined
+        : (value["catalogs"] as Array<any>).map(
+            PlanCatalogMembershipResponseDataToJSON,
+          ),
     charge_type: ChargeTypeToJSON(value["chargeType"]),
     company_count: value["companyCount"],
     company_id: value["companyId"],

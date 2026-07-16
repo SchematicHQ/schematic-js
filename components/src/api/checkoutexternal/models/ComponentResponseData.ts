@@ -42,6 +42,12 @@ export interface ComponentResponseData {
   ast?: { [key: string]: number };
   /**
    *
+   * @type {string}
+   * @memberof ComponentResponseData
+   */
+  catalogId?: string | null;
+  /**
+   *
    * @type {Date}
    * @memberof ComponentResponseData
    */
@@ -108,6 +114,7 @@ export function ComponentResponseDataFromJSONTyped(
   }
   return {
     ast: json["ast"] == null ? undefined : json["ast"],
+    catalogId: json["catalog_id"] == null ? undefined : json["catalog_id"],
     createdAt: new Date(json["created_at"]),
     id: json["id"],
     name: json["name"],
@@ -131,6 +138,7 @@ export function ComponentResponseDataToJSONTyped(
 
   return {
     ast: value["ast"],
+    catalog_id: value["catalogId"],
     created_at: value["createdAt"].toISOString(),
     id: value["id"],
     name: value["name"],
