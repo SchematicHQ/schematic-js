@@ -20,6 +20,13 @@ import {
   PreviewSubscriptionUpcomingInvoiceLineItemsToJSON,
   PreviewSubscriptionUpcomingInvoiceLineItemsToJSONTyped,
 } from "./PreviewSubscriptionUpcomingInvoiceLineItems";
+import type { PreviewSubscriptionDiscountResponseData } from "./PreviewSubscriptionDiscountResponseData";
+import {
+  PreviewSubscriptionDiscountResponseDataFromJSON,
+  PreviewSubscriptionDiscountResponseDataFromJSONTyped,
+  PreviewSubscriptionDiscountResponseDataToJSON,
+  PreviewSubscriptionDiscountResponseDataToJSONTyped,
+} from "./PreviewSubscriptionDiscountResponseData";
 
 /**
  *
@@ -33,6 +40,12 @@ export interface PreviewSubscriptionFinanceResponseData {
    * @memberof PreviewSubscriptionFinanceResponseData
    */
   amountOff: number;
+  /**
+   *
+   * @type {Array<PreviewSubscriptionDiscountResponseData>}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  discounts: Array<PreviewSubscriptionDiscountResponseData>;
   /**
    *
    * @type {number}
@@ -120,6 +133,7 @@ export function instanceOfPreviewSubscriptionFinanceResponseData(
   value: object,
 ): value is PreviewSubscriptionFinanceResponseData {
   if (!("amountOff" in value) || value["amountOff"] === undefined) return false;
+  if (!("discounts" in value) || value["discounts"] === undefined) return false;
   if (!("dueNow" in value) || value["dueNow"] === undefined) return false;
   if (!("newCharges" in value) || value["newCharges"] === undefined)
     return false;
@@ -164,6 +178,9 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
   }
   return {
     amountOff: json["amount_off"],
+    discounts: (json["discounts"] as Array<any>).map(
+      PreviewSubscriptionDiscountResponseDataFromJSON,
+    ),
     dueNow: json["due_now"],
     newCharges: json["new_charges"],
     percentOff: json["percent_off"],
@@ -200,6 +217,9 @@ export function PreviewSubscriptionFinanceResponseDataToJSONTyped(
 
   return {
     amount_off: value["amountOff"],
+    discounts: (value["discounts"] as Array<any>).map(
+      PreviewSubscriptionDiscountResponseDataToJSON,
+    ),
     due_now: value["dueNow"],
     new_charges: value["newCharges"],
     percent_off: value["percentOff"],

@@ -136,6 +136,7 @@ models/PreviewCheckoutResponse.ts
 models/PreviewObject.ts
 models/PreviewObjectResponseData.ts
 models/PreviewSubscriptionChangeResponseData.ts
+models/PreviewSubscriptionDiscountResponseData.ts
 models/PreviewSubscriptionFinanceResponseData.ts
 models/PreviewSubscriptionUpcomingInvoiceLineItems.ts
 models/Rule.ts

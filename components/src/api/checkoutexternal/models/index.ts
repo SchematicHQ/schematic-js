@@ -134,6 +134,7 @@ export * from "./PreviewCheckoutResponse";
 export * from "./PreviewObject";
 export * from "./PreviewObjectResponseData";
 export * from "./PreviewSubscriptionChangeResponseData";
+export * from "./PreviewSubscriptionDiscountResponseData";
 export * from "./PreviewSubscriptionFinanceResponseData";
 export * from "./PreviewSubscriptionUpcomingInvoiceLineItems";
 export * from "./Rule";
