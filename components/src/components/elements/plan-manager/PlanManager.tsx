@@ -37,12 +37,6 @@ import { AddOn } from "./AddOn";
 import { UsageDetails } from "./UsageDetails";
 
 interface DesignProps {
-  /**
-   * When true, display each entitlement's configured warning threshold in place
-   * of its hard limit (the advertised number in a fair-use setup). Falls back to
-   * the hard limit for entitlements without a threshold. Defaults to false.
-   */
-  showWarningThresholdAsLimit: boolean;
   header: {
     isVisible: boolean;
     title: {
@@ -71,7 +65,6 @@ interface DesignProps {
 
 const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
   return {
-    showWarningThresholdAsLimit: props.showWarningThresholdAsLimit ?? false,
     header: {
       isVisible: props.header?.isVisible ?? true,
       title: {
@@ -113,8 +106,7 @@ export const PlanManager = forwardRef<
 
   const { t } = useTranslation();
 
-  const { checkoutState, data, settings, setCheckoutState, setLayout } =
-    useEmbed();
+  const { data, settings, setCheckoutState, setLayout } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
 
@@ -514,9 +506,6 @@ export const PlanManager = forwardRef<
                     period={currentPlanPeriod || "month"}
                     currency={subscriptionCurrency}
                     showCredits={showCredits}
-                    showWarningThresholdAsLimit={
-                      props.showWarningThresholdAsLimit
-                    }
                     layout={props}
                   />
                 );
@@ -674,11 +663,7 @@ export const PlanManager = forwardRef<
                   <Button
                     type="button"
                     onClick={() => {
-                      setCheckoutState({
-                        bypassPlanSelection: true,
-                        showWarningThresholdAsLimit:
-                          props.showWarningThresholdAsLimit,
-                      });
+                      setCheckoutState({ bypassPlanSelection: true });
                       setLayout("checkout");
                     }}
                     $size="sm"
@@ -803,11 +788,6 @@ export const PlanManager = forwardRef<
             <Button
               type="button"
               onClick={() => {
-                setCheckoutState({
-                  ...checkoutState,
-                  showWarningThresholdAsLimit:
-                    props.showWarningThresholdAsLimit,
-                });
                 setLayout("checkout");
               }}
               $size={props.callToAction.buttonSize}

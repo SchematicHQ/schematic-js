@@ -142,12 +142,6 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
 
 interface DesignProps {
   isVisible: boolean;
-  /**
-   * When true, display each entitlement's configured warning threshold in place
-   * of its hard limit (the advertised number in a fair-use setup). Falls back to
-   * the hard limit for entitlements without a threshold. Defaults to false.
-   */
-  showWarningThresholdAsLimit: boolean;
   header: {
     fontStyle: FontStyle;
   };
@@ -172,7 +166,6 @@ interface DesignProps {
 function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
   return {
     isVisible: props.isVisible ?? true,
-    showWarningThresholdAsLimit: props.showWarningThresholdAsLimit ?? false,
     header: {
       fontStyle: props.header?.fontStyle ?? "heading2",
     },
@@ -209,7 +202,10 @@ export const MeteredFeatures = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, setCheckoutState } = useEmbed();
+  const { data, settings, setCheckoutState, warningThresholdConfig } =
+    useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const isLightBackground = useIsLightBackground();
 
@@ -289,7 +285,7 @@ export const MeteredFeatures = forwardRef<
 
         const { feature, priceBehavior, usage } = entitlement;
         const usageDetails = getUsageDetails(entitlement, period, undefined, {
-          showWarningThresholdAsLimit: props.showWarningThresholdAsLimit,
+          showWarningThresholdAsLimit,
         });
         const { limit } = usageDetails;
 
@@ -376,12 +372,7 @@ export const MeteredFeatures = forwardRef<
                 {props.isVisible &&
                   priceBehavior !== EntitlementPriceBehavior.PayAsYouGo &&
                   priceBehavior !== EntitlementPriceBehavior.CreditBurndown && (
-                    <Meter
-                      entitlement={entitlement}
-                      showWarningThresholdAsLimit={
-                        props.showWarningThresholdAsLimit
-                      }
-                    />
+                    <Meter entitlement={entitlement} />
                   )}
 
                 {canCheckout &&
@@ -389,11 +380,7 @@ export const MeteredFeatures = forwardRef<
                     <Button
                       type="button"
                       onClick={() => {
-                        setCheckoutState({
-                          usage: true,
-                          showWarningThresholdAsLimit:
-                            props.showWarningThresholdAsLimit,
-                        });
+                        setCheckoutState({ usage: true });
                       }}
                       style={{ whiteSpace: "nowrap" }}
                     >
@@ -476,11 +463,7 @@ export const MeteredFeatures = forwardRef<
                       <Button
                         type="button"
                         onClick={() => {
-                          setCheckoutState({
-                            credits: true,
-                            showWarningThresholdAsLimit:
-                              props.showWarningThresholdAsLimit,
-                          });
+                          setCheckoutState({ credits: true });
                         }}
                         style={{ whiteSpace: "nowrap" }}
                         $size="sm"

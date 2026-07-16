@@ -27,7 +27,6 @@ import { Flex, Text } from "../../ui";
 interface UsageDetailsProps {
   entitlement: FeatureUsageResponseData;
   layout: {
-    showWarningThresholdAsLimit: boolean;
     entitlementExpiration: {
       isVisible: boolean;
       fontStyle: FontStyle;
@@ -57,7 +56,9 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
 
   const { t } = useTranslation();
 
-  const { data } = useEmbed();
+  const { data, warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const period =
     getSubscriptionPeriod(data?.company?.billingSubscription) ??
@@ -80,7 +81,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       entitlement,
       period,
       undefined,
-      { showWarningThresholdAsLimit: layout.showWarningThresholdAsLimit },
+      { showWarningThresholdAsLimit },
     );
     const {
       price,
@@ -104,7 +105,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
         isTieredPrice(billingPrice),
     };
-  }, [entitlement, period, priceBehavior, layout.showWarningThresholdAsLimit]);
+  }, [entitlement, period, priceBehavior, showWarningThresholdAsLimit]);
 
   const text = useMemo(() => {
     if (

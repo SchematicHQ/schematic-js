@@ -58,7 +58,9 @@ export const Entitlement = ({
 
   const { t } = useTranslation();
 
-  const { settings } = useEmbed();
+  const { settings, warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const isLightBackground = useIsLightBackground();
 
@@ -79,7 +81,7 @@ export const Entitlement = ({
     entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
     isTieredPrice(entitlementBillingPrice);
 
-  const warningThreshold = layout.showWarningThresholdAsLimit
+  const warningThreshold = showWarningThresholdAsLimit
     ? getEntitlementWarningThreshold(entitlement.warningTiers)
     : undefined;
   const limit =

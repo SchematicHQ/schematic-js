@@ -182,9 +182,8 @@ export function getUsageDetails(
 
 /**
  * The key the dashboard assigns to the single warning tier it configures per
- * entitlement. Mirrors `DefaultWarningTierKey` on the API. Consumers resolve the
- * threshold by this key rather than by array position, so a future named tier
- * can't be mistaken for the default one.
+ * entitlement. Consumers resolve the threshold by this key rather than by array
+ * position, so a future named tier can't be mistaken for the default one.
  */
 export const WARNING_TIER_DEFAULT_KEY = "default";
 

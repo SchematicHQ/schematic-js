@@ -31,6 +31,7 @@ import {
   type CheckoutState,
   type EmbedLayout,
   type EmbedSettings,
+  type WarningThresholdConfig,
 } from "./embedState";
 
 const getCustomHeaders = (sessionId: string) => ({
@@ -51,6 +52,12 @@ export interface EmbedProviderProps {
    * ISO-4217 codes; case-insensitive. Omit to disable filtering.
    */
   currencyFilter?: string[];
+  /**
+   * Controls how entitlement warning thresholds are displayed across components.
+   * Set `{ showAsLimit: true }` to display the configured warning threshold in
+   * place of an entitlement's hard limit. Omit to keep the default behavior.
+   */
+  warningThresholdConfig?: WarningThresholdConfig;
   checkoutPrefill?: CheckoutPrefill;
 }
 
@@ -85,6 +92,7 @@ export const EmbedProvider = ({
   apiKey,
   apiConfig,
   currencyFilter,
+  warningThresholdConfig,
   checkoutPrefill,
   ...options
 }: EmbedProviderProps) => {
@@ -108,6 +116,7 @@ export const EmbedProvider = ({
     const providedState = {
       settings: opts.settings || {},
       currencyFilter: normalizeCurrencyFilter(currencyFilter),
+      warningThresholdConfig,
       checkoutPrefill: normalizeCheckoutPrefill(checkoutPrefill),
     };
     const resolvedState = merge({}, initialState, providedState);

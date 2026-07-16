@@ -37,12 +37,6 @@ interface DesignProps {
   showPeriodToggle: boolean;
   showCurrencySelector: boolean;
   showDiscount: boolean;
-  /**
-   * When true, display each entitlement's configured warning threshold in place
-   * of its hard limit (the advertised number in a fair-use setup). Falls back to
-   * the hard limit for entitlements without a threshold. Defaults to false.
-   */
-  showWarningThresholdAsLimit: boolean;
   header: {
     isVisible: boolean;
     fontStyle: FontStyle;
@@ -85,7 +79,6 @@ const resolveDesignProps = (props: DeepPartial<DesignProps>): DesignProps => {
     showPeriodToggle: props.showPeriodToggle ?? true,
     showCurrencySelector: props.showCurrencySelector ?? true,
     showDiscount: props.showDiscount ?? true,
-    showWarningThresholdAsLimit: props.showWarningThresholdAsLimit ?? false,
     header: {
       isVisible: props.header?.isVisible ?? true,
       fontStyle: props.header?.fontStyle ?? "heading3",

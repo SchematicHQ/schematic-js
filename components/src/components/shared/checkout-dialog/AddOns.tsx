@@ -120,7 +120,9 @@ export const AddOns = ({
 }: AddOnsProps) => {
   const { t } = useTranslation();
 
-  const { checkoutState, settings } = useEmbed();
+  const { settings, warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const isLightBackground = useIsLightBackground();
 
@@ -177,7 +179,7 @@ export const AddOns = ({
                 currency,
               );
 
-              const warningThreshold = checkoutState?.showWarningThresholdAsLimit
+              const warningThreshold = showWarningThresholdAsLimit
                 ? getEntitlementWarningThreshold(entitlement.warningTiers)
                 : undefined;
 

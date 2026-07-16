@@ -128,7 +128,10 @@ export const AddOn = ({
 
   const { t } = useTranslation();
 
-  const { data, settings, setCheckoutState } = useEmbed();
+  const { data, settings, setCheckoutState, warningThresholdConfig } =
+    useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const isLightBackground = useIsLightBackground();
 
@@ -179,7 +182,7 @@ export const AddOn = ({
           currency,
         );
 
-        const warningThreshold = layout.showWarningThresholdAsLimit
+        const warningThreshold = showWarningThresholdAsLimit
           ? getEntitlementWarningThreshold(entitlement.warningTiers)
           : undefined;
 
@@ -446,8 +449,6 @@ export const AddOn = ({
                             period: selectedPeriod,
                             addOnId: isActiveAddOn ? null : addOn.id,
                             usage: false,
-                            showWarningThresholdAsLimit:
-                              sharedProps.layout.showWarningThresholdAsLimit,
                           });
                         }
                       },

@@ -47,7 +47,9 @@ export const Entitlement = ({
 }: EntitlementProps) => {
   const { t } = useTranslation();
 
-  const { checkoutState, data, settings } = useEmbed();
+  const { data, settings, warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const isLightBackground = useIsLightBackground();
 
@@ -85,7 +87,7 @@ export const Entitlement = ({
       entitlement.valueType === EntitlementValueType.Unlimited ||
       entitlement.valueType === EntitlementValueType.Trait;
 
-    const warningThreshold = checkoutState?.showWarningThresholdAsLimit
+    const warningThreshold = showWarningThresholdAsLimit
       ? getEntitlementWarningThreshold(entitlement.warningTiers)
       : undefined;
     const limit =
@@ -216,7 +218,7 @@ export const Entitlement = ({
     packageSize,
     tiered,
     selectedCurrency,
-    checkoutState?.showWarningThresholdAsLimit,
+    showWarningThresholdAsLimit,
   ]);
 
   const usageText = useMemo(() => {

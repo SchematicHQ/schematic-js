@@ -385,13 +385,27 @@ export type CheckoutState = {
   hideSkippedStages?: boolean;
   selectedCurrency?: string;
   showCurrencySelector?: boolean;
-  showWarningThresholdAsLimit?: boolean;
   startTrialIfAvailable?: boolean;
   payInAdvanceQuantities?: Record<string, number>;
   promoCode?: string;
 };
 
 export type EmbedMode = "edit" | "view";
+
+/**
+ * Consumer-level configuration for how entitlement warning thresholds are
+ * displayed. Set once at the EmbedProvider (`<EmbedProvider
+ * warningThresholdConfig={{ showAsLimit: true }} />`) and read by any element
+ * that renders an entitlement limit.
+ */
+export interface WarningThresholdConfig {
+  /**
+   * When true, display an entitlement's configured warning threshold in place of
+   * its hard limit (the advertised number in a fair-use setup). Falls back to the
+   * hard limit for entitlements without a threshold. Defaults to false.
+   */
+  showAsLimit?: boolean;
+}
 
 export interface EmbedState {
   isPending: boolean;
@@ -403,6 +417,7 @@ export interface EmbedState {
   layout: EmbedLayout;
   checkoutState?: CheckoutState;
   currencyFilter?: string[];
+  warningThresholdConfig?: WarningThresholdConfig;
   checkoutPrefill?: CheckoutPrefill;
 }
 

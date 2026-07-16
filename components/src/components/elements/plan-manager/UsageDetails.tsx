@@ -26,7 +26,6 @@ export interface UsageDetailsProps {
   period: string;
   currency?: string;
   showCredits: boolean;
-  showWarningThresholdAsLimit?: boolean;
   layout: {
     addOns: {
       isVisible: boolean;
@@ -41,12 +40,13 @@ export const UsageDetails = ({
   period,
   currency,
   showCredits,
-  showWarningThresholdAsLimit,
   layout,
 }: UsageDetailsProps) => {
   const { t } = useTranslation();
 
-  const { settings } = useEmbed();
+  const { settings, warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const {
     billingPrice,

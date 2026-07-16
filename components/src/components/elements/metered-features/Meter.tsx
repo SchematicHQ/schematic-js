@@ -2,25 +2,21 @@ import {
   EntitlementPriceBehavior,
   type FeatureUsageResponseData,
 } from "../../../api/checkoutexternal";
+import { useEmbed } from "../../../hooks";
 import { getEntitlementWarningThreshold } from "../../../utils";
 import { ProgressBar, progressColorMap } from "../../ui";
 
 interface MeterProps {
   entitlement: FeatureUsageResponseData;
   period?: string;
-  /**
-   * When true, use the entitlement's configured warning threshold as the meter's
-   * limit (matching the displayed limit in a fair-use setup), falling back to the
-   * hard limit when no threshold is set.
-   */
-  showWarningThresholdAsLimit?: boolean;
 }
 
-export const Meter = ({
-  entitlement,
-  showWarningThresholdAsLimit,
-}: MeterProps) => {
+export const Meter = ({ entitlement }: MeterProps) => {
   const { allocation, priceBehavior, softLimit, usage } = entitlement;
+
+  const { warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
   const warningThreshold = getEntitlementWarningThreshold(
     entitlement.planEntitlement?.warningTiers,
   );
