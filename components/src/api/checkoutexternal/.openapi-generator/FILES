@@ -120,6 +120,7 @@ models/ListInvoicesResponse.ts
 models/MetricPeriod.ts
 models/MetricPeriodMonthReset.ts
 models/PaymentMethodResponseData.ts
+models/PlanCatalogMembershipResponseData.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
