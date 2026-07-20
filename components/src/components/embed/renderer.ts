@@ -11,11 +11,14 @@ import {
   MeteredFeatures,
   PaymentMethod,
   PlanManager,
-  PricingTable,
   TextElement,
   UnsubscribeButton,
   UpcomingBill,
 } from "../elements";
+// The styled PricingTable is no longer part of the public barrel (superseded by
+// the headless `PricingTable`); the embed renderer still needs it, so import it
+// directly from its folder.
+import { PricingTable } from "../elements/pricing-table";
 import { Card, Column, Root, Viewport } from "../layout";
 
 const components: Record<string, React.FC | undefined> = {
