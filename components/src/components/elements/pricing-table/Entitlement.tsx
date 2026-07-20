@@ -16,6 +16,7 @@ import {
   formatNumber,
   getCreditBasedEntitlementLimit,
   getEntitlementPrice,
+  getEntitlementWarningThreshold,
   getFeatureName,
   getMetricPeriodName,
   isTieredPrice,
@@ -57,7 +58,9 @@ export const Entitlement = ({
 
   const { t } = useTranslation();
 
-  const { settings } = useEmbed();
+  const { settings, warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const isLightBackground = useIsLightBackground();
 
@@ -78,11 +81,16 @@ export const Entitlement = ({
     entitlement.priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
     isTieredPrice(entitlementBillingPrice);
 
+  const warningThreshold = showWarningThresholdAsLimit
+    ? getEntitlementWarningThreshold(entitlement.warningTiers)
+    : undefined;
   const limit =
-    entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
-    typeof entitlement.softLimit === "number"
-      ? entitlement.softLimit
-      : (entitlement.valueNumeric ?? undefined);
+    typeof warningThreshold === "number"
+      ? warningThreshold
+      : entitlement.priceBehavior === EntitlementPriceBehavior.Overage &&
+          typeof entitlement.softLimit === "number"
+        ? entitlement.softLimit
+        : (entitlement.valueNumeric ?? undefined);
 
   const metricPeriodName = getMetricPeriodName(entitlement);
   const creditBasedEntitlementLimit = getCreditBasedEntitlementLimit(

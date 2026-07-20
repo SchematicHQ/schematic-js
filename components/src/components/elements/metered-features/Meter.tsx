@@ -2,6 +2,8 @@ import {
   EntitlementPriceBehavior,
   type FeatureUsageResponseData,
 } from "../../../api/checkoutexternal";
+import { useEmbed } from "../../../hooks";
+import { getEntitlementWarningThreshold } from "../../../utils";
 import { ProgressBar, progressColorMap } from "../../ui";
 
 interface MeterProps {
@@ -11,7 +13,17 @@ interface MeterProps {
 
 export const Meter = ({ entitlement }: MeterProps) => {
   const { allocation, priceBehavior, softLimit, usage } = entitlement;
-  const limit = softLimit ?? allocation;
+
+  const { warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
+  const warningThreshold = getEntitlementWarningThreshold(
+    entitlement.planEntitlement?.warningTiers,
+  );
+  const limit =
+    showWarningThresholdAsLimit && typeof warningThreshold === "number"
+      ? warningThreshold
+      : (softLimit ?? allocation);
 
   // check conditions required for showing the meter
   if (typeof usage !== "number" || typeof limit !== "number") {

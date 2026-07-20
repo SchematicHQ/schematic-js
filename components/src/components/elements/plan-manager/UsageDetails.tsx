@@ -44,15 +44,20 @@ export const UsageDetails = ({
 }: UsageDetailsProps) => {
   const { t } = useTranslation();
 
-  const { settings } = useEmbed();
+  const { settings, warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const {
     billingPrice,
     limit,
     cost = 0,
   } = useMemo(
-    () => getUsageDetails(entitlement, period, currency),
-    [entitlement, period, currency],
+    () =>
+      getUsageDetails(entitlement, period, currency, {
+        showWarningThresholdAsLimit,
+      }),
+    [entitlement, period, currency, showWarningThresholdAsLimit],
   );
 
   const description = useMemo(() => {

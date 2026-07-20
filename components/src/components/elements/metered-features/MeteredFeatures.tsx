@@ -58,14 +58,8 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
 
   const { data } = useEmbed();
 
-  const {
-    feature,
-    planEntitlement,
-    priceBehavior,
-    allocation,
-    usage,
-    metricResetAt,
-  } = entitlement;
+  const { feature, planEntitlement, priceBehavior, usage, metricResetAt } =
+    entitlement;
   const { billingPrice, limit, cost, currentTier } = usageDetails;
 
   const acc: React.ReactNode[] = [];
@@ -113,9 +107,9 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
                     amount: formatNumber(limit),
                     units: getFeatureName(feature, limit),
                   })
-                : typeof allocation === "number"
+                : typeof limit === "number"
                   ? t("Limit of", {
-                      amount: formatNumber(allocation),
+                      amount: formatNumber(limit),
                     })
                   : t("No limit"),
   );
@@ -208,7 +202,10 @@ export const MeteredFeatures = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, setCheckoutState } = useEmbed();
+  const { data, settings, setCheckoutState, warningThresholdConfig } =
+    useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const isLightBackground = useIsLightBackground();
 
@@ -287,7 +284,9 @@ export const MeteredFeatures = forwardRef<
         }
 
         const { feature, priceBehavior, usage } = entitlement;
-        const usageDetails = getUsageDetails(entitlement, period);
+        const usageDetails = getUsageDetails(entitlement, period, undefined, {
+          showWarningThresholdAsLimit,
+        });
         const { limit } = usageDetails;
 
         acc.push(

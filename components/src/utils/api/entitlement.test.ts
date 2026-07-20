@@ -677,3 +677,55 @@ describe("getUsageDetails", () => {
     });
   });
 });
+
+describe("getUsageDetails warning threshold", () => {
+  type PlanEntitlement = NonNullable<
+    FeatureUsageResponseData["planEntitlement"]
+  >;
+  const withTiers = (
+    tiers: PlanEntitlement["warningTiers"],
+  ): FeatureUsageResponseData => ({
+    access: true,
+    allocationType: EntitlementValueType.Numeric,
+    entitlementId: "ent-warn",
+    entitlementType: EntitlementType.PlanEntitlement,
+    allocation: 150,
+    usage: 0,
+    priceBehavior: null,
+    planEntitlement: { warningTiers: tiers } as PlanEntitlement,
+  });
+
+  const defaultTier = { id: "wt-1", key: "default", value: 120 };
+
+  it("uses the warning threshold as the limit when the option is enabled", () => {
+    const { limit } = getUsageDetails(
+      withTiers([defaultTier]),
+      "month",
+      undefined,
+      { showWarningThresholdAsLimit: true },
+    );
+    expect(limit).toBe(120);
+  });
+
+  it("uses the actual limit when the option is disabled", () => {
+    const { limit } = getUsageDetails(withTiers([defaultTier]), "month");
+    expect(limit).toBe(150);
+  });
+
+  it("falls back to the actual limit when no warning tiers are configured", () => {
+    const { limit } = getUsageDetails(withTiers([]), "month", undefined, {
+      showWarningThresholdAsLimit: true,
+    });
+    expect(limit).toBe(150);
+  });
+
+  it("resolves the default tier by key, ignoring other-keyed tiers", () => {
+    const { limit } = getUsageDetails(
+      withTiers([{ id: "wt-2", key: "custom", value: 80 }]),
+      "month",
+      undefined,
+      { showWarningThresholdAsLimit: true },
+    );
+    expect(limit).toBe(150);
+  });
+});

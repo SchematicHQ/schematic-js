@@ -56,7 +56,9 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
 
   const { t } = useTranslation();
 
-  const { data } = useEmbed();
+  const { data, warningThresholdConfig } = useEmbed();
+  const showWarningThresholdAsLimit =
+    warningThresholdConfig?.showAsLimit ?? false;
 
   const period =
     getSubscriptionPeriod(data?.company?.billingSubscription) ??
@@ -78,6 +80,8 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     const { billingPrice, amount, limit, cost, currentTier } = getUsageDetails(
       entitlement,
       period,
+      undefined,
+      { showWarningThresholdAsLimit },
     );
     const {
       price,
@@ -101,7 +105,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
         isTieredPrice(billingPrice),
     };
-  }, [entitlement, period, priceBehavior]);
+  }, [entitlement, period, priceBehavior, showWarningThresholdAsLimit]);
 
   const text = useMemo(() => {
     if (
