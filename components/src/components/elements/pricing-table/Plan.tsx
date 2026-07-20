@@ -137,63 +137,69 @@ export const Plan = ({
           }
         >
           <Box>
-            <Text
-              as="h3"
-              display={layout.plans.name.fontStyle}
-              style={{ margin: 0 }}
-            >
-              {plan.name}
-            </Text>
+            <Headless.Name asChild>
+              <Text
+                as="h3"
+                display={layout.plans.name.fontStyle}
+                style={{ margin: 0 }}
+              >
+                {plan.name}
+              </Text>
+            </Headless.Name>
           </Box>
 
           {layout.plans.description.isVisible && (
             <Box $marginBottom="0.5rem">
-              <Text display={layout.plans.description.fontStyle}>
-                {plan.description}
-              </Text>
+              <Headless.Description asChild>
+                <Text display={layout.plans.description.fontStyle}>
+                  {plan.description}
+                </Text>
+              </Headless.Description>
             </Box>
           )}
 
           <Box>
-            <Text
-              data-testid="sch-plan-price"
-              $font={headerPriceFontStyle.fontFamily}
-              $size={headerPriceFontStyle.fontSize}
-              $weight={headerPriceFontStyle.fontWeight}
-              $color={headerPriceFontStyle.color}
-            >
-              {plan.custom
-                ? plan.customPlanConfig?.priceText
-                  ? plan.customPlanConfig.priceText
-                  : t("Custom price")
-                : isUsageBasedPlan
-                  ? t("Usage-based")
-                  : isFreePlan && showZeroPriceAsFree
-                    ? t("Free")
-                    : showAsMonthlyPrices &&
-                        selectedPeriod === BillingProductPriceInterval.Year
-                      ? formatCurrency((planPrice ?? 0) / 12, {
-                          currency: planCurrency,
-                          testSignificantDigits: false,
-                        })
-                      : showAsMonthlyPrices && selectedPeriod === "quarter"
-                        ? formatCurrency((planPrice ?? 0) / 3, {
+            <Headless.Price asChild>
+              <Text
+                data-testid="sch-plan-price"
+                $font={headerPriceFontStyle.fontFamily}
+                $size={headerPriceFontStyle.fontSize}
+                $weight={headerPriceFontStyle.fontWeight}
+                $color={headerPriceFontStyle.color}
+              >
+                {plan.custom
+                  ? plan.customPlanConfig?.priceText
+                    ? plan.customPlanConfig.priceText
+                    : t("Custom price")
+                  : isUsageBasedPlan
+                    ? t("Usage-based")
+                    : isFreePlan && showZeroPriceAsFree
+                      ? t("Free")
+                      : showAsMonthlyPrices &&
+                          selectedPeriod === BillingProductPriceInterval.Year
+                        ? formatCurrency((planPrice ?? 0) / 12, {
                             currency: planCurrency,
                             testSignificantDigits: false,
                           })
-                        : formatCurrency(planPrice ?? 0, planCurrency)}
-              {!plan.custom && !isFreePlan && (
-                <sub>
-                  /
-                  {showAsMonthlyPrices &&
-                  selectedPeriod === BillingProductPriceInterval.Year
-                    ? t("month, billed yearly")
-                    : showAsMonthlyPrices && selectedPeriod === "quarter"
-                      ? t("month, billed quarterly")
-                      : t(selectedPeriod)}
-                </sub>
-              )}
-            </Text>
+                        : showAsMonthlyPrices && selectedPeriod === "quarter"
+                          ? formatCurrency((planPrice ?? 0) / 3, {
+                              currency: planCurrency,
+                              testSignificantDigits: false,
+                            })
+                          : formatCurrency(planPrice ?? 0, planCurrency)}
+                {!plan.custom && !isFreePlan && (
+                  <sub>
+                    /
+                    {showAsMonthlyPrices &&
+                    selectedPeriod === BillingProductPriceInterval.Year
+                      ? t("month, billed yearly")
+                      : showAsMonthlyPrices && selectedPeriod === "quarter"
+                        ? t("month, billed quarterly")
+                        : t(selectedPeriod)}
+                  </sub>
+                )}
+              </Text>
+            </Headless.Price>
           </Box>
 
           {showCredits && credits.length > 0 && (
@@ -278,167 +284,175 @@ export const Plan = ({
           $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
         >
           {layout.plans.showEntitlements && (
-            <Flex
-              as="ul"
-              $flexDirection="column"
-              $gap="1rem"
-              $flexGrow={1}
-              $padding={0}
-              $margin={0}
-              $listStyle="none"
-            >
-              {layout.plans.showInclusionText && index > 0 && (
-                <Box $marginBottom="1.5rem">
-                  <Text>
-                    {t("Everything in", {
-                      plan: plans[index - 1].name,
-                    })}
-                  </Text>
-                </Box>
-              )}
+            <Headless.Entitlements asChild>
+              <Flex
+                as="ul"
+                $flexDirection="column"
+                $gap="1rem"
+                $flexGrow={1}
+                $padding={0}
+                $margin={0}
+                $listStyle="none"
+              >
+                {layout.plans.showInclusionText && index > 0 && (
+                  <Box $marginBottom="1.5rem">
+                    <Text>
+                      {t("Everything in", {
+                        plan: plans[index - 1].name,
+                      })}
+                    </Text>
+                  </Box>
+                )}
 
-              {(plan.entitlements ?? []).reduce(
-                (acc: React.ReactNode[], entitlement, idx) => {
-                  if (isExpanded || idx < VISIBLE_ENTITLEMENT_COUNT) {
-                    acc.push(
-                      <Entitlement
-                        key={idx}
-                        entitlement={entitlement}
-                        credits={credits}
-                        selectedPeriod={selectedPeriod}
-                        currency={currency}
-                        showCredits={showCredits}
-                        sharedProps={{ layout }}
-                      />,
-                    );
-                  }
+                {(plan.entitlements ?? []).reduce(
+                  (acc: React.ReactNode[], entitlement, idx) => {
+                    if (isExpanded || idx < VISIBLE_ENTITLEMENT_COUNT) {
+                      acc.push(
+                        <Entitlement
+                          key={idx}
+                          entitlement={entitlement}
+                          credits={credits}
+                          selectedPeriod={selectedPeriod}
+                          currency={currency}
+                          showCredits={showCredits}
+                          sharedProps={{ layout }}
+                        />,
+                      );
+                    }
 
-                  return acc;
-                },
-                [],
-              )}
+                    return acc;
+                  },
+                  [],
+                )}
 
-              {(plan.entitlements ?? []).length > VISIBLE_ENTITLEMENT_COUNT && (
-                <Flex
-                  as="li"
-                  $justifyContent="start"
-                  $alignItems="center"
-                  $gap="0.5rem"
-                  $marginTop="1rem"
-                  $listStyle="none"
-                >
-                  <Icon
-                    name={isExpanded ? "chevron-up" : "chevron-down"}
-                    color="#D0D0D0"
-                  />
-                  <Text
-                    as="button"
-                    type="button"
-                    onClick={() => handleToggleShowAll(plan.id)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        handleToggleShowAll(plan.id);
-                      }
-                    }}
-                    style={{
-                      cursor: "pointer",
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                    }}
-                    display="link"
-                    $leading="none"
+                {(plan.entitlements ?? []).length >
+                  VISIBLE_ENTITLEMENT_COUNT && (
+                  <Flex
+                    as="li"
+                    $justifyContent="start"
+                    $alignItems="center"
+                    $gap="0.5rem"
+                    $marginTop="1rem"
+                    $listStyle="none"
                   >
-                    {isExpanded ? t("Hide all") : t("See all")}
-                  </Text>
-                </Flex>
-              )}
-            </Flex>
+                    <Icon
+                      name={isExpanded ? "chevron-up" : "chevron-down"}
+                      color="#D0D0D0"
+                    />
+                    <Text
+                      as="button"
+                      type="button"
+                      onClick={() => handleToggleShowAll(plan.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleToggleShowAll(plan.id);
+                        }
+                      }}
+                      style={{
+                        cursor: "pointer",
+                        background: "none",
+                        border: "none",
+                        padding: 0,
+                      }}
+                      display="link"
+                      $leading="none"
+                    >
+                      {isExpanded ? t("Hide all") : t("See all")}
+                    </Text>
+                  </Flex>
+                )}
+              </Flex>
+            </Headless.Entitlements>
           )}
 
-          {isActivePlan ? (
-            <Flex
-              $justifyContent="center"
-              $alignItems="center"
-              $gap="0.25rem"
-              $padding="0.625rem 0"
-            >
-              <Icon
-                name="check-rounded"
-                size="sm"
-                color={settings.theme.primary}
-              />
+          <Headless.Footer asChild>
+            {isActivePlan ? (
+              <Flex
+                $justifyContent="center"
+                $alignItems="center"
+                $gap="0.25rem"
+                $padding="0.625rem 0"
+              >
+                <Icon
+                  name="check-rounded"
+                  size="sm"
+                  color={settings.theme.primary}
+                />
 
-              <Text $size={15} $leading="none">
-                {t("Current plan")}
-              </Text>
-            </Flex>
-          ) : (
-            sharedProps.showCallToAction &&
-            (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
+                <Text $size={15} $leading="none">
+                  {t("Current plan")}
+                </Text>
+              </Flex>
+            ) : sharedProps.showCallToAction &&
+              (layout.upgrade.isVisible || layout.downgrade.isVisible) ? (
               <Flex $flexDirection="column" $gap="0.5rem">
-                <Button
-                  type="button"
+                <Headless.CallToAction
+                  asChild
                   disabled={(!plan.valid || !canCheckout) && !plan.custom}
-                  data-testid="sch-plan-cta-button"
-                  {...(index > currentPlanIndex
-                    ? {
-                        $size: layout.upgrade.buttonSize,
-                        $color: layout.upgrade.buttonStyle,
-                        $variant: "filled",
-                      }
-                    : {
-                        $size: layout.downgrade.buttonSize,
-                        $color: layout.downgrade.buttonStyle,
-                        $variant: "outline",
-                      })}
-                  {...(plan.custom
-                    ? {
-                        as: "a",
-                        href: plan.customPlanConfig?.ctaWebSite ?? "#",
-                        target: "_blank",
-                        rel: "noreferrer",
-                      }
-                    : sharedProps.callToActionUrl
+                >
+                  <Button
+                    type="button"
+                    disabled={(!plan.valid || !canCheckout) && !plan.custom}
+                    data-testid="sch-plan-cta-button"
+                    {...(index > currentPlanIndex
                       ? {
-                          as: "a",
-                          href: sharedProps.callToActionUrl,
-                          target: sharedProps.callToActionTarget,
-                          rel: "noreferrer",
+                          $size: layout.upgrade.buttonSize,
+                          $color: layout.upgrade.buttonStyle,
+                          $variant: "filled",
                         }
                       : {
-                          onClick: () => {
-                            sharedProps.onCallToAction?.(plan);
-
-                            if (!isStandalone && !plan.custom) {
-                              setCheckoutState({
-                                period: selectedPeriod,
-                                planId: isActivePlan ? null : plan.id,
-                                usage: false,
-                              });
-                            }
-                          },
+                          $size: layout.downgrade.buttonSize,
+                          $color: layout.downgrade.buttonStyle,
+                          $variant: "outline",
                         })}
-                  $fullWidth
-                >
-                  {plan.custom ? (
-                    (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-                  ) : !plan.valid ? (
-                    <Text as={Box} $align="center">
-                      {t("Over plan limit")}
-                    </Text>
-                  ) : (
-                    t("Choose plan")
-                  )}
-                </Button>
+                    {...(plan.custom
+                      ? {
+                          as: "a",
+                          href: plan.customPlanConfig?.ctaWebSite ?? "#",
+                          target: "_blank",
+                          rel: "noreferrer",
+                        }
+                      : sharedProps.callToActionUrl
+                        ? {
+                            as: "a",
+                            href: sharedProps.callToActionUrl,
+                            target: sharedProps.callToActionTarget,
+                            rel: "noreferrer",
+                          }
+                        : {
+                            onClick: () => {
+                              sharedProps.onCallToAction?.(plan);
+
+                              if (!isStandalone && !plan.custom) {
+                                setCheckoutState({
+                                  period: selectedPeriod,
+                                  planId: isActivePlan ? null : plan.id,
+                                  usage: false,
+                                });
+                              }
+                            },
+                          })}
+                    $fullWidth
+                  >
+                    {plan.custom ? (
+                      (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+                    ) : !plan.valid ? (
+                      <Text as={Box} $align="center">
+                        {t("Over plan limit")}
+                      </Text>
+                    ) : (
+                      t("Choose plan")
+                    )}
+                  </Button>
+                </Headless.CallToAction>
 
                 {!plan.valid && (
                   <UsageViolationText violations={plan.usageViolations} />
                 )}
               </Flex>
-            )
-          )}
+            ) : null}
+          </Headless.Footer>
         </Flex>
       </Flex>
     </Headless.Card>
