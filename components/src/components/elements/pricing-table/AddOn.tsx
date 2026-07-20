@@ -19,6 +19,7 @@ import {
   hexToHSL,
   isTieredPrice,
 } from "../../../utils";
+import { PricingTable as Headless } from "../../headless/pricing-table";
 import { cardBoxShadow } from "../../layout";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
@@ -210,113 +211,179 @@ export const AddOn = ({
       }) || [];
 
   return (
-    <Flex
-      as="li"
-      className="sch-PricingTable_AddOn"
-      data-testid="sch-addon"
-      data-addon-id={addOn.id}
-      $position="relative"
-      $flexDirection="column"
-      $padding={`${0.75 * cardPadding}rem 0`}
-      $listStyle="none"
-      $backgroundColor={settings.theme.card.background}
-      $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-      $outlineWidth="2px"
-      $outlineStyle="solid"
-      $outlineColor={isActiveAddOn ? settings.theme.primary : "transparent"}
-      {...(settings.theme.card.hasShadow && {
-        $boxShadow: cardBoxShadow,
-      })}
-    >
+    <Headless.Card asChild active={isActiveAddOn}>
       <Flex
+        as="li"
+        className="sch-PricingTable_AddOn"
+        data-testid="sch-addon"
+        data-addon-id={addOn.id}
+        $position="relative"
         $flexDirection="column"
-        $gap="0.75rem"
-        $padding={`0 ${cardPadding}rem ${displayableEntitlements.length > 0 ? 0.75 * cardPadding : 0}rem`}
-        $borderWidth={0}
-        $borderBottomWidth={displayableEntitlements.length > 0 ? "1px" : "0"}
-        $borderStyle="solid"
-        $borderColor={
-          isLightBackground
-            ? "hsla(0, 0%, 0%, 0.175)"
-            : "hsla(0, 0%, 100%, 0.175)"
-        }
+        $padding={`${0.75 * cardPadding}rem 0`}
+        $listStyle="none"
+        $backgroundColor={settings.theme.card.background}
+        $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+        $outlineWidth="2px"
+        $outlineStyle="solid"
+        $outlineColor={isActiveAddOn ? settings.theme.primary : "transparent"}
+        {...(settings.theme.card.hasShadow && {
+          $boxShadow: cardBoxShadow,
+        })}
       >
-        <Box>
-          <Text
-            as="h3"
-            display={layout.plans.name.fontStyle}
-            style={{ margin: 0 }}
-          >
-            {addOn.name}
-          </Text>
-        </Box>
-
-        {layout.addOns.showDescription && (
-          <Box $marginBottom="0.5rem">
-            <Text display={layout.plans.description.fontStyle}>
-              {addOn.description}
+        <Flex
+          $flexDirection="column"
+          $gap="0.75rem"
+          $padding={`0 ${cardPadding}rem ${displayableEntitlements.length > 0 ? 0.75 * cardPadding : 0}rem`}
+          $borderWidth={0}
+          $borderBottomWidth={displayableEntitlements.length > 0 ? "1px" : "0"}
+          $borderStyle="solid"
+          $borderColor={
+            isLightBackground
+              ? "hsla(0, 0%, 0%, 0.175)"
+              : "hsla(0, 0%, 100%, 0.175)"
+          }
+        >
+          <Box>
+            <Text
+              as="h3"
+              display={layout.plans.name.fontStyle}
+              style={{ margin: 0 }}
+            >
+              {addOn.name}
             </Text>
           </Box>
-        )}
 
-        <Box>
-          <Text
-            data-testid="sch-addon-price"
-            display={layout.plans.name.fontStyle}
-          >
-            {shouldShowUsageBased(addOnPrice ?? 0, displayableEntitlements) ? (
-              t("Usage-based")
-            ) : (
-              <>
-                {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
-                <sub>/{selectedPeriod}</sub>
-              </>
-            )}
-          </Text>
-        </Box>
+          {layout.addOns.showDescription && (
+            <Box $marginBottom="0.5rem">
+              <Text display={layout.plans.description.fontStyle}>
+                {addOn.description}
+              </Text>
+            </Box>
+          )}
 
-        {isActiveAddOn && (
-          <Flex
-            data-testid="sch-addon-active"
-            $position="absolute"
-            $right="1rem"
-            $top="1rem"
-            $backgroundColor={settings.theme.primary}
-            $borderRadius="9999px"
-            $padding="0.125rem 0.85rem"
-          >
+          <Box>
             <Text
-              $size={0.75 * settings.theme.typography.text.fontSize}
-              $color={
-                hexToHSL(settings.theme.primary).l > 50 ? "#000000" : "#FFFFFF"
-              }
+              data-testid="sch-addon-price"
+              display={layout.plans.name.fontStyle}
             >
-              {t("Active")}
+              {shouldShowUsageBased(
+                addOnPrice ?? 0,
+                displayableEntitlements,
+              ) ? (
+                t("Usage-based")
+              ) : (
+                <>
+                  {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
+                  <sub>/{selectedPeriod}</sub>
+                </>
+              )}
             </Text>
-          </Flex>
-        )}
-      </Flex>
+          </Box>
 
-      <Flex
-        $flexDirection="column"
-        $justifyContent="end"
-        $gap={`${cardPadding}rem`}
-        $flexGrow={1}
-        $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
-      >
-        {layout.addOns.showEntitlements &&
-          displayableEntitlements.length > 0 && (
+          {isActiveAddOn && (
             <Flex
-              as="ul"
-              $flexDirection="column"
-              $gap="1rem"
-              $flexGrow={1}
-              $padding={0}
-              $margin={0}
-              $listStyle="none"
+              data-testid="sch-addon-active"
+              $position="absolute"
+              $right="1rem"
+              $top="1rem"
+              $backgroundColor={settings.theme.primary}
+              $borderRadius="9999px"
+              $padding="0.125rem 0.85rem"
             >
-              {displayableEntitlements.map((entitlement, idx) => {
-                if (entitlement.isUnlimited) {
+              <Text
+                $size={0.75 * settings.theme.typography.text.fontSize}
+                $color={
+                  hexToHSL(settings.theme.primary).l > 50
+                    ? "#000000"
+                    : "#FFFFFF"
+                }
+              >
+                {t("Active")}
+              </Text>
+            </Flex>
+          )}
+        </Flex>
+
+        <Flex
+          $flexDirection="column"
+          $justifyContent="end"
+          $gap={`${cardPadding}rem`}
+          $flexGrow={1}
+          $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
+        >
+          {layout.addOns.showEntitlements &&
+            displayableEntitlements.length > 0 && (
+              <Flex
+                as="ul"
+                $flexDirection="column"
+                $gap="1rem"
+                $flexGrow={1}
+                $padding={0}
+                $margin={0}
+                $listStyle="none"
+              >
+                {displayableEntitlements.map((entitlement, idx) => {
+                  if (entitlement.isUnlimited) {
+                    return (
+                      <Flex
+                        key={idx}
+                        as="li"
+                        $flexWrap="wrap"
+                        $justifyContent="space-between"
+                        $alignItems="center"
+                        $gap="1rem"
+                      >
+                        <Flex $gap="1rem">
+                          {layout.addOns.showFeatureIcons &&
+                            entitlement.feature?.icon && (
+                              <Icon
+                                name={entitlement.feature.icon}
+                                color={settings.theme.primary}
+                                background={
+                                  isLightBackground
+                                    ? "hsla(0, 0%, 0%, 0.0625)"
+                                    : "hsla(0, 0%, 100%, 0.25)"
+                                }
+                                rounded
+                              />
+                            )}
+
+                          {entitlement.feature && (
+                            <Flex
+                              $flexDirection="column"
+                              $justifyContent="center"
+                            >
+                              <Text>{getFeatureName(entitlement.feature)}</Text>
+                            </Flex>
+                          )}
+                        </Flex>
+
+                        <Text
+                          style={{ opacity: 0.54 }}
+                          $size={
+                            0.875 * settings.theme.typography.text.fontSize
+                          }
+                          $color={settings.theme.typography.text.color}
+                        >
+                          Unlimited
+                        </Text>
+                      </Flex>
+                    );
+                  }
+
+                  // Metered entitlement - TypeScript doesn't know isUnlimited is false here
+                  const meteredEntitlement =
+                    entitlement as typeof entitlement & {
+                      isUnlimited: false;
+                      priceBehavior?: string;
+                      softLimit?: number;
+                      limit?: number;
+                      price: number;
+                      currency: string;
+                      packageSize: number;
+                      isTiered: boolean;
+                    };
+
                   return (
                     <Flex
                       key={idx}
@@ -325,30 +392,30 @@ export const AddOn = ({
                       $justifyContent="space-between"
                       $alignItems="center"
                       $gap="1rem"
+                      $listStyle="none"
                     >
                       <Flex $gap="1rem">
-                        {layout.addOns.showFeatureIcons &&
-                          entitlement.feature?.icon && (
-                            <Icon
-                              name={entitlement.feature.icon}
-                              color={settings.theme.primary}
-                              background={
-                                isLightBackground
-                                  ? "hsla(0, 0%, 0%, 0.0625)"
-                                  : "hsla(0, 0%, 100%, 0.25)"
-                              }
-                              rounded
-                            />
-                          )}
-
-                        {entitlement.feature && (
-                          <Flex
-                            $flexDirection="column"
-                            $justifyContent="center"
-                          >
-                            <Text>{getFeatureName(entitlement.feature)}</Text>
-                          </Flex>
+                        {meteredEntitlement.feature?.icon && (
+                          <Icon
+                            data-testid="sch-feature-icon"
+                            name={meteredEntitlement.feature.icon}
+                            color={settings.theme.primary}
+                            background={
+                              isLightBackground
+                                ? "hsla(0, 0%, 0%, 0.0625)"
+                                : "hsla(0, 0%, 100%, 0.25)"
+                            }
+                            rounded
+                          />
                         )}
+
+                        <Flex $flexDirection="column" $justifyContent="center">
+                          <Text>
+                            {typeof meteredEntitlement.limit === "number"
+                              ? `${meteredEntitlement.limit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
+                              : getEntitlementFeatureName(meteredEntitlement)}
+                          </Text>
+                        </Flex>
                       </Flex>
 
                       <Text
@@ -356,114 +423,62 @@ export const AddOn = ({
                         $size={0.875 * settings.theme.typography.text.fontSize}
                         $color={settings.theme.typography.text.color}
                       >
-                        Unlimited
+                        {renderMeteredEntitlementPricing(meteredEntitlement)}
                       </Text>
                     </Flex>
                   );
-                }
+                })}
+              </Flex>
+            )}
 
-                // Metered entitlement - TypeScript doesn't know isUnlimited is false here
-                const meteredEntitlement = entitlement as typeof entitlement & {
-                  isUnlimited: false;
-                  priceBehavior?: string;
-                  softLimit?: number;
-                  limit?: number;
-                  price: number;
-                  currency: string;
-                  packageSize: number;
-                  isTiered: boolean;
-                };
+          {sharedProps.showCallToAction &&
+            (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
+              <Flex $flexDirection="column" $gap="0.5rem">
+                <Button
+                  type="button"
+                  disabled={!addOn.valid || !canCheckout}
+                  data-testid="sch-addon-cta-button"
+                  $size={layout.upgrade.buttonSize}
+                  $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
+                  $variant={
+                    isActiveAddOn
+                      ? "ghost"
+                      : addOn.current
+                        ? "outline"
+                        : "filled"
+                  }
+                  {...(sharedProps.callToActionUrl
+                    ? {
+                        as: "a",
+                        href: sharedProps.callToActionUrl,
+                        rel: "noreferrer",
+                        target: "_blank",
+                      }
+                    : {
+                        onClick: () => {
+                          sharedProps.onCallToAction?.(addOn);
 
-                return (
-                  <Flex
-                    key={idx}
-                    as="li"
-                    $flexWrap="wrap"
-                    $justifyContent="space-between"
-                    $alignItems="center"
-                    $gap="1rem"
-                    $listStyle="none"
-                  >
-                    <Flex $gap="1rem">
-                      {meteredEntitlement.feature?.icon && (
-                        <Icon
-                          data-testid="sch-feature-icon"
-                          name={meteredEntitlement.feature.icon}
-                          color={settings.theme.primary}
-                          background={
-                            isLightBackground
-                              ? "hsla(0, 0%, 0%, 0.0625)"
-                              : "hsla(0, 0%, 100%, 0.25)"
+                          if (!isStandalone && !addOn.custom) {
+                            setCheckoutState({
+                              period: selectedPeriod,
+                              addOnId: isActiveAddOn ? null : addOn.id,
+                              usage: false,
+                            });
                           }
-                          rounded
-                        />
-                      )}
-
-                      <Flex $flexDirection="column" $justifyContent="center">
-                        <Text>
-                          {typeof meteredEntitlement.limit === "number"
-                            ? `${meteredEntitlement.limit} ${getEntitlementFeatureName(meteredEntitlement, "units")}`
-                            : getEntitlementFeatureName(meteredEntitlement)}
-                        </Text>
-                      </Flex>
-                    </Flex>
-
-                    <Text
-                      style={{ opacity: 0.54 }}
-                      $size={0.875 * settings.theme.typography.text.fontSize}
-                      $color={settings.theme.typography.text.color}
-                    >
-                      {renderMeteredEntitlementPricing(meteredEntitlement)}
-                    </Text>
-                  </Flex>
-                );
-              })}
-            </Flex>
-          )}
-
-        {sharedProps.showCallToAction &&
-          (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
-            <Flex $flexDirection="column" $gap="0.5rem">
-              <Button
-                type="button"
-                disabled={!addOn.valid || !canCheckout}
-                data-testid="sch-addon-cta-button"
-                $size={layout.upgrade.buttonSize}
-                $color={isActiveAddOn ? "danger" : layout.upgrade.buttonStyle}
-                $variant={
-                  isActiveAddOn ? "ghost" : addOn.current ? "outline" : "filled"
-                }
-                {...(sharedProps.callToActionUrl
-                  ? {
-                      as: "a",
-                      href: sharedProps.callToActionUrl,
-                      rel: "noreferrer",
-                      target: "_blank",
-                    }
-                  : {
-                      onClick: () => {
-                        sharedProps.onCallToAction?.(addOn);
-
-                        if (!isStandalone && !addOn.custom) {
-                          setCheckoutState({
-                            period: selectedPeriod,
-                            addOnId: isActiveAddOn ? null : addOn.id,
-                            usage: false,
-                          });
-                        }
-                      },
-                    })}
-                $fullWidth
-              >
-                {isActiveAddOn
-                  ? t("Remove add-on")
-                  : addOn.current
-                    ? t("Change add-on")
-                    : t("Choose add-on")}
-              </Button>
-            </Flex>
-          )}
+                        },
+                      })}
+                  $fullWidth
+                >
+                  {isActiveAddOn
+                    ? t("Remove add-on")
+                    : addOn.current
+                      ? t("Change add-on")
+                      : t("Choose add-on")}
+                </Button>
+              </Flex>
+            )}
+        </Flex>
       </Flex>
-    </Flex>
+    </Headless.Card>
   );
 };

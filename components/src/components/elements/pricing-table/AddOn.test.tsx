@@ -11,10 +11,18 @@ import {
   PlanEntitlementResponseData,
   TraitType,
 } from "../../../api/checkoutexternal";
-import { render } from "../../../test/setup";
+import { render as renderWithEmbed } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
+import { PricingTable as Headless } from "../../headless/pricing-table";
 
 import { AddOn, type AddOnProps } from "./AddOn";
+
+// `AddOn` reads the selected period/currency from the headless pricing-table
+// context, so isolate-render it inside a `Root` the same way the parent does.
+const render = (
+  ui: React.ReactElement,
+  options?: Parameters<typeof renderWithEmbed>[1],
+) => renderWithEmbed(<Headless.Root>{ui}</Headless.Root>, options);
 
 const mockSetCheckoutState = vi.fn();
 

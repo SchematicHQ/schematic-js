@@ -96,6 +96,7 @@ export const CheckoutStageButton = ({
     (!hasPlan && !isCreditOnlyPurchase) ||
     inEditMode ||
     !canCheckout;
+  console.debug("isDisabled", isDisabled);
 
   // The opt-in agreement is collected on the final `checkout` stage, so it must
   // only gate finalizing checkout there — never the "Next" buttons that move

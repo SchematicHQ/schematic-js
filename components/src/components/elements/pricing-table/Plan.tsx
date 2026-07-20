@@ -13,6 +13,7 @@ import {
   groupPlanCreditGrants,
   hexToHSL,
 } from "../../../utils";
+import { PricingTable as Headless } from "../../headless/pricing-table";
 import { cardBoxShadow } from "../../layout";
 import { UsageViolationText } from "../../shared";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -103,339 +104,343 @@ export const Plan = ({
   const isExpanded = entitlementVisibility[plan.id] ?? false;
 
   return (
-    <Flex
-      as="li"
-      className="sch-PricingTable_Plan"
-      data-testid="sch-plan"
-      data-plan-id={plan.id}
-      $position="relative"
-      $flexDirection="column"
-      $padding={`${cardPadding}rem 0`}
-      $listStyle="none"
-      $backgroundColor={settings.theme.card.background}
-      $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
-      $outlineWidth="2px"
-      $outlineStyle="solid"
-      $outlineColor={isActivePlan ? settings.theme.primary : "transparent"}
-      {...(settings.theme.card.hasShadow && {
-        $boxShadow: cardBoxShadow,
-      })}
-    >
+    <Headless.Card asChild active={isActivePlan}>
       <Flex
+        as="li"
+        className="sch-PricingTable_Plan"
+        data-testid="sch-plan"
+        data-plan-id={plan.id}
+        $position="relative"
         $flexDirection="column"
-        $gap="0.75rem"
-        $padding={`0 ${cardPadding}rem ${0.75 * cardPadding}rem`}
-        $borderWidth={0}
-        $borderBottomWidth="1px"
-        $borderStyle="solid"
-        $borderColor={
-          isLightBackground
-            ? "hsla(0, 0%, 0%, 0.175)"
-            : "hsla(0, 0%, 100%, 0.175)"
-        }
+        $padding={`${cardPadding}rem 0`}
+        $listStyle="none"
+        $backgroundColor={settings.theme.card.background}
+        $borderRadius={`${settings.theme.card.borderRadius / TEXT_BASE_SIZE}rem`}
+        $outlineWidth="2px"
+        $outlineStyle="solid"
+        $outlineColor={isActivePlan ? settings.theme.primary : "transparent"}
+        {...(settings.theme.card.hasShadow && {
+          $boxShadow: cardBoxShadow,
+        })}
       >
-        <Box>
-          <Text
-            as="h3"
-            display={layout.plans.name.fontStyle}
-            style={{ margin: 0 }}
-          >
-            {plan.name}
-          </Text>
-        </Box>
-
-        {layout.plans.description.isVisible && (
-          <Box $marginBottom="0.5rem">
-            <Text display={layout.plans.description.fontStyle}>
-              {plan.description}
+        <Flex
+          $flexDirection="column"
+          $gap="0.75rem"
+          $padding={`0 ${cardPadding}rem ${0.75 * cardPadding}rem`}
+          $borderWidth={0}
+          $borderBottomWidth="1px"
+          $borderStyle="solid"
+          $borderColor={
+            isLightBackground
+              ? "hsla(0, 0%, 0%, 0.175)"
+              : "hsla(0, 0%, 100%, 0.175)"
+          }
+        >
+          <Box>
+            <Text
+              as="h3"
+              display={layout.plans.name.fontStyle}
+              style={{ margin: 0 }}
+            >
+              {plan.name}
             </Text>
           </Box>
-        )}
 
-        <Box>
-          <Text
-            data-testid="sch-plan-price"
-            $font={headerPriceFontStyle.fontFamily}
-            $size={headerPriceFontStyle.fontSize}
-            $weight={headerPriceFontStyle.fontWeight}
-            $color={headerPriceFontStyle.color}
-          >
-            {plan.custom
-              ? plan.customPlanConfig?.priceText
-                ? plan.customPlanConfig.priceText
-                : t("Custom price")
-              : isUsageBasedPlan
-                ? t("Usage-based")
-                : isFreePlan && showZeroPriceAsFree
-                  ? t("Free")
-                  : showAsMonthlyPrices &&
-                      selectedPeriod === BillingProductPriceInterval.Year
-                    ? formatCurrency((planPrice ?? 0) / 12, {
-                        currency: planCurrency,
-                        testSignificantDigits: false,
-                      })
-                    : showAsMonthlyPrices && selectedPeriod === "quarter"
-                      ? formatCurrency((planPrice ?? 0) / 3, {
+          {layout.plans.description.isVisible && (
+            <Box $marginBottom="0.5rem">
+              <Text display={layout.plans.description.fontStyle}>
+                {plan.description}
+              </Text>
+            </Box>
+          )}
+
+          <Box>
+            <Text
+              data-testid="sch-plan-price"
+              $font={headerPriceFontStyle.fontFamily}
+              $size={headerPriceFontStyle.fontSize}
+              $weight={headerPriceFontStyle.fontWeight}
+              $color={headerPriceFontStyle.color}
+            >
+              {plan.custom
+                ? plan.customPlanConfig?.priceText
+                  ? plan.customPlanConfig.priceText
+                  : t("Custom price")
+                : isUsageBasedPlan
+                  ? t("Usage-based")
+                  : isFreePlan && showZeroPriceAsFree
+                    ? t("Free")
+                    : showAsMonthlyPrices &&
+                        selectedPeriod === BillingProductPriceInterval.Year
+                      ? formatCurrency((planPrice ?? 0) / 12, {
                           currency: planCurrency,
                           testSignificantDigits: false,
                         })
-                      : formatCurrency(planPrice ?? 0, planCurrency)}
-            {!plan.custom && !isFreePlan && (
-              <sub>
-                /
-                {showAsMonthlyPrices &&
-                selectedPeriod === BillingProductPriceInterval.Year
-                  ? t("month, billed yearly")
-                  : showAsMonthlyPrices && selectedPeriod === "quarter"
-                    ? t("month, billed quarterly")
-                    : t(selectedPeriod)}
-              </sub>
-            )}
-          </Text>
-        </Box>
+                      : showAsMonthlyPrices && selectedPeriod === "quarter"
+                        ? formatCurrency((planPrice ?? 0) / 3, {
+                            currency: planCurrency,
+                            testSignificantDigits: false,
+                          })
+                        : formatCurrency(planPrice ?? 0, planCurrency)}
+              {!plan.custom && !isFreePlan && (
+                <sub>
+                  /
+                  {showAsMonthlyPrices &&
+                  selectedPeriod === BillingProductPriceInterval.Year
+                    ? t("month, billed yearly")
+                    : showAsMonthlyPrices && selectedPeriod === "quarter"
+                      ? t("month, billed quarterly")
+                      : t(selectedPeriod)}
+                </sub>
+              )}
+            </Text>
+          </Box>
 
-        {showCredits && credits.length > 0 && (
-          <Flex
-            as="ul"
-            $flexDirection="column"
-            $gap="1rem"
-            $flexGrow={1}
-            $marginTop="0.5rem"
-            $padding={0}
-            $margin={0}
-            $listStyle="none"
-          >
-            {credits.map((credit, idx) => {
-              return (
-                <Flex key={idx} as="li" $gap="1rem" $listStyle="none">
-                  {layout.plans.showFeatureIcons && credit.icon && (
-                    <Icon
-                      data-testid="sch-feature-icon"
-                      name={credit.icon}
-                      color={settings.theme.primary}
-                      background={`color-mix(in oklch, ${settings.theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`}
-                      rounded
-                    />
-                  )}
-
-                  {credit.name && (
-                    <Flex
-                      $flexDirection="column"
-                      $justifyContent="center"
-                      $gap="0.5rem"
-                    >
-                      <Text>
-                        {credit.quantity}{" "}
-                        {getFeatureName(credit, credit.quantity)}
-                        {credit.period && (
-                          <>
-                            {" "}
-                            {t("per")} {credit.period}
-                          </>
-                        )}
-                      </Text>
-                    </Flex>
-                  )}
-                </Flex>
-              );
-            })}
-          </Flex>
-        )}
-
-        {isActivePlan && (
-          <Flex
-            data-testid="sch-plan-active"
-            $position="absolute"
-            $right="1rem"
-            $top="1rem"
-            $backgroundColor={settings.theme.primary}
-            $borderRadius="9999px"
-            $padding="0.125rem 0.85rem"
-          >
-            <Text
-              $size={0.75 * settings.theme.typography.text.fontSize}
-              $color={
-                hexToHSL(settings.theme.primary).l > 50 ? "#000000" : "#FFFFFF"
-              }
+          {showCredits && credits.length > 0 && (
+            <Flex
+              as="ul"
+              $flexDirection="column"
+              $gap="1rem"
+              $flexGrow={1}
+              $marginTop="0.5rem"
+              $padding={0}
+              $margin={0}
+              $listStyle="none"
             >
-              {isTrialSubscription && typeof trialEnd.endDate !== "undefined"
-                ? t("X time left in trial", trialEnd)
-                : t("Active")}
-            </Text>
-          </Flex>
-        )}
-      </Flex>
+              {credits.map((credit, idx) => {
+                return (
+                  <Flex key={idx} as="li" $gap="1rem" $listStyle="none">
+                    {layout.plans.showFeatureIcons && credit.icon && (
+                      <Icon
+                        data-testid="sch-feature-icon"
+                        name={credit.icon}
+                        color={settings.theme.primary}
+                        background={`color-mix(in oklch, ${settings.theme.card.background} 87.5%, ${isLightBackground ? "black" : "white"})`}
+                        rounded
+                      />
+                    )}
 
-      <Flex
-        $flexDirection="column"
-        $justifyContent="end"
-        $flexGrow={1}
-        $gap={`${cardPadding}rem`}
-        $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
-      >
-        {layout.plans.showEntitlements && (
-          <Flex
-            as="ul"
-            $flexDirection="column"
-            $gap="1rem"
-            $flexGrow={1}
-            $padding={0}
-            $margin={0}
-            $listStyle="none"
-          >
-            {layout.plans.showInclusionText && index > 0 && (
-              <Box $marginBottom="1.5rem">
-                <Text>
-                  {t("Everything in", {
-                    plan: plans[index - 1].name,
-                  })}
-                </Text>
-              </Box>
-            )}
+                    {credit.name && (
+                      <Flex
+                        $flexDirection="column"
+                        $justifyContent="center"
+                        $gap="0.5rem"
+                      >
+                        <Text>
+                          {credit.quantity}{" "}
+                          {getFeatureName(credit, credit.quantity)}
+                          {credit.period && (
+                            <>
+                              {" "}
+                              {t("per")} {credit.period}
+                            </>
+                          )}
+                        </Text>
+                      </Flex>
+                    )}
+                  </Flex>
+                );
+              })}
+            </Flex>
+          )}
 
-            {(plan.entitlements ?? []).reduce(
-              (acc: React.ReactNode[], entitlement, idx) => {
-                if (isExpanded || idx < VISIBLE_ENTITLEMENT_COUNT) {
-                  acc.push(
-                    <Entitlement
-                      key={idx}
-                      entitlement={entitlement}
-                      credits={credits}
-                      selectedPeriod={selectedPeriod}
-                      currency={currency}
-                      showCredits={showCredits}
-                      sharedProps={{ layout }}
-                    />,
-                  );
+          {isActivePlan && (
+            <Flex
+              data-testid="sch-plan-active"
+              $position="absolute"
+              $right="1rem"
+              $top="1rem"
+              $backgroundColor={settings.theme.primary}
+              $borderRadius="9999px"
+              $padding="0.125rem 0.85rem"
+            >
+              <Text
+                $size={0.75 * settings.theme.typography.text.fontSize}
+                $color={
+                  hexToHSL(settings.theme.primary).l > 50
+                    ? "#000000"
+                    : "#FFFFFF"
                 }
-
-                return acc;
-              },
-              [],
-            )}
-
-            {(plan.entitlements ?? []).length > VISIBLE_ENTITLEMENT_COUNT && (
-              <Flex
-                as="li"
-                $justifyContent="start"
-                $alignItems="center"
-                $gap="0.5rem"
-                $marginTop="1rem"
-                $listStyle="none"
               >
-                <Icon
-                  name={isExpanded ? "chevron-up" : "chevron-down"}
-                  color="#D0D0D0"
-                />
-                <Text
-                  as="button"
-                  type="button"
-                  onClick={() => handleToggleShowAll(plan.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      handleToggleShowAll(plan.id);
-                    }
-                  }}
-                  style={{
-                    cursor: "pointer",
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                  }}
-                  display="link"
-                  $leading="none"
-                >
-                  {isExpanded ? t("Hide all") : t("See all")}
-                </Text>
-              </Flex>
-            )}
-          </Flex>
-        )}
+                {isTrialSubscription && typeof trialEnd.endDate !== "undefined"
+                  ? t("X time left in trial", trialEnd)
+                  : t("Active")}
+              </Text>
+            </Flex>
+          )}
+        </Flex>
 
-        {isActivePlan ? (
-          <Flex
-            $justifyContent="center"
-            $alignItems="center"
-            $gap="0.25rem"
-            $padding="0.625rem 0"
-          >
-            <Icon
-              name="check-rounded"
-              size="sm"
-              color={settings.theme.primary}
-            />
-
-            <Text $size={15} $leading="none">
-              {t("Current plan")}
-            </Text>
-          </Flex>
-        ) : (
-          sharedProps.showCallToAction &&
-          (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
-            <Flex $flexDirection="column" $gap="0.5rem">
-              <Button
-                type="button"
-                disabled={(!plan.valid || !canCheckout) && !plan.custom}
-                data-testid="sch-plan-cta-button"
-                {...(index > currentPlanIndex
-                  ? {
-                      $size: layout.upgrade.buttonSize,
-                      $color: layout.upgrade.buttonStyle,
-                      $variant: "filled",
-                    }
-                  : {
-                      $size: layout.downgrade.buttonSize,
-                      $color: layout.downgrade.buttonStyle,
-                      $variant: "outline",
+        <Flex
+          $flexDirection="column"
+          $justifyContent="end"
+          $flexGrow={1}
+          $gap={`${cardPadding}rem`}
+          $padding={`${0.75 * cardPadding}rem ${cardPadding}rem 0`}
+        >
+          {layout.plans.showEntitlements && (
+            <Flex
+              as="ul"
+              $flexDirection="column"
+              $gap="1rem"
+              $flexGrow={1}
+              $padding={0}
+              $margin={0}
+              $listStyle="none"
+            >
+              {layout.plans.showInclusionText && index > 0 && (
+                <Box $marginBottom="1.5rem">
+                  <Text>
+                    {t("Everything in", {
+                      plan: plans[index - 1].name,
                     })}
-                {...(plan.custom
-                  ? {
-                      as: "a",
-                      href: plan.customPlanConfig?.ctaWebSite ?? "#",
-                      target: "_blank",
-                      rel: "noreferrer",
-                    }
-                  : sharedProps.callToActionUrl
-                    ? {
-                        as: "a",
-                        href: sharedProps.callToActionUrl,
-                        target: sharedProps.callToActionTarget,
-                        rel: "noreferrer",
-                      }
-                    : {
-                        onClick: () => {
-                          sharedProps.onCallToAction?.(plan);
-
-                          if (!isStandalone && !plan.custom) {
-                            setCheckoutState({
-                              period: selectedPeriod,
-                              planId: isActivePlan ? null : plan.id,
-                              usage: false,
-                            });
-                          }
-                        },
-                      })}
-                $fullWidth
-              >
-                {plan.custom ? (
-                  (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
-                ) : !plan.valid ? (
-                  <Text as={Box} $align="center">
-                    {t("Over plan limit")}
                   </Text>
-                ) : (
-                  t("Choose plan")
-                )}
-              </Button>
+                </Box>
+              )}
 
-              {!plan.valid && (
-                <UsageViolationText violations={plan.usageViolations} />
+              {(plan.entitlements ?? []).reduce(
+                (acc: React.ReactNode[], entitlement, idx) => {
+                  if (isExpanded || idx < VISIBLE_ENTITLEMENT_COUNT) {
+                    acc.push(
+                      <Entitlement
+                        key={idx}
+                        entitlement={entitlement}
+                        credits={credits}
+                        selectedPeriod={selectedPeriod}
+                        currency={currency}
+                        showCredits={showCredits}
+                        sharedProps={{ layout }}
+                      />,
+                    );
+                  }
+
+                  return acc;
+                },
+                [],
+              )}
+
+              {(plan.entitlements ?? []).length > VISIBLE_ENTITLEMENT_COUNT && (
+                <Flex
+                  as="li"
+                  $justifyContent="start"
+                  $alignItems="center"
+                  $gap="0.5rem"
+                  $marginTop="1rem"
+                  $listStyle="none"
+                >
+                  <Icon
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    color="#D0D0D0"
+                  />
+                  <Text
+                    as="button"
+                    type="button"
+                    onClick={() => handleToggleShowAll(plan.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleToggleShowAll(plan.id);
+                      }
+                    }}
+                    style={{
+                      cursor: "pointer",
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                    }}
+                    display="link"
+                    $leading="none"
+                  >
+                    {isExpanded ? t("Hide all") : t("See all")}
+                  </Text>
+                </Flex>
               )}
             </Flex>
-          )
-        )}
+          )}
+
+          {isActivePlan ? (
+            <Flex
+              $justifyContent="center"
+              $alignItems="center"
+              $gap="0.25rem"
+              $padding="0.625rem 0"
+            >
+              <Icon
+                name="check-rounded"
+                size="sm"
+                color={settings.theme.primary}
+              />
+
+              <Text $size={15} $leading="none">
+                {t("Current plan")}
+              </Text>
+            </Flex>
+          ) : (
+            sharedProps.showCallToAction &&
+            (layout.upgrade.isVisible || layout.downgrade.isVisible) && (
+              <Flex $flexDirection="column" $gap="0.5rem">
+                <Button
+                  type="button"
+                  disabled={(!plan.valid || !canCheckout) && !plan.custom}
+                  data-testid="sch-plan-cta-button"
+                  {...(index > currentPlanIndex
+                    ? {
+                        $size: layout.upgrade.buttonSize,
+                        $color: layout.upgrade.buttonStyle,
+                        $variant: "filled",
+                      }
+                    : {
+                        $size: layout.downgrade.buttonSize,
+                        $color: layout.downgrade.buttonStyle,
+                        $variant: "outline",
+                      })}
+                  {...(plan.custom
+                    ? {
+                        as: "a",
+                        href: plan.customPlanConfig?.ctaWebSite ?? "#",
+                        target: "_blank",
+                        rel: "noreferrer",
+                      }
+                    : sharedProps.callToActionUrl
+                      ? {
+                          as: "a",
+                          href: sharedProps.callToActionUrl,
+                          target: sharedProps.callToActionTarget,
+                          rel: "noreferrer",
+                        }
+                      : {
+                          onClick: () => {
+                            sharedProps.onCallToAction?.(plan);
+
+                            if (!isStandalone && !plan.custom) {
+                              setCheckoutState({
+                                period: selectedPeriod,
+                                planId: isActivePlan ? null : plan.id,
+                                usage: false,
+                              });
+                            }
+                          },
+                        })}
+                  $fullWidth
+                >
+                  {plan.custom ? (
+                    (plan.customPlanConfig?.ctaText ?? t("Talk to support"))
+                  ) : !plan.valid ? (
+                    <Text as={Box} $align="center">
+                      {t("Over plan limit")}
+                    </Text>
+                  ) : (
+                    t("Choose plan")
+                  )}
+                </Button>
+
+                {!plan.valid && (
+                  <UsageViolationText violations={plan.usageViolations} />
+                )}
+              </Flex>
+            )
+          )}
+        </Flex>
       </Flex>
-    </Flex>
+    </Headless.Card>
   );
 };

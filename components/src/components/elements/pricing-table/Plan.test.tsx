@@ -8,10 +8,18 @@ import {
   type PlanEntitlementResponseData,
 } from "../../../api/checkoutexternal";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
-import { render } from "../../../test/setup";
+import { render as renderWithEmbed } from "../../../test/setup";
 import type { DeepPartial, SelectedPlan } from "../../../types";
+import { PricingTable as Headless } from "../../headless/pricing-table";
 
 import { Plan, type PlanProps } from "./Plan";
+
+// `Plan` reads the selected period/currency from the headless pricing-table
+// context, so isolate-render it inside a `Root` the same way the parent does.
+const render = (
+  ui: React.ReactElement,
+  options?: Parameters<typeof renderWithEmbed>[1],
+) => renderWithEmbed(<Headless.Root>{ui}</Headless.Root>, options);
 
 const { mockOnCallToAction, mockSetCheckoutState, trialEnd } = vi.hoisted(
   () => {

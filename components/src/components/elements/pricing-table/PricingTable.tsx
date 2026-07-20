@@ -1,11 +1,4 @@
-import {
-  Fragment,
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Fragment, forwardRef, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -22,6 +15,10 @@ import {
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import { getSubscriptionPeriod, planSupportsCurrency } from "../../../utils";
+import {
+  PricingTable as Headless,
+  usePricingTableContext,
+} from "../../headless/pricing-table";
 import { Container, FussyChild } from "../../layout";
 import {
   CurrencyToggle,
@@ -127,6 +124,239 @@ export type PricingTableOptions = {
 
 export type PricingTableProps = DesignProps;
 
+interface PricingTableContentProps {
+  layout: DesignProps;
+  showPeriodToggle: boolean;
+  showCallToAction: boolean;
+  callToActionUrl?: string;
+  callToActionTarget: React.HTMLAttributeAnchorTarget;
+  onCallToAction?: PricingTableOptions["onCallToAction"];
+}
+
+/**
+ * Renders the plan/add-on grids and the period/currency toggles. Lives inside
+ * `Headless.Root` so it can read the selected period/currency (and the setters)
+ * from the headless context rather than owning that state itself — the headless
+ * layer owns selection, this styled layer owns the pricing/entitlement markup.
+ */
+const PricingTableContent = ({
+  layout,
+  showPeriodToggle,
+  showCallToAction,
+  callToActionUrl,
+  callToActionTarget,
+  onCallToAction,
+}: PricingTableContentProps) => {
+  const { t } = useTranslation();
+
+  const { data, currencyFilter } = useEmbed();
+
+  const {
+    periods,
+    selectedPeriod,
+    setSelectedPeriod,
+    currencies,
+    selectedCurrency,
+    setSelectedCurrency,
+    showCurrencyToggle,
+  } = usePricingTableContext();
+
+  const hasCurrencyFilter = !!currencyFilter && currencyFilter.length > 0;
+  const hasCurrency = currencies.length > 1 || hasCurrencyFilter;
+
+  const { plans: allPlans, addOns: allAddOns } = useAvailablePlans(
+    selectedPeriod,
+    {
+      useSelectedPeriod: showPeriodToggle,
+    },
+  );
+
+  // When a currency is in play (multi-currency data or an explicit
+  // currencyFilter), hide plans/add-ons that lack pricing in the selected
+  // currency rather than rendering them with a mismatched legacy fallback.
+  const plans = useMemo(
+    () =>
+      hasCurrency
+        ? allPlans.filter((plan) =>
+            planSupportsCurrency(plan, selectedCurrency),
+          )
+        : allPlans,
+    [allPlans, hasCurrency, selectedCurrency],
+  );
+  const addOns = useMemo(
+    () =>
+      hasCurrency
+        ? allAddOns.filter((addOn) =>
+            planSupportsCurrency(addOn, selectedCurrency),
+          )
+        : allAddOns,
+    [allAddOns, hasCurrency, selectedCurrency],
+  );
+
+  const currentPlan = plans.find((plan) => plan.id === data?.company?.plan?.id);
+
+  const sharedProps = {
+    layout,
+    showCallToAction,
+    callToActionUrl,
+    callToActionTarget,
+    onCallToAction,
+  };
+
+  return (
+    <>
+      <Box>
+        <Flex
+          $flexDirection="column"
+          $justifyContent="center"
+          $alignItems="center"
+          $gap="1rem"
+          $marginBottom="1rem"
+          $viewport={{
+            md: {
+              $flexDirection: "row",
+              $justifyContent: "space-between",
+            },
+          }}
+        >
+          <Headless.Label asChild>
+            <Text
+              as="h2"
+              display={layout.header.fontStyle}
+              style={{ margin: 0 }}
+            >
+              {layout.header.isVisible &&
+                layout.plans.isVisible &&
+                plans.length > 0 &&
+                t("Plans")}
+            </Text>
+          </Headless.Label>
+
+          <Flex $alignItems="center" $gap="0.75rem">
+            {showCurrencyToggle && (
+              <CurrencyToggle
+                currencies={currencies}
+                selectedCurrency={selectedCurrency}
+                onSelect={setSelectedCurrency}
+              />
+            )}
+
+            {showPeriodToggle && periods.length > 1 && (
+              <PeriodToggle
+                options={periods}
+                selectedOption={selectedPeriod}
+                selectedPlan={currentPlan}
+                onSelect={(period) => {
+                  if (period !== selectedPeriod) {
+                    setSelectedPeriod(period);
+                  }
+                }}
+              />
+            )}
+          </Flex>
+        </Flex>
+
+        {layout.plans.isVisible && plans.length > 0 && (
+          <Headless.Section asChild>
+            <Box
+              as="ul"
+              data-testid="sch-plans"
+              $display="grid"
+              $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
+              $gap="1rem"
+              $padding={0}
+              $margin={0}
+              $listStyle="none"
+            >
+              {plans.map((plan, index, self) => {
+                const planPeriod = showPeriodToggle
+                  ? selectedPeriod
+                  : plan.monthlyPrice
+                    ? BillingProductPriceInterval.Month
+                    : plan.quarterlyPrice
+                      ? "quarter"
+                      : plan.yearlyPrice
+                        ? BillingProductPriceInterval.Year
+                        : BillingProductPriceInterval.Month;
+
+                return (
+                  <Plan
+                    key={index}
+                    plan={plan}
+                    index={index}
+                    sharedProps={sharedProps}
+                    plans={self}
+                    selectedPeriod={planPeriod}
+                    currency={hasCurrency ? selectedCurrency : undefined}
+                  />
+                );
+              })}
+            </Box>
+          </Headless.Section>
+        )}
+      </Box>
+
+      <Box>
+        {layout.addOns.isVisible && addOns.length > 0 && (
+          <>
+            {layout.header.isVisible && (
+              <Flex
+                $justifyContent="space-between"
+                $alignItems="center"
+                $marginBottom="1rem"
+              >
+                <Headless.Label asChild>
+                  <Text
+                    as="h2"
+                    display={layout.header.fontStyle}
+                    style={{ margin: 0 }}
+                  >
+                    {t("Add-ons")}
+                  </Text>
+                </Headless.Label>
+              </Flex>
+            )}
+
+            <Headless.Section asChild>
+              <Box
+                as="ul"
+                $display="grid"
+                $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
+                $gap="1rem"
+                $padding={0}
+                $margin={0}
+                $listStyle="none"
+              >
+                {addOns.map((addOn, index) => {
+                  const addOnPeriod = showPeriodToggle
+                    ? selectedPeriod
+                    : addOn.monthlyPrice
+                      ? BillingProductPriceInterval.Month
+                      : addOn.quarterlyPrice
+                        ? "quarter"
+                        : addOn.yearlyPrice
+                          ? BillingProductPriceInterval.Year
+                          : BillingProductPriceInterval.Month;
+
+                  return (
+                    <AddOn
+                      key={index}
+                      addOn={addOn}
+                      sharedProps={sharedProps}
+                      selectedPeriod={addOnPeriod}
+                      currency={hasCurrency ? selectedCurrency : undefined}
+                    />
+                  );
+                })}
+              </Box>
+            </Headless.Section>
+          </>
+        )}
+      </Box>
+    </>
+  );
+};
+
 export const PricingTable = forwardRef<
   HTMLDivElement | null,
   ElementProps &
@@ -136,10 +366,7 @@ export const PricingTable = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { t } = useTranslation();
-
-  const { data, settings, isPending, hydratePublic, currencyFilter } =
-    useEmbed();
+  const { data, settings, isPending, hydratePublic } = useEmbed();
 
   const getCallToActionTarget = useCallback(
     (url?: string, target?: React.HTMLAttributeAnchorTarget) => {
@@ -163,65 +390,25 @@ export const PricingTable = forwardRef<
     [],
   );
 
-  const [selectedPeriod, setSelectedPeriod] = useState(
-    () =>
-      getSubscriptionPeriod(data?.company?.billingSubscription) ||
-      data?.company?.plan?.planPeriod ||
-      "month",
-  );
-
   const { currencies, invalidFilterEntries } =
     useAvailableCurrenciesWithInvalid();
-  const [selectedCurrency, setSelectedCurrency] = useState(
-    () => currencies[0] ?? DEFAULT_CURRENCY,
-  );
-
-  // Snap to a valid currency when the available set changes and the current
-  // selection is no longer offered. Done during render (not in an effect) to
-  // avoid a cascading re-render; the guard converges because the new value is
-  // always a member of `currencies`.
-  if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
-    setSelectedCurrency(currencies[0]);
-  }
 
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
-  const hasCurrencyFilter = !!currencyFilter && currencyFilter.length > 0;
-  const showCurrencySelector = currencies.length > 1;
-  const hasCurrency = currencies.length > 1 || hasCurrencyFilter;
   const hasNoUsableCurrency = currencies.length === 0;
-  const {
-    plans: allPlans,
-    addOns: allAddOns,
-    periods,
-  } = useAvailablePlans(selectedPeriod, {
+
+  // Seed the initial period from the company's current subscription; the
+  // headless `Root` snaps it to a valid option when it is no longer offered.
+  const initialPeriod =
+    getSubscriptionPeriod(data?.company?.billingSubscription) ||
+    data?.company?.plan?.planPeriod ||
+    "month";
+
+  // `periods` is derived from which prices exist, independent of the selected
+  // period, so a stable seed is sufficient to compute it up front for `Root`.
+  const { periods } = useAvailablePlans(initialPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
-
-  // When a currency is in play (multi-currency data or an explicit
-  // currencyFilter), hide plans/add-ons that lack pricing in the selected
-  // currency rather than rendering them with a mismatched legacy fallback.
-  // Memoize so a stable reference is handed to the entitlement-count effect
-  // below — without this the filtered array would be a fresh value on every
-  // render and trigger an infinite update loop.
-  const plans = useMemo(
-    () =>
-      hasCurrency
-        ? allPlans.filter((plan) =>
-            planSupportsCurrency(plan, selectedCurrency),
-          )
-        : allPlans,
-    [allPlans, hasCurrency, selectedCurrency],
-  );
-  const addOns = useMemo(
-    () =>
-      hasCurrency
-        ? allAddOns.filter((addOn) =>
-            planSupportsCurrency(addOn, selectedCurrency),
-          )
-        : allAddOns,
-    [allAddOns, hasCurrency, selectedCurrency],
-  );
 
   useEffect(() => {
     if (typeof data?.component === "undefined") {
@@ -253,8 +440,6 @@ export const PricingTable = forwardRef<
     );
   }
 
-  const currentPlan = plans.find((plan) => plan.id === data?.company?.plan?.id);
-
   const showCallToAction =
     typeof data?.component !== "undefined" ||
     typeof rest.callToActionUrl === "string" ||
@@ -269,167 +454,31 @@ export const PricingTable = forwardRef<
 
   return (
     <Wrapper>
-      <FussyChild
-        ref={ref}
-        className={`sch-PricingTable ${className}`}
-        as={Flex}
-        data-testid="sch-pricing-table"
-        $flexDirection="column"
-        $gap="2rem"
+      <Headless.Root
+        asChild
+        periods={periods}
+        defaultPeriod={initialPeriod}
+        currencies={currencies}
+        defaultCurrency={currencies[0] ?? DEFAULT_CURRENCY}
       >
-        <Box>
-          <Flex
-            $flexDirection="column"
-            $justifyContent="center"
-            $alignItems="center"
-            $gap="1rem"
-            $marginBottom="1rem"
-            $viewport={{
-              md: {
-                $flexDirection: "row",
-                $justifyContent: "space-between",
-              },
-            }}
-          >
-            <Text
-              as="h2"
-              display={props.header.fontStyle}
-              style={{ margin: 0 }}
-            >
-              {props.header.isVisible &&
-                props.plans.isVisible &&
-                plans.length > 0 &&
-                t("Plans")}
-            </Text>
-
-            <Flex $alignItems="center" $gap="0.75rem">
-              {showCurrencySelector && (
-                <CurrencyToggle
-                  currencies={currencies}
-                  selectedCurrency={selectedCurrency}
-                  onSelect={setSelectedCurrency}
-                />
-              )}
-
-              {showPeriodToggle && periods.length > 1 && (
-                <PeriodToggle
-                  options={periods}
-                  selectedOption={selectedPeriod}
-                  selectedPlan={currentPlan}
-                  onSelect={(period) => {
-                    if (period !== selectedPeriod) {
-                      setSelectedPeriod(period);
-                    }
-                  }}
-                />
-              )}
-            </Flex>
-          </Flex>
-
-          {props.plans.isVisible && plans.length > 0 && (
-            <Box
-              as="ul"
-              data-testid="sch-plans"
-              $display="grid"
-              $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
-              $gap="1rem"
-              $padding={0}
-              $margin={0}
-              $listStyle="none"
-            >
-              {plans.map((plan, index, self) => {
-                const planPeriod = showPeriodToggle
-                  ? selectedPeriod
-                  : plan.monthlyPrice
-                    ? BillingProductPriceInterval.Month
-                    : plan.quarterlyPrice
-                      ? "quarter"
-                      : plan.yearlyPrice
-                        ? BillingProductPriceInterval.Year
-                        : BillingProductPriceInterval.Month;
-
-                return (
-                  <Plan
-                    key={index}
-                    plan={plan}
-                    index={index}
-                    sharedProps={{
-                      layout: props,
-                      showCallToAction,
-                      callToActionUrl: rest.callToActionUrl,
-                      callToActionTarget,
-                      onCallToAction: rest.onCallToAction,
-                    }}
-                    plans={self}
-                    selectedPeriod={planPeriod}
-                    currency={hasCurrency ? selectedCurrency : undefined}
-                  />
-                );
-              })}
-            </Box>
-          )}
-        </Box>
-
-        <Box>
-          {props.addOns.isVisible && addOns.length > 0 && (
-            <>
-              {props.header.isVisible && (
-                <Flex
-                  $justifyContent="space-between"
-                  $alignItems="center"
-                  $marginBottom="1rem"
-                >
-                  <Text
-                    as="h2"
-                    display={props.header.fontStyle}
-                    style={{ margin: 0 }}
-                  >
-                    {t("Add-ons")}
-                  </Text>
-                </Flex>
-              )}
-
-              <Box
-                as="ul"
-                $display="grid"
-                $gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
-                $gap="1rem"
-                $padding={0}
-                $margin={0}
-                $listStyle="none"
-              >
-                {addOns.map((addOn, index) => {
-                  const addOnPeriod = showPeriodToggle
-                    ? selectedPeriod
-                    : addOn.monthlyPrice
-                      ? BillingProductPriceInterval.Month
-                      : addOn.quarterlyPrice
-                        ? "quarter"
-                        : addOn.yearlyPrice
-                          ? BillingProductPriceInterval.Year
-                          : BillingProductPriceInterval.Month;
-
-                  return (
-                    <AddOn
-                      key={index}
-                      addOn={addOn}
-                      sharedProps={{
-                        layout: props,
-                        showCallToAction,
-                        callToActionUrl: rest.callToActionUrl,
-                        callToActionTarget,
-                        onCallToAction: rest.onCallToAction,
-                      }}
-                      selectedPeriod={addOnPeriod}
-                      currency={hasCurrency ? selectedCurrency : undefined}
-                    />
-                  );
-                })}
-              </Box>
-            </>
-          )}
-        </Box>
-      </FussyChild>
+        <FussyChild
+          ref={ref}
+          className={`sch-PricingTable ${className}`}
+          as={Flex}
+          data-testid="sch-pricing-table"
+          $flexDirection="column"
+          $gap="2rem"
+        >
+          <PricingTableContent
+            layout={props}
+            showPeriodToggle={showPeriodToggle}
+            showCallToAction={showCallToAction}
+            callToActionUrl={rest.callToActionUrl}
+            callToActionTarget={callToActionTarget}
+            onCallToAction={rest.onCallToAction}
+          />
+        </FussyChild>
+      </Headless.Root>
     </Wrapper>
   );
 });
