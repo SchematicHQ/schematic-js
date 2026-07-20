@@ -133,10 +133,13 @@ const table = usePricingTable({ periods, currencies });
 
 ## Accessibility
 
-The period and currency toggles render as `role="radiogroup"` with an
-`aria-label`; each option is `role="radio"` with `aria-checked` reflecting the
-selection. The current plan's `Card` carries `aria-current="true"`. Provide
-readable text inside each part — the headless layer never invents copy.
+The period toggle renders as `role="radiogroup"` with an `aria-label`; each
+option is `role="radio"` with `aria-checked` reflecting the selection. The
+currency toggle renders as a native `<select>` (with `<option>` children), so it
+gets native keyboard/screen-reader support for free; give it an accessible name
+via `aria-label` (a default `aria-label="Currency"` is applied). The current
+plan's `Card` carries `aria-current="true"`. Provide readable text inside each
+part — the headless layer never invents copy.
 
 ## Styling hooks
 

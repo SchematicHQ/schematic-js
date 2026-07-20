@@ -36,6 +36,15 @@ type OptionPropGetter = (
   value: string,
 ) => React.ButtonHTMLAttributes<HTMLButtonElement> & Record<string, unknown>;
 
+/** Props for a native `<select>` that selects one value from a set. */
+type SelectPropGetter = () => React.SelectHTMLAttributes<HTMLSelectElement> &
+  Record<string, unknown>;
+
+/** Props for one `<option>` in a `<select>`; `value` is that option's value. */
+type SelectOptionPropGetter = (
+  value: string,
+) => React.OptionHTMLAttributes<HTMLOptionElement> & Record<string, unknown>;
+
 export interface PricingTableApi {
   /** The billing periods available to choose from. */
   periods: string[];
@@ -74,9 +83,10 @@ export interface PricingTableApi {
   getPeriodToggleProps: PropGetter;
   /** Props for a single period option button; `value` is that option's period. */
   getPeriodOptionProps: OptionPropGetter;
-  getCurrencyToggleProps: PropGetter;
-  /** Props for a single currency option button; `value` is that option's currency. */
-  getCurrencyOptionProps: OptionPropGetter;
+  /** Props for the currency `<select>`; it is controlled via `value`/`onChange`. */
+  getCurrencyToggleProps: SelectPropGetter;
+  /** Props for a single currency `<option>`; `value` is that option's currency. */
+  getCurrencyOptionProps: SelectOptionPropGetter;
 }
 
 /**
@@ -234,24 +244,20 @@ export function usePricingTable({
         };
       },
       getCurrencyToggleProps: () => ({
-        "role": "radiogroup",
         "aria-label": "Currency",
         "data-schematic": "pricing-table-currency-toggle",
         "data-part": "currency-toggle",
+        "value": selectedCurrency,
+        "onChange": (event: React.ChangeEvent<HTMLSelectElement>) =>
+          setSelectedCurrency(event.target.value),
       }),
-      getCurrencyOptionProps: (value) => {
-        const isSelected = value === selectedCurrency;
-        return {
-          "type": "button",
-          "role": "radio",
-          "aria-checked": isSelected,
-          "data-schematic": "pricing-table-currency-option",
-          "data-part": "currency-option",
-          "data-value": value,
-          ...(isSelected ? { "data-selected": "true" } : {}),
-          "onClick": () => setSelectedCurrency(value),
-        };
-      },
+      getCurrencyOptionProps: (value) => ({
+        "value": value,
+        "data-schematic": "pricing-table-currency-option",
+        "data-part": "currency-option",
+        "data-value": value,
+        ...(value === selectedCurrency ? { "data-selected": "true" } : {}),
+      }),
     };
   }, [
     periods,

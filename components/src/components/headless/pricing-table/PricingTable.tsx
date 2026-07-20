@@ -339,45 +339,59 @@ const PeriodOption = forwardRef<HTMLButtonElement, PricingTableOptionProps>(
 
 PeriodOption.displayName = "PricingTable.PeriodOption";
 
-const CurrencyToggle = forwardRef<HTMLDivElement, PricingTablePartProps>(
-  ({ asChild, className, children, ...rest }, ref) => {
-    const { getCurrencyToggleProps } = usePricingTableContext();
-    const props = mergeProps(
-      {
-        ...getCurrencyToggleProps(),
-        className: "schematic-pricing-table__currency-toggle",
-      },
-      { className, ...rest },
-    );
-    const Comp = (asChild ? Slot : "div") as ElementType;
-    return (
-      <Comp ref={ref} {...props}>
-        {children}
-      </Comp>
-    );
-  },
-);
+export interface PricingTableCurrencySelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  /** Render as the single child element instead of the default `<select>`. */
+  asChild?: boolean;
+}
+
+const CurrencyToggle = forwardRef<
+  HTMLSelectElement,
+  PricingTableCurrencySelectProps
+>(({ asChild, className, children, ...rest }, ref) => {
+  const { getCurrencyToggleProps } = usePricingTableContext();
+  const props = mergeProps(
+    {
+      ...getCurrencyToggleProps(),
+      className: "schematic-pricing-table__currency-toggle",
+    },
+    { className, ...rest },
+  );
+  const Comp = (asChild ? Slot : "select") as ElementType;
+  return (
+    <Comp ref={ref} {...props}>
+      {children}
+    </Comp>
+  );
+});
 
 CurrencyToggle.displayName = "PricingTable.CurrencyToggle";
 
-const CurrencyOption = forwardRef<HTMLButtonElement, PricingTableOptionProps>(
-  ({ asChild, value, className, children, ...rest }, ref) => {
-    const { getCurrencyOptionProps } = usePricingTableContext();
-    const props = mergeProps(
-      {
-        ...getCurrencyOptionProps(value),
-        className: "schematic-pricing-table__currency-option",
-      },
-      { className, ...rest },
-    );
-    const Comp = (asChild ? Slot : "button") as ElementType;
-    return (
-      <Comp ref={ref} {...props}>
-        {children}
-      </Comp>
-    );
-  },
-);
+export interface PricingTableCurrencyOptionProps extends React.OptionHTMLAttributes<HTMLOptionElement> {
+  /** The currency this option selects. */
+  value: string;
+  /** Render as the single child element instead of the default `<option>`. */
+  asChild?: boolean;
+}
+
+const CurrencyOption = forwardRef<
+  HTMLOptionElement,
+  PricingTableCurrencyOptionProps
+>(({ asChild, value, className, children, ...rest }, ref) => {
+  const { getCurrencyOptionProps } = usePricingTableContext();
+  const props = mergeProps(
+    {
+      ...getCurrencyOptionProps(value),
+      className: "schematic-pricing-table__currency-option",
+    },
+    { className, ...rest },
+  );
+  const Comp = (asChild ? Slot : "option") as ElementType;
+  return (
+    <Comp ref={ref} {...props}>
+      {children}
+    </Comp>
+  );
+});
 
 CurrencyOption.displayName = "PricingTable.CurrencyOption";
 

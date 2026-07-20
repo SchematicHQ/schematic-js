@@ -19,20 +19,29 @@ import {
   useAvailableCurrenciesWithInvalid,
   useAvailablePlans,
   useEmbed,
+  useIsLightBackground,
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { getSubscriptionPeriod, planSupportsCurrency } from "../../../utils";
+import {
+  adjectify,
+  getCurrencyFlag,
+  getCurrencySymbol,
+  getPlanPrice,
+  getSubscriptionPeriod,
+  planSupportsCurrency,
+} from "../../../utils";
 import { PricingTable as Headless } from "../../headless/pricing-table";
 import { Container, FussyChild } from "../../layout";
-import {
-  CurrencyToggle,
-  InvalidCurrencyNotice,
-  PeriodToggle,
-} from "../../shared";
-import { Box, Flex, Loader, Text } from "../../ui";
+import { InvalidCurrencyNotice } from "../../shared";
+import { Box, Button, Flex, Loader, Text, Tooltip } from "../../ui";
 
 import { AddOn } from "./AddOn";
 import { Plan } from "./Plan";
+
+const PERIOD_MONTH_COUNT: Record<string, number> = {
+  year: 12,
+  quarter: 3,
+};
 
 interface DesignProps {
   showPeriodToggle: boolean;
@@ -128,7 +137,7 @@ export type PricingTableOptions = {
 
 export type PricingTableProps = DesignProps;
 
-export const PricingTable = forwardRef<
+export const PricingTableElement = forwardRef<
   HTMLDivElement | null,
   ElementProps &
     DeepPartial<DesignProps> &
@@ -141,6 +150,8 @@ export const PricingTable = forwardRef<
 
   const { data, settings, isPending, hydratePublic, currencyFilter } =
     useEmbed();
+
+  const isLightBackground = useIsLightBackground();
 
   const getCallToActionTarget = useCallback(
     (url?: string, target?: React.HTMLAttributeAnchorTarget) => {
@@ -224,6 +235,29 @@ export const PricingTable = forwardRef<
 
   const currentPlan = plans.find((plan) => plan.id === data?.company?.plan?.id);
 
+  const savingsByPeriod = useMemo(() => {
+    const result: Record<string, number> = {};
+    if (!currentPlan) {
+      return result;
+    }
+
+    const monthlyPrice = getPlanPrice(currentPlan, "month")?.price ?? 0;
+    if (monthlyPrice <= 0) {
+      return result;
+    }
+
+    for (const [period, months] of Object.entries(PERIOD_MONTH_COUNT)) {
+      const periodPrice = getPlanPrice(currentPlan, period)?.price ?? 0;
+      if (periodPrice > 0) {
+        const baseline = monthlyPrice * months;
+        result[period] =
+          Math.round(((baseline - periodPrice) / baseline) * 10000) / 100;
+      }
+    }
+
+    return result;
+  }, [currentPlan]);
+
   useEffect(() => {
     if (typeof data?.component === "undefined") {
       hydratePublic();
@@ -277,6 +311,7 @@ export const PricingTable = forwardRef<
   return (
     <Wrapper>
       <Headless.Root
+        ref={ref}
         asChild
         periods={periods}
         period={selectedPeriod}
@@ -284,15 +319,9 @@ export const PricingTable = forwardRef<
         currencies={currencies}
         currency={selectedCurrency}
         onCurrencyChange={setSelectedCurrency}
+        data-testid="sch-pricing-table"
       >
-        <FussyChild
-          ref={ref}
-          className={`sch-PricingTable ${className}`}
-          as={Flex}
-          data-testid="sch-pricing-table"
-          $flexDirection="column"
-          $gap="2rem"
-        >
+        <FussyChild as={Flex} $flexDirection="column" $gap="2rem">
           <Box>
             <Flex
               $flexDirection="column"
@@ -322,24 +351,173 @@ export const PricingTable = forwardRef<
 
               <Flex $alignItems="center" $gap="0.75rem">
                 {showCurrencyToggle && (
-                  <CurrencyToggle
-                    currencies={currencies}
-                    selectedCurrency={selectedCurrency}
-                    onSelect={setSelectedCurrency}
-                  />
+                  <Flex
+                    data-testid="sch-currency-toggle"
+                    $alignSelf="center"
+                    $width="fit-content"
+                    $margin={0}
+                    $borderWidth="1px"
+                    $borderStyle="solid"
+                    $borderColor={
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.125)"
+                        : "hsla(0, 0%, 100%, 0.125)"
+                    }
+                    $borderRadius="2.5rem"
+                    $cursor="pointer"
+                  >
+                    <Flex
+                      $alignItems="center"
+                      $padding="0.375rem 0.75rem"
+                      style={{ position: "relative" }}
+                    >
+                      <Text
+                        style={{
+                          color: settings.theme.typography.text.color,
+                        }}
+                        $size={15}
+                        $weight={600}
+                      >
+                        {getCurrencyFlag(selectedCurrency)}{" "}
+                        {getCurrencySymbol(selectedCurrency)}{" "}
+                        {selectedCurrency.toUpperCase()}
+                      </Text>
+
+                      <Headless.CurrencyToggle asChild>
+                        <select
+                          data-testid="sch-currency-select"
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                            opacity: 0,
+                            cursor: "pointer",
+                            fontSize: "inherit",
+                          }}
+                        >
+                          {currencies.map((currency) => (
+                            <Headless.CurrencyOption
+                              key={currency}
+                              value={currency}
+                            >
+                              {getCurrencyFlag(currency)}{" "}
+                              {getCurrencySymbol(currency)}{" "}
+                              {currency.toUpperCase()}
+                            </Headless.CurrencyOption>
+                          ))}
+                        </select>
+                      </Headless.CurrencyToggle>
+
+                      <svg
+                        width={12}
+                        height={12}
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        style={{ marginLeft: "0.25rem", flexShrink: 0 }}
+                      >
+                        <path
+                          d="M3 4.5L6 7.5L9 4.5"
+                          stroke={settings.theme.typography.text.color}
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </Flex>
+                  </Flex>
                 )}
 
                 {showPeriodToggle && periods.length > 1 && (
-                  <PeriodToggle
-                    options={periods}
-                    selectedOption={selectedPeriod}
-                    selectedPlan={currentPlan}
-                    onSelect={(period) => {
-                      if (period !== selectedPeriod) {
-                        setSelectedPeriod(period);
+                  <Headless.PeriodToggle asChild>
+                    <Flex
+                      data-testid="sch-period-toggle"
+                      $alignSelf="center"
+                      $width="fit-content"
+                      $margin={0}
+                      $borderWidth="1px"
+                      $borderStyle="solid"
+                      $borderColor={
+                        isLightBackground
+                          ? "hsla(0, 0%, 0%, 0.125)"
+                          : "hsla(0, 0%, 100%, 0.125)"
                       }
-                    }}
-                  />
+                      $borderRadius="2.5rem"
+                      $cursor="pointer"
+                    >
+                      {periods.map((period) => {
+                        const option = (
+                          <Headless.PeriodOption
+                            key={period}
+                            value={period}
+                            asChild
+                          >
+                            <Button
+                              data-testid="sch-period-toggle-button"
+                              $size="sm"
+                              $variant="text"
+                              style={{
+                                flexGrow: 1,
+                                flexBasis: "50%",
+                                width: "100%",
+                                textDecoration: "none",
+                                whiteSpace: "nowrap",
+                                borderRadius: "2.5rem",
+                                ...(period === selectedPeriod && {
+                                  backgroundColor: isLightBackground
+                                    ? "hsla(0, 0%, 0%, 0.125)"
+                                    : "hsla(0, 0%, 100%, 0.125)",
+                                }),
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  flexShrink: 0,
+                                  color: settings.theme.typography.text.color,
+                                }}
+                                $size={15}
+                                $weight={period === selectedPeriod ? 600 : 400}
+                              >
+                                {t("Billed", { period: adjectify(period) })}
+                              </Text>
+                            </Button>
+                          </Headless.PeriodOption>
+                        );
+
+                        const savingsPercentage = savingsByPeriod[period];
+                        if (typeof savingsPercentage === "number") {
+                          const isOptionYear = period === "year";
+                          return (
+                            <Tooltip
+                              key={period}
+                              trigger={option}
+                              content={
+                                <Text $size={11} $leading="none">
+                                  {selectedPeriod === period
+                                    ? t(
+                                        isOptionYear
+                                          ? "Saving with yearly billing"
+                                          : "Saving with quarterly billing",
+                                        { percent: savingsPercentage },
+                                      )
+                                    : t(
+                                        isOptionYear
+                                          ? "Save with yearly billing"
+                                          : "Save with quarterly billing",
+                                        { percent: savingsPercentage },
+                                      )}
+                                </Text>
+                              }
+                              $flexGrow={1}
+                              $flexBasis="50%"
+                            />
+                          );
+                        }
+
+                        return option;
+                      })}
+                    </Flex>
+                  </Headless.PeriodToggle>
                 )}
               </Flex>
             </Flex>
@@ -447,4 +625,4 @@ export const PricingTable = forwardRef<
   );
 });
 
-PricingTable.displayName = "PricingTable";
+PricingTableElement.displayName = "PricingTable";

@@ -18,7 +18,7 @@ import { server } from "../../../test/mocks/node";
 import { render } from "../../../test/setup";
 import { SchematicEmbed } from "../../embed";
 
-import { PricingTable } from ".";
+import { PricingTableElement as PricingTable } from ".";
 
 describe("`PricingTable`", () => {
   describe("public/standalone mode", () => {
@@ -445,7 +445,7 @@ describe("`PricingTable`", () => {
       expect(firstPlanButtonTrialText).not.toBeInTheDocument();
     });
 
-    test("Should handle period toggle keyboard navigation", async () => {
+    test("Should handle period toggle selection", async () => {
       render(<PricingTable callToActionUrl="/" />);
 
       const plans = await screen.findAllByTestId("sch-plan");
@@ -453,10 +453,11 @@ describe("`PricingTable`", () => {
       const firstPlanMonthlyText = await within(plans[0]).findByText("/month");
       expect(firstPlanMonthlyText).toBeInTheDocument();
 
-      const billedYearlyText = await screen.findByText("Billed yearly");
+      const billedYearlyOption = await screen.findByRole("radio", {
+        name: "Billed yearly",
+      });
       act(() => {
-        fireEvent.focus(billedYearlyText);
-        fireEvent.keyDown(billedYearlyText, { key: " " });
+        fireEvent.click(billedYearlyOption);
       });
 
       const plansAfterPeriodChange = await screen.findAllByTestId("sch-plan");

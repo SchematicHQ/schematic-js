@@ -163,6 +163,70 @@ describe("PricingTable compound components", () => {
     expect(screen.getByText("Yearly")).toHaveAttribute("aria-checked", "true");
   });
 
+  test("currency toggle renders a native select reflecting and updating selection", () => {
+    const onCurrencyChange = vi.fn();
+    const { container } = render(
+      <PricingTable.Root
+        periods={["month"]}
+        currencies={["usd", "eur"]}
+        onCurrencyChange={onCurrencyChange}
+      >
+        <PricingTable.CurrencyToggle>
+          <PricingTable.CurrencyOption value="usd">
+            USD
+          </PricingTable.CurrencyOption>
+          <PricingTable.CurrencyOption value="eur">
+            EUR
+          </PricingTable.CurrencyOption>
+        </PricingTable.CurrencyToggle>
+      </PricingTable.Root>,
+    );
+
+    const select = container.querySelector<HTMLSelectElement>(
+      '[data-part="currency-toggle"]',
+    );
+    expect(select?.tagName).toBe("SELECT");
+    expect(select).toHaveValue("usd");
+    expect(select).toHaveAttribute("aria-label", "Currency");
+
+    const options = container.querySelectorAll('[data-part="currency-option"]');
+    expect(options).toHaveLength(2);
+    expect(options[0].tagName).toBe("OPTION");
+    expect(options[0]).toHaveAttribute("data-selected", "true");
+    expect(options[1]).not.toHaveAttribute("data-selected");
+
+    fireEvent.change(select!, { target: { value: "eur" } });
+    expect(onCurrencyChange).toHaveBeenCalledWith("eur");
+    expect(select).toHaveValue("eur");
+    expect(container.querySelector('[data-part="root"]')).toHaveAttribute(
+      "data-currency",
+      "eur",
+    );
+  });
+
+  test("chains a consumer onChange with the built-in currency handler", () => {
+    const onChange = vi.fn();
+    const { container } = render(
+      <PricingTable.Root periods={["month"]} currencies={["usd", "eur"]}>
+        <PricingTable.CurrencyToggle onChange={onChange}>
+          <PricingTable.CurrencyOption value="usd">
+            USD
+          </PricingTable.CurrencyOption>
+          <PricingTable.CurrencyOption value="eur">
+            EUR
+          </PricingTable.CurrencyOption>
+        </PricingTable.CurrencyToggle>
+      </PricingTable.Root>,
+    );
+
+    const select = container.querySelector<HTMLSelectElement>(
+      '[data-part="currency-toggle"]',
+    );
+    fireEvent.change(select!, { target: { value: "eur" } });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(select).toHaveValue("eur");
+  });
+
   test("CallToAction renders a button with its part attributes", () => {
     renderTable();
     const cta = screen.getByText("Current plan");
