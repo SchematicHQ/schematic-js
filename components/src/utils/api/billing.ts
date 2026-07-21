@@ -5,9 +5,11 @@ import {
   type BillingPriceView,
   type BillingProductPriceTierResponseData,
   type BillingSubscriptionView,
+  type CompanyPlanDetailResponseData,
   type FeatureUsageResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../api/checkoutexternal";
+import { type PlanViewPublicResponseData } from "../../api/componentspublic";
 import type { BillingPrice, Entitlement, Plan } from "../../types";
 
 /**
@@ -94,7 +96,7 @@ function selectAvailablePrice<T>(source: PricesForPeriod<T>): T | undefined {
 }
 
 export function getPlanPrice(
-  plan: Plan,
+  plan: PlanViewPublicResponseData | CompanyPlanDetailResponseData,
   period = "month",
   options: PlanPriceOptions = { useSelectedPeriod: true },
   currency?: string,
