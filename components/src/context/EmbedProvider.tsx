@@ -672,6 +672,7 @@ export const EmbedProvider = ({
         layout: state.layout,
         checkoutState: state.checkoutState,
         currencyFilter: state.currencyFilter,
+        warningThresholdConfig: state.warningThresholdConfig,
         checkoutPrefill: state.checkoutPrefill,
         hydratePublic: debouncedHydratePublic,
         hydrate: debouncedHydrate,

@@ -192,9 +192,13 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     }
 
     if (!priceBehavior && typeof allocation === "number") {
+      // When a warning threshold is configured and enabled, `limit` from
+      // getUsageDetails is that threshold; otherwise it falls back to the
+      // allocation (the hard limit).
+      const numericLimit = limit ?? allocation;
       return t("X units", {
-        amount: formatNumber(allocation),
-        units: getFeatureName(feature, allocation),
+        amount: formatNumber(numericLimit),
+        units: getFeatureName(feature, numericLimit),
       });
     }
 
@@ -317,7 +321,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       return typeof allocation === "number"
         ? t("usage.limited", {
             amount: formatNumber(usage),
-            allocation: formatNumber(allocation),
+            allocation: formatNumber(limit ?? allocation),
           })
         : t("usage.unlimited", {
             amount: formatNumber(usage),
@@ -332,6 +336,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     priceBehavior,
     packageSize,
     allocation,
+    limit,
     usage,
     metricResetAt,
     cost,
