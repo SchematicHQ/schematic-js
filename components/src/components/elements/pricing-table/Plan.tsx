@@ -7,14 +7,13 @@ import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
 import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
-  getFeatureName,
   getPlanPrice,
   getSubscriptionPeriod,
   groupPlanCreditGrants,
   hexToHSL,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
-import { UsageViolationText } from "../../shared";
+import { PlanCreditText, UsageViolationText } from "../../shared";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 import { Entitlement } from "./Entitlement";
@@ -224,16 +223,10 @@ export const Plan = ({
                       $justifyContent="center"
                       $gap="0.5rem"
                     >
-                      <Text>
-                        {credit.quantity}{" "}
-                        {getFeatureName(credit, credit.quantity)}
-                        {credit.period && (
-                          <>
-                            {" "}
-                            {t("per")} {credit.period}
-                          </>
-                        )}
-                      </Text>
+                      <PlanCreditText
+                        credit={credit}
+                        entitlements={plan.entitlements}
+                      />
                     </Flex>
                   )}
                 </Flex>
