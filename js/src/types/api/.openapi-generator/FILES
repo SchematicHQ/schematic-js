@@ -30,9 +30,6 @@ models/ChargeType.ts
 models/CheckFlagRequestBody.ts
 models/CheckFlagResponse.ts
 models/CheckFlagResponseData.ts
-models/CheckFlagsBulkRequestBody.ts
-models/CheckFlagsBulkResponse.ts
-models/CheckFlagsBulkResponseData.ts
 models/CheckFlagsResponse.ts
 models/CheckFlagsResponseData.ts
 models/CompanyCreditBalance.ts

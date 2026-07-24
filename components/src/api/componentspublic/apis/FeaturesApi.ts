@@ -17,8 +17,6 @@ import type {
   ApiError,
   CheckFlagRequestBody,
   CheckFlagResponse,
-  CheckFlagsBulkRequestBody,
-  CheckFlagsBulkResponse,
   CheckFlagsResponse,
 } from "../models/index";
 import {
@@ -28,10 +26,6 @@ import {
   CheckFlagRequestBodyToJSON,
   CheckFlagResponseFromJSON,
   CheckFlagResponseToJSON,
-  CheckFlagsBulkRequestBodyFromJSON,
-  CheckFlagsBulkRequestBodyToJSON,
-  CheckFlagsBulkResponseFromJSON,
-  CheckFlagsBulkResponseToJSON,
   CheckFlagsResponseFromJSON,
   CheckFlagsResponseToJSON,
 } from "../models/index";
@@ -43,10 +37,6 @@ export interface CheckFlagRequest {
 
 export interface CheckFlagsRequest {
   checkFlagRequestBody: CheckFlagRequestBody;
-}
-
-export interface CheckFlagsBulkRequest {
-  checkFlagsBulkRequestBody: CheckFlagsBulkRequestBody;
 }
 
 /**
@@ -170,64 +160,6 @@ export class FeaturesApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<CheckFlagsResponse> {
     const response = await this.checkFlagsRaw(requestParameters, initOverrides);
-    return await response.value();
-  }
-
-  /**
-   * Check flags bulk
-   */
-  async checkFlagsBulkRaw(
-    requestParameters: CheckFlagsBulkRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<CheckFlagsBulkResponse>> {
-    if (requestParameters["checkFlagsBulkRequestBody"] == null) {
-      throw new runtime.RequiredError(
-        "checkFlagsBulkRequestBody",
-        'Required parameter "checkFlagsBulkRequestBody" was null or undefined when calling checkFlagsBulk().',
-      );
-    }
-
-    const queryParameters: any = {};
-
-    const headerParameters: runtime.HTTPHeaders = {};
-
-    headerParameters["Content-Type"] = "application/json";
-
-    if (this.configuration && this.configuration.apiKey) {
-      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
-        "X-Schematic-Api-Key",
-      ); // ApiKeyAuth authentication
-    }
-
-    const response = await this.request(
-      {
-        path: `/flags/check-bulk`,
-        method: "POST",
-        headers: headerParameters,
-        query: queryParameters,
-        body: CheckFlagsBulkRequestBodyToJSON(
-          requestParameters["checkFlagsBulkRequestBody"],
-        ),
-      },
-      initOverrides,
-    );
-
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      CheckFlagsBulkResponseFromJSON(jsonValue),
-    );
-  }
-
-  /**
-   * Check flags bulk
-   */
-  async checkFlagsBulk(
-    requestParameters: CheckFlagsBulkRequest,
-    initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<CheckFlagsBulkResponse> {
-    const response = await this.checkFlagsBulkRaw(
-      requestParameters,
-      initOverrides,
-    );
     return await response.value();
   }
 }
