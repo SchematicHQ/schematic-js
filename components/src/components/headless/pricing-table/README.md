@@ -50,8 +50,12 @@ function PricingTableExample() {
         {plans.map((plan: CompanyPlanDetailResponseData) => (
           <PricingTable.Card key={plan.id} active={plan.current}>
             <PricingTable.Name>{plan.name}</PricingTable.Name>
-            <PricingTable.Description>{plan.description}</PricingTable.Description>
-            <PricingTable.Price>{/* your formatted price */}</PricingTable.Price>
+            <PricingTable.Description>
+              {plan.description}
+            </PricingTable.Description>
+            <PricingTable.Price>
+              {/* your formatted price */}
+            </PricingTable.Price>
             <PricingTable.Entitlements>
               {(plan.entitlements ?? []).map((entitlement) => (
                 <PricingTable.Entitlement key={entitlement.id}>
@@ -149,8 +153,8 @@ classes under `schematic-pricing-table`: `__label`, `__section`, `__card`,
 `__footer`, `__call-to-action`, `__period-toggle`, `__period-option`,
 `__currency-toggle`, `__currency-option`. State attributes for styling:
 
-| Attribute                          | Applies to                          |
-| ---------------------------------- | ----------------------------------- |
-| `data-period` / `data-currency`    | root — the current selection        |
-| `data-active="true"`               | the current plan's card / CTA       |
-| `data-selected="true"`             | the selected period/currency option |
+| Attribute                       | Applies to                          |
+| ------------------------------- | ----------------------------------- |
+| `data-period` / `data-currency` | root — the current selection        |
+| `data-active="true"`            | the current plan's card / CTA       |
+| `data-selected="true"`          | the selected period/currency option |
