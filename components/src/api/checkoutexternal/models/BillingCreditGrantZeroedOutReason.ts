@@ -20,6 +20,7 @@ export const BillingCreditGrantZeroedOutReason = {
   CustomerArchived: "customer_archived",
   Expired: "expired",
   IntegrationUninstalled: "integration_uninstalled",
+  LicenseRetired: "license_retired",
   Manual: "manual",
   PlanChange: "plan_change",
   PlanPeriodReset: "plan_period_reset",
