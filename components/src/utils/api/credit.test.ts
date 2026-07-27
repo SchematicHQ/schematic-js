@@ -1,13 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { BillingCreditAutoTopupAvailability } from "../../api/checkoutexternal";
+import {
+  BillingCreditAutoTopupAvailability,
+  type CreditCompanyGrantView,
+} from "../../api/checkoutexternal";
 import {
   deriveCreditBundles,
   filterCreditBundles,
   getBundleOffCreditIds,
+  getLatestGrantTime,
   isAutoTopupOff,
   isBundlePurchaseOff,
   isSelfServiceAutoTopupAvailable,
+  sortCreditGroupsByRecency,
+  sortGrantsByRecency,
 } from "./credit";
 
 describe("isAutoTopupOff", () => {
@@ -177,6 +183,60 @@ describe("deriveCreditBundles", () => {
   it("defaults a surviving bundle's count to 0 when absent from the map", () => {
     expect(deriveCreditBundles(grants, bundles, {})).toEqual([
       { id: "b2", creditId: "credit-on", count: 0 },
+    ]);
+  });
+});
+
+describe("grant recency ordering", () => {
+  const grant = (id: string, createdAt: Date) =>
+    ({ id, createdAt }) as unknown as CreditCompanyGrantView;
+
+  const oldest = grant("oldest", new Date(2026, 0, 1));
+  const middle = grant("middle", new Date(2026, 3, 1));
+  const newest = grant("newest", new Date(2026, 6, 1));
+
+  it("sorts grants newest-first without mutating the input", () => {
+    const grants = [middle, oldest, newest];
+
+    expect(sortGrantsByRecency(grants).map((g) => g.id)).toEqual([
+      "newest",
+      "middle",
+      "oldest",
+    ]);
+    expect(grants.map((g) => g.id)).toEqual(["middle", "oldest", "newest"]);
+  });
+
+  it("reports the latest timestamp in a group, or 0 when empty", () => {
+    expect(getLatestGrantTime([oldest, newest, middle])).toBe(
+      +newest.createdAt,
+    );
+    expect(getLatestGrantTime([])).toBe(0);
+  });
+
+  it("sorts groups by their most recent grant", () => {
+    const groups = [
+      { id: "a", grants: [oldest] },
+      { id: "b", grants: [oldest, newest] },
+      { id: "c", grants: [middle] },
+    ];
+
+    expect(sortCreditGroupsByRecency(groups).map((g) => g.id)).toEqual([
+      "b",
+      "c",
+      "a",
+    ]);
+    expect(groups.map((g) => g.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("puts a group with no grants last", () => {
+    const groups = [
+      { id: "empty", grants: [] },
+      { id: "dated", grants: [oldest] },
+    ];
+
+    expect(sortCreditGroupsByRecency(groups).map((g) => g.id)).toEqual([
+      "dated",
+      "empty",
     ]);
   });
 });

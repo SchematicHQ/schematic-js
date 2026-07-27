@@ -116,6 +116,29 @@ export function groupCreditGrants(
   return Object.values(map);
 }
 
+interface DatedGrant {
+  createdAt: Date;
+}
+
+export function getLatestGrantTime(grants: DatedGrant[]): number {
+  return grants.reduce(
+    (latest, grant) => Math.max(latest, +grant.createdAt),
+    0,
+  );
+}
+
+export function sortGrantsByRecency<T extends DatedGrant>(grants: T[]): T[] {
+  return [...grants].sort((a, b) => +b.createdAt - +a.createdAt);
+}
+
+export function sortCreditGroupsByRecency<T extends { grants: DatedGrant[] }>(
+  groups: T[],
+): T[] {
+  return [...groups].sort(
+    (a, b) => getLatestGrantTime(b.grants) - getLatestGrantTime(a.grants),
+  );
+}
+
 export function isAutoTopupEnabled(grant?: CompanyPlanCreditGrantView) {
   if (grant?.billingCreditAutoTopupSelfService) {
     return grant.companyAutoTopupEnabled ?? false;
