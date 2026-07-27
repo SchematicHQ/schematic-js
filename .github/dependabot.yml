@@ -7,9 +7,11 @@ version: 2
 updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directories:
+      - "/angular"
       - "/components"
       - "/js"
       - "/react"
+      - "/vue"
     schedule:
       interval: "daily"
     labels:
