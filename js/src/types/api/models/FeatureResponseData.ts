@@ -71,6 +71,12 @@ export interface FeatureResponseData {
    */
   id: string;
   /**
+   * The license sold through this feature. Set only on features of type license, and created automatically with them.
+   * @type {string}
+   * @memberof FeatureResponseData
+   */
+  licenseId?: string | null;
+  /**
    *
    * @type {FeatureLifecyclePhase}
    * @memberof FeatureResponseData
@@ -112,6 +118,12 @@ export interface FeatureResponseData {
    * @memberof FeatureResponseData
    */
   updatedAt: Date;
+  /**
+   * Set when the feature carries a pay-in-advance quantity. Provisioned lazily for other feature types, and at creation for license features.
+   * @type {string}
+   * @memberof FeatureResponseData
+   */
+  usageLimitTraitId?: string | null;
 }
 
 /**
@@ -151,6 +163,7 @@ export function FeatureResponseDataFromJSONTyped(
     featureType: FeatureTypeFromJSON(json["feature_type"]),
     icon: json["icon"],
     id: json["id"],
+    licenseId: json["license_id"] == null ? undefined : json["license_id"],
     lifecyclePhase:
       json["lifecycle_phase"] == null
         ? undefined
@@ -165,6 +178,10 @@ export function FeatureResponseDataFromJSONTyped(
       json["singular_name"] == null ? undefined : json["singular_name"],
     traitId: json["trait_id"] == null ? undefined : json["trait_id"],
     updatedAt: new Date(json["updated_at"]),
+    usageLimitTraitId:
+      json["usage_limit_trait_id"] == null
+        ? undefined
+        : json["usage_limit_trait_id"],
   };
 }
 
@@ -187,6 +204,7 @@ export function FeatureResponseDataToJSONTyped(
     feature_type: FeatureTypeToJSON(value["featureType"]),
     icon: value["icon"],
     id: value["id"],
+    license_id: value["licenseId"],
     lifecycle_phase: FeatureLifecyclePhaseToJSON(value["lifecyclePhase"]),
     maintainer_account_member_id: value["maintainerAccountMemberId"],
     name: value["name"],
@@ -194,5 +212,6 @@ export function FeatureResponseDataToJSONTyped(
     singular_name: value["singularName"],
     trait_id: value["traitId"],
     updated_at: value["updatedAt"].toISOString(),
+    usage_limit_trait_id: value["usageLimitTraitId"],
   };
 }

@@ -124,6 +124,12 @@ export interface FeatureInPlanResponseData {
    */
   id: string;
   /**
+   * The license sold through this feature. Set only on features of type license, and created automatically with them.
+   * @type {string}
+   * @memberof FeatureInPlanResponseData
+   */
+  licenseId?: string | null;
+  /**
    *
    * @type {FeatureLifecyclePhase}
    * @memberof FeatureInPlanResponseData
@@ -177,6 +183,12 @@ export interface FeatureInPlanResponseData {
    * @memberof FeatureInPlanResponseData
    */
   updatedAt: Date;
+  /**
+   * Set when the feature carries a pay-in-advance quantity. Provisioned lazily for other feature types, and at creation for license features.
+   * @type {string}
+   * @memberof FeatureInPlanResponseData
+   */
+  usageLimitTraitId?: string | null;
 }
 
 /**
@@ -231,6 +243,7 @@ export function FeatureInPlanResponseDataFromJSONTyped(
     flags: (json["flags"] as Array<any>).map(FlagInPlanResponseDataFromJSON),
     icon: json["icon"],
     id: json["id"],
+    licenseId: json["license_id"] == null ? undefined : json["license_id"],
     lifecyclePhase:
       json["lifecycle_phase"] == null
         ? undefined
@@ -250,6 +263,10 @@ export function FeatureInPlanResponseDataFromJSONTyped(
         : EntityTraitDefinitionResponseDataFromJSON(json["trait"]),
     traitId: json["trait_id"] == null ? undefined : json["trait_id"],
     updatedAt: new Date(json["updated_at"]),
+    usageLimitTraitId:
+      json["usage_limit_trait_id"] == null
+        ? undefined
+        : json["usage_limit_trait_id"],
   };
 }
 
@@ -279,6 +296,7 @@ export function FeatureInPlanResponseDataToJSONTyped(
     flags: (value["flags"] as Array<any>).map(FlagInPlanResponseDataToJSON),
     icon: value["icon"],
     id: value["id"],
+    license_id: value["licenseId"],
     lifecycle_phase: FeatureLifecyclePhaseToJSON(value["lifecyclePhase"]),
     maintainer_account_member_id: value["maintainerAccountMemberId"],
     name: value["name"],
@@ -288,5 +306,6 @@ export function FeatureInPlanResponseDataToJSONTyped(
     trait: EntityTraitDefinitionResponseDataToJSON(value["trait"]),
     trait_id: value["traitId"],
     updated_at: value["updatedAt"].toISOString(),
+    usage_limit_trait_id: value["usageLimitTraitId"],
   };
 }

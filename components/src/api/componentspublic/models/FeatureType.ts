@@ -19,6 +19,7 @@
 export const FeatureType = {
   Boolean: "boolean",
   Event: "event",
+  License: "license",
   Trait: "trait",
 } as const;
 export type FeatureType = (typeof FeatureType)[keyof typeof FeatureType];
