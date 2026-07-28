@@ -144,6 +144,7 @@ export const PlanManager = forwardRef<
           plan: CreditWithCompanyContext[];
           bundles: CreditWithCompanyContext[];
           promotional: CreditWithCompanyContext[];
+          autoTopups: CreditWithCompanyContext[];
         },
         grant,
       ) => {
@@ -156,11 +157,14 @@ export const PlanManager = forwardRef<
             break;
           case BillingCreditGrantReason.Free:
             acc.promotional.push(grant);
+            break;
+          case BillingCreditGrantReason.BillingCreditAutoTopup:
+            acc.autoTopups.push(grant);
         }
 
         return acc;
       },
-      { plan: [], bundles: [], promotional: [] },
+      { plan: [], bundles: [], promotional: [], autoTopups: [] },
     );
 
     return {
@@ -172,6 +176,7 @@ export const PlanManager = forwardRef<
         plan: sortCreditGroupsByRecency(groupsByReason.plan),
         bundles: sortCreditGroupsByRecency(groupsByReason.bundles),
         promotional: sortCreditGroupsByRecency(groupsByReason.promotional),
+        autoTopups: sortCreditGroupsByRecency(groupsByReason.autoTopups),
       },
       billingSubscription: data?.company?.billingSubscription,
       canCheckout: data?.capabilities?.checkout ?? false,
@@ -202,6 +207,9 @@ export const PlanManager = forwardRef<
   );
 
   const planCredits = useTruncatedList(creditGroups.plan, {
+    limit: VISIBLE_CREDIT_COUNT,
+  });
+  const autoTopupCredits = useTruncatedList(creditGroups.autoTopups, {
     limit: VISIBLE_CREDIT_COUNT,
   });
   const bundleCredits = useTruncatedList(creditGroups.bundles, {
@@ -701,6 +709,86 @@ export const PlanManager = forwardRef<
                     {t("Edit")}
                   </Button>
                 </Flex>
+              )}
+            </Flex>
+          )}
+
+        {props.addOns.isVisible &&
+          showCredits &&
+          creditGroups.autoTopups.length > 0 && (
+            <Flex $flexDirection="column" $gap="0.5rem">
+              {props.addOns.showLabel && (
+                <Text
+                  $color={
+                    isLightBackground
+                      ? darken(settings.theme.card.background, 0.46)
+                      : lighten(settings.theme.card.background, 0.46)
+                  }
+                  $leading="none"
+                >
+                  {t("Top-ups")}
+                </Text>
+              )}
+
+              <Flex $flexDirection="column" $gap="1rem">
+                {autoTopupCredits.items.map((group, groupIndex) => {
+                  const bundle = group?.bundleId
+                    ? creditBundles.find((b) => b.id === group.bundleId)
+                    : undefined;
+
+                  return (
+                    <Flex
+                      key={groupIndex}
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $flexWrap="wrap"
+                      $gap="0.5rem"
+                    >
+                      {bundle ? (
+                        <Text display={props.addOns.fontStyle}>
+                          {group.grants.length > 1 && (
+                            <Text style={{ opacity: 0.5 }}>
+                              ({group.grants.length}){" "}
+                            </Text>
+                          )}
+                          {bundle.name} ({group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)})
+                        </Text>
+                      ) : (
+                        <Text display={props.addOns.fontStyle}>
+                          {group.grants.length > 1 && (
+                            <Text style={{ opacity: 0.5 }}>
+                              ({group.grants.length}){" "}
+                            </Text>
+                          )}
+                          {group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)}
+                        </Text>
+                      )}
+
+                      {group.total.used > 0 && (
+                        <Text
+                          style={{ opacity: 0.54 }}
+                          $size={
+                            0.875 * settings.theme.typography.text.fontSize
+                          }
+                          $color={settings.theme.typography.text.color}
+                        >
+                          {group.total.used} {t("used")}
+                        </Text>
+                      )}
+                    </Flex>
+                  );
+                })}
+              </Flex>
+
+              {autoTopupCredits.canExpand && (
+                <ExpandListToggle
+                  isExpanded={autoTopupCredits.isExpanded}
+                  onToggle={autoTopupCredits.toggle}
+                  total={autoTopupCredits.total}
+                  $marginTop="0.5rem"
+                />
               )}
             </Flex>
           )}

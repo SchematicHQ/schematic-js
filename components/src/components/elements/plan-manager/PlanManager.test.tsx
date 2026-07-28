@@ -181,3 +181,84 @@ describe("`PlanManager` credit list truncation", () => {
     expect(screen.getByText("See all (5)")).toBeInTheDocument();
   });
 });
+
+describe("`PlanManager` auto top-up section", () => {
+  const autoTopups = (
+    count: number,
+    overrides: (index: number) => Partial<CreditCompanyGrantView> = () => ({}),
+  ) =>
+    grantsFor(
+      count,
+      BillingCreditGrantReason.BillingCreditAutoTopup,
+      "Token",
+      overrides,
+    );
+
+  test("renders auto top-up grants below the plan credits section", () => {
+    state.creditGrants = [
+      ...grantsFor(1, BillingCreditGrantReason.Plan, "Token"),
+      ...autoTopups(2),
+    ];
+
+    render(<PlanManager />);
+
+    const headings = screen
+      .getAllByText(/^(Credits in plan|Top-ups)$/)
+      .map((node) => node.textContent);
+
+    expect(headings).toEqual(["Credits in plan", "Top-ups"]);
+    expect(
+      within(sectionFor("Top-ups")).getAllByText(/^\d+ credits$/),
+    ).toHaveLength(2);
+  });
+
+  test("omits the section when there are no auto top-up grants", () => {
+    state.creditGrants = grantsFor(2, BillingCreditGrantReason.Plan, "Token");
+
+    render(<PlanManager />);
+
+    expect(screen.queryByText("Top-ups")).not.toBeInTheDocument();
+  });
+
+  test("includes auto top-up grants regardless of when they were created", () => {
+    state.creditGrants = autoTopups(4, (index) => ({
+      createdAt: new Date(2020, 0, index + 1),
+    }));
+
+    render(<PlanManager />);
+
+    const section = sectionFor("Top-ups");
+    expect(within(section).getByText("See all (4)")).toBeInTheDocument();
+  });
+
+  test("truncates and expands independently of the other sections", () => {
+    state.creditGrants = [
+      ...grantsFor(5, BillingCreditGrantReason.Plan, "Token"),
+      ...autoTopups(5),
+    ];
+
+    render(<PlanManager />);
+
+    const topupSection = sectionFor("Top-ups");
+    const planSection = sectionFor("Credits in plan");
+
+    expect(within(topupSection).getAllByText(/^\d+ credits$/)).toHaveLength(3);
+
+    fireEvent.click(within(topupSection).getByText("See all (5)"));
+
+    expect(within(topupSection).getAllByText(/^\d+ credits$/)).toHaveLength(5);
+    expect(within(planSection).getAllByText(/^\d+ credits$/)).toHaveLength(3);
+  });
+
+  test("collapses repeated top-ups of the same bundle into one row", () => {
+    state.creditGrants = autoTopups(3, () => ({
+      billingCreditBundleId: "shared-bundle",
+    }));
+
+    render(<PlanManager />);
+
+    const section = sectionFor("Top-ups");
+    expect(within(section).getAllByText(/^\d+ credits$/)).toHaveLength(1);
+    expect(within(section).getByText("(3)")).toBeInTheDocument();
+  });
+});
