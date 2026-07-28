@@ -31,10 +31,10 @@
   dependencies:
     tslib "^2.3.0"
 
-"@angular/core@^21.2.0":
-  version "21.2.17"
-  resolved "https://registry.yarnpkg.com/@angular/core/-/core-21.2.17.tgz#cbed1509afd41422ef09539be0fb5cf5755e2b18"
-  integrity sha512-wYHpwIdnUnjQFOJJNqRcGx7LS3u64jT+R9L0TnMR/ViBM9dQgGYImlSikkftg2yrFCNo5aKRxhG2LLskQurVdg==
+"@angular/core@^22.0.8":
+  version "22.0.8"
+  resolved "https://registry.yarnpkg.com/@angular/core/-/core-22.0.8.tgz#583a71d7d8e589643f5e1e681bd3d38473faf271"
+  integrity sha512-HagZZVzbtXd+ZhMb++k/HOtr/UTiBROHHH7xutgYgnSnPRXX0kCca5EQ02OZ/OCWfsMP5liSJDfwiePFULKA6Q==
   dependencies:
     tslib "^2.3.0"
 
