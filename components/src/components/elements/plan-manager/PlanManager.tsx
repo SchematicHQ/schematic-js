@@ -17,19 +17,18 @@ import type {
   ElementProps,
 } from "../../../types";
 import {
+  aggregateActiveGrantsByBundle,
   darken,
   formatCurrency,
   getAutoTopupAmount,
   getAutoTopupThresholdCredits,
   getFeatureName,
   getSubscriptionPeriod,
-  groupCreditGrants,
   isAutoTopupEnabled,
   isAutoTopupOff,
   isSelfServiceAutoTopupAvailable,
   lighten,
   shortenPeriod,
-  sortCreditGroupsByRecency,
   toPrettyDate,
 } from "../../../utils";
 import { Element, Notice } from "../../layout";
@@ -136,9 +135,9 @@ export const PlanManager = forwardRef<
     showZeroPriceAsFree,
     trialPaymentMethodRequired,
   } = useMemo(() => {
-    const groupsByReason = groupCreditGrants(data?.creditGrants || [], {
-      groupBy: "bundle",
-    }).reduce(
+    const groupsByReason = aggregateActiveGrantsByBundle(
+      data?.creditGrants || [],
+    ).reduce(
       (
         acc: {
           plan: CreditWithCompanyContext[];
@@ -171,13 +170,7 @@ export const PlanManager = forwardRef<
       currentPlan: data?.company?.plan,
       currentAddOns: data?.company?.addOns || [],
       creditBundles: data?.creditBundles || [],
-      // Newest-first, so a truncated section shows the most recent entries.
-      creditGroups: {
-        plan: sortCreditGroupsByRecency(groupsByReason.plan),
-        bundles: sortCreditGroupsByRecency(groupsByReason.bundles),
-        promotional: sortCreditGroupsByRecency(groupsByReason.promotional),
-        autoTopups: sortCreditGroupsByRecency(groupsByReason.autoTopups),
-      },
+      creditGroups: groupsByReason,
       billingSubscription: data?.company?.billingSubscription,
       canCheckout: data?.capabilities?.checkout ?? false,
       postTrialPlan: data?.postTrialPlan,

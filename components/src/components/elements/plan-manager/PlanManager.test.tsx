@@ -46,8 +46,8 @@ vi.mock("../../../hooks", async (importOriginal) => {
 });
 
 /**
- * `groupCreditGrants` keys plan/promotional grants by grant id and purchased
- * grants by bundle id, so distinct ids here yield one row per grant.
+ * `aggregateActiveGrantsByBundle` keys on bundle id, falling back to grant id,
+ * so distinct ids here yield one row per grant.
  */
 const createGrant = (
   index: number,

@@ -53,13 +53,22 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
   return Object.values(map);
 }
 
-interface GroupCreditGrantOptions {
-  groupBy?: "credit" | "bundle";
+/** Comparator ordering anything with a `createdAt` newest-first. */
+function byRecency(a: { createdAt: Date }, b: { createdAt: Date }) {
+  return +b.createdAt - +a.createdAt;
 }
 
-export function groupCreditGrants(
+/**
+ * Rolls active grants up into per-key totals. Entries come back newest-first,
+ * as do the `grants` within each entry, so a truncated list shows the most
+ * recent without the caller sorting anything.
+ *
+ * "Active" is load-bearing: expired and zeroed-out grants are dropped, so a
+ * caller counting the result is counting live grants only.
+ */
+function aggregateActiveGrants(
   creditGrants: CreditCompanyGrantView[],
-  options?: GroupCreditGrantOptions,
+  getKey: (grant: CreditCompanyGrantView) => string,
 ) {
   const today = new Date();
   const map = creditGrants.reduce(
@@ -73,12 +82,7 @@ export function groupCreditGrants(
       const isZeroedOut = !!grant.zeroedOutDate;
 
       if (!isExpired && !isZeroedOut) {
-        const key =
-          options?.groupBy === "bundle"
-            ? grant.billingCreditBundleId || grant.id
-            : options?.groupBy === "credit"
-              ? grant.billingCreditId
-              : grant.id;
+        const key = getKey(grant);
         const current = acc[key];
 
         acc[key] = {
@@ -113,29 +117,42 @@ export function groupCreditGrants(
     {},
   );
 
-  return Object.values(map);
+  // Same ordering rule at two levels: grants within an entry, then entries by
+  // their most recent grant. Both arrays were built fresh above and are aliased
+  // nowhere, so they can be sorted in place.
+  const entries = Object.values(map);
+
+  for (const entry of entries) {
+    entry.grants.sort(byRecency);
+  }
+
+  // Every entry holds at least one grant, now its most recent.
+  return entries.sort((a, b) => byRecency(a.grants[0], b.grants[0]));
 }
 
-interface DatedGrant {
-  createdAt: Date;
+/**
+ * One entry per credit — the company's live balance for each credit, summed
+ * across every grant that supplied it.
+ */
+export function aggregateActiveGrantsByCredit(
+  creditGrants: CreditCompanyGrantView[],
+) {
+  return aggregateActiveGrants(creditGrants, (grant) => grant.billingCreditId);
 }
 
-export function getLatestGrantTime(grants: DatedGrant[]): number {
-  return grants.reduce(
-    (latest, grant) => Math.max(latest, +grant.createdAt),
-    0,
-  );
-}
-
-export function sortGrantsByRecency<T extends DatedGrant>(grants: T[]): T[] {
-  return [...grants].sort((a, b) => +b.createdAt - +a.createdAt);
-}
-
-export function sortCreditGroupsByRecency<T extends { grants: DatedGrant[] }>(
-  groups: T[],
-): T[] {
-  return [...groups].sort(
-    (a, b) => getLatestGrantTime(b.grants) - getLatestGrantTime(a.grants),
+/**
+ * One entry per credit bundle, falling back to one entry per grant for grants
+ * that arrived outside a bundle (plan allocations, promotional grants).
+ *
+ * Note that entries are keyed by bundle but still carry `id: billingCreditId`,
+ * so two bundles of the same credit share an `id` — don't use it as a React key.
+ */
+export function aggregateActiveGrantsByBundle(
+  creditGrants: CreditCompanyGrantView[],
+) {
+  return aggregateActiveGrants(
+    creditGrants,
+    (grant) => grant.billingCreditBundleId || grant.id,
   );
 }
 

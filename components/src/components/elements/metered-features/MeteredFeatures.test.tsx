@@ -35,8 +35,8 @@ vi.mock("../../../hooks", async (importOriginal) => {
   };
 });
 
-// All grants share a `billingCreditId`, so `groupCreditGrants({groupBy:
-// "credit"})` collapses them into a single ledger.
+// All grants share a `billingCreditId`, so `aggregateActiveGrantsByCredit`
+// collapses them into a single ledger.
 const createGrant = (index: number): CreditCompanyGrantView =>
   ({
     id: `grant-${index}`,

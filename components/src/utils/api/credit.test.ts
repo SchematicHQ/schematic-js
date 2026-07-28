@@ -5,15 +5,14 @@ import {
   type CreditCompanyGrantView,
 } from "../../api/checkoutexternal";
 import {
+  aggregateActiveGrantsByBundle,
+  aggregateActiveGrantsByCredit,
   deriveCreditBundles,
   filterCreditBundles,
   getBundleOffCreditIds,
-  getLatestGrantTime,
   isAutoTopupOff,
   isBundlePurchaseOff,
   isSelfServiceAutoTopupAvailable,
-  sortCreditGroupsByRecency,
-  sortGrantsByRecency,
 } from "./credit";
 
 describe("isAutoTopupOff", () => {
@@ -187,56 +186,107 @@ describe("deriveCreditBundles", () => {
   });
 });
 
-describe("grant recency ordering", () => {
-  const grant = (id: string, createdAt: Date) =>
-    ({ id, createdAt }) as unknown as CreditCompanyGrantView;
+describe("aggregating active grants", () => {
+  const grant = (id: string, overrides: Partial<CreditCompanyGrantView> = {}) =>
+    ({
+      id,
+      billingCreditId: "tokens",
+      billingCreditBundleId: null,
+      creditName: "Tokens",
+      quantity: 100,
+      quantityRemaining: 60,
+      quantityUsed: 40,
+      createdAt: new Date(2026, 0, 1),
+      expiresAt: null,
+      zeroedOutDate: null,
+      ...overrides,
+    }) as unknown as CreditCompanyGrantView;
 
-  const oldest = grant("oldest", new Date(2026, 0, 1));
-  const middle = grant("middle", new Date(2026, 3, 1));
-  const newest = grant("newest", new Date(2026, 6, 1));
-
-  it("sorts grants newest-first without mutating the input", () => {
-    const grants = [middle, oldest, newest];
-
-    expect(sortGrantsByRecency(grants).map((g) => g.id)).toEqual([
-      "newest",
-      "middle",
-      "oldest",
+  it("returns each entry's grants newest-first", () => {
+    const result = aggregateActiveGrantsByCredit([
+      grant("b", { createdAt: new Date(2026, 3, 1) }),
+      grant("c", { createdAt: new Date(2026, 6, 1) }),
+      grant("a", { createdAt: new Date(2026, 0, 1) }),
     ]);
-    expect(grants.map((g) => g.id)).toEqual(["middle", "oldest", "newest"]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].grants.map((g) => g.id)).toEqual(["c", "b", "a"]);
   });
 
-  it("reports the latest timestamp in a group, or 0 when empty", () => {
-    expect(getLatestGrantTime([oldest, newest, middle])).toBe(
-      +newest.createdAt,
-    );
-    expect(getLatestGrantTime([])).toBe(0);
+  it("returns entries newest-first by their most recent grant", () => {
+    const result = aggregateActiveGrantsByBundle([
+      grant("old-a", {
+        billingCreditBundleId: "stale",
+        createdAt: new Date(2026, 0, 1),
+      }),
+      grant("new", {
+        billingCreditBundleId: "fresh",
+        createdAt: new Date(2026, 6, 1),
+      }),
+      grant("mid", {
+        billingCreditBundleId: "middling",
+        createdAt: new Date(2026, 3, 1),
+      }),
+      // A second, newer grant promotes the otherwise-stale bundle to the front.
+      grant("new-a", {
+        billingCreditBundleId: "stale",
+        createdAt: new Date(2026, 9, 1),
+      }),
+    ]);
+
+    expect(result.map((entry) => entry.bundleId)).toEqual([
+      "stale",
+      "fresh",
+      "middling",
+    ]);
   });
 
-  it("sorts groups by their most recent grant", () => {
-    const groups = [
-      { id: "a", grants: [oldest] },
-      { id: "b", grants: [oldest, newest] },
-      { id: "c", grants: [middle] },
+  it("does not mutate the grants it is given", () => {
+    const grants = [
+      grant("b", { createdAt: new Date(2026, 3, 1) }),
+      grant("a", { createdAt: new Date(2026, 6, 1) }),
     ];
 
-    expect(sortCreditGroupsByRecency(groups).map((g) => g.id)).toEqual([
-      "b",
-      "c",
-      "a",
-    ]);
-    expect(groups.map((g) => g.id)).toEqual(["a", "b", "c"]);
+    aggregateActiveGrantsByCredit(grants);
+
+    expect(grants.map((g) => g.id)).toEqual(["b", "a"]);
   });
 
-  it("puts a group with no grants last", () => {
-    const groups = [
-      { id: "empty", grants: [] },
-      { id: "dated", grants: [oldest] },
-    ];
-
-    expect(sortCreditGroupsByRecency(groups).map((g) => g.id)).toEqual([
-      "dated",
-      "empty",
+  it("drops expired and zeroed-out grants and sums the rest", () => {
+    const result = aggregateActiveGrantsByCredit([
+      grant("live"),
+      grant("expired", { expiresAt: new Date(2020, 0, 1) }),
+      grant("zeroed", { zeroedOutDate: new Date(2026, 0, 2) }),
+      grant("also-live"),
     ]);
+
+    expect(result[0].grants.map((g) => g.id).sort()).toEqual([
+      "also-live",
+      "live",
+    ]);
+    expect(result[0].total).toEqual({ value: 200, remaining: 120, used: 80 });
+  });
+
+  it("collapses one entry per credit regardless of bundle", () => {
+    const result = aggregateActiveGrantsByCredit([
+      grant("a", { billingCreditBundleId: "bundle-1" }),
+      grant("b", { billingCreditBundleId: "bundle-2" }),
+      grant("c", { billingCreditId: "seats", billingCreditBundleId: null }),
+    ]);
+
+    expect(result).toHaveLength(2);
+  });
+
+  it("keys by bundle, falling back to grant id when there is none", () => {
+    const result = aggregateActiveGrantsByBundle([
+      grant("a", { billingCreditBundleId: "bundle-1" }),
+      grant("b", { billingCreditBundleId: "bundle-1" }),
+      grant("c", { billingCreditBundleId: null }),
+    ]);
+
+    expect(result).toHaveLength(2);
+    const bundled = result.find((entry) => entry.bundleId === "bundle-1");
+    expect(bundled?.grants.map((g) => g.id).sort()).toEqual(["a", "b"]);
+    expect(bundled?.total.value).toBe(200);
   });
 });

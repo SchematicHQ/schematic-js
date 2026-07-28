@@ -17,6 +17,7 @@ import {
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
+  aggregateActiveGrantsByCredit,
   entitlementHasHardLimit,
   formatConsumptionRate,
   formatCurrency,
@@ -25,9 +26,7 @@ import {
   getFeatureName,
   getSubscriptionPeriod,
   getUsageDetails,
-  groupCreditGrants,
   modifyDate,
-  sortGrantsByRecency,
   toPrettyDate,
   type UsageDetails,
 } from "../../../utils";
@@ -234,10 +233,7 @@ export const MeteredFeatures = forwardRef<
   }, [props.visibleFeatures, data?.featureUsage?.features]);
 
   const creditGroups = useMemo(
-    () =>
-      groupCreditGrants(data?.creditGrants || [], { groupBy: "credit" }).map(
-        (credit) => ({ ...credit, grants: sortGrantsByRecency(credit.grants) }),
-      ),
+    () => aggregateActiveGrantsByCredit(data?.creditGrants || []),
     [data?.creditGrants],
   );
 
