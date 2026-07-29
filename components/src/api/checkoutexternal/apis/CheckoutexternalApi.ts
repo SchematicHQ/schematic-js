@@ -81,8 +81,13 @@ export interface GetSetupIntentRequest {
   componentId: string;
 }
 
+export interface HydrateRequest {
+  catalogId?: string;
+}
+
 export interface HydrateComponentRequest {
   componentId: string;
+  catalogId?: string;
 }
 
 export interface HydrateUpcomingInvoiceRequest {
@@ -404,9 +409,14 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
    * Hydrate
    */
   async hydrateRaw(
+    requestParameters: HydrateRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<HydrateResponse>> {
     const queryParameters: any = {};
+
+    if (requestParameters["catalogId"] != null) {
+      queryParameters["catalog_id"] = requestParameters["catalogId"];
+    }
 
     const headerParameters: runtime.HTTPHeaders = {};
 
@@ -435,9 +445,10 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
    * Hydrate
    */
   async hydrate(
+    requestParameters: HydrateRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<HydrateResponse> {
-    const response = await this.hydrateRaw(initOverrides);
+    const response = await this.hydrateRaw(requestParameters, initOverrides);
     return await response.value();
   }
 
@@ -456,6 +467,10 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     }
 
     const queryParameters: any = {};
+
+    if (requestParameters["catalogId"] != null) {
+      queryParameters["catalog_id"] = requestParameters["catalogId"];
+    }
 
     const headerParameters: runtime.HTTPHeaders = {};
 
