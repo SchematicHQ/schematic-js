@@ -22,6 +22,7 @@ import type {
   DeletePaymentMethodResponse,
   FetchCustomerBalanceResponse,
   GetSetupIntentResponse,
+  GetUsageByUserResponse,
   HydrateComponentResponse,
   HydrateResponse,
   HydrateUpcomingInvoiceResponse,
@@ -49,6 +50,8 @@ import {
   FetchCustomerBalanceResponseToJSON,
   GetSetupIntentResponseFromJSON,
   GetSetupIntentResponseToJSON,
+  GetUsageByUserResponseFromJSON,
+  GetUsageByUserResponseToJSON,
   HydrateComponentResponseFromJSON,
   HydrateComponentResponseToJSON,
   HydrateResponseFromJSON,
@@ -397,6 +400,47 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
       requestParameters,
       initOverrides,
     );
+    return await response.value();
+  }
+
+  /**
+   * Get usage by user
+   */
+  async getUsageByUserRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetUsageByUserResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/usage-by-user`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetUsageByUserResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get usage by user
+   */
+  async getUsageByUser(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetUsageByUserResponse> {
+    const response = await this.getUsageByUserRaw(initOverrides);
     return await response.value();
   }
 

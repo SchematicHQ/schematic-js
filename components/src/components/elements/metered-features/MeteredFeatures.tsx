@@ -1,4 +1,11 @@
-import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -7,6 +14,7 @@ import {
   EntitlementValueType,
   FeatureType,
   type FeatureUsageResponseData,
+  type UserUsageByCompanyResponseData,
 } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { type FontStyle } from "../../../context";
@@ -45,6 +53,7 @@ import {
 
 import { Meter } from "./Meter";
 import { PriceDetails } from "./PriceDetails";
+import { UsageByUser, type UsageByUserEntry } from "./UsageByUser";
 import * as styles from "./styles";
 
 interface LimitProps {
@@ -202,8 +211,13 @@ export const MeteredFeatures = forwardRef<
 
   const { t } = useTranslation();
 
-  const { data, settings, setCheckoutState, warningThresholdConfig } =
-    useEmbed();
+  const {
+    data,
+    settings,
+    setCheckoutState,
+    warningThresholdConfig,
+    getUsageByUser,
+  } = useEmbed();
   const showWarningThresholdAsLimit =
     warningThresholdConfig?.showAsLimit ?? false;
 
@@ -236,6 +250,54 @@ export const MeteredFeatures = forwardRef<
     () => groupCreditGrants(data?.creditGrants || [], { groupBy: "credit" }),
     [data?.creditGrants],
   );
+
+  const [usageByUser, setUsageByUser] =
+    useState<UserUsageByCompanyResponseData>();
+  useEffect(() => {
+    let active = true;
+    getUsageByUser()?.then((response) => {
+      if (active && response) {
+        setUsageByUser(response.data);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [getUsageByUser]);
+
+  const userUsageByFeatureId = useMemo(() => {
+    const map = new Map<string, UsageByUserEntry[]>();
+    (usageByUser?.rows ?? []).forEach((row) => {
+      const featureId = row.feature?.id;
+      if (!featureId) {
+        return;
+      }
+      const entries = map.get(featureId) ?? [];
+      entries.push({
+        id: row.userId,
+        label: row.user?.name ?? "",
+        amount: row.value,
+        isUnattributed: !row.userId,
+      });
+      map.set(featureId, entries);
+    });
+    return map;
+  }, [usageByUser?.rows]);
+
+  const userUsageByCreditId = useMemo(() => {
+    const map = new Map<string, UsageByUserEntry[]>();
+    (usageByUser?.credits ?? []).forEach((credit) => {
+      const entries = map.get(credit.billingCreditId) ?? [];
+      entries.push({
+        id: credit.userId,
+        label: credit.user?.name ?? "",
+        amount: credit.creditsUsed,
+        isUnattributed: !credit.userId,
+      });
+      map.set(credit.billingCreditId, entries);
+    });
+    return map;
+  }, [usageByUser?.credits]);
 
   const bundleOffCreditIds = useMemo(
     () => getBundleOffCreditIds(data?.company?.plan?.includedCreditGrants),
@@ -396,6 +458,22 @@ export const MeteredFeatures = forwardRef<
                 entitlement={entitlement}
                 usageDetails={usageDetails}
                 period={period}
+              />
+            )}
+
+            {feature.featureType === FeatureType.Event && (
+              <UsageByUser
+                entries={userUsageByFeatureId.get(feature.id ?? "") ?? []}
+                // A credit-burndown feature's usage is denominated in the credit
+                // it consumes (e.g. "tokens"), not the feature name — mirror how
+                // the rest of the element labels it (see `Limit`).
+                unit={getFeatureName(
+                  priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
+                    entitlement.planEntitlement?.valueCredit
+                    ? entitlement.planEntitlement.valueCredit
+                    : feature,
+                  2,
+                )}
               />
             )}
           </Element>,
@@ -633,6 +711,11 @@ export const MeteredFeatures = forwardRef<
                     : t("See balance details")}
                 </Text>
               </Flex>
+
+              <UsageByUser
+                entries={userUsageByCreditId.get(credit.id) ?? []}
+                unit={getFeatureName(credit, 2)}
+              />
             </Element>
           );
         })}

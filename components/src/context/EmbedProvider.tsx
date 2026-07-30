@@ -506,6 +506,20 @@ export const EmbedProvider = ({
     [listInvoices],
   );
 
+  const getUsageByUser = useCallback(async () => {
+    return checkoutApi?.getUsageByUser();
+  }, [checkoutApi]);
+
+  const debouncedGetUsageByUser = useMemo(
+    () =>
+      debounce(
+        getUsageByUser,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [getUsageByUser],
+  );
+
   // components
   const setError = useCallback(
     (error: Error) => {
@@ -688,6 +702,7 @@ export const EmbedProvider = ({
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
+        getUsageByUser: debouncedGetUsageByUser,
         finishCheckout,
         setError,
         setAccessToken,

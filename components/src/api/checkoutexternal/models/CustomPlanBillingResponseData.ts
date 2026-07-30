@@ -90,6 +90,12 @@ export interface CustomPlanBillingResponseData {
   publishedAt?: Date | null;
   /**
    *
+   * @type {boolean}
+   * @memberof CustomPlanBillingResponseData
+   */
+  sendInvoice: boolean;
+  /**
+   *
    * @type {CustomPlanBillingStatus}
    * @memberof CustomPlanBillingResponseData
    */
@@ -125,6 +131,8 @@ export function instanceOfCustomPlanBillingResponseData(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
+  if (!("sendInvoice" in value) || value["sendInvoice"] === undefined)
+    return false;
   if (!("status" in value) || value["status"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
@@ -159,6 +167,7 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
     planId: json["plan_id"],
     publishedAt:
       json["published_at"] == null ? undefined : new Date(json["published_at"]),
+    sendInvoice: json["send_invoice"],
     status: CustomPlanBillingStatusFromJSON(json["status"]),
     stripeInvoiceUrl:
       json["stripe_invoice_url"] == null
@@ -200,6 +209,7 @@ export function CustomPlanBillingResponseDataToJSONTyped(
       value["publishedAt"] == null
         ? undefined
         : (value["publishedAt"] as any).toISOString(),
+    send_invoice: value["sendInvoice"],
     status: CustomPlanBillingStatusToJSON(value["status"]),
     stripe_invoice_url: value["stripeInvoiceUrl"],
     updated_at: value["updatedAt"].toISOString(),

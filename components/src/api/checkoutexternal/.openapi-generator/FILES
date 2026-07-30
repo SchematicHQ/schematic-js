@@ -110,6 +110,7 @@ models/FlagResponseData.ts
 models/FlagType.ts
 models/GenericPreviewObject.ts
 models/GetSetupIntentResponse.ts
+models/GetUsageByUserResponse.ts
 models/HydrateComponentResponse.ts
 models/HydrateResponse.ts
 models/HydrateUpcomingInvoiceResponse.ts
@@ -163,6 +164,10 @@ models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
 models/UpdatePaymentMethodResponse.ts
 models/UsageBasedEntitlementResponseData.ts
+models/UserCreditUsageResponseData.ts
+models/UserFeatureUsageResponseData.ts
+models/UserResponseData.ts
+models/UserUsageByCompanyResponseData.ts
 models/WarningTier.ts
 models/WarningTierResponseData.ts
 models/index.ts
