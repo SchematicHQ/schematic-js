@@ -681,7 +681,7 @@ describe("`PricingTable`", () => {
 
       const plansHeaderText = within(wrapper).queryByText("Plans");
       expect(plansHeaderText).toHaveStyle("font-family: Manrope, sans-serif");
-      expect(plansHeaderText).toHaveStyle(`font-size: ${37 / 16}rem`);
+      expect(plansHeaderText).toHaveStyle("font-size: 37px");
       expect(plansHeaderText).toHaveStyle("font-weight: 800");
       expect(plansHeaderText).toHaveStyle("color: #000000");
 
@@ -689,7 +689,7 @@ describe("`PricingTable`", () => {
 
       const planNameText = within(plans[0]).queryByText("Basic");
       expect(planNameText).toHaveStyle("font-family: Manrope, sans-serif");
-      expect(planNameText).toHaveStyle(`font-size: ${37 / 16}rem`);
+      expect(planNameText).toHaveStyle("font-size: 37px");
       expect(planNameText).toHaveStyle("font-weight: 800");
       expect(planNameText).toHaveStyle("color: #000000");
 
@@ -697,7 +697,7 @@ describe("`PricingTable`", () => {
       expect(planDescriptionText).toHaveStyle(
         "font-family: Public Sans, sans-serif",
       );
-      expect(planDescriptionText).toHaveStyle(`font-size: ${14 / 16}rem`);
+      expect(planDescriptionText).toHaveStyle("font-size: 14px");
       expect(planDescriptionText).toHaveStyle("font-weight: 400");
       expect(planDescriptionText).toHaveStyle("color: #8A8A8A");
     });
