@@ -20,6 +20,13 @@ import {
   ComponentHydrateResponseDataToJSON,
   ComponentHydrateResponseDataToJSONTyped,
 } from "./ComponentHydrateResponseData";
+import type { HydrateParams } from "./HydrateParams";
+import {
+  HydrateParamsFromJSON,
+  HydrateParamsFromJSONTyped,
+  HydrateParamsToJSON,
+  HydrateParamsToJSONTyped,
+} from "./HydrateParams";
 
 /**
  *
@@ -34,11 +41,11 @@ export interface HydrateResponse {
    */
   data: ComponentHydrateResponseData;
   /**
-   * Input parameters
-   * @type {object}
+   *
+   * @type {HydrateParams}
    * @memberof HydrateResponse
    */
-  params: object;
+  params: HydrateParams;
 }
 
 /**
@@ -65,7 +72,7 @@ export function HydrateResponseFromJSONTyped(
   }
   return {
     data: ComponentHydrateResponseDataFromJSON(json["data"]),
-    params: json["params"],
+    params: HydrateParamsFromJSON(json["params"]),
   };
 }
 
@@ -83,6 +90,6 @@ export function HydrateResponseToJSONTyped(
 
   return {
     data: ComponentHydrateResponseDataToJSON(value["data"]),
-    params: value["params"],
+    params: HydrateParamsToJSON(value["params"]),
   };
 }

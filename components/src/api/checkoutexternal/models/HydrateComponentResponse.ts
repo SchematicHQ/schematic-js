@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { HydrateComponentParams } from "./HydrateComponentParams";
+import {
+  HydrateComponentParamsFromJSON,
+  HydrateComponentParamsFromJSONTyped,
+  HydrateComponentParamsToJSON,
+  HydrateComponentParamsToJSONTyped,
+} from "./HydrateComponentParams";
 import type { ComponentHydrateResponseData } from "./ComponentHydrateResponseData";
 import {
   ComponentHydrateResponseDataFromJSON,
@@ -34,11 +41,11 @@ export interface HydrateComponentResponse {
    */
   data: ComponentHydrateResponseData;
   /**
-   * Input parameters
-   * @type {object}
+   *
+   * @type {HydrateComponentParams}
    * @memberof HydrateComponentResponse
    */
-  params: object;
+  params: HydrateComponentParams;
 }
 
 /**
@@ -67,7 +74,7 @@ export function HydrateComponentResponseFromJSONTyped(
   }
   return {
     data: ComponentHydrateResponseDataFromJSON(json["data"]),
-    params: json["params"],
+    params: HydrateComponentParamsFromJSON(json["params"]),
   };
 }
 
@@ -87,6 +94,6 @@ export function HydrateComponentResponseToJSONTyped(
 
   return {
     data: ComponentHydrateResponseDataToJSON(value["data"]),
-    params: value["params"],
+    params: HydrateComponentParamsToJSON(value["params"]),
   };
 }
