@@ -79,6 +79,7 @@ export * from "./GetWhoAmIResponse";
 export * from "./MetricPeriod";
 export * from "./MetricPeriodMonthReset";
 export * from "./PlanCatalogMembershipResponseData";
+export * from "./PlanCreditGrantScaling";
 export * from "./PlanCreditGrantView";
 export * from "./PlanCurrencyPricesResponseData";
 export * from "./PlanDetailResponseData";

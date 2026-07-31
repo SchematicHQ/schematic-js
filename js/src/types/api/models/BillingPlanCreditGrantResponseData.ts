@@ -41,6 +41,13 @@ import {
   BillingPlanCreditGrantResetStartToJSON,
   BillingPlanCreditGrantResetStartToJSONTyped,
 } from "./BillingPlanCreditGrantResetStart";
+import type { PlanCreditGrantScaling } from "./PlanCreditGrantScaling";
+import {
+  PlanCreditGrantScalingFromJSON,
+  PlanCreditGrantScalingFromJSONTyped,
+  PlanCreditGrantScalingToJSON,
+  PlanCreditGrantScalingToJSONTyped,
+} from "./PlanCreditGrantScaling";
 import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
 import {
   BillingPlanCreditGrantResetTypeFromJSON,
@@ -214,6 +221,12 @@ export interface BillingPlanCreditGrantResponseData {
    */
   id: string;
   /**
+   * The license whose quantity scales this grant. Set only when scaling is per_license.
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  licenseId?: string | null;
+  /**
    *
    * @type {PreviewObjectResponseData}
    * @memberof BillingPlanCreditGrantResponseData
@@ -263,6 +276,12 @@ export interface BillingPlanCreditGrantResponseData {
    */
   rolloverPercentage: number;
   /**
+   * Whether the grant is a fixed amount per company, or issued once per license the company holds.
+   * @type {PlanCreditGrantScaling}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  scaling: PlanCreditGrantScaling;
+  /**
    *
    * @type {Date}
    * @memberof BillingPlanCreditGrantResponseData
@@ -304,6 +323,7 @@ export function instanceOfBillingPlanCreditGrantResponseData(
     value["rolloverPercentage"] === undefined
   )
     return false;
+  if (!("scaling" in value) || value["scaling"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -381,6 +401,7 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
+    licenseId: json["license_id"] == null ? undefined : json["license_id"],
     plan:
       json["plan"] == null
         ? undefined
@@ -402,6 +423,7 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
         ? undefined
         : BillingPlanCreditGrantResetTypeFromJSON(json["reset_type"]),
     rolloverPercentage: json["rollover_percentage"],
+    scaling: PlanCreditGrantScalingFromJSON(json["scaling"]),
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -449,6 +471,7 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
+    license_id: value["licenseId"],
     plan: PreviewObjectResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
     plan_name: value["planName"],
@@ -459,6 +482,7 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     reset_start: BillingPlanCreditGrantResetStartToJSON(value["resetStart"]),
     reset_type: BillingPlanCreditGrantResetTypeToJSON(value["resetType"]),
     rollover_percentage: value["rolloverPercentage"],
+    scaling: PlanCreditGrantScalingToJSON(value["scaling"]),
     updated_at: value["updatedAt"].toISOString(),
   };
 }
