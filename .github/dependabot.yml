@@ -18,10 +18,19 @@ updates:
       - "npm"
       - "Dependabot"
     groups:
+      # @angular/core peer-depends on an exact @angular/compiler version, and
+      # ng-packagr peer-depends on @angular/compiler-cli. Bumping any of them
+      # alone builds green against a skewed compiler.
+      angular:
+        patterns:
+          - "@angular/*"
+          - "ng-packagr"
       react:
         patterns:
           - "react"
           - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
     ignore:
       - dependency-name: "react-i18next"
         update-types:
