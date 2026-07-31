@@ -2375,6 +2375,7 @@
       "collect_address": false,
       "collect_email": false,
       "collect_phone": false,
+      "proration_behavior": "create_prorations",
       "tax_collection_enabled": false
     },
     "company": {
