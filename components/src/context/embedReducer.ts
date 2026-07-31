@@ -1,6 +1,7 @@
 import merge from "lodash/merge";
 
 import {
+  ProrationBehavior,
   type BillingSubscriptionResponseData,
   type DeleteResponse,
   type PaymentMethodResponseData,
@@ -81,6 +82,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
       collectAddress: false,
       collectEmail: false,
       collectPhone: false,
+      prorationBehavior: ProrationBehavior.CreateProrations,
       taxCollectionEnabled: false,
     },
     creditBundles: [],

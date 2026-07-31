@@ -34,6 +34,13 @@ import {
   BillingPlanCreditGrantResetStartToJSON,
   BillingPlanCreditGrantResetStartToJSONTyped,
 } from "./BillingPlanCreditGrantResetStart";
+import type { PlanCreditGrantScaling } from "./PlanCreditGrantScaling";
+import {
+  PlanCreditGrantScalingFromJSON,
+  PlanCreditGrantScalingFromJSONTyped,
+  PlanCreditGrantScalingToJSON,
+  PlanCreditGrantScalingToJSONTyped,
+} from "./PlanCreditGrantScaling";
 import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
 import {
   BillingPlanCreditGrantResetTypeFromJSON,
@@ -213,6 +220,12 @@ export interface PlanCreditGrantView {
   id: string;
   /**
    *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
+  licenseId?: string | null;
+  /**
+   *
    * @type {GenericPreviewObject}
    * @memberof PlanCreditGrantView
    */
@@ -260,6 +273,12 @@ export interface PlanCreditGrantView {
    * @memberof PlanCreditGrantView
    */
   rolloverPercentage: number;
+  /**
+   *
+   * @type {PlanCreditGrantScaling}
+   * @memberof PlanCreditGrantView
+   */
+  scaling: PlanCreditGrantScaling;
   /**
    * Deprecated field, will be removed in the future. Use Credit.SingularName instead.
    * @type {string}
@@ -315,6 +334,7 @@ export function instanceOfPlanCreditGrantView(
     value["rolloverPercentage"] === undefined
   )
     return false;
+  if (!("scaling" in value) || value["scaling"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -394,6 +414,7 @@ export function PlanCreditGrantViewFromJSONTyped(
     expiryUnitCount:
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
+    licenseId: json["license_id"] == null ? undefined : json["license_id"],
     plan:
       json["plan"] == null
         ? undefined
@@ -412,6 +433,7 @@ export function PlanCreditGrantViewFromJSONTyped(
         : BillingPlanCreditGrantResetStartFromJSON(json["reset_start"]),
     resetType: BillingPlanCreditGrantResetTypeFromJSON(json["reset_type"]),
     rolloverPercentage: json["rollover_percentage"],
+    scaling: PlanCreditGrantScalingFromJSON(json["scaling"]),
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     updatedAt: new Date(json["updated_at"]),
@@ -465,6 +487,7 @@ export function PlanCreditGrantViewToJSONTyped(
     expiry_unit: BillingCreditExpiryUnitToJSON(value["expiryUnit"]),
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
+    license_id: value["licenseId"],
     plan: GenericPreviewObjectToJSON(value["plan"]),
     plan_id: value["planId"],
     plan_version_id: value["planVersionId"],
@@ -475,6 +498,7 @@ export function PlanCreditGrantViewToJSONTyped(
     reset_start: BillingPlanCreditGrantResetStartToJSON(value["resetStart"]),
     reset_type: BillingPlanCreditGrantResetTypeToJSON(value["resetType"]),
     rollover_percentage: value["rolloverPercentage"],
+    scaling: PlanCreditGrantScalingToJSON(value["scaling"]),
     singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
   };
