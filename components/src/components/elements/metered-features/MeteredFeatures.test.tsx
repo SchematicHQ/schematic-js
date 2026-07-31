@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   BillingCreditGrantReason,
+  type BillingCreditBundleView,
   type CreditCompanyGrantView,
 } from "../../../api/checkoutexternal";
 import { defaultSettings } from "../../../context";
@@ -11,8 +12,14 @@ import { toPrettyDate } from "../../../utils";
 
 import { MeteredFeatures } from "./MeteredFeatures";
 
+const CREDIT_ID = "token-credit";
+const PLAN_ID = "plan-1";
+
 const state = vi.hoisted(() => ({
   creditGrants: [] as unknown[],
+  creditBundles: [] as unknown[],
+  planId: undefined as string | undefined,
+  canCheckout: false,
 }));
 
 vi.mock("../../../hooks", async (importOriginal) => {
@@ -21,10 +28,11 @@ vi.mock("../../../hooks", async (importOriginal) => {
     ...actual,
     useEmbed: () => ({
       data: {
-        company: { plan: { includedCreditGrants: [] } },
+        company: { plan: { id: state.planId, includedCreditGrants: [] } },
         featureUsage: { features: [] },
         creditGrants: state.creditGrants,
-        capabilities: { checkout: false },
+        creditBundles: state.creditBundles,
+        capabilities: { checkout: state.canCheckout },
         displaySettings: { showCredits: true },
       },
       settings: defaultSettings,
@@ -40,7 +48,7 @@ vi.mock("../../../hooks", async (importOriginal) => {
 const createGrant = (index: number): CreditCompanyGrantView =>
   ({
     id: `grant-${index}`,
-    billingCreditId: "token-credit",
+    billingCreditId: CREDIT_ID,
     billingCreditBundleId: `bundle-${index}`,
     creditName: "Tokens",
     creditDescription: "",
@@ -59,10 +67,25 @@ const createGrant = (index: number): CreditCompanyGrantView =>
 const grantsFor = (count: number) =>
   Array.from({ length: count }, (_, index) => createGrant(index));
 
+const createBundle = (
+  creditId: string,
+  compatiblePlanIds: string[] = [],
+): BillingCreditBundleView =>
+  ({
+    id: `bundle-${creditId}`,
+    creditId,
+    compatiblePlanIds,
+    name: "1,000 tokens",
+    quantity: 1000,
+  }) as unknown as BillingCreditBundleView;
+
 const grantRows = () => screen.queryAllByText(/bundle purchased/);
 
 beforeEach(() => {
   state.creditGrants = [];
+  state.creditBundles = [];
+  state.planId = undefined;
+  state.canCheckout = false;
 });
 
 describe("`MeteredFeatures` grant ledger truncation", () => {
@@ -144,5 +167,60 @@ describe("`MeteredFeatures` grant ledger truncation", () => {
 
     expect(grantRows()).toHaveLength(3);
     expect(screen.queryByText(/See all/)).not.toBeInTheDocument();
+  });
+});
+
+describe("`MeteredFeatures` credit `Buy More`", () => {
+  beforeEach(() => {
+    state.creditGrants = grantsFor(1);
+    state.planId = PLAN_ID;
+    state.canCheckout = true;
+  });
+
+  test("shows `Buy More` when a purchasable bundle exists for the credit", () => {
+    state.creditBundles = [createBundle(CREDIT_ID)];
+
+    render(<MeteredFeatures />);
+
+    expect(screen.getByText("Buy More")).toBeInTheDocument();
+  });
+
+  test("hides `Buy More` when the catalog has no bundle for the credit", () => {
+    // Bundles created on the Credit Type page but never added under
+    // Catalog -> Configuration -> Credit Bundles never reach hydrate, so the
+    // Credits stage would have nothing to show — and it is not registered as a
+    // stage in that case, leaving no breadcrumb to navigate away from.
+    state.creditBundles = [];
+
+    render(<MeteredFeatures />);
+
+    // The credit row itself still renders — only the dead-end CTA is gone.
+    expect(screen.getAllByText("Tokens").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Buy More")).not.toBeInTheDocument();
+  });
+
+  test("hides `Buy More` when the only bundles are for other credits", () => {
+    state.creditBundles = [createBundle("other-credit")];
+
+    render(<MeteredFeatures />);
+
+    expect(screen.queryByText("Buy More")).not.toBeInTheDocument();
+  });
+
+  test("hides `Buy More` when no bundle is compatible with the current plan", () => {
+    state.creditBundles = [createBundle(CREDIT_ID, ["other-plan"])];
+
+    render(<MeteredFeatures />);
+
+    expect(screen.queryByText("Buy More")).not.toBeInTheDocument();
+  });
+
+  test("hides `Buy More` when checkout is not available", () => {
+    state.creditBundles = [createBundle(CREDIT_ID)];
+    state.canCheckout = false;
+
+    render(<MeteredFeatures />);
+
+    expect(screen.queryByText("Buy More")).not.toBeInTheDocument();
   });
 });
