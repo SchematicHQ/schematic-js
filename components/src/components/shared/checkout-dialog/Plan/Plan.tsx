@@ -9,7 +9,6 @@ import {
   formatCurrency,
   getAutoTopupAmount,
   getAutoTopupThresholdCredits,
-  getFeatureName,
   getPlanPrice,
   groupPlanCreditGrants,
   hexToHSL,
@@ -17,7 +16,7 @@ import {
   mergeCompanyGrants,
 } from "../../../../utils";
 import { cardBoxShadow } from "../../../layout";
-import { AutoTopupNotice } from "../../../shared";
+import { AutoTopupNotice, PlanCreditText } from "../../../shared";
 import { Box, Flex, Icon, Text } from "../../../ui";
 
 import { ButtonGroup } from "./ButtonGroup";
@@ -246,15 +245,10 @@ export const Plan = ({
                             />
                           )}
 
-                          <Text>
-                            {credit.quantity}{" "}
-                            {getFeatureName(credit, credit.quantity)}
-                            {credit.period && (
-                              <>
-                                {" "}
-                                {t("per")} {credit.period}
-                              </>
-                            )}
+                          <PlanCreditText
+                            credit={credit}
+                            entitlements={plan.entitlements}
+                          >
                             {hasAutoTopup && planCreditGrant && (
                               <AutoTopupNotice
                                 portal={portal}
@@ -262,7 +256,7 @@ export const Plan = ({
                                 topupAmount={topupAmount}
                               />
                             )}
-                          </Text>
+                          </PlanCreditText>
                         </Flex>
                       </Flex>
                     );

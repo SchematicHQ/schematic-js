@@ -18,15 +18,20 @@ import {
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   entitlementHasHardLimit,
+  findLicenseSource,
   formatConsumptionRate,
   formatCurrency,
   formatNumber,
+  formatOrdinal,
   getBundleOffCreditIds,
   getFeatureName,
   getSubscriptionPeriod,
   getUsageDetails,
   groupCreditGrants,
+  groupPlanCreditGrants,
   modifyDate,
+  resolvePlanCreditQuantity,
+  shortenPeriod,
   toPrettyDate,
   type UsageDetails,
 } from "../../../utils";
@@ -235,6 +240,25 @@ export const MeteredFeatures = forwardRef<
   const creditGroups = useMemo(
     () => groupCreditGrants(data?.creditGrants || [], { groupBy: "credit" }),
     [data?.creditGrants],
+  );
+
+  // Per-license composition of the current plan's grants (credits per license
+  // unit × license quantity), surfaced as helper text below the balance bar.
+  const planCreditCompositions = useMemo(
+    () =>
+      groupPlanCreditGrants(data?.company?.plan?.includedCreditGrants ?? []),
+    [data?.company?.plan?.includedCreditGrants],
+  );
+
+  const resolveLicenseQuantity = useCallback(
+    (licenseId: string) => {
+      const allocation = findLicenseSource(
+        data?.featureUsage?.features ?? [],
+        licenseId,
+      )?.allocation;
+      return typeof allocation === "number" ? allocation : undefined;
+    },
+    [data?.featureUsage?.features],
   );
 
   const bundleOffCreditIds = useMemo(
@@ -472,6 +496,87 @@ export const MeteredFeatures = forwardRef<
                       </Button>
                     )}
                   </Flex>
+
+                  {(() => {
+                    const composition = planCreditCompositions.find(
+                      (planCredit) => planCredit.id === credit.id,
+                    );
+                    const perLicenseGrant =
+                      composition?.perLicenseGrants.length === 1
+                        ? composition.perLicenseGrants[0]
+                        : undefined;
+                    if (!composition || !perLicenseGrant) {
+                      return null;
+                    }
+
+                    const licenseFeature = findLicenseSource(
+                      data?.featureUsage?.features ?? [],
+                      perLicenseGrant.licenseId,
+                    )?.feature;
+                    const licenseQuantity = resolveLicenseQuantity(
+                      perLicenseGrant.licenseId,
+                    );
+                    const total = resolvePlanCreditQuantity(
+                      composition,
+                      resolveLicenseQuantity,
+                    );
+                    if (
+                      !licenseFeature ||
+                      typeof licenseQuantity !== "number" ||
+                      typeof total !== "number" ||
+                      !composition.period
+                    ) {
+                      return null;
+                    }
+
+                    const parts = [
+                      t("credit composition per license", {
+                        quantity: licenseQuantity,
+                        licenseName: getFeatureName(
+                          licenseFeature,
+                          licenseQuantity,
+                        ),
+                        perUnit: perLicenseGrant.amount,
+                      }),
+                    ];
+                    if (composition.fixedQuantity > 0) {
+                      parts.push(
+                        t("credit composition company grant", {
+                          amount: composition.fixedQuantity,
+                        }),
+                      );
+                    }
+
+                    const renewalDate = data?.upcomingInvoice?.dueDate;
+
+                    return (
+                      // Pulled up against the balance bar despite the column's 2rem gap
+                      <Box $marginTop="-1.5rem">
+                        <Text
+                          style={{ opacity: 0.54 }}
+                          $size={
+                            0.875 * settings.theme.typography.text.fontSize
+                          }
+                          $color={settings.theme.typography.text.color}
+                        >
+                          {t("Your plan includes credits", {
+                            total,
+                            creditName: getFeatureName(credit, total),
+                            period: shortenPeriod(composition.period),
+                            composition: ` — ${parts.join(" + ")}`,
+                          })}
+                          {renewalDate && (
+                            <>
+                              {" "}
+                              {t("Renews on the day", {
+                                day: formatOrdinal(renewalDate.getDate()),
+                              })}
+                            </>
+                          )}
+                        </Text>
+                      </Box>
+                    );
+                  })()}
                 </Flex>
               </Flex>
 

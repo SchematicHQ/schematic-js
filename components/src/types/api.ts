@@ -52,10 +52,23 @@ export interface CreditWithCompanyContext {
   grants: CreditCompanyGrantView[];
 }
 
+export interface PerLicenseCreditGrant {
+  /** credits granted per unit of the license */
+  amount: number;
+  /** the license whose quantity scales the grant */
+  licenseId: string;
+}
+
 export type Credit = Omit<
   CreditWithCompanyContext,
   "companyId" | "companyName" | "bundleId" | "total" | "grants"
-> & { period?: string };
+> & {
+  period?: string;
+  /** flat (company-level) portion of the plan's grants on this credit */
+  fixedQuantity: number;
+  /** per-license portions; effective amount = amount × license quantity */
+  perLicenseGrants: PerLicenseCreditGrant[];
+};
 
 export type CreditBundle = BillingCreditBundleView & { count: number };
 
