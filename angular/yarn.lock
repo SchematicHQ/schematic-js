@@ -10,12 +10,12 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@angular/compiler-cli@^21.2.0":
-  version "21.2.17"
-  resolved "https://registry.yarnpkg.com/@angular/compiler-cli/-/compiler-cli-21.2.17.tgz#1667d9d3ac39d63ff216dd3a85fc5b37d83146eb"
-  integrity sha512-KithZ3b0HBFH0NbUcswBcjpN9y09vLbarMD7qmGWTnGUBk4W8cn4sbT8zJyv9CRKg9ZcuUBeJYKUfUPn/u/5OQ==
+"@angular/compiler-cli@^22.0.8":
+  version "22.0.8"
+  resolved "https://registry.yarnpkg.com/@angular/compiler-cli/-/compiler-cli-22.0.8.tgz#5617692e712e7193d6ae327eb696ebd0817a7399"
+  integrity sha512-shBqaUxMtqriv4UG2MHmYT8GSvDizI40mUFkOfeQ1yRJ2C9dk0TnWKPwjSO7o6bs6UiU6V8Y3uSWdmfCGVVZAA==
   dependencies:
-    "@babel/core" "7.29.0"
+    "@babel/core" "7.29.7"
     "@jridgewell/sourcemap-codec" "^1.4.14"
     chokidar "^5.0.0"
     convert-source-map "^1.5.1"
@@ -24,17 +24,17 @@
     tslib "^2.3.0"
     yargs "^18.0.0"
 
-"@angular/compiler@^21.2.0":
-  version "21.2.17"
-  resolved "https://registry.yarnpkg.com/@angular/compiler/-/compiler-21.2.17.tgz#581c32d5b2788fced368b32793702043295a562a"
-  integrity sha512-p+NdjYiwAz9Zmu2yul0LlMXaFjMISVVa24+/MVMoKFeQeI82QE8jDywPlnOSHQHvdCcQVpS7saeEriZzX3JuBQ==
+"@angular/compiler@^22.0.8":
+  version "22.0.8"
+  resolved "https://registry.yarnpkg.com/@angular/compiler/-/compiler-22.0.8.tgz#ac3b7d3d8efff7a23e79cef189146f8a751526a9"
+  integrity sha512-ot7rvntfkZsPHmp8yl6PWUj/yG4e50X0+YeR7QYy/rEYKBiIg91w8GwjxSzaF4g5+bzJGDv7l/XnachKm0IySg==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/core@^21.2.0":
-  version "21.2.17"
-  resolved "https://registry.yarnpkg.com/@angular/core/-/core-21.2.17.tgz#cbed1509afd41422ef09539be0fb5cf5755e2b18"
-  integrity sha512-wYHpwIdnUnjQFOJJNqRcGx7LS3u64jT+R9L0TnMR/ViBM9dQgGYImlSikkftg2yrFCNo5aKRxhG2LLskQurVdg==
+"@angular/core@^22.0.8":
+  version "22.0.8"
+  resolved "https://registry.yarnpkg.com/@angular/core/-/core-22.0.8.tgz#583a71d7d8e589643f5e1e681bd3d38473faf271"
+  integrity sha512-HagZZVzbtXd+ZhMb++k/HOtr/UTiBROHHH7xutgYgnSnPRXX0kCca5EQ02OZ/OCWfsMP5liSJDfwiePFULKA6Q==
   dependencies:
     tslib "^2.3.0"
 
@@ -82,7 +82,7 @@
   resolved "https://registry.yarnpkg.com/@babel/compat-data/-/compat-data-7.29.7.tgz#6f0237f0f36d2e51c0570a636faed9d2d0efe629"
   integrity sha512-locTkQyKvwIEgBzVrn8693ebc97F2U8ZHjbXwDXJ5Fn2TCpNwTlKcaKLkdHop5c/icOFE7qt7Q9JC5hnKNa6Gg==
 
-"@babel/core@7.29.0", "@babel/core@^7.29.6":
+"@babel/core@7.29.7", "@babel/core@^7.29.6":
   version "7.29.7"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.29.7.tgz#80c10b17248082968b57a857b91640971f2070f7"
   integrity sha512-RgHBCvtjbOK2gXSNBNIkNoEc9qoVEtau3hj8gEqKQuL3HZAibKarWFEI3Lfm6EYKkLalOh8eSrj9b+ch9H/VBA==
@@ -1206,11 +1206,6 @@ ajv@^8.17.1:
     json-schema-traverse "^1.0.0"
     require-from-string "^2.0.2"
 
-ansi-colors@^4.1.3:
-  version "4.1.3"
-  resolved "https://registry.yarnpkg.com/ansi-colors/-/ansi-colors-4.1.3.tgz#37611340eb2243e70cc604cad35d63270d48781b"
-  integrity sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw==
-
 ansi-regex@^6.2.2:
   version "6.2.2"
   resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-6.2.2.tgz#60216eea464d864597ce2832000738a0589650c1"
@@ -1701,7 +1696,7 @@ es-to-primitive@^1.3.0:
     is-date-object "^1.0.5"
     is-symbol "^1.0.4"
 
-esbuild@>=0.28.1, esbuild@^0.27.0:
+esbuild@>=0.28.1, esbuild@^0.28.0:
   version "0.28.1"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.28.1.tgz#ef45b4634c9c9d97a296aea4114a5f9840f95578"
   integrity sha512-HrJrvZv5ayxBzPfwphOoNzkzOIIlifzk0KJrGK2c8R4+LKpMtpYLQeUdjnwjWv/LZlkH2laZk+4w78pi99D4Vw==
@@ -2655,21 +2650,20 @@ needle@^3.1.0:
     iconv-lite "^0.6.3"
     sax "^1.2.4"
 
-ng-packagr@^21.2.0:
-  version "21.2.2"
-  resolved "https://registry.yarnpkg.com/ng-packagr/-/ng-packagr-21.2.2.tgz#35abb97b0bedebf918a98977e186ee71e0920cfc"
-  integrity sha512-VO0y7RU3Ik8E14QdrryVyVbTAyqO2MK9W9GrG4e/4N8+ti+DWiBSQmw0tIhnV67lEjQwCccPA3ZBoIn3B1vJ1Q==
+ng-packagr@^22.0.2:
+  version "22.0.2"
+  resolved "https://registry.yarnpkg.com/ng-packagr/-/ng-packagr-22.0.2.tgz#10ca6ebd7a7548d6e9665f20c928cceb61dec729"
+  integrity sha512-8qQ+RWm0W3gK8Sch1kmo3EzIUiCTXIOP2gS7b+vtqCMBf4KBjBP0wFBikW5qRau9lGOzRTML0GPFGoARPR4+fw==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@rollup/plugin-json" "^6.1.0"
     "@rollup/wasm-node" "^4.24.0"
     ajv "^8.17.1"
-    ansi-colors "^4.1.3"
     browserslist "^4.26.0"
     chokidar "^5.0.0"
     commander "^14.0.0"
     dependency-graph "^1.0.0"
-    esbuild "^0.27.0"
+    esbuild "^0.28.0"
     find-cache-directory "^6.0.0"
     injection-js "^2.4.0"
     jsonc-parser "^3.3.1"
