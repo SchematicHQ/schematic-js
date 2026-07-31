@@ -316,12 +316,12 @@ export interface PlanViewPublicResponseData {
    */
   isDefault: boolean;
   /**
-   * Deprecated: Use BillingStrategy instead
+   * Deprecated: reports the plan's charge type, not its price. Read the plan's prices to tell whether it costs anything, or billing_strategy to tell how it is billed.
    * @type {boolean}
    * @memberof PlanViewPublicResponseData
    * @deprecated
    */
-  isFree: boolean;
+  isFree?: boolean | null;
   /**
    *
    * @type {boolean}
@@ -422,7 +422,6 @@ export function instanceOfPlanViewPublicResponseData(
     return false;
   if (!("isCustom" in value) || value["isCustom"] === undefined) return false;
   if (!("isDefault" in value) || value["isDefault"] === undefined) return false;
-  if (!("isFree" in value) || value["isFree"] === undefined) return false;
   if (!("isTrialable" in value) || value["isTrialable"] === undefined)
     return false;
   if (!("name" in value) || value["name"] === undefined) return false;
@@ -518,7 +517,7 @@ export function PlanViewPublicResponseDataFromJSONTyped(
     ),
     isCustom: json["is_custom"],
     isDefault: json["is_default"],
-    isFree: json["is_free"],
+    isFree: json["is_free"] == null ? undefined : json["is_free"],
     isTrialable: json["is_trialable"],
     monthlyPrice:
       json["monthly_price"] == null
