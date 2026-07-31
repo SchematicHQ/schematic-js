@@ -845,6 +845,17 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     if (isBypassLoading) return checkoutStage;
 
     let id = checkoutStage;
+
+    // `credits` is only registered as a stage when there are purchasable
+    // bundles. A caller can still ask to open on it (`setCheckoutState({
+    // credits: true })`), which would otherwise render an empty bundle grid
+    // with no breadcrumb entry to navigate away from. Fall back to the first
+    // real stage instead. This is a memo rather than part of the initial
+    // `checkoutStage` state so it resolves correctly once bundles load.
+    if (id === "credits" && !checkoutStages.some((stage) => stage.id === id)) {
+      id = checkoutStages[0]?.id ?? id;
+    }
+
     while (
       (id === "plan" && checkoutState?.bypassPlanSelection) ||
       (id === "usage" && checkoutState?.bypassUsageSelection) ||

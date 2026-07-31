@@ -18,10 +18,10 @@ import {
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   entitlementHasHardLimit,
+  filterCreditBundles,
   formatConsumptionRate,
   formatCurrency,
   formatNumber,
-  getBundleOffCreditIds,
   getFeatureName,
   getSubscriptionPeriod,
   getUsageDetails,
@@ -237,9 +237,22 @@ export const MeteredFeatures = forwardRef<
     [data?.creditGrants],
   );
 
-  const bundleOffCreditIds = useMemo(
-    () => getBundleOffCreditIds(data?.company?.plan?.includedCreditGrants),
-    [data?.company?.plan?.includedCreditGrants],
+  // `Buy More` opens checkout straight onto the Credits stage, which can only
+  // offer the bundles the catalog actually returns. Gating on the plan grant's
+  // bundle-off flag alone isn't enough: when no bundle for this credit has been
+  // added under Catalog -> Configuration -> Credit Bundles the hydrate response
+  // carries none, and the button lands the user on an empty, dead-end stage. So
+  // require a purchasable bundle to exist — `filterCreditBundles` also applies
+  // the bundle-off gating, so this subsumes the old check.
+  const purchasableCreditIds = useMemo(
+    () =>
+      new Set(
+        filterCreditBundles(
+          data?.company?.plan?.includedCreditGrants,
+          data?.creditBundles,
+        ).map((bundle) => bundle.creditId),
+      ),
+    [data?.company?.plan?.includedCreditGrants, data?.creditBundles],
   );
 
   // Track expanded credits by id rather than seeding an array from creditGroups:
@@ -459,7 +472,7 @@ export const MeteredFeatures = forwardRef<
                       }
                     />
 
-                    {canCheckout && !bundleOffCreditIds.has(credit.id) && (
+                    {canCheckout && purchasableCreditIds.has(credit.id) && (
                       <Button
                         type="button"
                         onClick={() => {
