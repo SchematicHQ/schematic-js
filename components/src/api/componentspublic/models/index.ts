@@ -23,6 +23,7 @@ export * from "./BillingProductDetailResponseData";
 export * from "./BillingProductPriceInterval";
 export * from "./BillingProductPriceResponseData";
 export * from "./BillingProductPriceTierResponseData";
+export * from "./BillingProductRecordResponseData";
 export * from "./BillingProductResponseData";
 export * from "./BillingProviderType";
 export * from "./BillingStrategy";
