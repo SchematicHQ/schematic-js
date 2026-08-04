@@ -20,13 +20,6 @@ import {
   BillingCreditBurnStrategyToJSON,
   BillingCreditBurnStrategyToJSONTyped,
 } from "./BillingCreditBurnStrategy";
-import type { BillingProductResponseData } from "./BillingProductResponseData";
-import {
-  BillingProductResponseDataFromJSON,
-  BillingProductResponseDataFromJSONTyped,
-  BillingProductResponseDataToJSON,
-  BillingProductResponseDataToJSONTyped,
-} from "./BillingProductResponseData";
 import type { CreditCurrencyPrice } from "./CreditCurrencyPrice";
 import {
   CreditCurrencyPriceFromJSON,
@@ -41,6 +34,13 @@ import {
   BillingPriceViewToJSON,
   BillingPriceViewToJSONTyped,
 } from "./BillingPriceView";
+import type { BillingProductRecordResponseData } from "./BillingProductRecordResponseData";
+import {
+  BillingProductRecordResponseDataFromJSON,
+  BillingProductRecordResponseDataFromJSONTyped,
+  BillingProductRecordResponseDataToJSON,
+  BillingProductRecordResponseDataToJSONTyped,
+} from "./BillingProductRecordResponseData";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
@@ -179,10 +179,10 @@ export interface BillingCreditView {
   pricePerUnitDecimal?: string | null;
   /**
    *
-   * @type {BillingProductResponseData}
+   * @type {BillingProductRecordResponseData}
    * @memberof BillingCreditView
    */
-  product?: BillingProductResponseData;
+  product?: BillingProductRecordResponseData;
   /**
    *
    * @type {string}
@@ -284,7 +284,7 @@ export function BillingCreditViewFromJSONTyped(
     product:
       json["product"] == null
         ? undefined
-        : BillingProductResponseDataFromJSON(json["product"]),
+        : BillingProductRecordResponseDataFromJSON(json["product"]),
     singularName:
       json["singular_name"] == null ? undefined : json["singular_name"],
     updatedAt: new Date(json["updated_at"]),
@@ -330,7 +330,7 @@ export function BillingCreditViewToJSONTyped(
     price: BillingPriceViewToJSON(value["price"]),
     price_per_unit: value["pricePerUnit"],
     price_per_unit_decimal: value["pricePerUnitDecimal"],
-    product: BillingProductResponseDataToJSON(value["product"]),
+    product: BillingProductRecordResponseDataToJSON(value["product"]),
     singular_name: value["singularName"],
     updated_at: value["updatedAt"].toISOString(),
   };

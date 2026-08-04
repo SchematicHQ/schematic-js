@@ -30,6 +30,7 @@ models/BillingProductForSubscriptionResponseData.ts
 models/BillingProductPriceInterval.ts
 models/BillingProductPriceResponseData.ts
 models/BillingProductPriceTierResponseData.ts
+models/BillingProductRecordResponseData.ts
 models/BillingProductResponseData.ts
 models/BillingProviderType.ts
 models/BillingStrategy.ts
