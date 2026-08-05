@@ -30,6 +30,7 @@ models/BillingProductForSubscriptionResponseData.ts
 models/BillingProductPriceInterval.ts
 models/BillingProductPriceResponseData.ts
 models/BillingProductPriceTierResponseData.ts
+models/BillingProductRecordResponseData.ts
 models/BillingProductResponseData.ts
 models/BillingProviderType.ts
 models/BillingStrategy.ts
@@ -77,6 +78,7 @@ models/CreditCurrencyPriceResponseData.ts
 models/CreditGrantDetail.ts
 models/CreditTransferView.ts
 models/CreditUsageAggregation.ts
+models/CreditUserUsageResponseData.ts
 models/CurrencyBalance.ts
 models/CustomPlanActivationStrategy.ts
 models/CustomPlanBillingResponseData.ts
@@ -104,14 +106,20 @@ models/FeatureResponseData.ts
 models/FeatureType.ts
 models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
+models/FeatureUserUsageResponseData.ts
 models/FetchCustomerBalanceResponse.ts
 models/FlagInPlanResponseData.ts
 models/FlagResponseData.ts
 models/FlagType.ts
 models/GenericPreviewObject.ts
+models/GetCreditUsageByUserParams.ts
+models/GetCreditUsageByUserResponse.ts
+models/GetFeatureUsageByUserParams.ts
+models/GetFeatureUsageByUserResponse.ts
 models/GetSetupIntentResponse.ts
-models/GetUsageByUserResponse.ts
+models/HydrateComponentParams.ts
 models/HydrateComponentResponse.ts
+models/HydrateParams.ts
 models/HydrateResponse.ts
 models/HydrateUpcomingInvoiceResponse.ts
 models/InvoiceResponseData.ts
@@ -122,6 +130,7 @@ models/MetricPeriod.ts
 models/MetricPeriodMonthReset.ts
 models/PaymentMethodResponseData.ts
 models/PlanCatalogMembershipResponseData.ts
+models/PlanCreditGrantScaling.ts
 models/PlanCreditGrantView.ts
 models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
@@ -140,6 +149,7 @@ models/PreviewSubscriptionChangeResponseData.ts
 models/PreviewSubscriptionDiscountResponseData.ts
 models/PreviewSubscriptionFinanceResponseData.ts
 models/PreviewSubscriptionUpcomingInvoiceLineItems.ts
+models/ProrationBehavior.ts
 models/Rule.ts
 models/RuleConditionDetailResponseData.ts
 models/RuleConditionGroupDetailResponseData.ts
@@ -167,7 +177,6 @@ models/UsageBasedEntitlementResponseData.ts
 models/UserCreditUsageResponseData.ts
 models/UserFeatureUsageResponseData.ts
 models/UserResponseData.ts
-models/UserUsageByCompanyResponseData.ts
 models/WarningTier.ts
 models/WarningTierResponseData.ts
 models/index.ts

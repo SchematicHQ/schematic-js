@@ -506,18 +506,38 @@ export const EmbedProvider = ({
     [listInvoices],
   );
 
-  const getUsageByUser = useCallback(async () => {
-    return checkoutApi?.getUsageByUser();
-  }, [checkoutApi]);
+  const getCreditUsageByUser = useCallback(
+    async (billingCreditId: string, limit?: number) => {
+      return checkoutApi?.getCreditUsageByUser({ billingCreditId, limit });
+    },
+    [checkoutApi],
+  );
 
-  const debouncedGetUsageByUser = useMemo(
+  const debouncedGetCreditUsageByUser = useMemo(
     () =>
       debounce(
-        getUsageByUser,
+        getCreditUsageByUser,
         FETCH_DEBOUNCE_TIMEOUT,
         LEADING_DEBOUNCE_SETTINGS,
       ),
-    [getUsageByUser],
+    [getCreditUsageByUser],
+  );
+
+  const getFeatureUsageByUser = useCallback(
+    async (featureId: string, limit?: number) => {
+      return checkoutApi?.getFeatureUsageByUser({ featureId, limit });
+    },
+    [checkoutApi],
+  );
+
+  const debouncedGetFeatureUsageByUser = useMemo(
+    () =>
+      debounce(
+        getFeatureUsageByUser,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [getFeatureUsageByUser],
   );
 
   // components
@@ -702,7 +722,8 @@ export const EmbedProvider = ({
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
-        getUsageByUser: debouncedGetUsageByUser,
+        getCreditUsageByUser: debouncedGetCreditUsageByUser,
+        getFeatureUsageByUser: debouncedGetFeatureUsageByUser,
         finishCheckout,
         setError,
         setAccessToken,

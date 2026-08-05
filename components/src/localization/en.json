@@ -226,6 +226,7 @@
     "Show all X users": "Show all {{count}} users",
     "Show fewer": "Show fewer",
     "Unattributed": "Unattributed",
+    "plus X more": "plus {{count}} more",
 
     "usage": {
       "limited": "{{amount}} of {{allocation}} used",
