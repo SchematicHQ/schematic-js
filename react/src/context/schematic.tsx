@@ -30,8 +30,7 @@ type SchematicProviderPropsWithPublishableKey = BaseSchematicProviderProps & {
 };
 
 export type SchematicProviderProps =
-  | SchematicProviderPropsWithClient
-  | SchematicProviderPropsWithPublishableKey;
+  SchematicProviderPropsWithClient | SchematicProviderPropsWithPublishableKey;
 
 export interface SchematicContextProps {
   client: SchematicJS.Schematic;

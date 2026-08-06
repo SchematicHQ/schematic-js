@@ -136,10 +136,9 @@ describe("useSchematicQuery", () => {
 
   it("fetches on mount and exposes data", async () => {
     const fetcher = vi.fn().mockResolvedValue(["plan_a"]);
-    const { result } = renderHook(
-      () => useSchematicQuery("plans", fetcher),
-      { wrapper: wrapperFor() },
-    );
+    const { result } = renderHook(() => useSchematicQuery("plans", fetcher), {
+      wrapper: wrapperFor(),
+    });
     await waitFor(() => expect(result.current.status).toBe("success"));
     expect(result.current.data).toEqual(["plan_a"]);
     expect(fetcher).toHaveBeenCalledTimes(1);
@@ -163,10 +162,9 @@ describe("useSchematicQuery", () => {
   it("exposes errors through state", async () => {
     const failure = new Error("boom");
     const fetcher = vi.fn().mockRejectedValue(failure);
-    const { result } = renderHook(
-      () => useSchematicQuery("failing", fetcher),
-      { wrapper: wrapperFor() },
-    );
+    const { result } = renderHook(() => useSchematicQuery("failing", fetcher), {
+      wrapper: wrapperFor(),
+    });
     await waitFor(() => expect(result.current.status).toBe("error"));
     expect(result.current.error).toBe(failure);
   });
