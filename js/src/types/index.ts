@@ -2,9 +2,9 @@ import {
   CheckFlagResponseDataFromJSON,
   CompanyCreditBalanceFromJSON,
   DatastreamCompanyPlanFromJSON,
-} from "./api/models";
-import { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
-import { type TrialStatus } from "./api/models/TrialStatus";
+} from "../api/componentspublic/models";
+import { EventBodyFlagCheck } from "../api/componentspublic/models/EventBodyFlagCheck";
+import { type TrialStatus } from "../api/componentspublic/models/TrialStatus";
 
 export type EventType = "identify" | "track" | "flag_check";
 
@@ -359,11 +359,11 @@ export const CreditBalancesFromJSON = (
   return balances;
 };
 
-export type { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
-export { EventBodyFlagCheckToJSON } from "./api/models/EventBodyFlagCheck";
-export type { CheckFlagResponseData } from "./api/models/CheckFlagResponseData";
-export { CheckFlagResponseFromJSON } from "./api/models/CheckFlagResponse";
-export type { CompanyCreditBalance } from "./api/models/CompanyCreditBalance";
-export { CheckFlagsResponseFromJSON } from "./api/models/CheckFlagsResponse";
-export { DatastreamCompanyPlanFromJSON } from "./api/models/DatastreamCompanyPlan";
-export { TrialStatus } from "./api/models/TrialStatus";
+export type { EventBodyFlagCheck } from "../api/componentspublic/models/EventBodyFlagCheck";
+export { EventBodyFlagCheckToJSON } from "../api/componentspublic/models/EventBodyFlagCheck";
+export type { CheckFlagResponseData } from "../api/componentspublic/models/CheckFlagResponseData";
+export { CheckFlagResponseFromJSON } from "../api/componentspublic/models/CheckFlagResponse";
+export type { CompanyCreditBalance } from "../api/componentspublic/models/CompanyCreditBalance";
+export { CheckFlagsResponseFromJSON } from "../api/componentspublic/models/CheckFlagsResponse";
+export { DatastreamCompanyPlanFromJSON } from "../api/componentspublic/models/DatastreamCompanyPlan";
+export { TrialStatus } from "../api/componentspublic/models/TrialStatus";

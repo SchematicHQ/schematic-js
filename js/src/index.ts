@@ -115,6 +115,11 @@ export class Schematic {
   private flagCheckDefaults: Record<string, CheckFlagReturn> = {};
   private fallbackCheckCache: Record<string, CheckFlagReturn> = {};
 
+  /** The publishable key this client was constructed with */
+  get publishableKey(): string {
+    return this.apiKey;
+  }
+
   constructor(apiKey: string, options?: SchematicOptions) {
     this.apiKey = apiKey;
     this.flagStateCacheKey = `${flagStateCachePrefix}:${apiKey}`;
@@ -2472,4 +2477,5 @@ const notifyCreditBalanceListener = (
   }
 };
 
+export * from "./api";
 export * from "./types";
