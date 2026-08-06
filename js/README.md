@@ -148,7 +148,7 @@ When events (track, identify) cannot be sent due to network issues, they are aut
 
 ### WebSocket Fallback
 
-In WebSocket mode, if the WebSocket connection fails, the SDK will provide the last known value or the configured fallback values as [outlined above](/#flag-check-fallbacks). The WebSocket will also automatically attempt to re-establish it's connection with Schematic using an exponential backoff. 
+In WebSocket mode, if the WebSocket connection fails, the SDK will provide the last known value or the configured fallback values as [outlined above](#flag-check-fallbacks). The WebSocket will also automatically attempt to re-establish its connection with Schematic using an exponential backoff. 
 
 ## Troubleshooting
 
