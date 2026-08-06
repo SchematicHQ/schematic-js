@@ -14,7 +14,9 @@ type BaseSchematicProviderProps = Omit<
    * company-mode useCatalog). Unlike other provider props, this is reactive:
    * passing a new value (or a new provider identity, e.g. when the active
    * company changes) swaps the token and drops all company-scoped cached
-   * data. Ignored when `customerClient` is provided.
+   * data. Memoize function values (useCallback keyed on the active company) —
+   * every new function identity is treated as a company switch and resets
+   * cached data. Ignored when `customerClient` is provided.
    */
   accessToken?: SchematicJS.AccessTokenInput;
   /**
@@ -74,12 +76,23 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
     });
   }, [providedClient]);
 
-  // Like the flag client, the customer client is constructed once from the
-  // mount-time props; only accessToken is reactive (handled below). A
-  // duplicated older copy of schematic-js in the consumer's node_modules can
-  // yield a provided client without the publishableKey getter, hence the
-  // fallback chain.
-  const initialAccessTokenRef = useRef(accessToken);
+  // Latest-value ref so the customer-client memo below can read the current
+  // token without depending on its identity: same-mode token swaps must not
+  // rebuild the client (that would discard the public cache)
+  const accessTokenRef = useRef(accessToken);
+  accessTokenRef.current = accessToken;
+  const hasAccessToken = accessToken !== undefined;
+
+  // The customer client rebuilds during render whenever the token MODE flips
+  // (none<->token) or the key changes, so hooks mounting in the same commit
+  // see a client in the right mode: a token arriving must not strand
+  // auto-mode useCatalog in public mode or make useSubscription throw before
+  // an effect could apply it, and a token clearing must not mutate a client
+  // that mounted subscribers are still rendering against. Same-mode token
+  // swaps are handled by the effect below via setAccessToken, which preserves
+  // the public cache. A duplicated older copy of schematic-js in the
+  // consumer's node_modules can yield a provided client without the
+  // publishableKey getter, hence the fallback chain.
   const customerClient = useMemo(() => {
     if (providedCustomerClient) {
       return providedCustomerClient;
@@ -88,32 +101,35 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
       ? ((providedClient.publishableKey as string | undefined) ??
         publishableKey)
       : publishableKey;
-    if (
-      resolvedPublishableKey === undefined &&
-      initialAccessTokenRef.current === undefined
-    ) {
+    if (resolvedPublishableKey === undefined && !hasAccessToken) {
       // Nothing to authenticate the customer APIs with; hooks that need the
       // client raise a descriptive error instead
       return undefined;
     }
     return new SchematicJS.SchematicCustomerClient({
       publishableKey: resolvedPublishableKey,
-      getAccessToken: initialAccessTokenRef.current,
+      getAccessToken: accessTokenRef.current,
       apiUrl: initialOptsRef.current.apiUrl,
       clientVersion: `schematic-react@${version}`,
     });
-  }, [providedCustomerClient, providedClient, publishableKey]);
+  }, [providedCustomerClient, providedClient, publishableKey, hasAccessToken]);
 
-  // The access token is the credential scoping company-specific data; when it
-  // changes (e.g. the active company switched), swap it on the client — which
-  // also drops all company-scoped cached data and refetches in mounted hooks.
+  // Same-mode token swaps (company switches): swap the credential on the
+  // client, which drops company-scoped cached data and refetches in mounted
+  // hooks. Mode transitions never reach setAccessToken — the memo above
+  // already rebuilt the client with the current token.
   const previousAccessTokenRef = useRef(accessToken);
   useEffect(() => {
-    if (previousAccessTokenRef.current === accessToken) {
+    const previous = previousAccessTokenRef.current;
+    if (previous === accessToken) {
       return;
     }
     previousAccessTokenRef.current = accessToken;
-    if (providedCustomerClient === undefined) {
+    if (
+      providedCustomerClient === undefined &&
+      previous !== undefined &&
+      accessToken !== undefined
+    ) {
       customerClient?.setAccessToken(accessToken);
     }
   }, [accessToken, customerClient, providedCustomerClient]);

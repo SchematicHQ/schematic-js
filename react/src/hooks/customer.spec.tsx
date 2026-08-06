@@ -1,5 +1,5 @@
 import { SchematicCustomerClient } from "@schematichq/schematic-js";
-import { renderHook, waitFor } from "@testing-library/react";
+import { render, renderHook, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -194,6 +194,57 @@ describe("provider integration", () => {
     expect(() => renderHook(() => useSchematicCustomerClient())).toThrow(
       /SchematicProvider|client/,
     );
+  });
+
+  it("handles token-mode transitions: same-commit mount on arrival, no crash on clear", async () => {
+    const { fetchFn } = makeFetch();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchFn;
+    try {
+      const CatalogProbe = () => {
+        const catalog = useCatalog();
+        return <div data-testid="mode">{catalog.data?.mode ?? "pending"}</div>;
+      };
+      const BillingProbe = () => {
+        const subscription = useSubscription();
+        return (
+          <div data-testid="billing">
+            {subscription.data !== undefined ? "loaded" : "pending"}
+          </div>
+        );
+      };
+      // The natural consumer shape: the token prop and the billing UI that
+      // needs it arrive in the same render commit
+      const Screen = ({ token }: { token?: string }) => (
+        <SchematicProvider publishableKey="api_pub" accessToken={token}>
+          <CatalogProbe />
+          {token !== undefined ? <BillingProbe /> : null}
+        </SchematicProvider>
+      );
+
+      const { rerender } = render(<Screen />);
+      await waitFor(() =>
+        expect(screen.getByTestId("mode").textContent).toBe("public"),
+      );
+
+      // Token arrives: billing mounts in the same commit and must not throw;
+      // auto-mode catalog must flip to company context
+      rerender(<Screen token="token_x" />);
+      await waitFor(() => {
+        expect(screen.getByTestId("billing").textContent).toBe("loaded");
+        expect(screen.getByTestId("mode").textContent).toBe("company");
+      });
+
+      // Logout: billing unmounts in the same commit; the catalog returns to
+      // public mode without anything crashing
+      rerender(<Screen />);
+      await waitFor(() =>
+        expect(screen.getByTestId("mode").textContent).toBe("public"),
+      );
+      expect(screen.queryByTestId("billing")).toBeNull();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
   it("swaps the token and refetches when the accessToken prop changes", async () => {
