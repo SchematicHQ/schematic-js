@@ -1,0 +1,5 @@
+generatorName: typescript-fetch
+inputSpec: https://openapi.schematichq.com/prod/api/apikeypublishable.yml
+enablePostProcessFile: true
+outputDir: ./src/api/componentspublic/
+skipValidateSpec: true

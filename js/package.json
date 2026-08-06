@@ -26,7 +26,7 @@
     "clean": "rm -rf dist",
     "format": "prettier --write src/*.ts",
     "lint": "eslint src --report-unused-disable-directives --fix",
-    "openapi": "rm -rf src/types/api/ && npx openapi-generator-cli generate -c openapi-config.yaml && prettier --write \"src/types/api/**/*.{ts,tsx}\"",
+    "openapi": "./generate_openapi.sh -c ./src/api/config_componentspublic.yml && ./generate_openapi.sh -c ./src/api/config_checkoutexternal.yml",
     "prepare": "husky",
     "test": "vitest run",
     "test:reactnative": "vitest run --config vitest.config.reactnative.ts",
