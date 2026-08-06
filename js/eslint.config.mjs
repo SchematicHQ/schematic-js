@@ -8,7 +8,7 @@ import tseslint from "typescript-eslint";
 export default defineConfig([
   {
     files: ["**/*.{js,mjs,cjs,ts}"],
-    ignores: ["**/*.spec.ts", "**/*.test.ts"],
+    ignores: ["**/*.spec.ts", "**/*.test.ts", "**/__tests__/**"],
     plugins: { js },
     extends: [
       js.configs.recommended,
@@ -34,7 +34,7 @@ export default defineConfig([
     },
   },
   {
-    files: ["**/*.spec.ts", "**/*.test.ts"],
+    files: ["**/*.spec.ts", "**/*.test.ts", "**/__tests__/**/*.ts"],
     plugins: { js },
     extends: [
       js.configs.recommended,
