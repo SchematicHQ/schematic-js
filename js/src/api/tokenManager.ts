@@ -1,25 +1,41 @@
 const SCHEMATIC_API_KEY_HEADER = "X-Schematic-Api-Key";
 const DEFAULT_REFRESH_BUFFER_MS = 60_000;
+const DEFAULT_FALLBACK_TTL_MS = 15 * 60_000;
 
-/** A resolved temporary access token, optionally with its expiry time */
-export type AccessTokenDetails = {
-  token: string;
-  /** When the token expires; forward `expired_at` from the token mint response to enable proactive refresh */
-  expiresAt?: string | Date;
-};
+/**
+ * What an access-token provider resolves to: a bare token string, or the
+ * token with its expiry — forward `expired_at` from the token mint response
+ * to enable exact proactive-refresh timing.
+ */
+export type AccessTokenResult =
+  | string
+  | {
+      token: string;
+      expiresAt?: string | Date;
+    };
 
-export type AccessTokenResolver = () => Promise<string | AccessTokenDetails>;
+/**
+ * Callback that returns a temporary access token (token_...), minted by your
+ * backend via POST /temporary-access-tokens.
+ */
+export type AccessTokenProvider = () => Promise<AccessTokenResult>;
 
 /**
  * A temporary access token, provided either as a static string (the consumer
- * owns refresh) or as an async resolver the SDK can re-invoke to mint a fresh
+ * owns refresh) or as an async provider the SDK can re-invoke to mint a fresh
  * token via the consumer's backend.
  */
-export type AccessTokenInput = string | AccessTokenResolver;
+export type AccessTokenInput = string | AccessTokenProvider;
 
 export type TokenManagerOptions = {
   /** How long before a known expiry a token is considered stale (default 60s) */
   refreshBufferMs?: number;
+  /**
+   * Assumed token lifetime when the provider does not report an expiry
+   * (default 15min, matching the API's temporary-token TTL), so proactive
+   * refresh still happens instead of waiting for a 401.
+   */
+  fallbackTtlMs?: number;
 };
 
 /**
@@ -95,6 +111,7 @@ const normalizeHeaders = (
 export class TokenManager {
   private readonly input: AccessTokenInput;
   private readonly refreshBufferMs: number;
+  private readonly fallbackTtlMs: number;
   private cached: CachedToken | null = null;
   private pending: Promise<string> | null = null;
   /** Tokens minted as 401 retries that have not yet authenticated successfully */
@@ -103,6 +120,7 @@ export class TokenManager {
   constructor(input: AccessTokenInput, options: TokenManagerOptions = {}) {
     this.input = input;
     this.refreshBufferMs = options.refreshBufferMs ?? DEFAULT_REFRESH_BUFFER_MS;
+    this.fallbackTtlMs = options.fallbackTtlMs ?? DEFAULT_FALLBACK_TTL_MS;
   }
 
   /** True when constructed with a static token string; refresh is then the consumer's job */
@@ -129,13 +147,19 @@ export class TokenManager {
     this.pending = (async () => {
       try {
         const resolved = await resolver();
-        const cached: CachedToken =
+        const { token, expiresAt } =
           typeof resolved === "string"
-            ? { token: resolved }
-            : {
-                token: resolved.token,
-                expiresAtMs: toEpochMs(resolved.expiresAt),
-              };
+            ? { token: resolved, expiresAt: undefined }
+            : resolved;
+        if (token === "") {
+          throw new Error("Schematic: getAccessToken returned an empty token");
+        }
+        const cached: CachedToken = {
+          token,
+          // Without a reported expiry, assume the API's 15-minute TTL so
+          // proactive refresh still happens instead of waiting for a 401
+          expiresAtMs: toEpochMs(expiresAt) ?? Date.now() + this.fallbackTtlMs,
+        };
         this.cached = cached;
         return cached.token;
       } finally {

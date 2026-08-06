@@ -115,6 +115,25 @@ describe("TokenManager", () => {
       expect(resolver).toHaveBeenCalledTimes(2);
     });
 
+    it("proactively refreshes a bare-string token after the fallback TTL", async () => {
+      const resolver = vi
+        .fn()
+        .mockResolvedValueOnce("token_one")
+        .mockResolvedValueOnce("token_two");
+      const manager = new TokenManager(resolver);
+      await expect(manager.getToken()).resolves.toBe("token_one");
+
+      // 13 minutes in: inside the assumed 15-minute TTL minus the 60s buffer
+      vi.setSystemTime(new Date("2026-08-05T12:13:00Z"));
+      await expect(manager.getToken()).resolves.toBe("token_one");
+      expect(resolver).toHaveBeenCalledTimes(1);
+
+      // 14.5 minutes in: within the buffer of the assumed expiry
+      vi.setSystemTime(new Date("2026-08-05T12:14:30Z"));
+      await expect(manager.getToken()).resolves.toBe("token_two");
+      expect(resolver).toHaveBeenCalledTimes(2);
+    });
+
     it("honors a custom refreshBufferMs", async () => {
       const resolver = vi
         .fn()

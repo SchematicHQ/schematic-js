@@ -9,14 +9,20 @@ type BaseSchematicProviderProps = Omit<
 > & {
   children: React.ReactNode;
   /**
-   * Temporary access token (token_...) or async resolver for one, enabling
-   * the checkout APIs. Unlike other provider props, this is reactive: passing
-   * a new value (or a new resolver identity, e.g. when the active company
-   * changes) rebuilds the checkout client and drops the cached token.
+   * Temporary access token (token_...) or async provider for one, enabling
+   * the company-scoped customer APIs (useSubscription, useInvoices,
+   * company-mode useCatalog). Unlike other provider props, this is reactive:
+   * passing a new value (or a new provider identity, e.g. when the active
+   * company changes) swaps the token and drops all company-scoped cached
+   * data. Ignored when `customerClient` is provided.
    */
   accessToken?: SchematicJS.AccessTokenInput;
-  /** Overrides (base URL, headers, fetch) applied to the generated API clients */
-  apiConfig?: SchematicJS.SchematicApiConfig;
+  /**
+   * Bring your own SchematicCustomerClient (e.g. a module singleton shared
+   * with non-provider usage) instead of having the provider construct one
+   * from publishableKey/accessToken/apiUrl.
+   */
+  customerClient?: SchematicJS.SchematicCustomerClient;
 };
 
 type SchematicProviderPropsWithClient = BaseSchematicProviderProps & {
@@ -34,7 +40,7 @@ export type SchematicProviderProps =
 
 export interface SchematicContextProps {
   client: SchematicJS.Schematic;
-  api: SchematicJS.SchematicApi;
+  customerClient?: SchematicJS.SchematicCustomerClient;
 }
 
 export const SchematicContext = createContext<SchematicContextProps | null>(
@@ -46,7 +52,7 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   client: providedClient,
   publishableKey,
   accessToken,
-  apiConfig,
+  customerClient: providedCustomerClient,
   ...clientOpts
 }) => {
   const initialOptsRef = useRef({
@@ -68,45 +74,49 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
     });
   }, [providedClient]);
 
-  // One store for the provider's lifetime, so cached query data survives
-  // rebuilds of the API clients (e.g. accessToken changes)
-  const queryStore = useMemo(() => new SchematicJS.QueryStore(), []);
-
-  // A duplicated older copy of schematic-js in the consumer's node_modules
-  // can yield a client without the publishableKey getter; fall back rather
-  // than silently disabling the public APIs
-  const resolvedPublishableKey = providedClient
-    ? ((providedClient.publishableKey as string | undefined) ?? publishableKey)
-    : publishableKey;
-
-  // Stabilized so inline `apiConfig` object literals don't rebuild the
-  // clients every render; fetchApi is a function and is deliberately
-  // excluded from the comparison
-  const apiConfigKey = JSON.stringify(apiConfig ?? null);
-  const api = useMemo(
-    () =>
-      SchematicJS.createSchematicApi({
-        publishableKey: resolvedPublishableKey,
-        accessToken,
-        apiConfig,
-        clientVersion: `schematic-react@${version}`,
-        queryStore,
-      }),
-    [resolvedPublishableKey, accessToken, apiConfigKey, queryStore],
-  );
+  // Like the flag client, the customer client is constructed once from the
+  // mount-time props; only accessToken is reactive (handled below). A
+  // duplicated older copy of schematic-js in the consumer's node_modules can
+  // yield a provided client without the publishableKey getter, hence the
+  // fallback chain.
+  const initialAccessTokenRef = useRef(accessToken);
+  const customerClient = useMemo(() => {
+    if (providedCustomerClient) {
+      return providedCustomerClient;
+    }
+    const resolvedPublishableKey = providedClient
+      ? ((providedClient.publishableKey as string | undefined) ??
+        publishableKey)
+      : publishableKey;
+    if (
+      resolvedPublishableKey === undefined &&
+      initialAccessTokenRef.current === undefined
+    ) {
+      // Nothing to authenticate the customer APIs with; hooks that need the
+      // client raise a descriptive error instead
+      return undefined;
+    }
+    return new SchematicJS.SchematicCustomerClient({
+      publishableKey: resolvedPublishableKey,
+      getAccessToken: initialAccessTokenRef.current,
+      apiUrl: initialOptsRef.current.apiUrl,
+      clientVersion: `schematic-react@${version}`,
+    });
+  }, [providedCustomerClient, providedClient, publishableKey]);
 
   // The access token is the credential scoping company-specific data; when it
-  // changes (e.g. the active company switched), data cached under the old
-  // credential must not survive the swap. remove() also disowns in-flight
-  // requests and prompts mounted queries to refetch.
+  // changes (e.g. the active company switched), swap it on the client — which
+  // also drops all company-scoped cached data and refetches in mounted hooks.
   const previousAccessTokenRef = useRef(accessToken);
   useEffect(() => {
     if (previousAccessTokenRef.current === accessToken) {
       return;
     }
     previousAccessTokenRef.current = accessToken;
-    queryStore.remove();
-  }, [accessToken, queryStore]);
+    if (providedCustomerClient === undefined) {
+      customerClient?.setAccessToken(accessToken);
+    }
+  }, [accessToken, customerClient, providedCustomerClient]);
 
   useEffect(() => {
     // Clean up Schematic client (i.e., close websocket connection) when the
@@ -125,9 +135,9 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   const contextValue = useMemo<SchematicContextProps>(
     () => ({
       client,
-      api,
+      customerClient,
     }),
-    [client, api],
+    [client, customerClient],
   );
 
   return (
