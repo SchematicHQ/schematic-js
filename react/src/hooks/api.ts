@@ -1,10 +1,5 @@
 import * as SchematicJS from "@schematichq/schematic-js";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
 import { useSchematic } from "../context";
 
@@ -75,18 +70,14 @@ export const useSchematicQuery = <TData>(
     if (!enabled) {
       return;
     }
-    store
-      .fetch(key, () => fetcherRef.current(), { staleTime })
-      .catch(() => {});
+    store.fetch(key, () => fetcherRef.current(), { staleTime }).catch(() => {});
   }, [store, key, enabled, staleTime]);
 
   useEffect(() => {
     if (!enabled || !isInvalidated) {
       return;
     }
-    store
-      .fetch(key, () => fetcherRef.current(), { staleTime })
-      .catch(() => {});
+    store.fetch(key, () => fetcherRef.current(), { staleTime }).catch(() => {});
   }, [store, key, enabled, staleTime, isInvalidated]);
 
   const refetch = useCallback(
