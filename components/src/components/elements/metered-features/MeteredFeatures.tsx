@@ -45,6 +45,7 @@ import {
 
 import { Meter } from "./Meter";
 import { PriceDetails } from "./PriceDetails";
+import { UsageByUser } from "./UsageByUser";
 import * as styles from "./styles";
 
 interface LimitProps {
@@ -398,6 +399,22 @@ export const MeteredFeatures = forwardRef<
                 period={period}
               />
             )}
+
+            {feature.featureType === FeatureType.Event && (
+              <UsageByUser
+                source={{ kind: "feature", id: feature.id ?? "" }}
+                // A credit-burndown feature's usage is denominated in the credit
+                // it consumes (e.g. "tokens"), not the feature name — mirror how
+                // the rest of the element labels it (see `Limit`).
+                unit={getFeatureName(
+                  priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
+                    entitlement.planEntitlement?.valueCredit
+                    ? entitlement.planEntitlement.valueCredit
+                    : feature,
+                  2,
+                )}
+              />
+            )}
           </Element>,
         );
 
@@ -633,6 +650,11 @@ export const MeteredFeatures = forwardRef<
                     : t("See balance details")}
                 </Text>
               </Flex>
+
+              <UsageByUser
+                source={{ kind: "credit", id: credit.id }}
+                unit={getFeatureName(credit, 2)}
+              />
             </Element>
           );
         })}

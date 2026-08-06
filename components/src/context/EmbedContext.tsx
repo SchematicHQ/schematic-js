@@ -7,6 +7,8 @@ import {
   type CheckoutUnsubscribeResponse,
   type DeletePaymentMethodResponse,
   type FetchCustomerBalanceResponse,
+  type GetCreditUsageByUserResponse,
+  type GetFeatureUsageByUserResponse,
   type GetSetupIntentResponse,
   type HydrateUpcomingInvoiceResponse,
   type ListInvoicesResponse,
@@ -42,6 +44,14 @@ export interface EmbedContextProps extends EmbedState {
   ) => DebouncedApiPromise<HydrateUpcomingInvoiceResponse>;
   getCustomerBalance: () => DebouncedApiPromise<FetchCustomerBalanceResponse>;
   listInvoices: () => DebouncedApiPromise<ListInvoicesResponse>;
+  getCreditUsageByUser: (
+    billingCreditId: string,
+    limit?: number,
+  ) => DebouncedApiPromise<GetCreditUsageByUserResponse>;
+  getFeatureUsageByUser: (
+    featureId: string,
+    limit?: number,
+  ) => DebouncedApiPromise<GetFeatureUsageByUserResponse>;
   createSetupIntent: () => DebouncedApiPromise<GetSetupIntentResponse>;
   updatePaymentMethod: (
     paymentMethodId: string,
@@ -88,6 +98,8 @@ export const initialContext = {
   getUpcomingInvoice: stub,
   getCustomerBalance: stub,
   listInvoices: stub,
+  getCreditUsageByUser: stub,
+  getFeatureUsageByUser: stub,
   createSetupIntent: stub,
   updatePaymentMethod: stub,
   deletePaymentMethod: stub,

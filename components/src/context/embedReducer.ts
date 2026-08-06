@@ -61,20 +61,28 @@ type EmbedAction =
   | { type: "SET_CURRENCY_FILTER"; currencyFilter?: string[] }
   | { type: "SET_CHECKOUT_PREFILL"; checkoutPrefill?: CheckoutPrefill };
 
+// Fields a public-plans payload lacks and a company-context one carries. Spread
+// under each plan so a payload that already has them keeps its own values.
+const companyPlanDefaults = {
+  companyCanTrial: false,
+  current: false,
+  usageViolations: [],
+  valid: true,
+};
+
+// normalize widens either hydrate payload into the company-context shape by
+// filling the fields the public one omits. The assertion is load-bearing:
+// HydrateData is a union, and merge's inferred intersection keeps the public
+// arm's plan types, which TypeScript can't see are widened by the defaults
+// above.
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
   return merge({}, data, {
     activePlans: data?.activePlans.map((plan) => ({
-      companyCanTrial: false,
-      current: false,
-      valid: true,
-      usageViolations: [],
+      ...companyPlanDefaults,
       ...plan,
     })),
     activeAddOns: data?.activeAddOns.map((plan) => ({
-      companyCanTrial: false,
-      current: false,
-      valid: true,
-      usageViolations: [],
+      ...companyPlanDefaults,
       ...plan,
     })),
     activeUsageBasedEntitlements: [],
@@ -89,7 +97,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
     creditGrants: [],
     customCheckoutFields: [],
     preventSelfServiceDowngrade: false,
-  });
+  }) as HydrateDataWithCompanyContext;
 }
 
 export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {

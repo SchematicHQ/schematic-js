@@ -506,6 +506,40 @@ export const EmbedProvider = ({
     [listInvoices],
   );
 
+  const getCreditUsageByUser = useCallback(
+    async (billingCreditId: string, limit?: number) => {
+      return checkoutApi?.getCreditUsageByUser({ billingCreditId, limit });
+    },
+    [checkoutApi],
+  );
+
+  const debouncedGetCreditUsageByUser = useMemo(
+    () =>
+      debounce(
+        getCreditUsageByUser,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [getCreditUsageByUser],
+  );
+
+  const getFeatureUsageByUser = useCallback(
+    async (featureId: string, limit?: number) => {
+      return checkoutApi?.getFeatureUsageByUser({ featureId, limit });
+    },
+    [checkoutApi],
+  );
+
+  const debouncedGetFeatureUsageByUser = useMemo(
+    () =>
+      debounce(
+        getFeatureUsageByUser,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [getFeatureUsageByUser],
+  );
+
   // components
   const setError = useCallback(
     (error: Error) => {
@@ -688,6 +722,8 @@ export const EmbedProvider = ({
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
+        getCreditUsageByUser: debouncedGetCreditUsageByUser,
+        getFeatureUsageByUser: debouncedGetFeatureUsageByUser,
         finishCheckout,
         setError,
         setAccessToken,
