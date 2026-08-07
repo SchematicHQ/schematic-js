@@ -164,15 +164,25 @@ const nonEmpty = (value: string | null | undefined): string | undefined =>
 
 /**
  * Groups individual credit grants by the credit they draw from, with summed
- * totals — the shape a credit-usage view renders. Exhausted/zeroed-out grants
- * are included in the per-grant list but their remaining quantity is already 0.
+ * totals — the shape a credit-usage view renders. Grants that are no longer
+ * spendable (past their expiry, or zeroed out) are dropped entirely rather
+ * than counted toward the totals, so a lapsed grant is never shown as
+ * remaining balance the customer cannot actually use.
  */
 export function groupCreditGrants(
   grants: CreditCompanyGrantView[],
 ): CreditGroup[] {
   const groups = new Map<string, CreditGroup>();
+  const now = Date.now();
 
   for (const grant of grants) {
+    const expiresAt = grant.expiresAt?.getTime();
+    const isExpired = expiresAt !== undefined && expiresAt <= now;
+    const isZeroedOut = grant.zeroedOutDate != null;
+    if (isExpired || isZeroedOut) {
+      continue;
+    }
+
     let group = groups.get(grant.billingCreditId);
     if (group === undefined) {
       group = {

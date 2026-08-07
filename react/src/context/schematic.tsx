@@ -12,11 +12,12 @@ type BaseSchematicProviderProps = Omit<
    * Temporary access token (token_...) or async provider for one, enabling
    * the company-scoped customer APIs (useSubscription, useInvoices,
    * company-mode useCatalog). Unlike other provider props, this is reactive:
-   * passing a new value (or a new provider identity, e.g. when the active
-   * company changes) swaps the token and drops all company-scoped cached
-   * data. Memoize function values (useCallback keyed on the active company) —
-   * every new function identity is treated as a company switch and resets
-   * cached data. Ignored when `customerClient` is provided.
+   * passing a new value swaps the token, and company-scoped cached data is
+   * dropped when the credential actually changes — so switching the active
+   * company refetches, while an unmemoized inline provider function does not.
+   * Memoizing function values (useCallback keyed on the active company) still
+   * avoids a redundant token mint per render. Ignored when `customerClient` is
+   * provided.
    */
   accessToken?: SchematicJS.AccessTokenInput;
   /**
@@ -76,12 +77,19 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
     });
   }, [providedClient]);
 
+  // An empty string is what an unset env var or the `session?.token ?? ""`
+  // idiom produces, and it means "not configured" rather than "this is my
+  // credential" — but SchematicCustomerClient rejects "" outright. Normalizing
+  // both credentials here keeps such apps rendering (with the customer APIs
+  // simply unavailable) instead of throwing out of the provider's render.
+  const resolvedAccessToken = accessToken === "" ? undefined : accessToken;
+
   // Latest-value ref so the customer-client memo below can read the current
   // token without depending on its identity: same-mode token swaps must not
   // rebuild the client (that would discard the public cache)
-  const accessTokenRef = useRef(accessToken);
-  accessTokenRef.current = accessToken;
-  const hasAccessToken = accessToken !== undefined;
+  const accessTokenRef = useRef(resolvedAccessToken);
+  accessTokenRef.current = resolvedAccessToken;
+  const hasAccessToken = resolvedAccessToken !== undefined;
 
   // The customer client rebuilds during render whenever the token MODE flips
   // (none<->token) or the key changes, so hooks mounting in the same commit
@@ -97,10 +105,12 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
     if (providedCustomerClient) {
       return providedCustomerClient;
     }
-    const resolvedPublishableKey = providedClient
+    const configuredPublishableKey = providedClient
       ? ((providedClient.publishableKey as string | undefined) ??
         publishableKey)
       : publishableKey;
+    const resolvedPublishableKey =
+      configuredPublishableKey === "" ? undefined : configuredPublishableKey;
     if (resolvedPublishableKey === undefined && !hasAccessToken) {
       // Nothing to authenticate the customer APIs with; hooks that need the
       // client raise a descriptive error instead
@@ -116,23 +126,24 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
 
   // Same-mode token swaps (company switches): swap the credential on the
   // client, which drops company-scoped cached data and refetches in mounted
-  // hooks. Mode transitions never reach setAccessToken — the memo above
-  // already rebuilt the client with the current token.
-  const previousAccessTokenRef = useRef(accessToken);
+  // hooks if the token it resolves to actually changed. Mode transitions never
+  // reach setAccessToken — the memo above already rebuilt the client with the
+  // current token.
+  const previousAccessTokenRef = useRef(resolvedAccessToken);
   useEffect(() => {
     const previous = previousAccessTokenRef.current;
-    if (previous === accessToken) {
+    if (previous === resolvedAccessToken) {
       return;
     }
-    previousAccessTokenRef.current = accessToken;
+    previousAccessTokenRef.current = resolvedAccessToken;
     if (
       providedCustomerClient === undefined &&
       previous !== undefined &&
-      accessToken !== undefined
+      resolvedAccessToken !== undefined
     ) {
-      customerClient?.setAccessToken(accessToken);
+      customerClient?.setAccessToken(resolvedAccessToken);
     }
-  }, [accessToken, customerClient, providedCustomerClient]);
+  }, [resolvedAccessToken, customerClient, providedCustomerClient]);
 
   useEffect(() => {
     // Clean up Schematic client (i.e., close websocket connection) when the

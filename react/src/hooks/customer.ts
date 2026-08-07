@@ -34,15 +34,48 @@ export function useResource<T>(
   return useMemo(
     () => ({
       data: state.data,
-      isPending:
-        state.isPending ||
-        (state.data === undefined && state.error === undefined),
+      // isIdle rather than "no data and no error": a fetch can legitimately
+      // succeed with an undefined value, and inferring pending from emptiness
+      // would leave those consumers on a spinner forever.
+      isPending: state.isPending || state.isIdle,
       isRefetching: state.isRefetching,
       error: state.error,
       refetch: resource.refetch,
     }),
     [state, resource],
   );
+}
+
+/**
+ * Resources for getters that threw, keyed by message so a given failure keeps
+ * one stable store identity across renders (useSyncExternalStore requires it).
+ */
+const unavailableResources = new Map<string, SchematicJS.Resource<never>>();
+
+/**
+ * Resolves a resource the client may refuse to hand out. The customer client
+ * throws when it lacks the credential a resource needs, and that happens
+ * mid-render in ordinary flows — clearing the accessToken prop on logout or a
+ * company deselect rebuilds a token-less client while company-scoped hooks are
+ * still mounted. Converting the throw into a resource that reports the error
+ * surfaces it through the hook's `error` field instead of taking the tree down.
+ */
+function resolveResource<T>(
+  get: () => SchematicJS.Resource<T>,
+): SchematicJS.Resource<T> {
+  try {
+    return get();
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause);
+    let resource = unavailableResources.get(message);
+    if (resource === undefined) {
+      resource = new SchematicJS.Resource<never>(() =>
+        Promise.reject(new Error(message)),
+      );
+      unavailableResources.set(message, resource);
+    }
+    return resource as unknown as SchematicJS.Resource<T>;
+  }
 }
 
 export interface SchematicCustomerHookOpts {
@@ -90,8 +123,8 @@ export function useSubscription(
 ): SchematicHookResult<SchematicJS.CustomerSubscription> {
   const client = useSchematicCustomerClient(opts);
   // client.hydrate throws with a descriptive message when the client has no
-  // access-token mode; surfacing that at render time is intentional.
-  const result = useResource(client.hydrate);
+  // access-token mode; that surfaces as this hook's `error`.
+  const result = useResource(resolveResource(() => client.hydrate));
 
   const data = useMemo(
     () =>
@@ -126,10 +159,10 @@ export function useCatalog(
         : "public"
       : opts.mode;
 
-  const resource: SchematicJS.Resource<
+  const resource = resolveResource<
     | SchematicJS.ComponentHydrateResponseData
     | SchematicJS.PublicPlansResponseData
-  > = mode === "company" ? client.hydrate : client.publicPlans;
+  >(() => (mode === "company" ? client.hydrate : client.publicPlans));
   const result = useResource(resource);
 
   const data = useMemo(() => {
@@ -164,6 +197,8 @@ export function useInvoices(
 ): SchematicHookResult<SchematicJS.InvoiceResponseData[]> {
   const client = useSchematicCustomerClient(opts);
   return useResource(
-    client.invoices({ limit: opts?.limit, offset: opts?.offset }),
+    resolveResource(() =>
+      client.invoices({ limit: opts?.limit, offset: opts?.offset }),
+    ),
   );
 }

@@ -169,13 +169,6 @@ export function periodName(
   return PERIOD_NAMES[period];
 }
 
-export function pluralize(word: string, count: number): string {
-  if (count === 1) {
-    return word;
-  }
-  return word.endsWith("s") ? word : `${word}s`;
-}
-
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }

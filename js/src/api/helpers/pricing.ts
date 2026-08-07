@@ -286,18 +286,21 @@ export function getEntitlementCost(
       if (overageTier === undefined) {
         return undefined;
       }
-      let cost = overageTier.flatAmount ?? 0;
+      // Nothing is owed until usage passes the included allotment — the
+      // overage tier's flat amount is part of the overage charge, not a
+      // standing fee, so it must not be billed to a customer under the limit.
+      const amount = Math.max(
+        0,
+        entitlement.usage - (entitlement.softLimit ?? 0),
+      );
+      if (amount === 0) {
+        return undefined;
+      }
       // Prefer the decimal rate: sub-cent overage prices come through with
       // perUnitPrice rounded to 0 and the real rate only in the decimal.
-      const perUnitPrice = getTierUnitPrice(overageTier);
-      if (perUnitPrice !== 0) {
-        const amount = Math.max(
-          0,
-          entitlement.usage - (entitlement.softLimit ?? 0),
-        );
-        cost += amount * perUnitPrice;
-      }
-      return cost;
+      return (
+        (overageTier.flatAmount ?? 0) + amount * getTierUnitPrice(overageTier)
+      );
     }
     case EntitlementPriceBehavior.Tier: {
       if (
