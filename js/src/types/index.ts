@@ -4,6 +4,8 @@ import {
   DatastreamCompanyPlanFromJSON,
 } from "./api/models";
 import { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
+import { MetricPeriod } from "./api/models/MetricPeriod";
+import { RuleType } from "./api/models/RuleType";
 import { type TrialStatus } from "./api/models/TrialStatus";
 
 export type EventType = "identify" | "track" | "flag_check";
@@ -54,30 +56,6 @@ export type Event = {
   next_retry_at?: number;
 };
 
-export enum RuleType {
-  /** A global rule that, if present, will override all other rules for a flag */
-  GLOBAL_OVERRIDE = "global_override",
-  /** Rule type indicating feature access provisioned to a company via an override */
-  COMPANY_OVERRIDE = "company_override",
-  /** Rule type indicating that feature access has been provisione to a company via an override, but the usage limit has been reached or exceeded */
-  COMPANY_OVERRIDE_USAGE_EXCEEDED = "company_override_usage_exceeded",
-  /** Rule type indicating feature access provisioned to a company via its base plan or add-ons */
-  PLAN_ENTITLEMENT = "plan_entitlement",
-  /** Rule type indicating that feature access has been provisione to a company via base plan or add-ons, but the usage limit has been reached or exceeded */
-  PLAN_ENTITLEMENT_USAGE_EXCEEDED = "plan_entitlement_usage_exceeded",
-  /** General-purpose targeting rule */
-  STANDARD = "standard",
-  /** Default rule type that will be used if no other rules are matched */
-  DEFAULT = "default",
-}
-
-export enum UsagePeriod {
-  ALL_TIME = "all_time",
-  CURRENT_DAY = "current_day",
-  CURRENT_MONTH = "current_month",
-  CURRENT_WEEK = "current_week",
-}
-
 export type CheckFlagReturn = {
   /** The company has access to the feature, but has exceeded the usage limit */
   featureUsageExceeded?: boolean;
@@ -100,7 +78,7 @@ export type CheckFlagReturn = {
   /** Event representing the feature usage */
   featureUsageEvent?: string;
   /** For event-based feature entitlement rules, the period over which usage is tracked (current_month, current_day, current_week, all_time) */
-  featureUsagePeriod?: UsagePeriod;
+  featureUsagePeriod?: MetricPeriod;
   /** For event-based feature entitlement rules, when the usage period will reset */
   featureUsageResetAt?: Date;
   /** The key used to check the flag */
@@ -263,8 +241,8 @@ export const CheckFlagReturnFromJSON = (
 
   const featureUsageExceeded =
     !value && // if flag is not false, then we haven't exceeded usage
-    (ruleType == RuleType.COMPANY_OVERRIDE_USAGE_EXCEEDED || // if the rule type is one of these, then we have exceeded usage
-      ruleType == RuleType.PLAN_ENTITLEMENT_USAGE_EXCEEDED);
+    (ruleType == RuleType.CompanyOverrideUsageExceeded || // if the rule type is one of these, then we have exceeded usage
+      ruleType == RuleType.PlanEntitlementUsageExceeded);
 
   // Prefer entitlement object fields over deprecated flat fields
   const resolvedAllocation = entitlement?.allocation ?? featureAllocation;
@@ -296,7 +274,7 @@ export const CheckFlagReturnFromJSON = (
     featureUsage: resolvedUsage == null ? undefined : resolvedUsage,
     featureUsageEvent: resolvedEvent == null ? undefined : resolvedEvent,
     featureUsagePeriod:
-      resolvedPeriod == null ? undefined : (resolvedPeriod as UsagePeriod),
+      resolvedPeriod == null ? undefined : (resolvedPeriod as MetricPeriod),
     featureUsageResetAt:
       resolvedResetAt == null ? undefined : resolvedResetAt,
     flag,
@@ -366,4 +344,6 @@ export { CheckFlagResponseFromJSON } from "./api/models/CheckFlagResponse";
 export type { CompanyCreditBalance } from "./api/models/CompanyCreditBalance";
 export { CheckFlagsResponseFromJSON } from "./api/models/CheckFlagsResponse";
 export { DatastreamCompanyPlanFromJSON } from "./api/models/DatastreamCompanyPlan";
+export { MetricPeriod } from "./api/models/MetricPeriod";
+export { RuleType } from "./api/models/RuleType";
 export { TrialStatus } from "./api/models/TrialStatus";
