@@ -8,7 +8,7 @@ import {
   FeatureType,
   type FeatureUsageResponseData,
 } from "../../../api/checkoutexternal";
-import { TEXT_BASE_SIZE } from "../../../const";
+import { TEXT_BASE_SIZE, VISIBLE_CREDIT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -17,6 +17,7 @@ import {
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
+  aggregateActiveGrantsByCredit,
   entitlementHasHardLimit,
   formatConsumptionRate,
   formatCurrency,
@@ -25,13 +26,12 @@ import {
   getFeatureName,
   getSubscriptionPeriod,
   getUsageDetails,
-  groupCreditGrants,
   modifyDate,
   toPrettyDate,
   type UsageDetails,
 } from "../../../utils";
 import { Element } from "../../layout";
-import { HardLimitTooltip } from "../../shared";
+import { ExpandListToggle, HardLimitTooltip } from "../../shared";
 import {
   Box,
   Button,
@@ -233,7 +233,7 @@ export const MeteredFeatures = forwardRef<
   }, [props.visibleFeatures, data?.featureUsage?.features]);
 
   const creditGroups = useMemo(
-    () => groupCreditGrants(data?.creditGrants || [], { groupBy: "credit" }),
+    () => aggregateActiveGrantsByCredit(data?.creditGrants || []),
     [data?.creditGrants],
   );
 
@@ -249,6 +249,24 @@ export const MeteredFeatures = forwardRef<
     () => new Set(),
   );
 
+  // Within an open balance details panel, the grant ledger itself is truncated
+  // until the user asks for the full list.
+  const [fullLedgerCreditIds, setFullLedgerCreditIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+
+  const toggleFullLedger = useCallback((id: string) => {
+    setFullLedgerCreditIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
   const toggleBalanceDetails = useCallback((id: string) => {
     setExpandedCreditIds((prev) => {
       const next = new Set(prev);
@@ -257,6 +275,19 @@ export const MeteredFeatures = forwardRef<
       } else {
         next.add(id);
       }
+      return next;
+    });
+
+    // Closing the panel resets its ledger, so reopening always starts
+    // summarized rather than reinstating a full list the user expanded and
+    // forgot about.
+    setFullLedgerCreditIds((prev) => {
+      if (!prev.has(id)) {
+        return prev;
+      }
+
+      const next = new Set(prev);
+      next.delete(id);
       return next;
     });
   }, []);
@@ -408,6 +439,19 @@ export const MeteredFeatures = forwardRef<
         creditGroups.map((credit, index) => {
           const isExpanded = expandedCreditIds.has(credit.id);
 
+          const showAllGrants = fullLedgerCreditIds.has(credit.id);
+          const canExpandLedger = credit.grants.length > VISIBLE_CREDIT_COUNT;
+          const visibleGrants = showAllGrants
+            ? credit.grants
+            : credit.grants.slice(0, VISIBLE_CREDIT_COUNT);
+
+          const paddingX = settings.theme.card.padding / TEXT_BASE_SIZE;
+          // The first row carries the panel's top padding; every other row
+          // carries its own bottom padding, so the last row is what gives the
+          // panel its bottom padding.
+          const getRowPadding = (rowIndex: number) =>
+            rowIndex === 0 ? `1rem ${paddingX}rem` : `0 ${paddingX}rem 1rem`;
+
           return (
             <Element key={index} as={Flex} $flexDirection="column" $gap="1rem">
               <Flex $gap="1.5rem">
@@ -487,13 +531,8 @@ export const MeteredFeatures = forwardRef<
                   }
                   $isExpanded={isExpanded}
                 >
-                  {credit.grants.map((grant, index) => {
-                    const paddingX =
-                      settings.theme.card.padding / TEXT_BASE_SIZE;
-                    const padding =
-                      index > 0
-                        ? `0 ${paddingX}rem 1rem`
-                        : `1rem ${paddingX}rem`;
+                  {visibleGrants.map((grant, index) => {
+                    const padding = getRowPadding(index);
 
                     return (
                       <Box key={grant.id} $display="table-row">
@@ -608,6 +647,26 @@ export const MeteredFeatures = forwardRef<
                       </Box>
                     );
                   })}
+
+                  {canExpandLedger && (
+                    <Box $display="table-row">
+                      <Box $display="table-cell" $padding={getRowPadding(1)}>
+                        <ExpandListToggle
+                          isExpanded={showAllGrants}
+                          onToggle={() => toggleFullLedger(credit.id)}
+                          total={credit.grants.length}
+                          iconColor={
+                            isLightBackground
+                              ? "hsla(0, 0%, 0%, 0.8)"
+                              : "hsla(0, 0%, 100%, 0.4)"
+                          }
+                        />
+                      </Box>
+
+                      {/* keeps the two-column anonymous table intact */}
+                      <Box $display="table-cell" $padding={getRowPadding(1)} />
+                    </Box>
+                  )}
                 </TransitionBox>
               </Box>
 
