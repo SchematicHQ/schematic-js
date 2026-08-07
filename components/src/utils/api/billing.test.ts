@@ -1,16 +1,22 @@
 import type {
   BillingPriceView,
   EntitlementCurrencyPricesResponseData,
+  FeatureUsageResponseData,
   PlanEntitlementResponseData,
 } from "../../api/checkoutexternal";
 import {
   EntitlementPriceBehavior,
+  EntitlementType,
   EntitlementValueType,
 } from "../../api/checkoutexternal";
 
 import type { Plan } from "../../types";
 
-import { getEntitlementPrice, planOffersCurrencyForPeriod } from "./billing";
+import {
+  getEntitlementCost,
+  getEntitlementPrice,
+  planOffersCurrencyForPeriod,
+} from "./billing";
 
 // Minimal plan priced monthly+yearly in USD (legacy fields) but only yearly in
 // EUR (currencyPrices). Exercises the silent-fallback path getPlanPrice takes
@@ -189,6 +195,53 @@ describe("getEntitlementPrice", () => {
 
       const result = getEntitlementPrice(entitlement, "quarter", "USD");
       expect(result?.price).toBe(27);
+    });
+  });
+});
+
+// getEntitlementCost reads a usage record, not a plan entitlement.
+function makeOverageUsage(
+  overrides: Partial<FeatureUsageResponseData> = {},
+): FeatureUsageResponseData {
+  return {
+    access: true,
+    allocationType: EntitlementValueType.Numeric,
+    entitlementId: "ent-1",
+    entitlementType: EntitlementType.PlanEntitlement,
+    priceBehavior: EntitlementPriceBehavior.Overage,
+    softLimit: 100,
+    monthlyUsageBasedPrice: {
+      price: 0,
+      currency: "USD",
+      priceTier: [
+        { upTo: 100, perUnitPrice: 0 },
+        { upTo: null, perUnitPrice: 10, flatAmount: 500 },
+      ],
+    },
+    ...overrides,
+  } as unknown as FeatureUsageResponseData;
+}
+
+describe("getEntitlementCost", () => {
+  describe("Overage", () => {
+    it("charges the flat amount plus the per-unit rate once usage exceeds the soft limit", () => {
+      expect(
+        getEntitlementCost(makeOverageUsage({ usage: 150 }), "month"),
+      ).toBe(500 + 50 * 10);
+    });
+
+    it("charges nothing while usage is inside the included allotment", () => {
+      // The overage tier's flat amount applies to the overage, not to merely
+      // being on the plan: at 50 of 100 included units nothing is owed.
+      expect(
+        getEntitlementCost(makeOverageUsage({ usage: 50 }), "month"),
+      ).toBeUndefined();
+    });
+
+    it("charges nothing exactly at the soft limit", () => {
+      expect(
+        getEntitlementCost(makeOverageUsage({ usage: 100 }), "month"),
+      ).toBeUndefined();
     });
   });
 });

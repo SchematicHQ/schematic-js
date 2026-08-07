@@ -408,6 +408,17 @@ export function getEntitlementCost(
         return;
       }
 
+      // Nothing is owed until usage passes the included allotment. The overage
+      // tier's flat amount is part of the overage charge, not a standing fee,
+      // so a customer still inside their soft limit must not be billed it.
+      const amount = Math.max(
+        0,
+        entitlement.usage - (entitlement.softLimit ?? 0),
+      );
+      if (amount === 0) {
+        return;
+      }
+
       let cost = 0;
 
       if (overagePriceTier.flatAmount) {
@@ -415,10 +426,6 @@ export function getEntitlementCost(
       }
 
       if (overagePriceTier.perUnitPrice) {
-        const amount = Math.max(
-          0,
-          entitlement.usage - (entitlement.softLimit ?? 0),
-        );
         cost += amount * overagePriceTier.perUnitPrice;
       }
 
