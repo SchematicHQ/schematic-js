@@ -113,6 +113,26 @@ describe("getEntitlementCost — overage", () => {
 
     expect(getEntitlementCost(feature, "month")).toBe(500 + 50 * 10);
   });
+
+  it("charges nothing while usage is inside the included allotment", () => {
+    // The overage tier's flat amount applies to the overage, not to merely
+    // being on the plan: at 50 of 100 included units nothing is owed.
+    const feature = entitlement({
+      priceBehavior: EntitlementPriceBehavior.Overage,
+      usage: 50,
+      softLimit: 100,
+      monthlyUsageBasedPrice: {
+        price: 0,
+        currency: "usd",
+        priceTier: [
+          tier({ upTo: 100 }),
+          tier({ perUnitPrice: 10, flatAmount: 500 }),
+        ],
+      },
+    });
+
+    expect(getEntitlementCost(feature, "month")).toBeUndefined();
+  });
 });
 
 describe("getEntitlementPrice — tiered realignment", () => {

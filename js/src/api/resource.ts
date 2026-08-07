@@ -9,6 +9,14 @@
 export type ResourceState<T> = Readonly<{
   data: T | undefined;
   error: Error | undefined;
+  /**
+   * Nothing has been fetched yet (or the resource was reset): `data` and
+   * `error` are both empty because no fetch has resolved, not because a fetch
+   * resolved empty. Consumers showing a first-paint loading state should treat
+   * this like `isPending` rather than inferring it from empty data — a fetch
+   * can legitimately succeed with an undefined value.
+   */
+  isIdle: boolean;
   /** A fetch is in flight and there is no data yet. */
   isPending: boolean;
   /** A fetch is in flight but previous data is still available. */
@@ -18,6 +26,7 @@ export type ResourceState<T> = Readonly<{
 const IDLE_STATE: ResourceState<never> = Object.freeze({
   data: undefined,
   error: undefined,
+  isIdle: true,
   isPending: false,
   isRefetching: false,
 });
@@ -146,6 +155,7 @@ export class Resource<T> {
     this.setState({
       data: this.state.data,
       error: undefined,
+      isIdle: false,
       isPending: this.state.data === undefined,
       isRefetching: this.state.data !== undefined,
     });
@@ -159,6 +169,7 @@ export class Resource<T> {
         this.setState({
           data,
           error: undefined,
+          isIdle: false,
           isPending: false,
           isRefetching: false,
         });
@@ -174,6 +185,7 @@ export class Resource<T> {
         this.setState({
           data: this.state.data,
           error,
+          isIdle: false,
           isPending: false,
           isRefetching: false,
         });

@@ -129,6 +129,18 @@ export class TokenManager {
   }
 
   /**
+   * The token this manager last resolved, without resolving one. Lets a caller
+   * holding an outgoing manager compare credentials against its replacement —
+   * undefined means nothing has been resolved yet, not that there is no token.
+   */
+  get resolvedToken(): string | undefined {
+    if (typeof this.input === "string") {
+      return this.input;
+    }
+    return this.cached?.token;
+  }
+
+  /**
    * Returns a valid token, resolving through the consumer callback if there is
    * no cached token or the cached one is within the refresh buffer of expiry.
    * Concurrent callers share a single in-flight resolution.

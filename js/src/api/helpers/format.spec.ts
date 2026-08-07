@@ -6,8 +6,8 @@ import {
   formatNumber,
   getDisplayPrice,
   periodSuffix,
-  pluralize,
 } from "./format";
+import { pluralize } from "./pluralize";
 import { calculateTieredCost, derivePeriod, getPriceValue } from "./pricing";
 
 describe("formatCurrency", () => {
@@ -74,6 +74,14 @@ describe("pluralize / formatNumber", () => {
     expect(pluralize("seat", 1)).toBe("seat");
     expect(pluralize("seat", 2)).toBe("seats");
     expect(formatNumber(1234567)).toBe("1,234,567");
+  });
+
+  it("handles words a naive trailing-s rule gets wrong", () => {
+    expect(pluralize("entry", 3)).toBe("entries");
+    expect(pluralize("policy", 2)).toBe("policies");
+    expect(pluralize("person", 5)).toBe("people");
+    expect(pluralize("analysis", 2)).toBe("analyses");
+    expect(pluralize("credits", 1)).toBe("credit");
   });
 });
 

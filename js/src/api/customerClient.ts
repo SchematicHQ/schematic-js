@@ -75,6 +75,8 @@ export class SchematicCustomerClient {
   readonly api: SchematicCustomerApi;
 
   private tokens?: TokenManager;
+  /** Incremented per setAccessToken call, so a slow swap cannot undo a newer one */
+  private accessTokenSwap = 0;
   private readonly refreshBufferMs?: number;
   private readonly catalogId?: string;
   private readonly resourceOptions: ResourceOptions;
@@ -292,12 +294,19 @@ export class SchematicCustomerClient {
 
   /**
    * Swap (or clear) the access token, e.g. when the active company changes.
-   * All company-scoped and escape-hatch resources are reset: their data is
-   * dropped immediately, in-flight responses under the old credential are
-   * discarded, and subscribed consumers refetch under the new one. When
-   * clearing, no refetch is triggered (it could only fail) — note that hooks
-   * still mounted against company-scoped resources will throw on their next
-   * render, so unmount them alongside (or before) clearing the token.
+   * When the credential actually changes, all company-scoped and escape-hatch
+   * resources are reset: their data is dropped, in-flight responses under the
+   * old credential are discarded, and subscribed consumers refetch under the
+   * new one. When clearing, no refetch is triggered (it could only fail) —
+   * note that hooks still mounted against company-scoped resources will then
+   * report an error, so unmount them alongside (or before) clearing the token.
+   *
+   * A provider callback carries no identity worth comparing — a caller that
+   * rebuilds the closure on every render (an inline `accessToken` prop) is not
+   * announcing a company switch — so the new provider is resolved and cached
+   * data is dropped only if the token it yields differs from the outgoing
+   * one. Resetting on the callback's identity instead would wipe and refetch
+   * every company-scoped resource on each re-render.
    */
   setAccessToken(input: AccessTokenInput | undefined): void {
     if (input === "") {
@@ -305,11 +314,53 @@ export class SchematicCustomerClient {
         "SchematicCustomerClient: accessToken must not be an empty string; pass a token, a provider callback, or undefined to clear.",
       );
     }
-    this.tokens =
-      input === undefined
-        ? undefined
-        : new TokenManager(input, { refreshBufferMs: this.refreshBufferMs });
-    const refetch = input !== undefined;
+
+    const previous = this.tokens;
+    // Guards the async comparison below against a later swap landing first
+    const swap = ++this.accessTokenSwap;
+
+    if (input === undefined) {
+      this.tokens = undefined;
+      this.resetCompanyScopedResources(false);
+      return;
+    }
+
+    const previousToken = previous?.resolvedToken;
+    this.tokens = new TokenManager(input, {
+      refreshBufferMs: this.refreshBufferMs,
+    });
+
+    if (previous === undefined || previousToken === undefined) {
+      // No outgoing credential to compare against; anything cached may have
+      // been fetched under different auth, so it cannot be trusted
+      this.resetCompanyScopedResources(true);
+      return;
+    }
+
+    if (typeof input === "string") {
+      if (input !== previousToken) {
+        this.resetCompanyScopedResources(true);
+      }
+      return;
+    }
+
+    void this.tokens.getToken().then(
+      (token) => {
+        if (swap === this.accessTokenSwap && token !== previousToken) {
+          this.resetCompanyScopedResources(true);
+        }
+      },
+      () => {
+        // The new provider failed; the cached data cannot be shown to be
+        // valid under it, so drop it and let subscribers surface the error
+        if (swap === this.accessTokenSwap) {
+          this.resetCompanyScopedResources(true);
+        }
+      },
+    );
+  }
+
+  private resetCompanyScopedResources(refetch: boolean): void {
     this.hydrateResource?.reset({ refetch });
     for (const resource of this.invoiceResources.values()) {
       resource.reset({ refetch });

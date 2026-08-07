@@ -195,6 +195,20 @@ describe("groupCreditGrants", () => {
     );
   });
 
+  it("drops expired and zeroed-out grants instead of counting them", () => {
+    const past = new Date(Date.now() - 30 * DAY).toISOString();
+    const future = new Date(Date.now() + 30 * DAY).toISOString();
+    const groups = groupCreditGrants([
+      grant({ expires_at: future }),
+      grant({ expires_at: past, quantity: 1000, quantity_remaining: 1000 }),
+      grant({ zeroed_out_date: past, quantity: 500, quantity_remaining: 500 }),
+    ]);
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0].total).toEqual({ value: 100, used: 60, remaining: 40 });
+    expect(groups[0].grants).toHaveLength(1);
+  });
+
   it("returns an empty list for no grants", () => {
     expect(groupCreditGrants([])).toEqual([]);
   });

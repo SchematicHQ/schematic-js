@@ -7,4 +7,5 @@
 
 export * from "./derive";
 export * from "./format";
+export * from "./pluralize";
 export * from "./pricing";

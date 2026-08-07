@@ -288,8 +288,11 @@ describe("SchematicCustomerClient", () => {
       expect(client.hydrate.getSnapshot().data).toBeDefined();
 
       client.setAccessToken(async () => "token_company_b");
-      // Old company's data must not survive the swap
-      expect(client.hydrate.getSnapshot().data).toBeUndefined();
+      // Old company's data must not survive the swap; the provider has to be
+      // resolved before the new token is known, so the drop lands async
+      await vi.waitFor(() =>
+        expect(client.hydrate.getSnapshot().data).toBeUndefined(),
+      );
 
       await client.hydrate.refetch();
       const headers = calls[calls.length - 1].init?.headers as Record<
@@ -297,6 +300,25 @@ describe("SchematicCustomerClient", () => {
         string
       >;
       expect(headers["X-Schematic-Api-Key"]).toBe("token_company_b");
+    });
+
+    it("keeps cached data when a new provider yields the same token", async () => {
+      const { client, calls } = makeClient(() =>
+        jsonResponse(envelope(makeWireHydrate())),
+      );
+
+      await client.hydrate.refetch();
+      const data = client.hydrate.getSnapshot().data;
+      expect(data).toBeDefined();
+      const before = calls.length;
+
+      // A re-rendered consumer passing a fresh inline closure is not
+      // announcing a company switch — same credential, so nothing is dropped
+      client.setAccessToken(async () => "token_fresh");
+      await vi.waitFor(() =>
+        expect(client.hydrate.getSnapshot().data).toBe(data),
+      );
+      expect(calls.length).toBe(before);
     });
 
     it("clears access-token mode when passed undefined", async () => {

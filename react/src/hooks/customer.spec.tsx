@@ -86,14 +86,16 @@ describe("useSubscription", () => {
     });
   });
 
-  it("throws a descriptive error on a public-only client", () => {
+  it("reports a descriptive error on a public-only client instead of throwing", async () => {
     const { client } = makeClient({
       publishableKey: "api_pub",
       withToken: false,
     });
-    expect(() => renderHook(() => useSubscription({ client }))).toThrow(
-      /getAccessToken/,
-    );
+    const { result } = renderHook(() => useSubscription({ client }));
+
+    await waitFor(() => expect(result.current.error).toBeDefined());
+    expect(result.current.error?.message).toMatch(/getAccessToken/);
+    expect(result.current.data).toBeUndefined();
   });
 });
 
@@ -242,6 +244,118 @@ describe("provider integration", () => {
         expect(screen.getByTestId("mode").textContent).toBe("public"),
       );
       expect(screen.queryByTestId("billing")).toBeNull();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("reports an error, not a crash, when the token clears under a mounted hook", async () => {
+    const { fetchFn } = makeFetch();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchFn;
+    try {
+      // Unlike the transition test above, the billing UI stays mounted across
+      // the logout — the common case when the consumer does not gate it on the
+      // token. That must surface through `error`, not throw out of render.
+      const BillingProbe = () => {
+        const subscription = useSubscription();
+        return (
+          <div data-testid="billing">
+            {subscription.error?.message ??
+              (subscription.data !== undefined ? "loaded" : "pending")}
+          </div>
+        );
+      };
+      const Screen = ({ token }: { token?: string }) => (
+        <SchematicProvider publishableKey="api_pub" accessToken={token}>
+          <BillingProbe />
+        </SchematicProvider>
+      );
+
+      const { rerender } = render(<Screen token="token_x" />);
+      await waitFor(() =>
+        expect(screen.getByTestId("billing").textContent).toBe("loaded"),
+      );
+
+      rerender(<Screen />);
+      await waitFor(() =>
+        expect(screen.getByTestId("billing").textContent).toMatch(
+          /getAccessToken/,
+        ),
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("tolerates empty-string credentials instead of throwing during render", async () => {
+    // `process.env.KEY ?? ""` and `session?.token ?? ""` are the idiomatic
+    // ways to keep these props typed as string; neither means "authenticate
+    // with the empty string".
+    expect(() =>
+      render(
+        <SchematicProvider publishableKey="" accessToken="">
+          <div data-testid="child">ok</div>
+        </SchematicProvider>,
+      ),
+    ).not.toThrow();
+    expect(screen.getByTestId("child").textContent).toBe("ok");
+
+    const { fetchFn } = makeFetch();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchFn;
+    try {
+      // An empty accessToken alongside a real key leaves the client in public
+      // mode rather than failing construction
+      const Probe = () => {
+        const catalog = useCatalog();
+        return <div data-testid="mode">{catalog.data?.mode ?? "pending"}</div>;
+      };
+      render(
+        <SchematicProvider publishableKey="api_pub" accessToken="">
+          <Probe />
+        </SchematicProvider>,
+      );
+      await waitFor(() =>
+        expect(screen.getByTestId("mode").textContent).toBe("public"),
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("does not wipe company data when an inline accessToken function is re-created", async () => {
+    const { fetchFn, calls } = makeFetch();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchFn;
+    try {
+      // The shape a consumer writes without memoizing: a new closure identity
+      // every render, yielding the same token
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <SchematicProvider
+          publishableKey="api_pub"
+          accessToken={async () => "token_x"}
+        >
+          {children}
+        </SchematicProvider>
+      );
+
+      const { result, rerender } = renderHook(() => useSubscription(), {
+        wrapper,
+      });
+      await waitFor(() => expect(result.current.data).toBeDefined());
+      const hydrateCalls = () =>
+        calls.filter((c) => c.url.includes("/components/hydrate"));
+      expect(hydrateCalls()).toHaveLength(1);
+
+      rerender();
+      rerender();
+      rerender();
+
+      // Same credential, so nothing is dropped and nothing is refetched
+      await waitFor(() => expect(hydrateCalls()).toHaveLength(1));
+      expect(result.current.data).toBeDefined();
+      expect(result.current.isPending).toBe(false);
     } finally {
       globalThis.fetch = originalFetch;
     }
