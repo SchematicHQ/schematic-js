@@ -78,6 +78,7 @@ models/CreditCurrencyPriceResponseData.ts
 models/CreditGrantDetail.ts
 models/CreditTransferView.ts
 models/CreditUsageAggregation.ts
+models/CreditUserUsageResponseData.ts
 models/CurrencyBalance.ts
 models/CustomPlanActivationStrategy.ts
 models/CustomPlanBillingResponseData.ts
@@ -105,11 +106,16 @@ models/FeatureResponseData.ts
 models/FeatureType.ts
 models/FeatureUsageDetailResponseData.ts
 models/FeatureUsageResponseData.ts
+models/FeatureUserUsageResponseData.ts
 models/FetchCustomerBalanceResponse.ts
 models/FlagInPlanResponseData.ts
 models/FlagResponseData.ts
 models/FlagType.ts
 models/GenericPreviewObject.ts
+models/GetCreditUsageByUserParams.ts
+models/GetCreditUsageByUserResponse.ts
+models/GetFeatureUsageByUserParams.ts
+models/GetFeatureUsageByUserResponse.ts
 models/GetSetupIntentResponse.ts
 models/HydrateComponentParams.ts
 models/HydrateComponentResponse.ts
@@ -168,6 +174,9 @@ models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
 models/UpdatePaymentMethodResponse.ts
 models/UsageBasedEntitlementResponseData.ts
+models/UserCreditUsageResponseData.ts
+models/UserFeatureUsageResponseData.ts
+models/UserResponseData.ts
 models/WarningTier.ts
 models/WarningTierResponseData.ts
 models/index.ts
