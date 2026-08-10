@@ -3,9 +3,7 @@ import {
   SchematicProvider,
   type SchematicProviderProps,
 } from "./context";
-import * as helpers from "./helpers";
 
-export { helpers };
 import {
   useCatalog,
   useInvoices,
