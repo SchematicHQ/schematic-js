@@ -27,6 +27,7 @@ import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
 import {
   initialState,
+  resolveSettings,
   type BypassConfig,
   type CheckoutPrefill,
   type CheckoutState,
@@ -113,9 +114,23 @@ export const EmbedProvider = ({
     [apiConfigKey],
   );
 
+  // Stabilize `settings` against inline object props (`settings={{ ... }}`, which
+  // is what the docs show): a new-but-equal reference on every parent render
+  // would otherwise re-fire the effect that applies it on each one.
+  const settingsKey = JSON.stringify(options.settings ?? null);
+  const stableSettings = useMemo(
+    () => options.settings,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on contents, not reference
+    [settingsKey],
+  );
+
   const [state, dispatch] = useReducer(reducer, options, (opts) => {
+    // Seed the consumer layer, not `settings` directly — otherwise the builder
+    // update that arrives after hydration would merge over the top of it.
+    const settingsOverrides = opts.settings || {};
     const providedState = {
-      settings: opts.settings || {},
+      settingsOverrides,
+      settings: resolveSettings({ ...initialState, settingsOverrides }),
       currencyFilter: normalizeCurrencyFilter(currencyFilter),
       warningThresholdConfig,
       checkoutPrefill: normalizeCheckoutPrefill(checkoutPrefill),
@@ -544,7 +559,24 @@ export const EmbedProvider = ({
       settings: DeepPartial<EmbedSettings> = {},
       options?: { update?: boolean },
     ) => {
-      dispatch({ type: "UPDATE_SETTINGS", settings, update: options?.update });
+      dispatch({
+        type: "UPDATE_SETTINGS",
+        settings,
+        update: options?.update,
+        source: "consumer",
+      });
+    },
+    [],
+  );
+
+  const setBuilderSettings = useCallback(
+    (settings: DeepPartial<EmbedSettings>) => {
+      dispatch({
+        type: "UPDATE_SETTINGS",
+        settings,
+        update: true,
+        source: "builder",
+      });
     },
     [],
   );
@@ -643,10 +675,10 @@ export const EmbedProvider = ({
   }, [styleRef, state.settings.theme.typography]);
 
   useEffect(() => {
-    if (options.settings) {
-      updateSettings(options.settings, { update: true });
+    if (stableSettings) {
+      updateSettings(stableSettings, { update: true });
     }
-  }, [options.settings, updateSettings]);
+  }, [stableSettings, updateSettings]);
 
   useEffect(() => {
     dispatch({
@@ -716,6 +748,7 @@ export const EmbedProvider = ({
         requestUnsubscribe,
         setData,
         updateSettings,
+        setBuilderSettings,
         debug,
       }}
     >

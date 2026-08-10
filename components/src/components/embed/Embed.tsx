@@ -69,7 +69,7 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
     hydrateComponent,
     setError,
     setAccessToken,
-    updateSettings,
+    setBuilderSettings,
   } = useEmbed();
 
   const compressedAst = data?.component?.ast;
@@ -127,9 +127,9 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
 
   useEffect(() => {
     if (parsedSettings) {
-      updateSettings(parsedSettings, { update: true });
+      setBuilderSettings(parsedSettings);
     }
-  }, [parsedSettings, updateSettings]);
+  }, [parsedSettings, setBuilderSettings]);
 
   useEffect(() => {
     if (parseError) {
