@@ -82,6 +82,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
       collectAddress: false,
       collectEmail: false,
       collectPhone: false,
+      collectTaxId: false,
       prorationBehavior: ProrationBehavior.CreateProrations,
       taxCollectionEnabled: false,
     },
