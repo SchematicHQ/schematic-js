@@ -47,6 +47,12 @@ export interface ComponentCheckoutSettings {
   collectPhone: boolean;
   /**
    *
+   * @type {boolean}
+   * @memberof ComponentCheckoutSettings
+   */
+  collectTaxId: boolean;
+  /**
+   *
    * @type {ProrationBehavior}
    * @memberof ComponentCheckoutSettings
    */
@@ -70,6 +76,8 @@ export function instanceOfComponentCheckoutSettings(
   if (!("collectEmail" in value) || value["collectEmail"] === undefined)
     return false;
   if (!("collectPhone" in value) || value["collectPhone"] === undefined)
+    return false;
+  if (!("collectTaxId" in value) || value["collectTaxId"] === undefined)
     return false;
   if (
     !("prorationBehavior" in value) ||
@@ -101,6 +109,7 @@ export function ComponentCheckoutSettingsFromJSONTyped(
     collectAddress: json["collect_address"],
     collectEmail: json["collect_email"],
     collectPhone: json["collect_phone"],
+    collectTaxId: json["collect_tax_id"],
     prorationBehavior: ProrationBehaviorFromJSON(json["proration_behavior"]),
     taxCollectionEnabled: json["tax_collection_enabled"],
   };
@@ -124,6 +133,7 @@ export function ComponentCheckoutSettingsToJSONTyped(
     collect_address: value["collectAddress"],
     collect_email: value["collectEmail"],
     collect_phone: value["collectPhone"],
+    collect_tax_id: value["collectTaxId"],
     proration_behavior: ProrationBehaviorToJSON(value["prorationBehavior"]),
     tax_collection_enabled: value["taxCollectionEnabled"],
   };
