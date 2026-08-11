@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { hasTaxIdValue, isStripeTestTaxId, toTaxIdInput } from "./taxIds";
+import {
+  hasTaxIdValue,
+  isStripeTestTaxId,
+  toTaxIdInput,
+  toTaxIdValues,
+} from "./taxIds";
 
 describe("isStripeTestTaxId", () => {
   // The predicate exists to suppress the "doesn't match the expected format"
@@ -48,5 +53,36 @@ describe("toTaxIdInput", () => {
   ])("returns undefined for an incomplete pair (%s)", (_label, values) => {
     expect(toTaxIdInput(values)).toBeUndefined();
     expect(hasTaxIdValue(values)).toBe(false);
+  });
+});
+
+describe("toTaxIdValues", () => {
+  it("seeds the form from a stored tax ID, uppercasing the country", () => {
+    expect(
+      toTaxIdValues({ country: "de", type: "eu_vat", value: "DE123456789" }),
+    ).toEqual({ country: "DE", type: "eu_vat", value: "DE123456789" });
+  });
+
+  it.each([
+    // A type outside the curated table (added directly in Stripe) cannot be
+    // represented by the picker; the form must start empty rather than hold a
+    // pair it cannot display or safely resubmit.
+    ["out-of-table type", { country: "DE", type: "de_stn", value: "123" }],
+    // A type/country mismatch likewise resolves to no jurisdiction.
+    ["country mismatch", { country: "US", type: "eu_vat", value: "DE123" }],
+  ])("leaves the form empty for a %s", (_label, stored) => {
+    expect(toTaxIdValues(stored)).toEqual({
+      country: "",
+      type: "",
+      value: "",
+    });
+  });
+
+  it("leaves the form empty when nothing is stored", () => {
+    expect(toTaxIdValues(undefined)).toEqual({
+      country: "",
+      type: "",
+      value: "",
+    });
   });
 });

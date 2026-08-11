@@ -7,6 +7,7 @@ import {
   type CheckoutUnsubscribeResponse,
   type DeletePaymentMethodResponse,
   type FetchCustomerBalanceResponse,
+  type GetCheckoutTaxIDResponse,
   type GetSetupIntentResponse,
   type HydrateUpcomingInvoiceResponse,
   type ListInvoicesResponse,
@@ -65,6 +66,7 @@ export interface EmbedContextProps extends EmbedState {
   updateTaxId: (
     taxId: TaxIDInput,
   ) => Promise<UpdateCheckoutTaxIDResponse | undefined>;
+  getTaxId: () => Promise<GetCheckoutTaxIDResponse | undefined>;
   setAccessToken: (token: string) => void;
   setError: (error: Error) => void;
   setLayout: (layout: EmbedLayout) => void;
@@ -101,6 +103,7 @@ export const initialContext = {
   unsubscribe: stub,
   updateCustomFieldValues: stub,
   updateTaxId: stub,
+  getTaxId: stub,
   setError: stub,
   setAccessToken: stub,
   setLayout: stub,

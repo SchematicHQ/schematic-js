@@ -475,6 +475,10 @@ export const EmbedProvider = ({
     [checkoutApi],
   );
 
+  const getTaxId = useCallback(async () => {
+    return checkoutApi?.getCheckoutTaxID();
+  }, [checkoutApi]);
+
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
       return checkoutApi?.hydrateUpcomingInvoice({
@@ -698,6 +702,7 @@ export const EmbedProvider = ({
         unsubscribe: debouncedUnsubscribe,
         updateCustomFieldValues,
         updateTaxId,
+        getTaxId,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,

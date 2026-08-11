@@ -1,4 +1,8 @@
-import type { TaxIDInput, TaxIdType } from "../api/checkoutexternal";
+import type {
+  CompanyTaxIDView,
+  TaxIDInput,
+  TaxIdType,
+} from "../api/checkoutexternal";
 
 /**
  * One tax-ID jurisdiction the picker offers: a country plus the Stripe tax-ID
@@ -407,6 +411,38 @@ export const toTaxIdInput = (taxId: TaxIdValues): TaxIDInput | undefined =>
         value: taxId.value.trim(),
       }
     : undefined;
+
+/**
+ * Resolves a stored tax ID back to its jurisdiction row so the form can
+ * preselect country and type. A stored ID from outside the curated table
+ * (added directly in Stripe, e.g. de_stn) resolves to undefined.
+ */
+export const findTaxIdJurisdiction = (
+  country: string,
+  stripeType: string,
+): TaxIdJurisdiction | undefined =>
+  TaxIdJurisdictions.find(
+    (j) => j.country === country.toUpperCase() && j.stripeType === stripeType,
+  );
+
+/**
+ * Seeds form values from a tax ID stored on the Stripe customer. Only an ID
+ * the picker can represent seeds the form; an out-of-table one leaves it
+ * empty, which is safe because an incomplete form never writes and there is
+ * no delete path.
+ */
+export const toTaxIdValues = (
+  taxId?: Pick<CompanyTaxIDView, "country" | "type" | "value"> | null,
+): TaxIdValues => {
+  if (!taxId || !findTaxIdJurisdiction(taxId.country, taxId.type)) {
+    return emptyTaxIdValues;
+  }
+  return {
+    country: taxId.country.toUpperCase(),
+    type: taxId.type,
+    value: taxId.value,
+  };
+};
 
 /**
  * Stripe's test-mode magic tax IDs for the verified types (verify / fail /

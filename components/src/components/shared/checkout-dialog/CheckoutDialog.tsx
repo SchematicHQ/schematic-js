@@ -59,6 +59,7 @@ import {
   planOffersCurrencyForPeriod,
   planSupportsCurrency,
   toTaxIdInput,
+  toTaxIdValues,
   type TaxIdValues,
 } from "../../../utils";
 import {
@@ -187,6 +188,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     currencyFilter,
     debug,
     updateTaxId,
+    getTaxId,
   } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
@@ -659,11 +661,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [],
   );
 
-  // The tax ID goes through the standalone POST /checkout/tax-id rather than
-  // the checkout body so it is on the Stripe customer before checkout
-  // confirms and tax previews reflect it (e.g. EU reverse charge). Hydrate
-  // does not expose an already-stored tax ID, so the form starts empty and an
-  // empty field never blocks checkout.
+  // The tax ID goes through the standalone GET/POST /checkout/tax-id rather
+  // than the hydrate/checkout bodies: reads cost a Stripe call so they only
+  // happen when the field shows, and the write is on the Stripe customer
+  // before checkout confirms so tax previews reflect it (e.g. EU reverse
+  // charge). An empty field never blocks checkout.
   const collectTaxId = data?.checkoutSettings.collectTaxId ?? false;
   const [taxIdValues, setTaxIdValues] =
     useState<TaxIdValues>(emptyTaxIdValues);
@@ -673,6 +675,42 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     key: string;
     promise: Promise<boolean>;
   } | null>(null);
+
+  // Prefill from the tax ID already on the Stripe customer (the first stored
+  // one, matching the admin app). Best-effort: on any failure the field just
+  // starts empty. The pristine check keeps a slow response from clobbering
+  // input the user has started typing, and the seeded pair is marked saved so
+  // an untouched form writes nothing at checkout.
+  useEffect(() => {
+    if (!collectTaxId) {
+      return;
+    }
+
+    let cancelled = false;
+    getTaxId()
+      .then((response) => {
+        if (cancelled) {
+          return;
+        }
+        const seeded = toTaxIdValues(response?.data.taxIds[0]);
+        const input = toTaxIdInput(seeded);
+        if (!input) {
+          return;
+        }
+        setTaxIdValues((prev) => {
+          if (prev.country || prev.type || prev.value.trim()) {
+            return prev;
+          }
+          lastSavedTaxIdRef.current = `${input.type}:${input.value}`;
+          return seeded;
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [collectTaxId, getTaxId]);
 
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
