@@ -151,6 +151,12 @@ export interface PlanCreditGrantView {
   billingCreditCanBuyBundles: boolean;
   /**
    *
+   * @type {number}
+   * @memberof PlanCreditGrantView
+   */
+  companyCreditAmount: number;
+  /**
+   *
    * @type {Date}
    * @memberof PlanCreditGrantView
    */
@@ -315,6 +321,11 @@ export function instanceOfPlanCreditGrantView(
     value["billingCreditCanBuyBundles"] === undefined
   )
     return false;
+  if (
+    !("companyCreditAmount" in value) ||
+    value["companyCreditAmount"] === undefined
+  )
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditAmount" in value) || value["creditAmount"] === undefined)
     return false;
@@ -393,6 +404,7 @@ export function PlanCreditGrantViewFromJSONTyped(
         ? undefined
         : json["billing_credit_auto_topup_threshold_percent"],
     billingCreditCanBuyBundles: json["billing_credit_can_buy_bundles"],
+    companyCreditAmount: json["company_credit_amount"],
     createdAt: new Date(json["created_at"]),
     credit:
       json["credit"] == null
@@ -476,6 +488,7 @@ export function PlanCreditGrantViewToJSONTyped(
     billing_credit_auto_topup_threshold_percent:
       value["billingCreditAutoTopupThresholdPercent"],
     billing_credit_can_buy_bundles: value["billingCreditCanBuyBundles"],
+    company_credit_amount: value["companyCreditAmount"],
     created_at: value["createdAt"].toISOString(),
     credit: BillingCreditViewToJSON(value["credit"]),
     credit_amount: value["creditAmount"],

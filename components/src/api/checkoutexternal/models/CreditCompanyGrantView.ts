@@ -92,6 +92,12 @@ export interface CreditCompanyGrantView {
    * @type {string}
    * @memberof CreditCompanyGrantView
    */
+  companyLicenseId?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
   companyName: string;
   /**
    *
@@ -165,6 +171,12 @@ export interface CreditCompanyGrantView {
    * @memberof CreditCompanyGrantView
    */
   id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
+  licenseName?: string | null;
   /**
    *
    * @type {string}
@@ -339,6 +351,10 @@ export function CreditCompanyGrantViewFromJSONTyped(
         : json["billing_credit_bundle_id"],
     billingCreditId: json["billing_credit_id"],
     companyId: json["company_id"],
+    companyLicenseId:
+      json["company_license_id"] == null
+        ? undefined
+        : json["company_license_id"],
     companyName: json["company_name"],
     createdAt: new Date(json["created_at"]),
     creditDescription: json["credit_description"],
@@ -361,6 +377,8 @@ export function CreditCompanyGrantViewFromJSONTyped(
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     grantReason: BillingCreditGrantReasonFromJSON(json["grant_reason"]),
     id: json["id"],
+    licenseName:
+      json["license_name"] == null ? undefined : json["license_name"],
     planId: json["plan_id"] == null ? undefined : json["plan_id"],
     planName: json["plan_name"] == null ? undefined : json["plan_name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
@@ -419,6 +437,7 @@ export function CreditCompanyGrantViewToJSONTyped(
     billing_credit_bundle_id: value["billingCreditBundleId"],
     billing_credit_id: value["billingCreditId"],
     company_id: value["companyId"],
+    company_license_id: value["companyLicenseId"],
     company_name: value["companyName"],
     created_at: value["createdAt"].toISOString(),
     credit_description: value["creditDescription"],
@@ -438,6 +457,7 @@ export function CreditCompanyGrantViewToJSONTyped(
     expiry_unit_count: value["expiryUnitCount"],
     grant_reason: BillingCreditGrantReasonToJSON(value["grantReason"]),
     id: value["id"],
+    license_name: value["licenseName"],
     plan_id: value["planId"],
     plan_name: value["planName"],
     plural_name: value["pluralName"],
