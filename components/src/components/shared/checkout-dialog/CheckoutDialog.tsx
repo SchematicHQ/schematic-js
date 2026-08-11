@@ -667,8 +667,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   // before checkout confirms so tax previews reflect it (e.g. EU reverse
   // charge). An empty field never blocks checkout.
   const collectTaxId = data?.checkoutSettings.collectTaxId ?? false;
-  const [taxIdValues, setTaxIdValues] =
-    useState<TaxIdValues>(emptyTaxIdValues);
+  const [taxIdValues, setTaxIdValues] = useState<TaxIdValues>(emptyTaxIdValues);
   const [taxIdError, setTaxIdError] = useState<string | undefined>();
   const lastSavedTaxIdRef = useRef<string | undefined>(undefined);
   const pendingTaxIdSaveRef = useRef<{
