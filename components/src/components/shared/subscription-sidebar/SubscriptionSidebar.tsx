@@ -294,6 +294,7 @@ export const SubscriptionSidebar = forwardRef<
 
     const {
       amountOff,
+      discountAmount,
       dueNow,
       newCharges,
       percentOff,
@@ -305,6 +306,10 @@ export const SubscriptionSidebar = forwardRef<
     } = useMemo(() => {
       return {
         amountOff: charges?.amountOff ?? 0,
+        // Read loosely until the prod OpenAPI spec includes discount_amount.
+        discountAmount:
+          (charges as { discountAmount?: number } | undefined)
+            ?.discountAmount ?? 0,
         dueNow: charges?.dueNow ?? 0,
         newCharges: charges?.newCharges ?? 0,
         percentOff: charges?.percentOff ?? 0,
@@ -1287,7 +1292,11 @@ export const SubscriptionSidebar = forwardRef<
               <Box>
                 <Text>
                   {formatCurrency(
-                    (newCharges / 100) * percentOff,
+                    // Prefer the discount Stripe applied; derive from
+                    // `percentOff` only for API responses that predate it.
+                    discountAmount > 0
+                      ? discountAmount
+                      : (newCharges / 100) * percentOff,
                     selectedPlanCurrency,
                   )}
                 </Text>
