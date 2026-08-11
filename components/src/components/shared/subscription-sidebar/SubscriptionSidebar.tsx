@@ -59,6 +59,12 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   creditBundles?: CreditBundle[];
   customFieldValues?: Record<string, string>;
   hasIncompleteRequiredCustomFields?: boolean;
+  /**
+   * Flushes an entered-but-unsaved tax ID before checkout. Resolves false
+   * when the write fails, in which case checkout must not proceed — the
+   * invoice would silently miss the tax ID the customer supplied.
+   */
+  ensureTaxIdSaved?: () => Promise<boolean>;
   isCreditOnlyPurchase?: boolean;
   usageBasedEntitlements: UsageBasedEntitlement[];
   addOnUsageBasedEntitlements?: UsageBasedEntitlement[];
@@ -102,6 +108,7 @@ export const SubscriptionSidebar = forwardRef<
       creditBundles = [],
       customFieldValues = {},
       hasIncompleteRequiredCustomFields = false,
+      ensureTaxIdSaved,
       isCreditOnlyPurchase = false,
       usageBasedEntitlements,
       addOnUsageBasedEntitlements = [],
@@ -502,6 +509,12 @@ export const SubscriptionSidebar = forwardRef<
         setError(undefined);
         setIsLoading(true);
 
+        if (ensureTaxIdSaved && !(await ensureTaxIdSaved())) {
+          setIsLoading(false);
+          setError(t("Tax ID save error"));
+          return;
+        }
+
         const autoTopupRequestBody = buildAutoTopupRequestBody({
           creditGrants: planCreditGrants,
           autoTopupConfigs,
@@ -645,6 +658,7 @@ export const SubscriptionSidebar = forwardRef<
       finishCheckout,
       currency,
       customFieldValues,
+      ensureTaxIdSaved,
     ]);
 
     const handleUnsubscribe = useCallback(async () => {

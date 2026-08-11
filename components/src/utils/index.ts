@@ -8,3 +8,4 @@ export * from "./markdown";
 export * from "./pluralize";
 export * from "./string";
 export * from "./style";
+export * from "./taxIds";
