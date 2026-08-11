@@ -46,6 +46,7 @@ import {
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
   deriveCreditBundles,
+  emptyTaxIdValues,
   filterCreditBundles,
   getAddOnPrice,
   getPlanPrice,
@@ -57,6 +58,9 @@ import {
   mergeCompanyGrants,
   planOffersCurrencyForPeriod,
   planSupportsCurrency,
+  toTaxIdInput,
+  toTaxIdValues,
+  type TaxIdValues,
 } from "../../../utils";
 import {
   CurrencyPeriodMismatchNotice,
@@ -183,6 +187,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     setLayout,
     currencyFilter,
     debug,
+    updateTaxId,
+    getTaxId,
   } = useEmbed();
 
   const isLightBackground = useIsLightBackground();
@@ -655,6 +661,57 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [],
   );
 
+  // The tax ID goes through the standalone GET/POST /checkout/tax-id rather
+  // than the hydrate/checkout bodies: reads cost a Stripe call so they only
+  // happen when the field shows, and the write is on the Stripe customer
+  // before checkout confirms so tax previews reflect it (e.g. EU reverse
+  // charge). An empty field never blocks checkout.
+  const collectTaxId = data?.checkoutSettings.collectTaxId ?? false;
+  const [taxIdValues, setTaxIdValues] =
+    useState<TaxIdValues>(emptyTaxIdValues);
+  const [taxIdError, setTaxIdError] = useState<string | undefined>();
+  const lastSavedTaxIdRef = useRef<string | undefined>(undefined);
+  const pendingTaxIdSaveRef = useRef<{
+    key: string;
+    promise: Promise<boolean>;
+  } | null>(null);
+
+  // Prefill from the tax ID already on the Stripe customer (the first stored
+  // one, matching the admin app). Best-effort: on any failure the field just
+  // starts empty. The pristine check keeps a slow response from clobbering
+  // input the user has started typing, and the seeded pair is marked saved so
+  // an untouched form writes nothing at checkout.
+  useEffect(() => {
+    if (!collectTaxId) {
+      return;
+    }
+
+    let cancelled = false;
+    getTaxId()
+      .then((response) => {
+        if (cancelled) {
+          return;
+        }
+        const seeded = toTaxIdValues(response?.data.taxIds[0]);
+        const input = toTaxIdInput(seeded);
+        if (!input) {
+          return;
+        }
+        setTaxIdValues((prev) => {
+          if (prev.country || prev.type || prev.value.trim()) {
+            return prev;
+          }
+          lastSavedTaxIdRef.current = `${input.type}:${input.value}`;
+          return seeded;
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [collectTaxId, getTaxId]);
+
   const [isPaymentMethodRequired, setIsPaymentMethodRequired] = useState(false);
 
   // Custom opt-in (mirrors isPaymentMethodRequired): the API returns these on the
@@ -693,9 +750,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     // that stage is never created (e.g. payment is not required), a required
     // field with no existing value would leave the purchase button permanently
     // disabled with no way to fill it. Track this so the stage is reachable
-    // whenever there are fields to collect.
+    // whenever there are fields to collect. The tax-ID field lives on the same
+    // stage, so it also needs the stage to exist.
     const hasCustomCheckoutFields =
-      (data?.customCheckoutFields ?? []).length > 0;
+      (data?.customCheckoutFields ?? []).length > 0 || collectTaxId;
 
     if (availablePlans.length > 0) {
       stages.push({
@@ -793,6 +851,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   }, [
     t,
     data?.customCheckoutFields,
+    collectTaxId,
     availablePlans,
     selectedPlan?.includedCreditGrants,
     willTrialWithoutPaymentMethod,
@@ -1187,6 +1246,48 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       debouncedPreviewCheckoutRef.current = null;
     };
   }, []);
+
+  // Runs on value-input blur and again as a flush right before checkout.
+  // Returns false only when the write fails, so checkout can stop instead of
+  // confirming without a tax ID the customer typed. Clicking the checkout
+  // button blurs the input, so the flush usually finds the blur save still in
+  // flight — it awaits that save rather than issuing a duplicate write.
+  const saveTaxId = useCallback(
+    async ({ refreshPreview = false } = {}): Promise<boolean> => {
+      const input = toTaxIdInput(taxIdValues);
+      if (!input) {
+        return true;
+      }
+
+      const key = `${input.type}:${input.value}`;
+      if (lastSavedTaxIdRef.current === key) {
+        return true;
+      }
+      if (pendingTaxIdSaveRef.current?.key === key) {
+        return pendingTaxIdSaveRef.current.promise;
+      }
+
+      const promise = (async () => {
+        try {
+          await updateTaxId(input);
+          lastSavedTaxIdRef.current = key;
+          setTaxIdError(undefined);
+          if (refreshPreview) {
+            debouncedPreviewCheckoutRef.current?.({});
+          }
+          return true;
+        } catch {
+          setTaxIdError(t("Tax ID save error"));
+          return false;
+        } finally {
+          pendingTaxIdSaveRef.current = null;
+        }
+      })();
+      pendingTaxIdSaveRef.current = { key, promise };
+      return promise;
+    },
+    [t, taxIdValues, updateTaxId],
+  );
 
   const debouncedPreviewCheckout = useCallback(
     (updates: PreviewCheckoutUpdates) => {
@@ -1927,10 +2028,15 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           ) : (
             effectiveCheckoutStage === "checkout" && (
               <Checkout
+                collectTaxId={collectTaxId}
                 customCheckoutFields={data?.customCheckoutFields}
                 customFieldValues={customFieldValues}
                 isPaymentMethodRequired={isPaymentMethodRequired}
                 onCustomFieldChange={handleCustomFieldChange}
+                taxIdValues={taxIdValues}
+                onTaxIdChange={setTaxIdValues}
+                onTaxIdBlur={() => void saveTaxId({ refreshPreview: true })}
+                taxIdError={taxIdError}
                 optInRequired={optInRequired}
                 optInTitle={optInTitle}
                 optInText={optInText}
@@ -1960,6 +2066,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           creditBundles={creditBundles}
           customFieldValues={customFieldValues}
           hasIncompleteRequiredCustomFields={hasIncompleteRequiredCustomFields}
+          ensureTaxIdSaved={saveTaxId}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
           charges={charges}
           checkoutStage={effectiveCheckoutStage}

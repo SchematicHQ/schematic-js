@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import type { PaymentMethodResponseData } from "../api/checkoutexternal";
+import type { HydrateDataWithCompanyContext } from "../types";
+
 import { reducer } from "./embedReducer";
 import type { BypassConfig } from "./embedState";
 import { initialState } from "./embedState";
@@ -493,6 +496,67 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
 
       expect(result.checkoutState?.promoCode).toBeUndefined();
     });
+  });
+});
+
+describe("embedReducer - normalize on already-hydrated data", () => {
+  // normalize() re-runs on hydrated state for payment-method and custom-field
+  // updates; its defaults must not override settings the server sent (saving
+  // a payment method once unmounted the tax-ID field this way).
+  it("keeps server checkout settings when a payment method is saved", () => {
+    const data = {
+      activePlans: [],
+      activeAddOns: [],
+      checkoutSettings: {
+        collectAddress: true,
+        collectEmail: true,
+        collectPhone: false,
+        collectTaxId: true,
+        prorationBehavior: "create_prorations",
+        taxCollectionEnabled: true,
+      },
+      customCheckoutFields: [],
+    } as unknown as HydrateDataWithCompanyContext;
+
+    const result = reducer(
+      { ...initialState, data },
+      {
+        type: "UPDATE_PAYMENT_METHOD",
+        paymentMethod: { id: "pm_123" } as PaymentMethodResponseData,
+      },
+    );
+
+    expect(result.data?.checkoutSettings).toMatchObject({
+      collectAddress: true,
+      collectEmail: true,
+      collectPhone: false,
+      collectTaxId: true,
+      taxCollectionEnabled: true,
+    });
+  });
+
+  it("still fills defaults for payloads without checkout settings", () => {
+    const data = {
+      activePlans: [],
+      activeAddOns: [],
+    } as unknown as HydrateDataWithCompanyContext;
+
+    const result = reducer(
+      { ...initialState, data },
+      {
+        type: "UPDATE_PAYMENT_METHOD",
+        paymentMethod: { id: "pm_123" } as PaymentMethodResponseData,
+      },
+    );
+
+    expect(result.data?.checkoutSettings).toMatchObject({
+      collectAddress: false,
+      collectEmail: false,
+      collectPhone: false,
+      collectTaxId: false,
+      taxCollectionEnabled: false,
+    });
+    expect(result.data?.customCheckoutFields).toEqual([]);
   });
 });
 

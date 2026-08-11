@@ -62,35 +62,46 @@ type EmbedAction =
   | { type: "SET_CHECKOUT_PREFILL"; checkoutPrefill?: CheckoutPrefill };
 
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
-  return merge({}, data, {
-    activePlans: data?.activePlans.map((plan) => ({
-      companyCanTrial: false,
-      current: false,
-      valid: true,
-      usageViolations: [],
-      ...plan,
-    })),
-    activeAddOns: data?.activeAddOns.map((plan) => ({
-      companyCanTrial: false,
-      current: false,
-      valid: true,
-      usageViolations: [],
-      ...plan,
-    })),
-    activeUsageBasedEntitlements: [],
-    checkoutSettings: {
-      collectAddress: false,
-      collectEmail: false,
-      collectPhone: false,
-      collectTaxId: false,
-      prorationBehavior: ProrationBehavior.CreateProrations,
-      taxCollectionEnabled: false,
+  // Later merge sources win, so the defaults must come before `data` to only
+  // fill fields the payload lacks (the public hydrate has no
+  // checkoutSettings). normalize also runs on already-hydrated state
+  // (payment-method and custom-field updates), where defaults-last would
+  // reset settings the server sent.
+  return merge(
+    {},
+    {
+      activeUsageBasedEntitlements: [],
+      checkoutSettings: {
+        collectAddress: false,
+        collectEmail: false,
+        collectPhone: false,
+        collectTaxId: false,
+        prorationBehavior: ProrationBehavior.CreateProrations,
+        taxCollectionEnabled: false,
+      },
+      creditBundles: [],
+      creditGrants: [],
+      customCheckoutFields: [],
+      preventSelfServiceDowngrade: false,
     },
-    creditBundles: [],
-    creditGrants: [],
-    customCheckoutFields: [],
-    preventSelfServiceDowngrade: false,
-  });
+    data,
+    {
+      activePlans: data?.activePlans.map((plan) => ({
+        companyCanTrial: false,
+        current: false,
+        valid: true,
+        usageViolations: [],
+        ...plan,
+      })),
+      activeAddOns: data?.activeAddOns.map((plan) => ({
+        companyCanTrial: false,
+        current: false,
+        valid: true,
+        usageViolations: [],
+        ...plan,
+      })),
+    },
+  );
 }
 
 export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {

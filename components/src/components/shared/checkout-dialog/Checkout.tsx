@@ -11,11 +11,12 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
-import { renderOptInMarkdown } from "../../../utils";
+import { renderOptInMarkdown, type TaxIdValues } from "../../../utils";
 import { PaymentMethodDetails } from "../../elements";
 import { Box, Checkbox, Flex, Input, Text } from "../../ui";
 
 import { CustomCheckoutFields } from "./CustomCheckoutFields";
+import { TaxIdField } from "./TaxIdField";
 
 interface ConfirmPaymentIntentProps {
   clientSecret: string;
@@ -23,10 +24,15 @@ interface ConfirmPaymentIntentProps {
 }
 
 interface CheckoutProps {
+  collectTaxId?: boolean;
   customCheckoutFields?: CheckoutFieldWithValue[];
   customFieldValues: Record<string, string>;
   isPaymentMethodRequired: boolean;
   onCustomFieldChange: (fieldId: string, value: string) => void;
+  taxIdValues?: TaxIdValues;
+  onTaxIdChange?: (value: TaxIdValues) => void;
+  onTaxIdBlur?: () => void;
+  taxIdError?: string;
   optInRequired: boolean;
   optInTitle?: string | null;
   optInText?: string | null;
@@ -50,10 +56,15 @@ interface CheckoutProps {
 }
 
 export const Checkout = ({
+  collectTaxId = false,
   customCheckoutFields,
   customFieldValues,
   isPaymentMethodRequired,
   onCustomFieldChange,
+  taxIdValues,
+  onTaxIdChange,
+  onTaxIdBlur,
+  taxIdError,
   optInRequired,
   optInTitle,
   optInText,
@@ -74,12 +85,18 @@ export const Checkout = ({
 
   const hasCustomFields =
     !!customCheckoutFields && customCheckoutFields.length > 0;
+  const showTaxId = collectTaxId && !!taxIdValues && !!onTaxIdChange;
 
   // The checkout stage can be reached without a payment method when the only
   // reason it exists is to collect custom checkout fields (e.g. a returning
-  // customer with a card already on file) or an agreement. Render nothing only
-  // when there is genuinely nothing to show.
-  if (!isPaymentMethodRequired && !hasCustomFields && !optInRequired) {
+  // customer with a card already on file), a tax ID, or an agreement. Render
+  // nothing only when there is genuinely nothing to show.
+  if (
+    !isPaymentMethodRequired &&
+    !hasCustomFields &&
+    !showTaxId &&
+    !optInRequired
+  ) {
     return null;
   }
 
@@ -156,6 +173,28 @@ export const Checkout = ({
             values={customFieldValues}
             onChange={onCustomFieldChange}
           />
+        </Flex>
+      )}
+
+      {showTaxId && (
+        <Flex $flexDirection="column" $gap="1.5rem">
+          <Box>
+            <Text display="heading4">{t("Tax ID")}</Text>
+          </Box>
+
+          <TaxIdField
+            value={taxIdValues}
+            onChange={onTaxIdChange}
+            onValueBlur={onTaxIdBlur}
+          />
+
+          {taxIdError && (
+            <Box>
+              <Text $weight={500} $color="#DB6669">
+                {taxIdError}
+              </Text>
+            </Box>
+          )}
         </Flex>
       )}
 

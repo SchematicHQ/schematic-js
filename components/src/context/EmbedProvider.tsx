@@ -13,6 +13,7 @@ import {
   type ChangeSubscriptionRequestBody,
   type CheckoutResponseData,
   type ConfigurationParameters,
+  type TaxIDInput,
 } from "../api/checkoutexternal";
 import {
   ComponentspublicApi,
@@ -463,6 +464,21 @@ export const EmbedProvider = ({
     [checkoutApi, state.data?.company?.id],
   );
 
+  // Hydrate data does not carry tax IDs, so there is no local state to
+  // update; the response holds the customer's resulting tax IDs.
+  const updateTaxId = useCallback(
+    async (taxId: TaxIDInput) => {
+      return checkoutApi?.updateCheckoutTaxID({
+        updateCheckoutTaxIDRequestBody: { taxId },
+      });
+    },
+    [checkoutApi],
+  );
+
+  const getTaxId = useCallback(async () => {
+    return checkoutApi?.getCheckoutTaxID();
+  }, [checkoutApi]);
+
   const getUpcomingInvoice = useCallback(
     async (id: string) => {
       return checkoutApi?.hydrateUpcomingInvoice({
@@ -685,6 +701,8 @@ export const EmbedProvider = ({
         previewCheckout,
         unsubscribe: debouncedUnsubscribe,
         updateCustomFieldValues,
+        updateTaxId,
+        getTaxId,
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,

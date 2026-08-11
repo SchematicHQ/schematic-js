@@ -7,10 +7,13 @@ import {
   type CheckoutUnsubscribeResponse,
   type DeletePaymentMethodResponse,
   type FetchCustomerBalanceResponse,
+  type GetCheckoutTaxIDResponse,
   type GetSetupIntentResponse,
   type HydrateUpcomingInvoiceResponse,
   type ListInvoicesResponse,
   type PreviewCheckoutResponse,
+  type TaxIDInput,
+  type UpdateCheckoutTaxIDResponse,
   type UpdatePaymentMethodResponse,
 } from "../api/checkoutexternal";
 import type { PublicPlansResponseData } from "../api/componentspublic";
@@ -60,6 +63,10 @@ export interface EmbedContextProps extends EmbedState {
   updateCustomFieldValues: (
     values: Record<string, string>,
   ) => Promise<void> | undefined;
+  updateTaxId: (
+    taxId: TaxIDInput,
+  ) => Promise<UpdateCheckoutTaxIDResponse | undefined>;
+  getTaxId: () => Promise<GetCheckoutTaxIDResponse | undefined>;
   setAccessToken: (token: string) => void;
   setError: (error: Error) => void;
   setLayout: (layout: EmbedLayout) => void;
@@ -95,6 +102,8 @@ export const initialContext = {
   checkout: stub,
   unsubscribe: stub,
   updateCustomFieldValues: stub,
+  updateTaxId: stub,
+  getTaxId: stub,
   setError: stub,
   setAccessToken: stub,
   setLayout: stub,
