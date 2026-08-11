@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import {
   CheckoutBundlePurchaseBehavior,
   EntitlementPriceBehavior,
+  ProrationBehavior,
   ResponseError,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
@@ -34,6 +35,7 @@ import {
   formatBundleExpiry,
   formatCurrency,
   formatNumber,
+  formatOrdinal,
   getAddOnPrice,
   getBillingPreviewText,
   getEntitlementPrice,
@@ -41,6 +43,7 @@ import {
   getPlanPrice,
   getSubscriptionDiscount,
   getSubscriptionPeriod,
+  groupPlanCreditGrants,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
   shortenPeriod,
@@ -209,6 +212,13 @@ export const SubscriptionSidebar = forwardRef<
       data?.company?.plan?.includedCreditGrants,
     ]);
 
+    // Per-credit composition of the selected plan's grants, used to surface
+    // the credits a pay-in-advance license quantity includes.
+    const planCredits = useMemo(
+      () => groupPlanCreditGrants(selectedPlan?.includedCreditGrants ?? []),
+      [selectedPlan?.includedCreditGrants],
+    );
+
     const { payInAdvanceEntitlements } = useMemo(() => {
       const payAsYouGoEntitlements: UsageBasedEntitlement[] = [];
       const payInAdvanceEntitlements = usageBasedEntitlements.filter(
@@ -334,6 +344,73 @@ export const SubscriptionSidebar = forwardRef<
     // validity rather than nullishness.
     const renewDate =
       periodEnd && !Number.isNaN(periodEnd.getTime()) ? periodEnd : periodStart;
+
+    // The credits a pay-in-advance license row includes ("Includes 600
+    // credits/mo"), with the mid-period delta when the quantity grows.
+    const renderEntitlementCredits = (
+      entitlement: UsageBasedEntitlement,
+      previousQuantity?: number,
+    ) => {
+      const licenseId = entitlement.feature?.licenseId;
+      const credit = licenseId
+        ? planCredits.find((planCredit) =>
+            planCredit.perLicenseGrants.some(
+              (grant) => grant.licenseId === licenseId,
+            ),
+          )
+        : undefined;
+      const perLicenseGrant = credit?.perLicenseGrants.find(
+        (grant) => grant.licenseId === licenseId,
+      );
+      if (!credit || !perLicenseGrant || !credit.period) {
+        return null;
+      }
+
+      const includedCredits = perLicenseGrant.amount * entitlement.quantity;
+      const addedCredits =
+        typeof previousQuantity === "number"
+          ? perLicenseGrant.amount * (entitlement.quantity - previousQuantity)
+          : 0;
+      const prorationBehavior = data?.checkoutSettings?.prorationBehavior;
+      const deferredDelta =
+        prorationBehavior === ProrationBehavior.CreateProrations;
+
+      return (
+        <Flex
+          $justifyContent="space-between"
+          $alignItems="baseline"
+          $flexWrap="wrap"
+          $gap="1rem"
+        >
+          <Text
+            $size={0.875 * settings.theme.typography.text.fontSize}
+            $color={settings.theme.primary}
+          >
+            {t("Includes X credits per period", {
+              total: includedCredits,
+              creditName: getFeatureName(credit, includedCredits),
+              period: shortenPeriod(credit.period),
+            })}
+          </Text>
+
+          {addedCredits > 0 && (
+            <Text
+              $size={0.875 * settings.theme.typography.text.fontSize}
+              $color="#22C55E"
+            >
+              {deferredDelta && renewDate
+                ? t("Plus X credits on the day", {
+                    amount: addedCredits,
+                    day: formatOrdinal(renewDate.getDate()),
+                  })
+                : t("Plus X credits today", {
+                    amount: addedCredits,
+                  })}
+            </Text>
+          )}
+        </Flex>
+      );
+    };
 
     const updatedUsageBasedEntitlements = useMemo(() => {
       const changedUsageBasedEntitlements: {
@@ -1031,6 +1108,8 @@ export const SubscriptionSidebar = forwardRef<
                             currency={currency}
                           />
                         </Flex>
+
+                        {renderEntitlementCredits(next, previous.quantity)}
                       </Flex>,
                     );
                   }
@@ -1044,18 +1123,21 @@ export const SubscriptionSidebar = forwardRef<
                 (acc: React.ReactElement[], entitlement, index) => {
                   if (entitlement.feature?.name) {
                     acc.push(
-                      <Flex
-                        key={index}
-                        $justifyContent="space-between"
-                        $alignItems="baseline"
-                        $gap="1rem"
-                      >
-                        <EntitlementRow
-                          portal={resolvedPortal}
-                          {...entitlement}
-                          planPeriod={planPeriod}
-                          currency={currency}
-                        />
+                      <Flex key={index} $flexDirection="column" $gap="0.5rem">
+                        <Flex
+                          $justifyContent="space-between"
+                          $alignItems="baseline"
+                          $gap="1rem"
+                        >
+                          <EntitlementRow
+                            portal={resolvedPortal}
+                            {...entitlement}
+                            planPeriod={planPeriod}
+                            currency={currency}
+                          />
+                        </Flex>
+
+                        {renderEntitlementCredits(entitlement)}
                       </Flex>,
                     );
                   }

@@ -8,6 +8,7 @@ import {
   BillingPlanCreditGrantResetCadence,
   type CompanyPlanCreditGrantView,
   type CreditCompanyGrantView,
+  PlanCreditGrantScaling,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
 import type { Credit, CreditWithCompanyContext } from "../../types";
@@ -26,6 +27,22 @@ function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   }
 }
 
+function isPerLicenseGrant(
+  grant: Pick<PlanCreditGrantView, "scaling" | "licenseId">,
+) {
+  return (
+    grant.scaling === PlanCreditGrantScaling.PerLicense && !!grant.licenseId
+  );
+}
+
+/**
+ * A plan can carry multiple grants on the same credit: a per-license grant
+ * (credits × license quantity) alongside flat company-level grants. Grants are
+ * grouped per credit; `fixedQuantity` sums the flat portions and
+ * `perLicenseGrants` carries each per-license portion's per-unit amount.
+ * `quantity` is the flat portion only — use {@link resolvePlanCreditQuantity}
+ * to compute the effective total once license quantities are known.
+ */
 export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
   const map = creditGrants.reduce(
     (
@@ -35,6 +52,13 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
       grant,
     ) => {
       const key = grant.creditId;
+      const current = acc[key];
+
+      const perLicense = isPerLicenseGrant(grant)
+        ? // isPerLicenseGrant guarantees licenseId is set
+          [{ amount: grant.creditAmount, licenseId: grant.licenseId! }]
+        : [];
+      const fixedQuantity = isPerLicenseGrant(grant) ? 0 : grant.creditAmount;
 
       acc[key] = {
         id: grant.creditId,
@@ -44,10 +68,12 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
         description: grant.creditDescription,
         icon: grant.creditIcon,
         grantReason: "plan",
-        quantity: grant.creditAmount,
+        quantity: (current?.quantity ?? 0) + fixedQuantity,
+        fixedQuantity: (current?.fixedQuantity ?? 0) + fixedQuantity,
+        perLicenseGrants: [...(current?.perLicenseGrants ?? []), ...perLicense],
         planId: grant.planId,
         planName: grant.plan?.name,
-        period: getResetCadencePeriod(grant.resetCadence),
+        period: getResetCadencePeriod(grant.resetCadence) ?? current?.period,
       };
 
       return acc;
@@ -56,6 +82,63 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
   );
 
   return Object.values(map);
+}
+
+/**
+ * Resolves a grouped plan credit's effective total: flat portion plus each
+ * per-license portion multiplied by its license quantity. Returns `undefined`
+ * when any per-license portion's quantity cannot be resolved, so callers can
+ * fall back to per-unit copy instead of asserting a wrong total.
+ */
+export function resolvePlanCreditQuantity(
+  credit: Pick<Credit, "fixedQuantity" | "perLicenseGrants">,
+  resolveLicenseQuantity: (licenseId: string) => number | undefined,
+): number | undefined {
+  let total = credit.fixedQuantity;
+
+  for (const grant of credit.perLicenseGrants) {
+    const licenseQuantity = resolveLicenseQuantity(grant.licenseId);
+    if (typeof licenseQuantity !== "number") {
+      return undefined;
+    }
+
+    total += grant.amount * licenseQuantity;
+  }
+
+  return total;
+}
+
+/**
+ * The per-license grants that scale with the given license feature. Used by
+ * license feature rows (included features, checkout quantity step) to surface
+ * the credits granted per unit.
+ */
+export function getPerLicenseGrantsForFeature<
+  T extends Pick<PlanCreditGrantView, "scaling" | "licenseId">,
+>(creditGrants: T[] = [], feature?: { licenseId?: string | null } | null): T[] {
+  const licenseId = feature?.licenseId;
+  if (!licenseId) {
+    return [];
+  }
+
+  return creditGrants.filter(
+    (grant) => isPerLicenseGrant(grant) && grant.licenseId === licenseId,
+  );
+}
+
+/**
+ * Finds the entitlement (or feature usage entry) whose feature is the license
+ * driving a per-license credit grant — the seat-count source for resolving the
+ * grant's effective total.
+ */
+export function findLicenseSource<
+  T extends { feature?: { licenseId?: string | null } | null },
+>(sources: T[] = [], licenseId?: string | null): T | undefined {
+  if (!licenseId) {
+    return undefined;
+  }
+
+  return sources.find((source) => source.feature?.licenseId === licenseId);
 }
 
 interface GroupCreditGrantOptions {

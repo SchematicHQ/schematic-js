@@ -16,16 +16,19 @@ import type {
 } from "../../../types";
 import {
   darken,
+  findLicenseSource,
   formatCurrency,
   getAutoTopupAmount,
   getAutoTopupThresholdCredits,
   getFeatureName,
   getSubscriptionPeriod,
   groupCreditGrants,
+  groupPlanCreditGrants,
   isAutoTopupEnabled,
   isAutoTopupOff,
   isSelfServiceAutoTopupAvailable,
   lighten,
+  resolvePlanCreditQuantity,
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
@@ -137,32 +140,42 @@ export const PlanManager = forwardRef<
       currentPlan: data?.company?.plan,
       currentAddOns: data?.company?.addOns || [],
       creditBundles: data?.creditBundles || [],
-      creditGroups: groupCreditGrants(data?.creditGrants || [], {
-        groupBy: "bundle",
-      }).reduce(
-        (
-          acc: {
-            plan: CreditWithCompanyContext[];
-            bundles: CreditWithCompanyContext[];
-            promotional: CreditWithCompanyContext[];
-          },
-          grant,
-        ) => {
-          switch (grant.grantReason) {
-            case BillingCreditGrantReason.Plan:
-              acc.plan.push(grant);
-              break;
-            case BillingCreditGrantReason.Purchased:
-              acc.bundles.push(grant);
-              break;
-            case BillingCreditGrantReason.Free:
-              acc.promotional.push(grant);
-          }
+      creditGroups: {
+        // Plan grants are grouped per credit: a per-license grant issues one
+        // ledger entry per license unit (plus any flat company grant), and the
+        // "Credits in plan" row shows their combined amount.
+        plan: groupCreditGrants(
+          (data?.creditGrants || []).filter(
+            (grant) => grant.grantReason === BillingCreditGrantReason.Plan,
+          ),
+          { groupBy: "credit" },
+        ),
+        ...groupCreditGrants(
+          (data?.creditGrants || []).filter(
+            (grant) => grant.grantReason !== BillingCreditGrantReason.Plan,
+          ),
+          { groupBy: "bundle" },
+        ).reduce(
+          (
+            acc: {
+              bundles: CreditWithCompanyContext[];
+              promotional: CreditWithCompanyContext[];
+            },
+            grant,
+          ) => {
+            switch (grant.grantReason) {
+              case BillingCreditGrantReason.Purchased:
+                acc.bundles.push(grant);
+                break;
+              case BillingCreditGrantReason.Free:
+                acc.promotional.push(grant);
+            }
 
-          return acc;
-        },
-        { plan: [], bundles: [], promotional: [] },
-      ),
+            return acc;
+          },
+          { bundles: [], promotional: [] },
+        ),
+      },
       billingSubscription: data?.company?.billingSubscription,
       canCheckout: data?.capabilities?.checkout ?? false,
       postTrialPlan: data?.postTrialPlan,
@@ -190,6 +203,20 @@ export const PlanManager = forwardRef<
       featureUsage.filter((usage) => typeof usage.priceBehavior === "string"),
     [featureUsage],
   );
+
+  // The plan's grant templates carry the per-license relationship (credits per
+  // license unit); the ledger above only holds the issued amounts.
+  const planCreditCompositions = useMemo(
+    () => groupPlanCreditGrants(currentPlan?.includedCreditGrants ?? []),
+    [currentPlan?.includedCreditGrants],
+  );
+
+  const resolveLicenseQuantity = useMemo(() => {
+    return (licenseId: string) => {
+      const allocation = findLicenseSource(featureUsage, licenseId)?.allocation;
+      return typeof allocation === "number" ? allocation : undefined;
+    };
+  }, [featureUsage]);
 
   const {
     subscriptionInterval,
@@ -542,6 +569,32 @@ export const PlanManager = forwardRef<
                     getAutoTopupThresholdCredits(planCreditGrant);
                   const topupAmount = getAutoTopupAmount(planCreditGrant);
 
+                  const composition = planCreditCompositions.find(
+                    (credit) => credit.id === group.id,
+                  ) ?? {
+                    fixedQuantity: 0,
+                    perLicenseGrants: [],
+                    period: undefined,
+                  };
+                  const perLicenseGrant =
+                    composition.perLicenseGrants.length === 1
+                      ? composition.perLicenseGrants[0]
+                      : undefined;
+                  const licenseFeature = perLicenseGrant
+                    ? findLicenseSource(featureUsage, perLicenseGrant.licenseId)
+                        ?.feature
+                    : undefined;
+                  const resolvedTotal = resolvePlanCreditQuantity(
+                    composition,
+                    resolveLicenseQuantity,
+                  );
+                  const licenseQuantity = perLicenseGrant
+                    ? resolveLicenseQuantity(perLicenseGrant.licenseId)
+                    : undefined;
+                  const creditPeriod =
+                    composition.period ?? subscriptionInterval;
+                  const showPerLicense = !!perLicenseGrant && !!licenseFeature;
+
                   return (
                     <Flex
                       key={groupIndex}
@@ -555,11 +608,40 @@ export const PlanManager = forwardRef<
                         $gap="0.5rem"
                       >
                         <Text display={props.addOns.fontStyle}>
-                          {group.quantity}{" "}
-                          {getFeatureName(group, group.quantity)}{" "}
-                          {subscriptionInterval && (
+                          {showPerLicense ? (
                             <>
-                              {t("per")} {t(subscriptionInterval)}
+                              {t("X credits per license", {
+                                amount: perLicenseGrant.amount,
+                                creditName: getFeatureName(
+                                  group,
+                                  perLicenseGrant.amount,
+                                ),
+                                licenseName: getFeatureName(licenseFeature, 1),
+                              })}
+                              {composition.fixedQuantity > 0 &&
+                                creditPeriod && (
+                                  <>
+                                    {" "}
+                                    {t("Plus X credits per period", {
+                                      amount: composition.fixedQuantity,
+                                      creditName: getFeatureName(
+                                        group,
+                                        composition.fixedQuantity,
+                                      ),
+                                      period: t(creditPeriod),
+                                    })}
+                                  </>
+                                )}
+                            </>
+                          ) : (
+                            <>
+                              {group.total.value}{" "}
+                              {getFeatureName(group, group.total.value)}{" "}
+                              {subscriptionInterval && (
+                                <>
+                                  {t("per")} {t(subscriptionInterval)}
+                                </>
+                              )}
                             </>
                           )}
                         </Text>
@@ -586,6 +668,50 @@ export const PlanManager = forwardRef<
                           </Flex>
                         )}
                       </Flex>
+
+                      {showPerLicense &&
+                        typeof licenseQuantity === "number" &&
+                        typeof resolvedTotal === "number" &&
+                        creditPeriod && (
+                          <Text
+                            style={{ opacity: 0.54 }}
+                            $size={
+                              0.875 * settings.theme.typography.text.fontSize
+                            }
+                            $color={settings.theme.typography.text.color}
+                          >
+                            {composition.fixedQuantity > 0
+                              ? t("X licenses times Y credits plus company", {
+                                  quantity: licenseQuantity,
+                                  licenseName: getFeatureName(
+                                    licenseFeature,
+                                    licenseQuantity,
+                                  ),
+                                  perUnit: perLicenseGrant.amount,
+                                  fixed: composition.fixedQuantity,
+                                  total: resolvedTotal,
+                                  creditName: getFeatureName(
+                                    group,
+                                    resolvedTotal,
+                                  ),
+                                  period: shortenPeriod(creditPeriod),
+                                })
+                              : t("X licenses times Y credits", {
+                                  quantity: licenseQuantity,
+                                  licenseName: getFeatureName(
+                                    licenseFeature,
+                                    licenseQuantity,
+                                  ),
+                                  perUnit: perLicenseGrant.amount,
+                                  total: resolvedTotal,
+                                  creditName: getFeatureName(
+                                    group,
+                                    resolvedTotal,
+                                  ),
+                                  period: shortenPeriod(creditPeriod),
+                                })}
+                          </Text>
+                        )}
                     </Flex>
                   );
                 })}

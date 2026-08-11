@@ -6,7 +6,12 @@ import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { createKeyboardExecutionHandler, toPrettyDate } from "../../../utils";
+import {
+  createKeyboardExecutionHandler,
+  getFeatureName,
+  getPerLicenseGrantsForFeature,
+  toPrettyDate,
+} from "../../../utils";
 import { Element } from "../../layout";
 import { Box, Flex, Icon, Text } from "../../ui";
 
@@ -197,6 +202,33 @@ export const IncludedFeatures = forwardRef<
                       {entitlement.feature.description}
                     </Text>
                   )}
+
+                {getPerLicenseGrantsForFeature(
+                  plan?.includedCreditGrants,
+                  entitlement.feature,
+                ).map((grant, grantIndex) => (
+                  <Text
+                    key={grantIndex}
+                    style={{ opacity: 0.54 }}
+                    $size={0.875 * settings.theme.typography.text.fontSize}
+                    $color={settings.theme.typography.text.color}
+                  >
+                    {t("Includes X credits per license", {
+                      amount: grant.creditAmount,
+                      creditName: getFeatureName(
+                        {
+                          name: grant.creditName,
+                          singularName: grant.singularName,
+                          pluralName: grant.pluralName,
+                        },
+                        grant.creditAmount,
+                      ),
+                      licenseName: entitlement.feature
+                        ? getFeatureName(entitlement.feature, 1)
+                        : "",
+                    })}
+                  </Text>
+                ))}
 
                 {props.entitlementExpiration.isVisible &&
                   entitlement.entitlementExpirationDate && (
