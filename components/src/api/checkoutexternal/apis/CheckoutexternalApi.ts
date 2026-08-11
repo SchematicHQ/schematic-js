@@ -21,6 +21,7 @@ import type {
   CreateSetupIntentResponse,
   DeletePaymentMethodResponse,
   FetchCustomerBalanceResponse,
+  GetCheckoutTaxIDResponse,
   GetSetupIntentResponse,
   HydrateComponentResponse,
   HydrateResponse,
@@ -49,6 +50,8 @@ import {
   DeletePaymentMethodResponseToJSON,
   FetchCustomerBalanceResponseFromJSON,
   FetchCustomerBalanceResponseToJSON,
+  GetCheckoutTaxIDResponseFromJSON,
+  GetCheckoutTaxIDResponseToJSON,
   GetSetupIntentResponseFromJSON,
   GetSetupIntentResponseToJSON,
   HydrateComponentResponseFromJSON,
@@ -356,6 +359,47 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<FetchCustomerBalanceResponse> {
     const response = await this.fetchCustomerBalanceRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get checkout tax ID
+   */
+  async getCheckoutTaxIDRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCheckoutTaxIDResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/tax-id`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCheckoutTaxIDResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get checkout tax ID
+   */
+  async getCheckoutTaxID(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCheckoutTaxIDResponse> {
+    const response = await this.getCheckoutTaxIDRaw(initOverrides);
     return await response.value();
   }
 

@@ -112,6 +112,7 @@ models/FlagInPlanResponseData.ts
 models/FlagResponseData.ts
 models/FlagType.ts
 models/GenericPreviewObject.ts
+models/GetCheckoutTaxIDResponse.ts
 models/GetSetupIntentResponse.ts
 models/HydrateComponentParams.ts
 models/HydrateComponentResponse.ts
