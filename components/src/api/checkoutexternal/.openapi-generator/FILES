@@ -45,6 +45,7 @@ models/CheckoutFieldValue.ts
 models/CheckoutFieldWithValue.ts
 models/CheckoutResponse.ts
 models/CheckoutResponseData.ts
+models/CheckoutTaxIDView.ts
 models/CheckoutUnsubscribeResponse.ts
 models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts
@@ -57,6 +58,7 @@ models/CompanyPlanInvalidReason.ts
 models/CompanyPlanWithBillingSubView.ts
 models/CompanyResponseData.ts
 models/CompanySubscriptionResponseData.ts
+models/CompanyTaxIDView.ts
 models/ComparableOperator.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
@@ -156,6 +158,8 @@ models/ScheduledDowngradeConfigBehavior.ts
 models/ScheduledDowngradeResponseData.ts
 models/SetupIntentResponseData.ts
 models/StripeEmbedInfo.ts
+models/TaxIDInput.ts
+models/TaxIdType.ts
 models/TraitDefinition.ts
 models/TraitType.ts
 models/UpdateAddOnRequestBody.ts
@@ -163,6 +167,9 @@ models/UpdateAutoTopupOverrideRequestBody.ts
 models/UpdateCheckoutFieldValuesRequestBody.ts
 models/UpdateCheckoutFieldValuesResponse.ts
 models/UpdateCheckoutFieldValuesResponseData.ts
+models/UpdateCheckoutTaxIDRequestBody.ts
+models/UpdateCheckoutTaxIDResponse.ts
+models/UpdateCheckoutTaxIDResponseData.ts
 models/UpdateCreditBundleRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts

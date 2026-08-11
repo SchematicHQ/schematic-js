@@ -29,6 +29,8 @@ import type {
   PreviewCheckoutResponse,
   UpdateCheckoutFieldValuesRequestBody,
   UpdateCheckoutFieldValuesResponse,
+  UpdateCheckoutTaxIDRequestBody,
+  UpdateCheckoutTaxIDResponse,
   UpdatePaymentMethodRequestBody,
   UpdatePaymentMethodResponse,
 } from "../models/index";
@@ -63,6 +65,10 @@ import {
   UpdateCheckoutFieldValuesRequestBodyToJSON,
   UpdateCheckoutFieldValuesResponseFromJSON,
   UpdateCheckoutFieldValuesResponseToJSON,
+  UpdateCheckoutTaxIDRequestBodyFromJSON,
+  UpdateCheckoutTaxIDRequestBodyToJSON,
+  UpdateCheckoutTaxIDResponseFromJSON,
+  UpdateCheckoutTaxIDResponseToJSON,
   UpdatePaymentMethodRequestBodyFromJSON,
   UpdatePaymentMethodRequestBodyToJSON,
   UpdatePaymentMethodResponseFromJSON,
@@ -105,6 +111,10 @@ export interface PreviewCheckoutRequest {
 
 export interface UpdateCheckoutFieldValuesRequest {
   updateCheckoutFieldValuesRequestBody: UpdateCheckoutFieldValuesRequestBody;
+}
+
+export interface UpdateCheckoutTaxIDRequest {
+  updateCheckoutTaxIDRequestBody: UpdateCheckoutTaxIDRequestBody;
 }
 
 export interface UpdatePaymentMethodRequest {
@@ -732,6 +742,64 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<UpdateCheckoutFieldValuesResponse> {
     const response = await this.updateCheckoutFieldValuesRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Update checkout tax ID
+   */
+  async updateCheckoutTaxIDRaw(
+    requestParameters: UpdateCheckoutTaxIDRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UpdateCheckoutTaxIDResponse>> {
+    if (requestParameters["updateCheckoutTaxIDRequestBody"] == null) {
+      throw new runtime.RequiredError(
+        "updateCheckoutTaxIDRequestBody",
+        'Required parameter "updateCheckoutTaxIDRequestBody" was null or undefined when calling updateCheckoutTaxID().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/tax-id`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdateCheckoutTaxIDRequestBodyToJSON(
+          requestParameters["updateCheckoutTaxIDRequestBody"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      UpdateCheckoutTaxIDResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Update checkout tax ID
+   */
+  async updateCheckoutTaxID(
+    requestParameters: UpdateCheckoutTaxIDRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UpdateCheckoutTaxIDResponse> {
+    const response = await this.updateCheckoutTaxIDRaw(
       requestParameters,
       initOverrides,
     );

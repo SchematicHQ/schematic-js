@@ -152,6 +152,12 @@ export interface BillingPlanCreditGrantResponseData {
    */
   canBuyBundles: boolean;
   /**
+   * Credits granted once per company on top of the per-license amount. Always 0 when scaling is fixed.
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  companyCreditAmount: number;
+  /**
    *
    * @type {Date}
    * @memberof BillingPlanCreditGrantResponseData
@@ -309,6 +315,11 @@ export function instanceOfBillingPlanCreditGrantResponseData(
     return false;
   if (!("canBuyBundles" in value) || value["canBuyBundles"] === undefined)
     return false;
+  if (
+    !("companyCreditAmount" in value) ||
+    value["companyCreditAmount"] === undefined
+  )
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditAmount" in value) || value["creditAmount"] === undefined)
     return false;
@@ -374,6 +385,7 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
         ? undefined
         : json["auto_topup_threshold_percent"],
     canBuyBundles: json["can_buy_bundles"],
+    companyCreditAmount: json["company_credit_amount"],
     createdAt: new Date(json["created_at"]),
     credit:
       json["credit"] == null
@@ -460,6 +472,7 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     auto_topup_threshold_credits: value["autoTopupThresholdCredits"],
     auto_topup_threshold_percent: value["autoTopupThresholdPercent"],
     can_buy_bundles: value["canBuyBundles"],
+    company_credit_amount: value["companyCreditAmount"],
     created_at: value["createdAt"].toISOString(),
     credit: BillingCreditResponseDataToJSON(value["credit"]),
     credit_amount: value["creditAmount"],
