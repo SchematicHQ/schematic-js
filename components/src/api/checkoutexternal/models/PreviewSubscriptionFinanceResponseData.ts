@@ -42,6 +42,12 @@ export interface PreviewSubscriptionFinanceResponseData {
   amountOff: number;
   /**
    *
+   * @type {number}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  discountAmount: number;
+  /**
+   *
    * @type {Array<PreviewSubscriptionDiscountResponseData>}
    * @memberof PreviewSubscriptionFinanceResponseData
    */
@@ -133,6 +139,8 @@ export function instanceOfPreviewSubscriptionFinanceResponseData(
   value: object,
 ): value is PreviewSubscriptionFinanceResponseData {
   if (!("amountOff" in value) || value["amountOff"] === undefined) return false;
+  if (!("discountAmount" in value) || value["discountAmount"] === undefined)
+    return false;
   if (!("discounts" in value) || value["discounts"] === undefined) return false;
   if (!("dueNow" in value) || value["dueNow"] === undefined) return false;
   if (!("newCharges" in value) || value["newCharges"] === undefined)
@@ -178,6 +186,7 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
   }
   return {
     amountOff: json["amount_off"],
+    discountAmount: json["discount_amount"],
     discounts: (json["discounts"] as Array<any>).map(
       PreviewSubscriptionDiscountResponseDataFromJSON,
     ),
@@ -217,6 +226,7 @@ export function PreviewSubscriptionFinanceResponseDataToJSONTyped(
 
   return {
     amount_off: value["amountOff"],
+    discount_amount: value["discountAmount"],
     discounts: (value["discounts"] as Array<any>).map(
       PreviewSubscriptionDiscountResponseDataToJSON,
     ),
