@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   BillingProductPriceInterval,
+  CheckoutBundlePurchaseBehavior,
   CompanyPlanCreditGrantView,
   EntitlementPriceBehavior,
   ResponseError,
@@ -455,6 +456,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     effectiveCurrency,
     selectedAddOnIds,
   ]);
+
+  const isIndividualBundlePurchase =
+    data?.checkoutSettings.bundlePurchaseBehavior ===
+    CheckoutBundlePurchaseBehavior.Individual;
 
   const [bundleCounts, setBundleCounts] = useState<Record<string, number>>({});
   // Mirror of bundleCounts updated synchronously in updateCreditBundleCount so
@@ -1035,6 +1040,20 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       // do not preview if user updates do not result in a valid plan,
       // unless this is a credit-only purchase that needs no plan
       if ((!plan || !planPriceId) && !isCreditOnly) {
+        // There is nothing to charge for, so drop any preview still on screen:
+        // deselecting the last credit bundle of a credit-only purchase would
+        // otherwise leave the previous total in the sidebar. Claim a request id
+        // first so an in-flight preview cannot land on top of the cleared
+        // state; that also makes this branch responsible for the loading flags
+        // the superseded request will now skip.
+        ++previewRequestIdRef.current;
+        setError(undefined);
+        setCharges(undefined);
+        setIsLoading(false);
+        if (isBypassLoading) {
+          setIsBypassLoading(false);
+        }
+
         // ensure selected plan is reset if no valid price is found
         setSelectedPlanId(null);
         return;
@@ -1121,7 +1140,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           setIsPaymentMethodRequired(response.data.paymentMethodRequired);
           const nextOptInTitle = response.data.optInTitle ?? null;
           const nextOptInText = response.data.optInText ?? null;
-          const nextSignature = `${nextOptInTitle ?? ""} ${nextOptInText ?? ""}`;
+          // NUL separator: it cannot occur in either field, so the pair
+          // cannot collide with a different title/text split.
+          const nextSignature = `${nextOptInTitle ?? ""}\u0000${nextOptInText ?? ""}`;
           if (presentedOptInRef.current !== nextSignature) {
             presentedOptInRef.current = nextSignature;
             setOptInAccepted(false);
@@ -1607,6 +1628,32 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [bundleGatingGrants, data?.creditBundles, debouncedPreviewCheckout],
   );
 
+  const toggleCreditBundle = useCallback(
+    (id: string) => {
+      // Individual purchasing caps the quantity of each bundle at one, but any
+      // number of distinct bundles can be bought together, so toggle just this
+      // bundle rather than replacing the whole map.
+      const nextCounts = { ...bundleCountsRef.current };
+      if (nextCounts[id]) {
+        delete nextCounts[id];
+      } else {
+        nextCounts[id] = 1;
+      }
+
+      bundleCountsRef.current = nextCounts;
+      setBundleCounts(nextCounts);
+
+      handlePreviewCheckout({
+        creditBundles: deriveCreditBundles(
+          bundleGatingGrants,
+          data?.creditBundles,
+          nextCounts,
+        ),
+      });
+    },
+    [bundleGatingGrants, data?.creditBundles, handlePreviewCheckout],
+  );
+
   const updateAddOnEntitlementQuantity = useCallback(
     (id: string, updatedQuantity: number) => {
       setAddOnUsageBasedEntitlements((prev) => {
@@ -2021,7 +2068,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             <Credits
               isLoading={isLoading}
               bundles={creditBundles}
+              isIndividualPurchase={isIndividualBundlePurchase}
               updateCount={updateCreditBundleCount}
+              toggle={toggleCreditBundle}
               currency={hasCurrency ? effectiveCurrency : undefined}
             />
           ) : (

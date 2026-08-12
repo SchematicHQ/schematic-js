@@ -29,6 +29,7 @@
     "An invoice is created when charges reach $X; the rest is billed monthly.": "An invoice is created when charges reach {{amount}}; the rest is billed monthly.",
     "An unknown error occurred.": "An unknown error occurred.",
     "Billed": "Billed {{period}}",
+    "Bundle selected": "Bundle selected",
     "Buy credits": "Buy credits",
     "Cancel": "Cancel",
     "Country": "Country",
@@ -41,6 +42,7 @@
     "Change plan": "Change plan",
     "Checkout": "Checkout",
     "Choose add-on": "Choose add-on",
+    "Choose bundle": "Choose bundle",
     "Choose plan": "Choose plan",
     "Choose your base plan": "Choose your base plan",
     "Credit Auto Top-up": "{{unit}} Auto Top-up",
@@ -218,6 +220,11 @@
     "year": "year",
     "one time": "one time",
     "billing period": "billing period",
+
+    "expires after purchase": "expires {{amount}} {{unit}} after purchase",
+    "expires at the end of the billing period": "expires at the end of the billing period",
+    "expires at the end of the next billing period": "expires at the end of the next billing period",
+    "expires at the end of the trial": "expires at the end of the trial",
 
     "per": "per",
     "then": "then",

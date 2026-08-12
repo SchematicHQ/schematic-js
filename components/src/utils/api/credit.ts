@@ -1,12 +1,17 @@
+import type { TFunction } from "i18next";
+
 import {
   type BillingCreditBundleView,
   BillingCreditAutoTopupAvailability,
+  BillingCreditExpiryType,
+  BillingCreditExpiryUnit,
   BillingPlanCreditGrantResetCadence,
   type CompanyPlanCreditGrantView,
   type CreditCompanyGrantView,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
 import type { Credit, CreditWithCompanyContext } from "../../types";
+import { pluralize } from "../pluralize";
 
 function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   switch (cadence) {
@@ -236,6 +241,40 @@ export function mergeAutoTopupOverrides(
   };
 
   return resolvedGrant;
+}
+
+export function formatBundleExpiry(
+  bundle: Pick<
+    BillingCreditBundleView,
+    "expiryType" | "expiryUnit" | "expiryUnitCount"
+  >,
+  t: TFunction,
+): string | undefined {
+  switch (bundle.expiryType) {
+    case BillingCreditExpiryType.Duration: {
+      if (typeof bundle.expiryUnitCount !== "number") {
+        return undefined;
+      }
+
+      const unit =
+        bundle.expiryUnit === BillingCreditExpiryUnit.BillingPeriods
+          ? t("billing period")
+          : t("day");
+
+      return t("expires after purchase", {
+        amount: bundle.expiryUnitCount,
+        unit: pluralize(unit, bundle.expiryUnitCount),
+      });
+    }
+    case BillingCreditExpiryType.EndOfBillingPeriod:
+      return t("expires at the end of the billing period");
+    case BillingCreditExpiryType.EndOfNextBillingPeriod:
+      return t("expires at the end of the next billing period");
+    case BillingCreditExpiryType.EndOfTrial:
+      return t("expires at the end of the trial");
+    default:
+      return undefined;
+  }
 }
 
 export function mergeCompanyGrants(

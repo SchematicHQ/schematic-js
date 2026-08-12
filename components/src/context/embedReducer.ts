@@ -62,6 +62,16 @@ type EmbedAction =
   | { type: "SET_CURRENCY_FILTER"; currencyFilter?: string[] }
   | { type: "SET_CHECKOUT_PREFILL"; checkoutPrefill?: CheckoutPrefill };
 
+const CHECKOUT_SETTINGS_DEFAULTS = {
+  bundlePurchaseBehavior: CheckoutBundlePurchaseBehavior.Quantity,
+  collectAddress: false,
+  collectEmail: false,
+  collectPhone: false,
+  collectTaxId: false,
+  prorationBehavior: ProrationBehavior.CreateProrations,
+  taxCollectionEnabled: false,
+};
+
 function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
   // Later merge sources win, so the defaults must come before `data` to only
   // fill fields the payload lacks (the public hydrate has no
@@ -72,15 +82,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
     {},
     {
       activeUsageBasedEntitlements: [],
-      checkoutSettings: {
-        bundlePurchaseBehavior: CheckoutBundlePurchaseBehavior.Quantity,
-        collectAddress: false,
-        collectEmail: false,
-        collectPhone: false,
-        collectTaxId: false,
-        prorationBehavior: ProrationBehavior.CreateProrations,
-        taxCollectionEnabled: false,
-      },
+      checkoutSettings: CHECKOUT_SETTINGS_DEFAULTS,
       creditBundles: [],
       creditGrants: [],
       customCheckoutFields: [],

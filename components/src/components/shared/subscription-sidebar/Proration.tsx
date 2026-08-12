@@ -39,7 +39,9 @@ export const Proration = ({ currency, charges }: ProrationProps) => {
               return (
                 <Flex key={index} $gap="1rem">
                   <Text>{description}</Text>
-                  <Text>{formatCurrency(amount, currency)}</Text>
+                  <Box $whiteSpace="nowrap">
+                    <Text>{formatCurrency(amount, currency)}</Text>
+                  </Box>
                 </Flex>
               );
             },
