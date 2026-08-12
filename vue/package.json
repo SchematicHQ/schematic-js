@@ -47,7 +47,7 @@
     "prettier": "^3.9.6",
     "ts-jest": "^29.4.12",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.65.0",
+    "typescript-eslint": "^8.66.0",
     "vue": "^3.5.40"
   },
   "peerDependencies": {
