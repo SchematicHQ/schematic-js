@@ -27,6 +27,13 @@ import {
   CustomPlanBillingStatusToJSON,
   CustomPlanBillingStatusToJSONTyped,
 } from "./CustomPlanBillingStatus";
+import type { PlanBillingSource } from "./PlanBillingSource";
+import {
+  PlanBillingSourceFromJSON,
+  PlanBillingSourceFromJSONTyped,
+  PlanBillingSourceToJSON,
+  PlanBillingSourceToJSONTyped,
+} from "./PlanBillingSource";
 
 /**
  *
@@ -76,6 +83,12 @@ export interface CustomPlanBillingResponseData {
    * @memberof CustomPlanBillingResponseData
    */
   paidAt?: Date | null;
+  /**
+   * The flow that created this billing record: a custom plan, or a standard plan assigned by invoice through Manage Plan.
+   * @type {PlanBillingSource}
+   * @memberof CustomPlanBillingResponseData
+   */
+  planBillingSource: PlanBillingSource;
   /**
    *
    * @type {string}
@@ -130,6 +143,11 @@ export function instanceOfCustomPlanBillingResponseData(
   if (!("daysUntilDue" in value) || value["daysUntilDue"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (
+    !("planBillingSource" in value) ||
+    value["planBillingSource"] === undefined
+  )
+    return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
   if (!("sendInvoice" in value) || value["sendInvoice"] === undefined)
     return false;
@@ -164,6 +182,7 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
         : json["external_invoice_id"],
     id: json["id"],
     paidAt: json["paid_at"] == null ? undefined : new Date(json["paid_at"]),
+    planBillingSource: PlanBillingSourceFromJSON(json["plan_billing_source"]),
     planId: json["plan_id"],
     publishedAt:
       json["published_at"] == null ? undefined : new Date(json["published_at"]),
@@ -204,6 +223,7 @@ export function CustomPlanBillingResponseDataToJSONTyped(
       value["paidAt"] == null
         ? undefined
         : (value["paidAt"] as any).toISOString(),
+    plan_billing_source: PlanBillingSourceToJSON(value["planBillingSource"]),
     plan_id: value["planId"],
     published_at:
       value["publishedAt"] == null

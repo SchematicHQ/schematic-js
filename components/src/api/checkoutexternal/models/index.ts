@@ -124,6 +124,7 @@ export * from "./ListInvoicesResponse";
 export * from "./MetricPeriod";
 export * from "./MetricPeriodMonthReset";
 export * from "./PaymentMethodResponseData";
+export * from "./PlanBillingSource";
 export * from "./PlanCatalogMembershipResponseData";
 export * from "./PlanCreditGrantScaling";
 export * from "./PlanCreditGrantView";
