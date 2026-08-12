@@ -66,10 +66,13 @@ export function getSubscriptionDiscount(
   return {
     duration: discount.duration,
     durationInMonths: discount.durationInMonths ?? undefined,
-    discountedPrice: formatCurrency(
-      discountedTotal,
-      subscriptionCurrency ?? undefined,
-    ),
+    // A percent discount can leave fractional minor units (e.g. 40% off
+    // $19.99); format at the currency's standard precision so they round
+    // away instead of rendering (e.g. "$11.994").
+    discountedPrice: formatCurrency(discountedTotal, {
+      currency: subscriptionCurrency ?? undefined,
+      testSignificantDigits: false,
+    }),
   };
 }
 
