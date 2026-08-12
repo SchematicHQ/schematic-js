@@ -54,6 +54,27 @@ describe("getSubscriptionDiscount", () => {
     expect(result?.durationInMonths).toBeUndefined();
   });
 
+  test("percent-off: rounds fractional minor units to the currency's precision", () => {
+    // 40% off $19.99 leaves $11.994; the preview must not render "$11.994".
+    const result = getSubscriptionDiscount(
+      [makeDiscount({ percentOff: 40, duration: "forever" })],
+      1999,
+      "usd",
+    );
+
+    expect(result?.discountedPrice).toBe("$11.99");
+  });
+
+  test("percent-off: rounds to whole units for zero-decimal currencies", () => {
+    const result = getSubscriptionDiscount(
+      [makeDiscount({ percentOff: 40, duration: "forever" })],
+      1999,
+      "jpy",
+    );
+
+    expect(result?.discountedPrice).toBe("¥1,199");
+  });
+
   test("ignores inactive discounts", () => {
     expect(
       getSubscriptionDiscount(

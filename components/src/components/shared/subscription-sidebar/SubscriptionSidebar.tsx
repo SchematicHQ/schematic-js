@@ -1291,10 +1291,16 @@ export const SubscriptionSidebar = forwardRef<
                   {formatCurrency(
                     // Prefer the discount Stripe applied; derive from
                     // `percentOff` only for API responses that predate it.
+                    // The derived value can carry fractional minor units
+                    // (e.g. 40% of $19.99), so round to the currency's
+                    // standard precision rather than rendering them.
                     discountAmount > 0
                       ? discountAmount
                       : (newCharges / 100) * percentOff,
-                    selectedPlanCurrency,
+                    {
+                      currency: selectedPlanCurrency,
+                      testSignificantDigits: false,
+                    },
                   )}
                 </Text>
               </Box>

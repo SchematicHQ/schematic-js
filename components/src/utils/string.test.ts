@@ -133,6 +133,17 @@ describe("formatCurrency", () => {
     expect(result).toBe("$10.00");
   });
 
+  test("rounds fractional minor units when testSignificantDigits is false", () => {
+    // 40% of $19.99 is 799.6 cents; standard currency precision shows $8.00,
+    // not $7.996.
+    expect(
+      formatCurrency(799.6, { currency: "usd", testSignificantDigits: false }),
+    ).toBe("$8.00");
+    expect(
+      formatCurrency(799.6, { currency: "jpy", testSignificantDigits: false }),
+    ).toBe("¥800");
+  });
+
   test("defaults to USD when no currency specified", () => {
     expect(formatCurrency(500)).toBe("$5.00");
   });
