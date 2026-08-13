@@ -1,9 +1,15 @@
+import type { TFunction } from "i18next";
 import { describe, expect, it } from "vitest";
 
-import { BillingCreditAutoTopupAvailability } from "../../api/checkoutexternal";
+import {
+  BillingCreditAutoTopupAvailability,
+  BillingCreditExpiryType,
+  BillingCreditExpiryUnit,
+} from "../../api/checkoutexternal";
 import {
   deriveCreditBundles,
   filterCreditBundles,
+  formatBundleExpiry,
   getBundleOffCreditIds,
   isAutoTopupOff,
   isBundlePurchaseOff,
@@ -178,5 +184,89 @@ describe("deriveCreditBundles", () => {
     expect(deriveCreditBundles(grants, bundles, {})).toEqual([
       { id: "b2", creditId: "credit-on", count: 0 },
     ]);
+  });
+});
+
+describe("formatBundleExpiry", () => {
+  // Stand-in for i18next: echoes the key and interpolates, so assertions read
+  // as the composed sentence rather than a mock call log.
+  const t = ((key: string, params?: Record<string, unknown>) =>
+    key === "expires after purchase"
+      ? `expires ${params?.amount} ${params?.unit} after purchase`
+      : key) as unknown as TFunction;
+
+  it("describes a duration in days", () => {
+    expect(
+      formatBundleExpiry(
+        {
+          expiryType: BillingCreditExpiryType.Duration,
+          expiryUnit: BillingCreditExpiryUnit.Days,
+          expiryUnitCount: 365,
+        },
+        t,
+      ),
+    ).toBe("expires 365 days after purchase");
+  });
+
+  it("singularizes a one-unit duration", () => {
+    expect(
+      formatBundleExpiry(
+        {
+          expiryType: BillingCreditExpiryType.Duration,
+          expiryUnit: BillingCreditExpiryUnit.BillingPeriods,
+          expiryUnitCount: 1,
+        },
+        t,
+      ),
+    ).toBe("expires 1 billing period after purchase");
+  });
+
+  it("returns nothing for a duration with no count, rather than a broken sentence", () => {
+    expect(
+      formatBundleExpiry(
+        {
+          expiryType: BillingCreditExpiryType.Duration,
+          expiryUnit: BillingCreditExpiryUnit.Days,
+          expiryUnitCount: null,
+        },
+        t,
+      ),
+    ).toBeUndefined();
+  });
+
+  it.each([
+    [
+      BillingCreditExpiryType.EndOfBillingPeriod,
+      "expires at the end of the billing period",
+    ],
+    [
+      BillingCreditExpiryType.EndOfNextBillingPeriod,
+      "expires at the end of the next billing period",
+    ],
+    [BillingCreditExpiryType.EndOfTrial, "expires at the end of the trial"],
+  ])("describes %s", (expiryType, expected) => {
+    expect(
+      formatBundleExpiry(
+        {
+          expiryType,
+          expiryUnit: BillingCreditExpiryUnit.Days,
+          expiryUnitCount: null,
+        },
+        t,
+      ),
+    ).toBe(expected);
+  });
+
+  it("returns nothing when credits never expire", () => {
+    expect(
+      formatBundleExpiry(
+        {
+          expiryType: BillingCreditExpiryType.NoExpiry,
+          expiryUnit: BillingCreditExpiryUnit.Days,
+          expiryUnitCount: null,
+        },
+        t,
+      ),
+    ).toBeUndefined();
   });
 });

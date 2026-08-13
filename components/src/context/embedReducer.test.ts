@@ -604,3 +604,47 @@ describe("embedReducer - SET_CHECKOUT_PREFILL", () => {
     expect(result.checkoutPrefill).toBeUndefined();
   });
 });
+
+describe("embedReducer - checkoutSettings are preserved across re-normalize", () => {
+  const hydrated = {
+    ...initialState,
+    data: {
+      activePlans: [],
+      activeAddOns: [],
+      checkoutSettings: {
+        bundlePurchaseBehavior: "individual",
+        collectAddress: true,
+        collectEmail: true,
+        collectPhone: true,
+        collectTaxId: true,
+        prorationBehavior: "invoice_immediately",
+        taxCollectionEnabled: true,
+      },
+    },
+  } as unknown as typeof initialState;
+
+  it("keeps the hydrated settings when a payment method is updated", () => {
+    const result = reducer(hydrated, {
+      type: "UPDATE_PAYMENT_METHOD",
+      paymentMethod: { id: "pm_1" },
+    } as never);
+
+    expect(result.data?.checkoutSettings).toMatchObject({
+      bundlePurchaseBehavior: "individual",
+      collectTaxId: true,
+      prorationBehavior: "invoice_immediately",
+      taxCollectionEnabled: true,
+    });
+  });
+
+  it("keeps the hydrated settings when custom field values change", () => {
+    const result = reducer(hydrated, {
+      type: "UPDATE_CUSTOM_FIELD_VALUES",
+      values: { field: "value" },
+    } as never);
+
+    expect(result.data?.checkoutSettings.bundlePurchaseBehavior).toBe(
+      "individual",
+    );
+  });
+});

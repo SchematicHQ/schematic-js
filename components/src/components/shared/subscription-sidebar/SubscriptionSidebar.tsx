@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import {
+  CheckoutBundlePurchaseBehavior,
   EntitlementPriceBehavior,
   ResponseError,
   type PreviewSubscriptionFinanceResponseData,
@@ -30,7 +31,9 @@ import {
   buildPayInAdvanceRequestBody,
   entitlementHasCost,
   extractCurrentUsageBasedEntitlements,
+  formatBundleExpiry,
   formatCurrency,
+  formatNumber,
   getAddOnPrice,
   getBillingPreviewText,
   getEntitlementPrice,
@@ -150,6 +153,10 @@ export const SubscriptionSidebar = forwardRef<
       finishCheckout,
       unsubscribe,
     } = useEmbed();
+
+    const isIndividualBundlePurchase =
+      data?.checkoutSettings.bundlePurchaseBehavior ===
+      CheckoutBundlePurchaseBehavior.Individual;
 
     const isLightBackground = useIsLightBackground();
 
@@ -882,7 +889,7 @@ export const SubscriptionSidebar = forwardRef<
             {currentPlan && (
               <Flex
                 $justifyContent="space-between"
-                $alignItems="center"
+                $alignItems="baseline"
                 $gap="1rem"
                 {...(selectedPlan &&
                   !selectedPlan.current && {
@@ -936,7 +943,7 @@ export const SubscriptionSidebar = forwardRef<
 
                 <Flex
                   $justifyContent="space-between"
-                  $alignItems="center"
+                  $alignItems="baseline"
                   $gap="1rem"
                 >
                   <Flex>
@@ -1067,7 +1074,7 @@ export const SubscriptionSidebar = forwardRef<
               </Box>
               <Flex
                 $justifyContent="space-between"
-                $alignItems="center"
+                $alignItems="baseline"
                 $gap="1rem"
               >
                 <Flex>
@@ -1100,7 +1107,7 @@ export const SubscriptionSidebar = forwardRef<
                   <Flex
                     key={index}
                     $justifyContent="space-between"
-                    $alignItems="center"
+                    $alignItems="baseline"
                     $gap="1rem"
                     $opacity="0.625"
                     $textDecoration="line-through"
@@ -1136,7 +1143,7 @@ export const SubscriptionSidebar = forwardRef<
                   <Flex
                     key={index}
                     $justifyContent="space-between"
-                    $alignItems="center"
+                    $alignItems="baseline"
                     $gap="1rem"
                   >
                     <Box>
@@ -1173,25 +1180,30 @@ export const SubscriptionSidebar = forwardRef<
                         : undefined;
 
                   const amount = (bundle.quantity ?? 0) * bundle.count;
+                  const expiry = formatBundleExpiry(bundle, t);
 
-                  if (price)
+                  if (typeof price === "number") {
                     acc.push(
                       <Flex
                         key={index}
                         $justifyContent="space-between"
-                        $alignItems="center"
+                        $alignItems="baseline"
                         $gap="1rem"
                       >
                         <Box>
                           <Box>
                             <Text display="heading4">
-                              {bundle.name} ({bundle.count})
+                              {bundle.name}
+                              {!isIndividualBundlePurchase &&
+                                ` (${bundle.count})`}
                             </Text>
                           </Box>
 
                           <Box>
                             <Text>
-                              {amount} {getFeatureName(bundle, amount)}
+                              {formatNumber(amount)}{" "}
+                              {getFeatureName(bundle, amount)}
+                              {expiry && ` · ${expiry}`}
                             </Text>
                           </Box>
                         </Box>
@@ -1201,13 +1213,15 @@ export const SubscriptionSidebar = forwardRef<
                             <Text>
                               {formatCurrency(
                                 price * bundle.count,
-                                bundle.price?.currency,
-                              )}
+                                currency || bundle.price?.currency,
+                              )}{" "}
+                              <sub>{t("one time")}</sub>
                             </Text>
                           </Box>
                         )}
                       </Flex>,
                     );
+                  }
 
                   return acc;
                 },
@@ -1235,7 +1249,7 @@ export const SubscriptionSidebar = forwardRef<
           {discountApplied && (
             <Flex
               $justifyContent="space-between"
-              $alignItems="center"
+              $alignItems="baseline"
               $gap="1rem"
             >
               <Box $opacity="0.625">
@@ -1279,7 +1293,7 @@ export const SubscriptionSidebar = forwardRef<
           {percentOff > 0 && (
             <Flex
               $justifyContent="space-between"
-              $alignItems="center"
+              $alignItems="baseline"
               $gap="1rem"
             >
               <Box $opacity="0.625" $lineHeight={1.15}>
@@ -1310,7 +1324,7 @@ export const SubscriptionSidebar = forwardRef<
           {amountOff > 0 && (
             <Flex
               $justifyContent="space-between"
-              $alignItems="center"
+              $alignItems="baseline"
               $gap="1rem"
             >
               <Box $opacity="0.625" $lineHeight={1.15}>
@@ -1335,7 +1349,7 @@ export const SubscriptionSidebar = forwardRef<
           {!isCreditOnlyPurchase && subscriptionPrice && (
             <Flex
               $justifyContent="space-between"
-              $alignItems="center"
+              $alignItems="baseline"
               $gap="1rem"
             >
               <Box $opacity="0.625">
@@ -1361,7 +1375,7 @@ export const SubscriptionSidebar = forwardRef<
           {taxAmount > 0 && (
             <Flex
               $justifyContent="space-between"
-              $alignItems="center"
+              $alignItems="baseline"
               $gap="1rem"
             >
               <Box $opacity="0.625">
@@ -1381,7 +1395,7 @@ export const SubscriptionSidebar = forwardRef<
           {charges && (
             <Flex
               $justifyContent="space-between"
-              $alignItems="center"
+              $alignItems="baseline"
               $gap="1rem"
             >
               <Box $opacity="0.625">
