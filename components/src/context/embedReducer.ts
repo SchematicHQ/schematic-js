@@ -73,7 +73,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
     {
       activeUsageBasedEntitlements: [],
       checkoutSettings: {
-        bundlePurchaseBehavior: CheckoutBundlePurchaseBehavior.Individual,
+        bundlePurchaseBehavior: CheckoutBundlePurchaseBehavior.Quantity,
         collectAddress: false,
         collectEmail: false,
         collectPhone: false,
