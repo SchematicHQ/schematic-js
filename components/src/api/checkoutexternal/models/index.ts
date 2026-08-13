@@ -39,6 +39,7 @@ export * from "./BillingSubscriptionView";
 export * from "./BillingTiersMode";
 export * from "./ChangeSubscriptionRequestBody";
 export * from "./ChargeType";
+export * from "./CheckoutBundlePurchaseBehavior";
 export * from "./CheckoutFieldValue";
 export * from "./CheckoutFieldWithValue";
 export * from "./CheckoutResponse";

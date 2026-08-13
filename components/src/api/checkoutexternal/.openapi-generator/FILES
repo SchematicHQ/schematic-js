@@ -41,6 +41,7 @@ models/BillingSubscriptionView.ts
 models/BillingTiersMode.ts
 models/ChangeSubscriptionRequestBody.ts
 models/ChargeType.ts
+models/CheckoutBundlePurchaseBehavior.ts
 models/CheckoutFieldValue.ts
 models/CheckoutFieldWithValue.ts
 models/CheckoutResponse.ts
