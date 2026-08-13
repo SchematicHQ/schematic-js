@@ -54,6 +54,8 @@
     "vue": ">=3.3"
   },
   "resolutions": {
+    "**/@eslint/eslintrc/js-yaml": "4.3.1",
+    "**/@istanbuljs/load-nyc-config/js-yaml": "3.15.1",
     "handlebars": ">=4.7.9",
     "lodash": ">=4.18.0",
     "minimatch": ">=3.1.3"
