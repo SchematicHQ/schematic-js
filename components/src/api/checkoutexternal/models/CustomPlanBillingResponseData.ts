@@ -48,6 +48,12 @@ export interface CustomPlanBillingResponseData {
    */
   activationStrategy: CustomPlanActivationStrategy;
   /**
+   * The billing period renewal date pinned when the subscription started, when one was set. When no invoice exists yet, the first invoice is raised on this date.
+   * @type {Date}
+   * @memberof CustomPlanBillingResponseData
+   */
+  billingCycleAnchor?: Date | null;
+  /**
    *
    * @type {string}
    * @memberof CustomPlanBillingResponseData
@@ -173,6 +179,10 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
     activationStrategy: CustomPlanActivationStrategyFromJSON(
       json["activation_strategy"],
     ),
+    billingCycleAnchor:
+      json["billing_cycle_anchor"] == null
+        ? undefined
+        : new Date(json["billing_cycle_anchor"]),
     companyId: json["company_id"],
     createdAt: new Date(json["created_at"]),
     daysUntilDue: json["days_until_due"],
@@ -214,6 +224,10 @@ export function CustomPlanBillingResponseDataToJSONTyped(
     activation_strategy: CustomPlanActivationStrategyToJSON(
       value["activationStrategy"],
     ),
+    billing_cycle_anchor:
+      value["billingCycleAnchor"] == null
+        ? undefined
+        : (value["billingCycleAnchor"] as any).toISOString(),
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
     days_until_due: value["daysUntilDue"],
