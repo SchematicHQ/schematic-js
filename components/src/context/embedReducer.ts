@@ -1,6 +1,7 @@
 import merge from "lodash/merge";
 
 import {
+  CheckoutBundlePurchaseBehavior,
   ProrationBehavior,
   type BillingSubscriptionResponseData,
   type DeleteResponse,
@@ -72,6 +73,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
     {
       activeUsageBasedEntitlements: [],
       checkoutSettings: {
+        bundlePurchaseBehavior: CheckoutBundlePurchaseBehavior.Quantity,
         collectAddress: false,
         collectEmail: false,
         collectPhone: false,

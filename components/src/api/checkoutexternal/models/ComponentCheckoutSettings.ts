@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CheckoutBundlePurchaseBehavior } from "./CheckoutBundlePurchaseBehavior";
+import {
+  CheckoutBundlePurchaseBehaviorFromJSON,
+  CheckoutBundlePurchaseBehaviorFromJSONTyped,
+  CheckoutBundlePurchaseBehaviorToJSON,
+  CheckoutBundlePurchaseBehaviorToJSONTyped,
+} from "./CheckoutBundlePurchaseBehavior";
 import type { ProrationBehavior } from "./ProrationBehavior";
 import {
   ProrationBehaviorFromJSON,
@@ -27,6 +34,12 @@ import {
  * @interface ComponentCheckoutSettings
  */
 export interface ComponentCheckoutSettings {
+  /**
+   *
+   * @type {CheckoutBundlePurchaseBehavior}
+   * @memberof ComponentCheckoutSettings
+   */
+  bundlePurchaseBehavior: CheckoutBundlePurchaseBehavior;
   /**
    *
    * @type {boolean}
@@ -71,6 +84,11 @@ export interface ComponentCheckoutSettings {
 export function instanceOfComponentCheckoutSettings(
   value: object,
 ): value is ComponentCheckoutSettings {
+  if (
+    !("bundlePurchaseBehavior" in value) ||
+    value["bundlePurchaseBehavior"] === undefined
+  )
+    return false;
   if (!("collectAddress" in value) || value["collectAddress"] === undefined)
     return false;
   if (!("collectEmail" in value) || value["collectEmail"] === undefined)
@@ -106,6 +124,9 @@ export function ComponentCheckoutSettingsFromJSONTyped(
     return json;
   }
   return {
+    bundlePurchaseBehavior: CheckoutBundlePurchaseBehaviorFromJSON(
+      json["bundle_purchase_behavior"],
+    ),
     collectAddress: json["collect_address"],
     collectEmail: json["collect_email"],
     collectPhone: json["collect_phone"],
@@ -130,6 +151,9 @@ export function ComponentCheckoutSettingsToJSONTyped(
   }
 
   return {
+    bundle_purchase_behavior: CheckoutBundlePurchaseBehaviorToJSON(
+      value["bundlePurchaseBehavior"],
+    ),
     collect_address: value["collectAddress"],
     collect_email: value["collectEmail"],
     collect_phone: value["collectPhone"],
