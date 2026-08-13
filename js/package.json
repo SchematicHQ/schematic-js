@@ -42,7 +42,7 @@
     "@microsoft/api-extractor": "^7.58.12",
     "@openapitools/openapi-generator-cli": "^2.40.1",
     "@vitest/browser": "^4.1.10",
-    "esbuild": "^0.28.1",
+    "esbuild": "^0.28.2",
     "eslint": "^10.8.1",
     "globals": "^17.9.0",
     "happy-dom": "^20.11.1",
