@@ -383,8 +383,9 @@ export const SubscriptionSidebar = forwardRef<
           $gap="1rem"
         >
           <Text
+            style={{ opacity: 0.54 }}
             $size={0.875 * settings.theme.typography.text.fontSize}
-            $color={settings.theme.primary}
+            $color={settings.theme.typography.text.color}
           >
             {t("Includes X credits per period", {
               total: includedCredits,

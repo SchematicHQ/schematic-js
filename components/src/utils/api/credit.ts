@@ -36,12 +36,14 @@ function isPerLicenseGrant(
 }
 
 /**
- * A plan can carry multiple grants on the same credit: a per-license grant
- * (credits × license quantity) alongside flat company-level grants. Grants are
- * grouped per credit; `fixedQuantity` sums the flat portions and
- * `perLicenseGrants` carries each per-license portion's per-unit amount.
- * `quantity` is the flat portion only — use {@link resolvePlanCreditQuantity}
- * to compute the effective total once license quantities are known.
+ * A per-license grant carries both portions on the same grant: `creditAmount`
+ * is the amount issued per license unit, and `companyCreditAmount` is the flat
+ * amount granted once per company on top of it (always 0 on a fixed grant,
+ * whose whole `creditAmount` is the flat portion). Grants are grouped per
+ * credit; `fixedQuantity` sums the flat portions and `perLicenseGrants`
+ * carries each per-license portion's per-unit amount. `quantity` is the flat
+ * portion only — use {@link resolvePlanCreditQuantity} to compute the
+ * effective total once license quantities are known.
  */
 export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
   const map = creditGrants.reduce(
@@ -58,7 +60,9 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
         ? // isPerLicenseGrant guarantees licenseId is set
           [{ amount: grant.creditAmount, licenseId: grant.licenseId! }]
         : [];
-      const fixedQuantity = isPerLicenseGrant(grant) ? 0 : grant.creditAmount;
+      const fixedQuantity = isPerLicenseGrant(grant)
+        ? (grant.companyCreditAmount ?? 0)
+        : grant.creditAmount;
 
       acc[key] = {
         id: grant.creditId,

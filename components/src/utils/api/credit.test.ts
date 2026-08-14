@@ -284,6 +284,7 @@ describe("per-license plan credit grants", () => {
     billingCreditAutoTopupEnabled: false,
     billingCreditAutoTopupSelfService: false,
     billingCreditCanBuyBundles: true,
+    companyCreditAmount: 0,
     createdAt: new Date(0),
     creditDescription: "",
     creditId: "credit-1",
@@ -310,6 +311,26 @@ describe("per-license plan credit grants", () => {
   };
 
   describe("groupPlanCreditGrants", () => {
+    it("reads the flat portion off a per-license grant's company amount", () => {
+      const [credit] = groupPlanCreditGrants([
+        { ...perLicenseGrant, companyCreditAmount: 500 },
+      ]);
+
+      expect(credit.fixedQuantity).toBe(500);
+      expect(credit.quantity).toBe(500);
+      expect(credit.perLicenseGrants).toEqual([
+        { amount: 100, licenseId: "license-1" },
+      ]);
+      expect(credit.period).toBe("month");
+    });
+
+    it("ignores the company amount on a fixed grant", () => {
+      const [credit] = groupPlanCreditGrants([fixedGrant]);
+
+      expect(credit.fixedQuantity).toBe(500);
+      expect(credit.perLicenseGrants).toEqual([]);
+    });
+
     it("combines a per-license and a fixed grant on the same credit", () => {
       const [credit] = groupPlanCreditGrants([perLicenseGrant, fixedGrant]);
 

@@ -207,12 +207,7 @@ export const IncludedFeatures = forwardRef<
                   plan?.includedCreditGrants,
                   entitlement.feature,
                 ).map((grant, grantIndex) => (
-                  <Text
-                    key={grantIndex}
-                    style={{ opacity: 0.54 }}
-                    $size={0.875 * settings.theme.typography.text.fontSize}
-                    $color={settings.theme.typography.text.color}
-                  >
+                  <Text key={grantIndex} display={props.description.fontStyle}>
                     {t("Includes X credits per license", {
                       amount: grant.creditAmount,
                       creditName: getFeatureName(
