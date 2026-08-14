@@ -107,6 +107,7 @@ function makeBillingPriceView(
 function makeCreditBundle(overrides: Partial<CreditBundle> = {}): CreditBundle {
   return {
     bundleType: "one_time" as any,
+    compatiblePlanIds: [],
     createdAt: new Date(),
     creditId: "credit-1",
     creditName: "Credits",
