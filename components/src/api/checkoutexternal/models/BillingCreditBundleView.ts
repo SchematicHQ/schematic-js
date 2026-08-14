@@ -70,6 +70,12 @@ export interface BillingCreditBundleView {
   bundleType: BillingCreditBundleType;
   /**
    *
+   * @type {Array<string>}
+   * @memberof BillingCreditBundleView
+   */
+  compatiblePlanIds: Array<string>;
+  /**
+   *
    * @type {Date}
    * @memberof BillingCreditBundleView
    */
@@ -192,6 +198,11 @@ export function instanceOfBillingCreditBundleView(
 ): value is BillingCreditBundleView {
   if (!("bundleType" in value) || value["bundleType"] === undefined)
     return false;
+  if (
+    !("compatiblePlanIds" in value) ||
+    value["compatiblePlanIds"] === undefined
+  )
+    return false;
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("creditId" in value) || value["creditId"] === undefined) return false;
   if (!("creditName" in value) || value["creditName"] === undefined)
@@ -225,6 +236,7 @@ export function BillingCreditBundleViewFromJSONTyped(
   }
   return {
     bundleType: BillingCreditBundleTypeFromJSON(json["bundle_type"]),
+    compatiblePlanIds: json["compatible_plan_ids"],
     createdAt: new Date(json["created_at"]),
     creditDescription:
       json["credit_description"] == null
@@ -276,6 +288,7 @@ export function BillingCreditBundleViewToJSONTyped(
 
   return {
     bundle_type: BillingCreditBundleTypeToJSON(value["bundleType"]),
+    compatible_plan_ids: value["compatiblePlanIds"],
     created_at: value["createdAt"].toISOString(),
     credit_description: value["creditDescription"],
     credit_icon: value["creditIcon"],
