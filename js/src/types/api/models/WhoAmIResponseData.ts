@@ -72,6 +72,12 @@ export interface WhoAmIResponseData {
   environments: Array<EnvironmentResponseData>;
   /**
    *
+   * @type {boolean}
+   * @memberof WhoAmIResponseData
+   */
+  onboardingComplete: boolean;
+  /**
+   *
    * @type {string}
    * @memberof WhoAmIResponseData
    */
@@ -102,6 +108,11 @@ export function instanceOfWhoAmIResponseData(
   if (!("actorType" in value) || value["actorType"] === undefined) return false;
   if (!("environments" in value) || value["environments"] === undefined)
     return false;
+  if (
+    !("onboardingComplete" in value) ||
+    value["onboardingComplete"] === undefined
+  )
+    return false;
   return true;
 }
 
@@ -126,6 +137,7 @@ export function WhoAmIResponseDataFromJSONTyped(
     environments: (json["environments"] as Array<any>).map(
       EnvironmentResponseDataFromJSON,
     ),
+    onboardingComplete: json["onboarding_complete"],
     stripeUserId:
       json["stripe_user_id"] == null ? undefined : json["stripe_user_id"],
     userId: json["user_id"] == null ? undefined : json["user_id"],
@@ -154,6 +166,7 @@ export function WhoAmIResponseDataToJSONTyped(
     environments: (value["environments"] as Array<any>).map(
       EnvironmentResponseDataToJSON,
     ),
+    onboarding_complete: value["onboardingComplete"],
     stripe_user_id: value["stripeUserId"],
     user_id: value["userId"],
     user_name: value["userName"],
