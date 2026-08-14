@@ -1,14 +1,14 @@
-import type { TFunction } from "i18next";
+import { type TFunction } from "i18next";
 
 import {
-  type BillingCreditBundleView,
   BillingCreditAutoTopupAvailability,
   BillingCreditExpiryType,
   BillingCreditExpiryUnit,
   BillingPlanCreditGrantResetCadence,
+  PlanCreditGrantScaling,
+  type BillingCreditBundleView,
   type CompanyPlanCreditGrantView,
   type CreditCompanyGrantView,
-  PlanCreditGrantScaling,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
 import type { Credit, CreditWithCompanyContext } from "../../types";
@@ -145,19 +145,29 @@ export function findLicenseSource<
   return sources.find((source) => source.feature?.licenseId === licenseId);
 }
 
-interface GroupCreditGrantOptions {
-  groupBy?: "credit" | "bundle";
+/** Comparator ordering anything with a `createdAt` newest-first. */
+function byRecency(a: { createdAt: Date }, b: { createdAt: Date }) {
+  return +b.createdAt - +a.createdAt;
 }
 
-export function groupCreditGrants(
+/**
+ * Rolls active grants up into per-key totals. The `grants` within each entry
+ * come back newest-first, so a truncated ledger shows the most recent without
+ * the caller sorting anything; entries themselves keep the order their first
+ * grant arrived in, which callers are free to re-sort.
+ *
+ * "Active" is load-bearing: expired and zeroed-out grants are dropped, so a
+ * caller counting the result is counting live grants only.
+ */
+function aggregateActiveGrants(
   creditGrants: CreditCompanyGrantView[],
-  options?: GroupCreditGrantOptions,
-) {
+  getKey: (grant: CreditCompanyGrantView) => string,
+): CreditWithCompanyContext[] {
   const today = new Date();
   const map = creditGrants.reduce(
     (
       acc: {
-        [key: string]: CreditWithCompanyContext;
+        [key: string]: CreditCompanyGrantView[];
       },
       grant,
     ) => {
@@ -165,39 +175,9 @@ export function groupCreditGrants(
       const isZeroedOut = !!grant.zeroedOutDate;
 
       if (!isExpired && !isZeroedOut) {
-        const key =
-          options?.groupBy === "bundle"
-            ? grant.billingCreditBundleId || grant.id
-            : options?.groupBy === "credit"
-              ? grant.billingCreditId
-              : grant.id;
-        const current = acc[key];
-
-        acc[key] = {
-          // credit-specific attributes
-          id: grant.billingCreditId,
-          name: grant.creditName,
-          singularName: grant.singularName,
-          pluralName: grant.pluralName,
-          description: grant.creditDescription,
-          icon: grant.creditIcon,
-          grantReason: grant.grantReason,
-          quantity: grant.quantity,
-          // shared attributes
-          companyId: grant.companyId,
-          companyName: grant.companyName,
-          planId: grant.planId,
-          planName: grant.planName,
-          bundleId: grant.billingCreditBundleId,
-          // custom attributes
-          total: {
-            value: (current?.total?.value ?? 0) + grant.quantity,
-            remaining:
-              (current?.total?.remaining ?? 0) + grant.quantityRemaining,
-            used: (current?.total?.used ?? 0) + grant.quantityUsed,
-          },
-          grants: [...(current?.grants ?? []), grant],
-        };
+        const key = getKey(grant);
+        acc[key] = acc[key] ?? [];
+        acc[key].push(grant);
       }
 
       return acc;
@@ -205,7 +185,78 @@ export function groupCreditGrants(
     {},
   );
 
-  return Object.values(map);
+  return Object.values(map).map((grants) => {
+    // Built fresh above and aliased nowhere, so it can be sorted in place.
+    grants.sort(byRecency);
+
+    // Every scalar below is read off the entry's most recent grant rather than
+    // whichever grant the payload happened to list last, so a row rendering
+    // both a scalar and a newest-first ledger describes the same grant.
+    const [latest] = grants;
+
+    return {
+      // credit-specific attributes
+      id: latest.billingCreditId,
+      name: latest.creditName,
+      singularName: latest.singularName,
+      pluralName: latest.pluralName,
+      description: latest.creditDescription,
+      icon: latest.creditIcon,
+      grantReason: latest.grantReason,
+      quantity: latest.quantity,
+      // shared attributes
+      companyId: latest.companyId,
+      companyName: latest.companyName,
+      planId: latest.planId,
+      planName: latest.planName,
+      bundleId: latest.billingCreditBundleId,
+      // custom attributes
+      total: grants.reduce(
+        (total, grant) => ({
+          value: total.value + grant.quantity,
+          remaining: total.remaining + grant.quantityRemaining,
+          used: total.used + grant.quantityUsed,
+        }),
+        { value: 0, remaining: 0, used: 0 },
+      ),
+      grants,
+    };
+  });
+}
+
+/**
+ * One entry per credit — the company's live balance for each credit, summed
+ * across every grant that supplied it. Entries follow the order the credits
+ * appear in the ledger, so a list of them stays put as grants come and go.
+ */
+export function aggregateActiveGrantsByCredit(
+  creditGrants: CreditCompanyGrantView[],
+) {
+  return aggregateActiveGrants(creditGrants, (grant) => grant.billingCreditId);
+}
+
+/**
+ * One entry per (grant reason, credit bundle) pair, falling back to one entry
+ * per grant for grants that arrived outside a bundle (plan allocations,
+ * promotional grants). Entries come back newest-first, so a truncated list
+ * shows the most recent purchases.
+ *
+ * The reason is part of the key because the same bundle can be acquired more
+ * than one way — bought outright and topped up automatically — and callers
+ * split the entries into per-reason sections. Keyed on the bundle alone, such
+ * a pair would merge into one entry whose section depended on payload order.
+ *
+ * Note that entries are keyed by bundle but still carry `id: billingCreditId`,
+ * so two bundles of the same credit share an `id` — don't use it as a React key.
+ */
+export function aggregateActiveGrantsByBundle(
+  creditGrants: CreditCompanyGrantView[],
+) {
+  return aggregateActiveGrants(
+    creditGrants,
+    (grant) =>
+      `${grant.grantReason}:${grant.billingCreditBundleId || grant.id}`,
+  ).sort((a, b) => byRecency(a.grants[0], b.grants[0]));
 }
 
 export function isAutoTopupEnabled(grant?: CompanyPlanCreditGrantView) {

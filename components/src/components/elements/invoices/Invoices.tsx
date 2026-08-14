@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -7,25 +7,17 @@ import {
 } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
-import { useEmbed } from "../../../hooks";
+import { useEmbed, useTruncatedList } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
-  createKeyboardExecutionHandler,
   formatCurrency,
   isError,
   toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
-import {
-  Button,
-  Flex,
-  Icon,
-  Loader,
-  Text,
-  Tooltip,
-  TransitionBox,
-} from "../../ui";
+import { ExpandListToggle } from "../../shared";
+import { Button, Flex, Loader, Text, Tooltip, TransitionBox } from "../../ui";
 
 interface DesignProps {
   header: {
@@ -148,7 +140,16 @@ export const Invoices = forwardRef<
         : rest.data,
     ),
   );
-  const [listSize, setListSize] = useState(props.limit.number);
+  // Expanding reveals at most `MAX_VISIBLE_INVOICE_COUNT`, so cap the list
+  // before truncating it: the toggle then counts what expanding can actually
+  // reach rather than the whole billing history.
+  const reachableInvoices = useMemo(
+    () => invoices.slice(0, MAX_VISIBLE_INVOICE_COUNT),
+    [invoices],
+  );
+  const visibleInvoices = useTruncatedList(reachableInvoices, {
+    limit: props.limit.number,
+  });
 
   const getInvoices = useCallback(async () => {
     try {
@@ -166,14 +167,6 @@ export const Invoices = forwardRef<
       setIsLoading(false);
     }
   }, [listInvoices]);
-
-  const toggleListSize = () => {
-    setListSize((prev) =>
-      prev !== props.limit.number
-        ? props.limit.number
-        : MAX_VISIBLE_INVOICE_COUNT,
-    );
-  };
 
   useEffect(() => {
     getInvoices();
@@ -241,9 +234,8 @@ export const Invoices = forwardRef<
               {invoices.length > 0 ? (
                 <>
                   <Flex $flexDirection="column" $gap="0.5rem">
-                    {invoices
-                      .slice(0, listSize)
-                      .map(({ date, amount, amountDue, url }, index) => {
+                    {visibleInvoices.items.map(
+                      ({ date, amount, amountDue, url }, index) => {
                         return (
                           <Flex
                             key={index}
@@ -285,30 +277,20 @@ export const Invoices = forwardRef<
                             )}
                           </Flex>
                         );
-                      })}
+                      },
+                    )}
                   </Flex>
 
-                  {props.collapse.isVisible &&
-                    invoices.length > props.limit.number && (
-                      <Flex $alignItems="center" $gap="0.5rem">
-                        <Icon
-                          name={`chevron-${listSize === props.limit.number ? "down" : "up"}`}
-                          color="#D0D0D0"
-                        />
-
-                        <Text
-                          onClick={toggleListSize}
-                          onKeyDown={createKeyboardExecutionHandler(
-                            toggleListSize,
-                          )}
-                          display={props.collapse.fontStyle}
-                        >
-                          {listSize === props.limit.number
-                            ? t("See more")
-                            : t("See less")}
-                        </Text>
-                      </Flex>
-                    )}
+                  {props.collapse.isVisible && visibleInvoices.canExpand && (
+                    <ExpandListToggle
+                      isExpanded={visibleInvoices.isExpanded}
+                      onToggle={visibleInvoices.toggle}
+                      expandLabel={t("See more")}
+                      collapseLabel={t("See less")}
+                      fontStyle={props.collapse.fontStyle}
+                      $gap="0.5rem"
+                    />
+                  )}
                 </>
               ) : (
                 <Text display="heading2">{t("No invoices created yet")}</Text>

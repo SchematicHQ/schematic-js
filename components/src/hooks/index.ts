@@ -6,4 +6,5 @@ export * from "./useIsLightBackground";
 export * from "./usePaymentConfirmation";
 export * from "./useRequest";
 export * from "./useTrialEnd";
+export * from "./useTruncatedList";
 export * from "./useWrapChildren";

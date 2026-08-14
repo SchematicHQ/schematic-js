@@ -13,7 +13,11 @@ import {
   hexToHSL,
 } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
-import { PlanCreditText, UsageViolationText } from "../../shared";
+import {
+  ExpandListToggle,
+  PlanCreditText,
+  UsageViolationText,
+} from "../../shared";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
 
 import { Entitlement } from "./Entitlement";
@@ -308,40 +312,15 @@ export const Plan = ({
             )}
 
             {(plan.entitlements ?? []).length > VISIBLE_ENTITLEMENT_COUNT && (
-              <Flex
+              <ExpandListToggle
                 as="li"
+                isExpanded={isExpanded}
+                onToggle={() => handleToggleShowAll(plan.id)}
                 $justifyContent="start"
-                $alignItems="center"
                 $gap="0.5rem"
                 $marginTop="1rem"
                 $listStyle="none"
-              >
-                <Icon
-                  name={isExpanded ? "chevron-up" : "chevron-down"}
-                  color="#D0D0D0"
-                />
-                <Text
-                  as="button"
-                  type="button"
-                  onClick={() => handleToggleShowAll(plan.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      handleToggleShowAll(plan.id);
-                    }
-                  }}
-                  style={{
-                    cursor: "pointer",
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                  }}
-                  display="link"
-                  $leading="none"
-                >
-                  {isExpanded ? t("Hide all") : t("See all")}
-                </Text>
-              </Flex>
+              />
             )}
           </Flex>
         )}
