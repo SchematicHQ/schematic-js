@@ -8,6 +8,7 @@ export * from "./invalid-currency-notice";
 export * from "./payment-dialog";
 export * from "./payment-form";
 export * from "./period-toggle";
+export * from "./plan-credit-text";
 export * from "./pricing-tiers-tooltip";
 export * from "./subscription-sidebar";
 export * from "./tiered-pricing-details";

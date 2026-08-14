@@ -5,15 +5,23 @@ import {
   BillingCreditAutoTopupAvailability,
   BillingCreditExpiryType,
   BillingCreditExpiryUnit,
+  BillingPlanCreditGrantResetCadence,
+  BillingPlanCreditGrantResetType,
+  PlanCreditGrantScaling,
+  type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
 import {
   deriveCreditBundles,
   filterCreditBundles,
+  findLicenseSource,
   formatBundleExpiry,
   getBundleOffCreditIds,
+  getPerLicenseGrantsForFeature,
+  groupPlanCreditGrants,
   isAutoTopupOff,
   isBundlePurchaseOff,
   isSelfServiceAutoTopupAvailable,
+  resolvePlanCreditQuantity,
 } from "./credit";
 
 describe("isAutoTopupOff", () => {
@@ -268,5 +276,140 @@ describe("formatBundleExpiry", () => {
         t,
       ),
     ).toBeUndefined();
+  });
+});
+
+describe("per-license plan credit grants", () => {
+  const baseGrant = {
+    billingCreditAutoTopupEnabled: false,
+    billingCreditAutoTopupSelfService: false,
+    billingCreditCanBuyBundles: true,
+    companyCreditAmount: 0,
+    createdAt: new Date(0),
+    creditDescription: "",
+    creditId: "credit-1",
+    creditName: "Credits",
+    id: "grant-fixed",
+    planId: "plan-1",
+    resetCadence: BillingPlanCreditGrantResetCadence.Monthly,
+    resetType: BillingPlanCreditGrantResetType.PlanPeriod,
+    rolloverPercentage: 0,
+    scaling: PlanCreditGrantScaling.Fixed,
+    updatedAt: new Date(0),
+  } satisfies Partial<PlanCreditGrantView> as PlanCreditGrantView;
+
+  const fixedGrant: PlanCreditGrantView = {
+    ...baseGrant,
+    creditAmount: 500,
+  };
+  const perLicenseGrant: PlanCreditGrantView = {
+    ...baseGrant,
+    id: "grant-per-license",
+    creditAmount: 100,
+    licenseId: "license-1",
+    scaling: PlanCreditGrantScaling.PerLicense,
+  };
+
+  describe("groupPlanCreditGrants", () => {
+    it("reads the flat portion off a per-license grant's company amount", () => {
+      const [credit] = groupPlanCreditGrants([
+        { ...perLicenseGrant, companyCreditAmount: 500 },
+      ]);
+
+      expect(credit.fixedQuantity).toBe(500);
+      expect(credit.quantity).toBe(500);
+      expect(credit.perLicenseGrants).toEqual([
+        { amount: 100, licenseId: "license-1" },
+      ]);
+      expect(credit.period).toBe("month");
+    });
+
+    it("ignores the company amount on a fixed grant", () => {
+      const [credit] = groupPlanCreditGrants([fixedGrant]);
+
+      expect(credit.fixedQuantity).toBe(500);
+      expect(credit.perLicenseGrants).toEqual([]);
+    });
+
+    it("combines a per-license and a fixed grant on the same credit", () => {
+      const [credit] = groupPlanCreditGrants([perLicenseGrant, fixedGrant]);
+
+      expect(credit.fixedQuantity).toBe(500);
+      expect(credit.quantity).toBe(500);
+      expect(credit.perLicenseGrants).toEqual([
+        { amount: 100, licenseId: "license-1" },
+      ]);
+      expect(credit.period).toBe("month");
+    });
+
+    it("sums multiple fixed grants on the same credit", () => {
+      const [credit] = groupPlanCreditGrants([
+        fixedGrant,
+        { ...fixedGrant, id: "grant-fixed-2", creditAmount: 250 },
+      ]);
+
+      expect(credit.fixedQuantity).toBe(750);
+      expect(credit.perLicenseGrants).toEqual([]);
+    });
+
+    it("treats a per-license grant without a license id as fixed", () => {
+      const [credit] = groupPlanCreditGrants([
+        { ...perLicenseGrant, licenseId: undefined },
+      ]);
+
+      expect(credit.fixedQuantity).toBe(100);
+      expect(credit.perLicenseGrants).toEqual([]);
+    });
+  });
+
+  describe("resolvePlanCreditQuantity", () => {
+    const [credit] = groupPlanCreditGrants([perLicenseGrant, fixedGrant]);
+
+    it("computes fixed + per-license × license quantity", () => {
+      expect(resolvePlanCreditQuantity(credit, () => 4)).toBe(900);
+    });
+
+    it("returns undefined when a license quantity cannot be resolved", () => {
+      expect(
+        resolvePlanCreditQuantity(credit, () => undefined),
+      ).toBeUndefined();
+    });
+
+    it("returns the fixed portion when there are no per-license grants", () => {
+      const [fixedOnly] = groupPlanCreditGrants([fixedGrant]);
+
+      expect(resolvePlanCreditQuantity(fixedOnly, () => undefined)).toBe(500);
+    });
+  });
+
+  describe("getPerLicenseGrantsForFeature", () => {
+    it("returns per-license grants matching the feature's license", () => {
+      expect(
+        getPerLicenseGrantsForFeature([perLicenseGrant, fixedGrant], {
+          licenseId: "license-1",
+        }),
+      ).toEqual([perLicenseGrant]);
+    });
+
+    it("returns nothing for a feature without a license", () => {
+      expect(
+        getPerLicenseGrantsForFeature([perLicenseGrant], { licenseId: null }),
+      ).toEqual([]);
+      expect(getPerLicenseGrantsForFeature([perLicenseGrant])).toEqual([]);
+    });
+  });
+
+  describe("findLicenseSource", () => {
+    const seats = { feature: { licenseId: "license-1" }, quantity: 4 };
+    const other = { feature: { licenseId: null }, quantity: 9 };
+
+    it("finds the entitlement whose feature is the license", () => {
+      expect(findLicenseSource([other, seats], "license-1")).toBe(seats);
+    });
+
+    it("returns undefined without a license id or match", () => {
+      expect(findLicenseSource([other, seats], undefined)).toBeUndefined();
+      expect(findLicenseSource([other], "license-1")).toBeUndefined();
+    });
   });
 });
