@@ -316,6 +316,16 @@ export interface BypassConfig {
    */
   showCurrencySelector?: boolean;
   /**
+   * Whether to show the recurring billing disclaimer beneath the checkout
+   * totals (e.g. "You will be billed $0.00 for this subscription every month
+   * on the 17th unless you unsubscribe."). Default: true.
+   *
+   * Set to false to hide that sentence when the host presents its own billing
+   * terms. The scheduled-downgrade notice, which occupies the same spot, is
+   * unaffected.
+   */
+  showBillingDisclaimer?: boolean;
+  /**
    * Pre-fill pay-in-advance quantities, keyed by feature id.
    *
    * Only applies to entitlements whose price behavior is pay-in-advance; entries
@@ -385,6 +395,7 @@ export type CheckoutState = {
   hideSkippedStages?: boolean;
   selectedCurrency?: string;
   showCurrencySelector?: boolean;
+  showBillingDisclaimer?: boolean;
   startTrialIfAvailable?: boolean;
   payInAdvanceQuantities?: Record<string, number>;
   promoCode?: string;

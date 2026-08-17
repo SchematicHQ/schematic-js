@@ -356,6 +356,35 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
     });
   });
 
+  describe("showBillingDisclaimer configuration", () => {
+    it("should carry showBillingDisclaimer through when set to false", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+        showBillingDisclaimer: false,
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.showBillingDisclaimer).toBe(false);
+    });
+
+    it("should leave showBillingDisclaimer undefined when not provided", () => {
+      const config: BypassConfig = {
+        planId: "plan_xyz",
+      };
+
+      const result = reducer(initialState, {
+        type: "SET_PLANID_BYPASS",
+        config,
+      });
+
+      expect(result.checkoutState?.showBillingDisclaimer).toBeUndefined();
+    });
+  });
+
   describe("Usage stage skip configuration", () => {
     it("should skip the usage stages when explicitly configured", () => {
       const config: BypassConfig = {
