@@ -334,6 +334,9 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           ...(config.showCurrencySelector !== undefined && {
             showCurrencySelector: config.showCurrencySelector,
           }),
+          ...(config.showBillingDisclaimer !== undefined && {
+            showBillingDisclaimer: config.showBillingDisclaimer,
+          }),
           hideSkippedStages: config.hideSkipped ?? false,
           startTrialIfAvailable:
             isStringFormat || config.startTrialIfAvailable === undefined

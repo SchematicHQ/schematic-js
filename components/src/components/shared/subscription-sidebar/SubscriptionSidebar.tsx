@@ -153,6 +153,7 @@ export const SubscriptionSidebar = forwardRef<
       layout,
       setLayout,
       checkout,
+      checkoutState,
       finishCheckout,
       unsubscribe,
     } = useEmbed();
@@ -892,16 +893,29 @@ export const SubscriptionSidebar = forwardRef<
     // Anchor the renewal wording to the billing-cycle anchor (period end), not
     // the current period start — see the `renewDate` note above. The helper's
     // `periodStart` param is just the date the schedule copy is built from.
-    const billingPreviewText = getBillingPreviewText(
-      {
-        subscriptionPrice,
-        planPeriod,
-        periodStart: renewDate,
-        hasUsageBasedCosts: usageBasedEntitlements.length > 0,
-        discount: subscriptionDiscount,
-      },
-      t,
-    );
+    const billingPreviewText =
+      checkoutState?.showBillingDisclaimer === false
+        ? null
+        : getBillingPreviewText(
+            {
+              subscriptionPrice,
+              planPeriod,
+              periodStart: renewDate,
+              hasUsageBasedCosts: usageBasedEntitlements.length > 0,
+              discount: subscriptionDiscount,
+            },
+            t,
+          );
+
+    const disclaimerText =
+      willScheduleDowngrade && selectedPlan?.name && billingSubscription
+        ? t("You will be downgraded at the end of your billing period.", {
+            plan: selectedPlan.name,
+            date: toPrettyDate(new Date(billingSubscription.periodEnd * 1000), {
+              month: "numeric",
+            }),
+          })
+        : billingPreviewText;
 
     return (
       <Flex
@@ -1555,28 +1569,13 @@ export const SubscriptionSidebar = forwardRef<
             </Flex>
           )}
 
-          {layout !== "unsubscribe" && !isCreditOnlyPurchase && (
-            <Box $opacity="0.625">
-              <Text>
-                {willScheduleDowngrade &&
-                selectedPlan?.name &&
-                billingSubscription
-                  ? t(
-                      "You will be downgraded at the end of your billing period.",
-                      {
-                        plan: selectedPlan.name,
-                        date: toPrettyDate(
-                          new Date(billingSubscription.periodEnd * 1000),
-                          {
-                            month: "numeric",
-                          },
-                        ),
-                      },
-                    )
-                  : billingPreviewText}
-              </Text>
-            </Box>
-          )}
+          {layout !== "unsubscribe" &&
+            !isCreditOnlyPurchase &&
+            disclaimerText && (
+              <Box $opacity="0.625">
+                <Text>{disclaimerText}</Text>
+              </Box>
+            )}
         </Flex>
       </Flex>
     );

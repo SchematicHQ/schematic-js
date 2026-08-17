@@ -60,6 +60,7 @@ const config = {
     feat_cns2asuKAG2: 3,           // "feat_cns2asuKAG2" is a feature id, 3 is the quantity
   },
   promoCode: 'SUMMER20',           // pre-apply a Stripe promotion code (optional)
+  showBillingDisclaimer: false,    // if false, hide the recurring billing disclaimer (optional)
   skipped: {
     planStage: true,               // if true, skip Plan selection
     addOnStage: true,              // if true, skip Add-on selection
@@ -82,6 +83,12 @@ the final checkout step with the quantities already set.
 customer-facing code such as `SUMMER20`, not the underlying coupon id. The
 discount is applied on load, so the previewed charges reflect it and it ships
 with the final checkout request.
+
+`showBillingDisclaimer` controls the fine print under the checkout totals, e.g.
+"You will be billed $50.00 for this subscription every month on the 17th unless
+you unsubscribe." It is shown by default; set it to `false` when your own UI
+states the billing terms. Hiding it does not affect the scheduled-downgrade
+notice that appears in the same spot.
 
 The Plans and Add-ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).
