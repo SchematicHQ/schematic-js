@@ -508,6 +508,9 @@ export const SubscriptionSidebar = forwardRef<
       addOnUsageBasedEntitlements,
     ]);
 
+    // `getPlanPrice` only reads the recurring prices, so this excludes one-time
+    // add-ons; those are listed separately and are not part of the recurring
+    // total this section feeds.
     const selectedAddOnsWithPrice = useMemo(
       () =>
         addOns.filter(
@@ -516,6 +519,17 @@ export const SubscriptionSidebar = forwardRef<
             getPlanPrice(addOn, undefined, undefined, currency)?.price,
         ),
       [addOns, currency],
+    );
+
+    const selectedOneTimeAddOns = useMemo(
+      () =>
+        addOns.filter(
+          (addOn) =>
+            addOn.isSelected &&
+            addOn.chargeType === ChargeType.oneTime &&
+            getAddOnPrice(addOn, planPeriod, currency)?.price,
+        ),
+      [addOns, planPeriod, currency],
     );
 
     const { removedAddOns, willAddOnsChange } = useMemo(() => {
@@ -1310,6 +1324,39 @@ export const SubscriptionSidebar = forwardRef<
                 },
                 [],
               )}
+            </Flex>
+          )}
+
+          {selectedOneTimeAddOns.length > 0 && (
+            <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
+              <Box $opacity="0.625">
+                <Text $size={14}>{t("One-time charges")}</Text>
+              </Box>
+
+              {selectedOneTimeAddOns.map((addOn, index) => {
+                const { price: addOnPrice, currency: addOnCurrency } =
+                  getAddOnPrice(addOn, planPeriod, currency) || {};
+
+                return (
+                  <Flex
+                    key={index}
+                    $justifyContent="space-between"
+                    $alignItems="baseline"
+                    $gap="1rem"
+                  >
+                    <Box>
+                      <Text display="heading4">{addOn.name}</Text>
+                    </Box>
+
+                    <Box $whiteSpace="nowrap">
+                      <Text>
+                        {formatCurrency(addOnPrice ?? 0, addOnCurrency)}{" "}
+                        <sub>{t("one time")}</sub>
+                      </Text>
+                    </Box>
+                  </Flex>
+                );
+              })}
             </Flex>
           )}
 
