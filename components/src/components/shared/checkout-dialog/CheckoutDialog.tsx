@@ -1216,6 +1216,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [
       t,
       addOnCompatibilityLookup,
+      data?.company?.plan?.id,
       data?.company?.plan?.includedCreditGrants,
       data?.company?.billingSubscription,
       previewCheckout,
@@ -1384,8 +1385,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       }
 
       // Apply the latest counts to the raw bundles and let handlePreviewCheckout
-      // perform the single bundle-off filter against the resolved plan (avoids
-      // filtering here and again there for the same plan).
+      // perform the single plan-compatibility filter against the resolved plan
+      // (avoids filtering here and again there for the same plan).
       const resolvedCreditBundles = (data?.creditBundles ?? []).map(
         (bundle) => ({
           ...bundle,

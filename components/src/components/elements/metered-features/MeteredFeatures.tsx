@@ -266,8 +266,7 @@ export const MeteredFeatures = forwardRef<
   // checkout the API would reject (and never shows when there is nothing
   // compatible to buy).
   const purchasableCreditIds = useMemo(
-    () =>
-      getPurchasableCreditIds(data?.creditBundles, data?.company?.plan?.id),
+    () => getPurchasableCreditIds(data?.creditBundles, data?.company?.plan?.id),
     [data?.creditBundles, data?.company?.plan?.id],
   );
 

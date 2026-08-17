@@ -64,13 +64,13 @@ describe("isAutoTopupOff", () => {
 
 describe("isBundleCompatibleWithPlan", () => {
   it("is true for an unrestricted bundle on any plan, or none", () => {
-    expect(isBundleCompatibleWithPlan({ compatiblePlanIds: [] }, "plan-1")).toBe(
-      true,
-    );
+    expect(
+      isBundleCompatibleWithPlan({ compatiblePlanIds: [] }, "plan-1"),
+    ).toBe(true);
     expect(isBundleCompatibleWithPlan({}, "plan-1")).toBe(true);
-    expect(isBundleCompatibleWithPlan({ compatiblePlanIds: [] }, undefined)).toBe(
-      true,
-    );
+    expect(
+      isBundleCompatibleWithPlan({ compatiblePlanIds: [] }, undefined),
+    ).toBe(true);
   });
 
   it("is true only for listed plans when enumerated", () => {
