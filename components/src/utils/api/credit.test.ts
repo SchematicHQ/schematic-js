@@ -19,11 +19,11 @@ import {
   filterCreditBundles,
   findLicenseSource,
   formatBundleExpiry,
-  getBundleOffCreditIds,
   getPerLicenseGrantsForFeature,
+  getPurchasableCreditIds,
   groupPlanCreditGrants,
   isAutoTopupOff,
-  isBundlePurchaseOff,
+  isBundleCompatibleWithPlan,
   isSelfServiceAutoTopupAvailable,
   resolvePlanCreditQuantity,
 } from "./credit";
@@ -62,44 +62,27 @@ describe("isAutoTopupOff", () => {
   });
 });
 
-describe("isBundlePurchaseOff", () => {
-  it("returns true when can buy bundles is false", () => {
-    expect(isBundlePurchaseOff({ billingCreditCanBuyBundles: false })).toBe(
+describe("isBundleCompatibleWithPlan", () => {
+  it("is true for an unrestricted bundle on any plan, or none", () => {
+    expect(isBundleCompatibleWithPlan({ compatiblePlanIds: [] }, "plan-1")).toBe(
+      true,
+    );
+    expect(isBundleCompatibleWithPlan({}, "plan-1")).toBe(true);
+    expect(isBundleCompatibleWithPlan({ compatiblePlanIds: [] }, undefined)).toBe(
       true,
     );
   });
 
-  it("returns false when can buy bundles is true", () => {
-    expect(isBundlePurchaseOff({ billingCreditCanBuyBundles: true })).toBe(
-      false,
-    );
+  it("is true only for listed plans when enumerated", () => {
+    const bundle = { compatiblePlanIds: ["plan-1", "plan-2"] };
+    expect(isBundleCompatibleWithPlan(bundle, "plan-1")).toBe(true);
+    expect(isBundleCompatibleWithPlan(bundle, "plan-3")).toBe(false);
   });
 
-  it("treats a missing value as not off (legacy grants)", () => {
-    expect(isBundlePurchaseOff(undefined)).toBe(false);
-    expect(isBundlePurchaseOff({})).toBe(false);
-  });
-});
-
-describe("bundle purchase and auto top-up are independent", () => {
-  it("bundle purchase off does not imply auto top-up off", () => {
-    const grant = {
-      billingCreditCanBuyBundles: false,
-      billingCreditAutoTopupAvailability:
-        BillingCreditAutoTopupAvailability.Automatic,
-    };
-    expect(isBundlePurchaseOff(grant)).toBe(true);
-    expect(isAutoTopupOff(grant)).toBe(false);
-  });
-
-  it("auto top-up off does not imply bundle purchase off", () => {
-    const grant = {
-      billingCreditCanBuyBundles: true,
-      billingCreditAutoTopupAvailability:
-        BillingCreditAutoTopupAvailability.Off,
-    };
-    expect(isBundlePurchaseOff(grant)).toBe(false);
-    expect(isAutoTopupOff(grant)).toBe(true);
+  it("is false for an enumerated bundle when there is no plan", () => {
+    expect(
+      isBundleCompatibleWithPlan({ compatiblePlanIds: ["plan-1"] }, undefined),
+    ).toBe(false);
   });
 });
 
@@ -136,66 +119,72 @@ describe("isSelfServiceAutoTopupAvailable", () => {
   });
 });
 
-describe("getBundleOffCreditIds", () => {
-  const grants = [
-    { creditId: "credit-off", billingCreditCanBuyBundles: false },
-    { creditId: "credit-on", billingCreditCanBuyBundles: true },
-    { creditId: "credit-legacy" } as { creditId: string },
-  ];
-
-  it("collects only the credit ids whose bundle purchase is off", () => {
-    const ids = getBundleOffCreditIds(grants);
-    expect(ids.has("credit-off")).toBe(true);
-    expect(ids.has("credit-on")).toBe(false);
-    expect(ids.has("credit-legacy")).toBe(false);
-  });
-
-  it("returns an empty set for missing grants", () => {
-    expect(getBundleOffCreditIds(undefined).size).toBe(0);
-  });
-});
-
 describe("filterCreditBundles", () => {
-  const grants = [
-    { creditId: "credit-off", billingCreditCanBuyBundles: false },
-    { creditId: "credit-on", billingCreditCanBuyBundles: true },
-  ];
   const bundles = [
-    { id: "b1", creditId: "credit-off", count: 3 },
-    { id: "b2", creditId: "credit-on", count: 1 },
+    { id: "b1", compatiblePlanIds: ["other-plan"], count: 3 },
+    { id: "b2", compatiblePlanIds: [], count: 1 },
+    { id: "b3", compatiblePlanIds: ["plan-1"], count: 2 },
   ];
 
-  it("drops bundles whose credit is bundle-off and preserves counts", () => {
-    expect(filterCreditBundles(grants, bundles)).toEqual([
-      { id: "b2", creditId: "credit-on", count: 1 },
+  it("drops bundles not compatible with the plan and preserves counts", () => {
+    expect(filterCreditBundles(bundles, "plan-1")).toEqual([
+      { id: "b2", compatiblePlanIds: [], count: 1 },
+      { id: "b3", compatiblePlanIds: ["plan-1"], count: 2 },
     ]);
   });
 
-  it("filters nothing when grants are missing (helper fails open)", () => {
-    expect(filterCreditBundles(undefined, bundles)).toEqual(bundles);
+  it("keeps only unrestricted bundles when there is no plan", () => {
+    expect(filterCreditBundles(bundles, undefined)).toEqual([
+      { id: "b2", compatiblePlanIds: [], count: 1 },
+    ]);
+  });
+
+  it("returns an empty list for missing bundles", () => {
+    expect(filterCreditBundles(undefined, "plan-1")).toEqual([]);
   });
 });
 
 describe("deriveCreditBundles", () => {
-  const grants = [
-    { creditId: "credit-off", billingCreditCanBuyBundles: false },
-    { creditId: "credit-on", billingCreditCanBuyBundles: true },
-  ];
   const bundles = [
-    { id: "b1", creditId: "credit-off" },
-    { id: "b2", creditId: "credit-on" },
+    { id: "b1", compatiblePlanIds: ["other-plan"] },
+    { id: "b2", compatiblePlanIds: [] },
   ];
 
-  it("filters bundle-off credits and applies counts from the map", () => {
-    expect(deriveCreditBundles(grants, bundles, { b2: 4 })).toEqual([
-      { id: "b2", creditId: "credit-on", count: 4 },
+  it("filters incompatible bundles and applies counts from the map", () => {
+    expect(deriveCreditBundles(bundles, "plan-1", { b2: 4 })).toEqual([
+      { id: "b2", compatiblePlanIds: [], count: 4 },
     ]);
   });
 
   it("defaults a surviving bundle's count to 0 when absent from the map", () => {
-    expect(deriveCreditBundles(grants, bundles, {})).toEqual([
-      { id: "b2", creditId: "credit-on", count: 0 },
+    expect(deriveCreditBundles(bundles, "plan-1", {})).toEqual([
+      { id: "b2", compatiblePlanIds: [], count: 0 },
     ]);
+  });
+});
+
+describe("getPurchasableCreditIds", () => {
+  const bundles = [
+    { id: "b1", creditId: "credit-restricted", compatiblePlanIds: ["other"] },
+    { id: "b2", creditId: "credit-open", compatiblePlanIds: [] },
+    { id: "b3", creditId: "credit-listed", compatiblePlanIds: ["plan-1"] },
+  ];
+
+  it("collects credits with at least one bundle purchasable on the plan", () => {
+    const ids = getPurchasableCreditIds(bundles, "plan-1");
+    expect(ids.has("credit-open")).toBe(true);
+    expect(ids.has("credit-listed")).toBe(true);
+    expect(ids.has("credit-restricted")).toBe(false);
+  });
+
+  it("excludes credits whose only bundles are enumerated when there is no plan", () => {
+    const ids = getPurchasableCreditIds(bundles, undefined);
+    expect(ids.has("credit-open")).toBe(true);
+    expect(ids.has("credit-listed")).toBe(false);
+  });
+
+  it("is empty for missing bundles — no bundles means nothing to buy", () => {
+    expect(getPurchasableCreditIds(undefined, "plan-1").size).toBe(0);
   });
 });
 

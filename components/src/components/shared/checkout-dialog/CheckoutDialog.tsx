@@ -467,20 +467,19 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   // the setBundleCounts updater pure.
   const bundleCountsRef = useRef(bundleCounts);
 
-  // Fall back to the company's current-plan grants when no plan is selected
-  // (e.g. a credit-only purchase, or a preview that reset selectedPlanId), so a
-  // bundle-off credit is still gated rather than slipping through unfiltered.
-  const bundleGatingGrants =
-    selectedPlan?.includedCreditGrants ??
-    data?.company?.plan?.includedCreditGrants;
+  // The plan bundle compatibility is checked against, mirroring the API: a
+  // subscription change validates against the target plan, and a credit-only
+  // purchase (or a preview that reset selectedPlanId) against the company's
+  // current plan. With neither, only unrestricted bundles pass.
+  const bundleGatingPlanId = selectedPlan?.id ?? data?.company?.plan?.id;
 
   const creditBundles = useMemo<CreditBundle[]>(() => {
     return deriveCreditBundles(
-      bundleGatingGrants,
       data?.creditBundles,
+      bundleGatingPlanId,
       bundleCounts,
     );
-  }, [bundleGatingGrants, data?.creditBundles, bundleCounts]);
+  }, [bundleGatingPlanId, data?.creditBundles, bundleCounts]);
 
   const selectedPlanPriceId = useMemo(() => {
     if (!selectedPlan) {
@@ -1015,14 +1014,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const skipTrial = !(updates.shouldTrial ?? shouldTrial);
 
       // Filter bundles against the plan being previewed: a stale debounced
-      // update may carry a bundle for a credit whose grant on the resolved
-      // plan has bundle purchase off, and that must not reach the request.
-      // filterCreditBundles preserves the counts already on the passed bundles;
-      // fall back to the current-plan grants when previewing a credit-only
-      // purchase so the gating still applies.
+      // update may carry a bundle that is not compatible with the resolved
+      // plan, and that must not reach the request. filterCreditBundles
+      // preserves the counts already on the passed bundles; fall back to the
+      // current plan when previewing a credit-only purchase so the gating
+      // still applies.
       const resolvedCreditBundles = filterCreditBundles(
-        plan?.includedCreditGrants ?? data?.company?.plan?.includedCreditGrants,
         updates.creditBundles || creditBundles,
+        plan?.id ?? data?.company?.plan?.id,
       );
 
       // A credit-bundle-only purchase on a non-billing subscription has no plan
@@ -1619,13 +1618,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       debouncedPreviewCheckout({
         creditBundles: deriveCreditBundles(
-          bundleGatingGrants,
           data?.creditBundles,
+          bundleGatingPlanId,
           nextCounts,
         ),
       });
     },
-    [bundleGatingGrants, data?.creditBundles, debouncedPreviewCheckout],
+    [bundleGatingPlanId, data?.creditBundles, debouncedPreviewCheckout],
   );
 
   const toggleCreditBundle = useCallback(
@@ -1645,13 +1644,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       handlePreviewCheckout({
         creditBundles: deriveCreditBundles(
-          bundleGatingGrants,
           data?.creditBundles,
+          bundleGatingPlanId,
           nextCounts,
         ),
       });
     },
-    [bundleGatingGrants, data?.creditBundles, handlePreviewCheckout],
+    [bundleGatingPlanId, data?.creditBundles, handlePreviewCheckout],
   );
 
   const updateAddOnEntitlementQuantity = useCallback(

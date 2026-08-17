@@ -294,55 +294,66 @@ export function isSelfServiceAutoTopupAvailable(
   return !!grant?.billingCreditAutoTopupSelfService && !isAutoTopupOff(grant);
 }
 
-export function isBundlePurchaseOff(
-  grant?: Partial<
-    Pick<CompanyPlanCreditGrantView, "billingCreditCanBuyBundles">
-  >,
-) {
-  return grant?.billingCreditCanBuyBundles === false;
+type BundleCompatibility = Partial<
+  Pick<BillingCreditBundleView, "compatiblePlanIds">
+>;
+
+/**
+ * Whether a bundle may be purchased by a company on the given base plan. A
+ * bundle with enumerated `compatiblePlanIds` is purchasable only on the listed
+ * plans; a bundle with none is purchasable on every plan. No plan (undefined)
+ * matches no enumerated set, so only unrestricted bundles pass. Mirrors the
+ * API's checkout enforcement (`BillingCreditBundleView.IsCompatibleWithPlan`),
+ * so the embed never offers a bundle the purchase would reject with a 400.
+ */
+export function isBundleCompatibleWithPlan(
+  bundle: BundleCompatibility,
+  planId: string | undefined,
+): boolean {
+  const compatiblePlanIds = bundle.compatiblePlanIds ?? [];
+  if (compatiblePlanIds.length === 0) {
+    return true;
+  }
+  return !!planId && compatiblePlanIds.includes(planId);
 }
 
-type BundleGatingGrant = Pick<PlanCreditGrantView, "creditId"> &
-  Partial<Pick<PlanCreditGrantView, "billingCreditCanBuyBundles">>;
-
-/** The set of credit ids whose grant has bundle purchase turned off. */
-export function getBundleOffCreditIds(
-  grants?: BundleGatingGrant[],
-): Set<string> {
-  const ids = new Set<string>();
-  (grants ?? []).forEach((grant) => {
-    if (isBundlePurchaseOff(grant)) {
-      ids.add(grant.creditId);
-    }
-  });
-  return ids;
-}
-
-/** Drops bundles whose credit has bundle purchase off on the given plan's grants. */
-export function filterCreditBundles<
-  T extends Pick<BillingCreditBundleView, "creditId">,
->(grants: BundleGatingGrant[] | undefined, bundles: T[] | undefined): T[] {
-  const bundleOffCreditIds = getBundleOffCreditIds(grants);
-  return (bundles ?? []).filter(
-    (bundle) => !bundleOffCreditIds.has(bundle.creditId),
+/** Drops bundles that are not purchasable on the given base plan. */
+export function filterCreditBundles<T extends BundleCompatibility>(
+  bundles: T[] | undefined,
+  planId: string | undefined,
+): T[] {
+  return (bundles ?? []).filter((bundle) =>
+    isBundleCompatibleWithPlan(bundle, planId),
   );
 }
 
 /**
- * Filters bundles by the plan's bundle-off gating and resolves each surviving
- * bundle's `count` from the supplied counts map (keyed by bundle id).
+ * Filters bundles by plan compatibility and resolves each surviving bundle's
+ * `count` from the supplied counts map (keyed by bundle id).
  */
 export function deriveCreditBundles<
-  T extends Pick<BillingCreditBundleView, "id" | "creditId">,
+  T extends Pick<BillingCreditBundleView, "id"> & BundleCompatibility,
 >(
-  grants: BundleGatingGrant[] | undefined,
   bundles: T[] | undefined,
+  planId: string | undefined,
   counts: Record<string, number>,
 ): (T & { count: number })[] {
-  return filterCreditBundles(grants, bundles).map((bundle) => ({
+  return filterCreditBundles(bundles, planId).map((bundle) => ({
     ...bundle,
     count: counts[bundle.id] ?? 0,
   }));
+}
+
+/**
+ * Credit ids with at least one bundle purchasable on the given plan — the
+ * buy-more surfaces show for exactly these credits.
+ */
+export function getPurchasableCreditIds<
+  T extends Pick<BillingCreditBundleView, "creditId"> & BundleCompatibility,
+>(bundles: T[] | undefined, planId: string | undefined): Set<string> {
+  return new Set(
+    filterCreditBundles(bundles, planId).map((bundle) => bundle.creditId),
+  );
 }
 
 export function getAutoTopupThresholdCredits(
