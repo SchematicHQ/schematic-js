@@ -1,3 +1,5 @@
+export const VISIBLE_CREDIT_COUNT = 3;
+
 export const VISIBLE_ENTITLEMENT_COUNT = 4;
 
 export const MAX_VISIBLE_INVOICE_COUNT = 12;

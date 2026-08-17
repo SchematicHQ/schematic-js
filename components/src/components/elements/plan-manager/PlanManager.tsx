@@ -2,12 +2,14 @@ import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BillingCreditGrantReason } from "../../../api/checkoutexternal";
+import { VISIBLE_CREDIT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useCustomPlanBilling,
   useEmbed,
   useIsLightBackground,
   useTrialEnd,
+  useTruncatedList,
 } from "../../../hooks";
 import type {
   CreditWithCompanyContext,
@@ -15,6 +17,8 @@ import type {
   ElementProps,
 } from "../../../types";
 import {
+  aggregateActiveGrantsByBundle,
+  aggregateActiveGrantsByCredit,
   darken,
   findLicenseSource,
   formatCurrency,
@@ -22,7 +26,6 @@ import {
   getAutoTopupThresholdCredits,
   getFeatureName,
   getSubscriptionPeriod,
-  groupCreditGrants,
   groupPlanCreditGrants,
   isAutoTopupEnabled,
   isAutoTopupOff,
@@ -33,7 +36,7 @@ import {
   toPrettyDate,
 } from "../../../utils";
 import { Element, Notice } from "../../layout";
-import { AutoTopupNotice } from "../../shared";
+import { AutoTopupNotice, ExpandListToggle } from "../../shared";
 import { Box, Button, Flex, Text } from "../../ui";
 
 import { AddOn } from "./AddOn";
@@ -136,46 +139,57 @@ export const PlanManager = forwardRef<
     showZeroPriceAsFree,
     trialPaymentMethodRequired,
   } = useMemo(() => {
+    const planCreditOrder = new Map<string, number>();
+    (data?.company?.plan?.includedCreditGrants ?? []).forEach((grant) => {
+      if (!planCreditOrder.has(grant.creditId)) {
+        planCreditOrder.set(grant.creditId, planCreditOrder.size);
+      }
+    });
+
+    const planGroups = aggregateActiveGrantsByCredit(
+      (data?.creditGrants || []).filter(
+        (grant) => grant.grantReason === BillingCreditGrantReason.Plan,
+      ),
+    ).sort(
+      (a, b) =>
+        (planCreditOrder.get(a.id) ?? planCreditOrder.size) -
+        (planCreditOrder.get(b.id) ?? planCreditOrder.size),
+    );
+
+    const groupsByReason = aggregateActiveGrantsByBundle(
+      (data?.creditGrants || []).filter(
+        (grant) => grant.grantReason !== BillingCreditGrantReason.Plan,
+      ),
+    ).reduce(
+      (
+        acc: {
+          bundles: CreditWithCompanyContext[];
+          promotional: CreditWithCompanyContext[];
+          autoTopups: CreditWithCompanyContext[];
+        },
+        grant,
+      ) => {
+        switch (grant.grantReason) {
+          case BillingCreditGrantReason.Purchased:
+            acc.bundles.push(grant);
+            break;
+          case BillingCreditGrantReason.Free:
+            acc.promotional.push(grant);
+            break;
+          case BillingCreditGrantReason.BillingCreditAutoTopup:
+            acc.autoTopups.push(grant);
+        }
+
+        return acc;
+      },
+      { bundles: [], promotional: [], autoTopups: [] },
+    );
+
     return {
       currentPlan: data?.company?.plan,
       currentAddOns: data?.company?.addOns || [],
       creditBundles: data?.creditBundles || [],
-      creditGroups: {
-        // Plan grants are grouped per credit: a per-license grant issues one
-        // ledger entry per license unit (plus any flat company grant), and the
-        // "Credits in plan" row shows their combined amount.
-        plan: groupCreditGrants(
-          (data?.creditGrants || []).filter(
-            (grant) => grant.grantReason === BillingCreditGrantReason.Plan,
-          ),
-          { groupBy: "credit" },
-        ),
-        ...groupCreditGrants(
-          (data?.creditGrants || []).filter(
-            (grant) => grant.grantReason !== BillingCreditGrantReason.Plan,
-          ),
-          { groupBy: "bundle" },
-        ).reduce(
-          (
-            acc: {
-              bundles: CreditWithCompanyContext[];
-              promotional: CreditWithCompanyContext[];
-            },
-            grant,
-          ) => {
-            switch (grant.grantReason) {
-              case BillingCreditGrantReason.Purchased:
-                acc.bundles.push(grant);
-                break;
-              case BillingCreditGrantReason.Free:
-                acc.promotional.push(grant);
-            }
-
-            return acc;
-          },
-          { bundles: [], promotional: [] },
-        ),
-      },
+      creditGroups: { plan: planGroups, ...groupsByReason },
       billingSubscription: data?.company?.billingSubscription,
       canCheckout: data?.capabilities?.checkout ?? false,
       postTrialPlan: data?.postTrialPlan,
@@ -217,6 +231,19 @@ export const PlanManager = forwardRef<
       return typeof allocation === "number" ? allocation : undefined;
     };
   }, [featureUsage]);
+
+  const planCredits = useTruncatedList(creditGroups.plan, {
+    limit: VISIBLE_CREDIT_COUNT,
+  });
+  const autoTopupCredits = useTruncatedList(creditGroups.autoTopups, {
+    limit: VISIBLE_CREDIT_COUNT,
+  });
+  const bundleCredits = useTruncatedList(creditGroups.bundles, {
+    limit: VISIBLE_CREDIT_COUNT,
+  });
+  const promotionalCredits = useTruncatedList(creditGroups.promotional, {
+    limit: VISIBLE_CREDIT_COUNT,
+  });
 
   const {
     subscriptionInterval,
@@ -559,7 +586,7 @@ export const PlanManager = forwardRef<
               )}
 
               <Flex $flexDirection="column" $gap="1rem">
-                {creditGroups.plan.map((group, groupIndex) => {
+                {planCredits.items.map((group, groupIndex) => {
                   const planCreditGrant =
                     currentPlan?.includedCreditGrants.find(
                       (grant) => grant.creditId === group.id,
@@ -717,6 +744,15 @@ export const PlanManager = forwardRef<
                 })}
               </Flex>
 
+              {planCredits.canExpand && (
+                <ExpandListToggle
+                  isExpanded={planCredits.isExpanded}
+                  onToggle={planCredits.toggle}
+                  total={planCredits.total}
+                  $marginTop="0.5rem"
+                />
+              )}
+
               {hasAutoTopupSelfService && (
                 <Flex
                   $justifyContent="space-between"
@@ -802,6 +838,86 @@ export const PlanManager = forwardRef<
             </Flex>
           )}
 
+        {props.addOns.isVisible &&
+          showCredits &&
+          creditGroups.autoTopups.length > 0 && (
+            <Flex $flexDirection="column" $gap="0.5rem">
+              {props.addOns.showLabel && (
+                <Text
+                  $color={
+                    isLightBackground
+                      ? darken(settings.theme.card.background, 0.46)
+                      : lighten(settings.theme.card.background, 0.46)
+                  }
+                  $leading="none"
+                >
+                  {t("Top-ups")}
+                </Text>
+              )}
+
+              <Flex $flexDirection="column" $gap="1rem">
+                {autoTopupCredits.items.map((group, groupIndex) => {
+                  const bundle = group?.bundleId
+                    ? creditBundles.find((b) => b.id === group.bundleId)
+                    : undefined;
+
+                  return (
+                    <Flex
+                      key={groupIndex}
+                      $justifyContent="space-between"
+                      $alignItems="center"
+                      $flexWrap="wrap"
+                      $gap="0.5rem"
+                    >
+                      {bundle ? (
+                        <Text display={props.addOns.fontStyle}>
+                          {group.grants.length > 1 && (
+                            <Text style={{ opacity: 0.5 }}>
+                              ({group.grants.length}){" "}
+                            </Text>
+                          )}
+                          {bundle.name} ({group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)})
+                        </Text>
+                      ) : (
+                        <Text display={props.addOns.fontStyle}>
+                          {group.grants.length > 1 && (
+                            <Text style={{ opacity: 0.5 }}>
+                              ({group.grants.length}){" "}
+                            </Text>
+                          )}
+                          {group.quantity}{" "}
+                          {getFeatureName(group, group.quantity)}
+                        </Text>
+                      )}
+
+                      {group.total.used > 0 && (
+                        <Text
+                          style={{ opacity: 0.54 }}
+                          $size={
+                            0.875 * settings.theme.typography.text.fontSize
+                          }
+                          $color={settings.theme.typography.text.color}
+                        >
+                          {group.total.used} {t("used")}
+                        </Text>
+                      )}
+                    </Flex>
+                  );
+                })}
+              </Flex>
+
+              {autoTopupCredits.canExpand && (
+                <ExpandListToggle
+                  isExpanded={autoTopupCredits.isExpanded}
+                  onToggle={autoTopupCredits.toggle}
+                  total={autoTopupCredits.total}
+                  $marginTop="0.5rem"
+                />
+              )}
+            </Flex>
+          )}
+
         {props.addOns.isVisible && creditGroups.bundles.length > 0 && (
           <Flex $flexDirection="column" $gap="0.5rem">
             {props.addOns.showLabel && (
@@ -818,7 +934,7 @@ export const PlanManager = forwardRef<
             )}
 
             <Flex $flexDirection="column" $gap="1rem">
-              {creditGroups.bundles.map((group, groupIndex) => {
+              {bundleCredits.items.map((group, groupIndex) => {
                 const bundle = group?.bundleId
                   ? creditBundles.find((b) => b.id === group.bundleId)
                   : undefined;
@@ -860,6 +976,15 @@ export const PlanManager = forwardRef<
                 );
               })}
             </Flex>
+
+            {bundleCredits.canExpand && (
+              <ExpandListToggle
+                isExpanded={bundleCredits.isExpanded}
+                onToggle={bundleCredits.toggle}
+                total={bundleCredits.total}
+                $marginTop="0.5rem"
+              />
+            )}
           </Flex>
         )}
 
@@ -879,7 +1004,7 @@ export const PlanManager = forwardRef<
             )}
 
             <Flex $flexDirection="column" $gap="1rem">
-              {creditGroups.promotional.map((group, groupIndex) => {
+              {promotionalCredits.items.map((group, groupIndex) => {
                 return (
                   <Flex
                     key={groupIndex}
@@ -905,6 +1030,15 @@ export const PlanManager = forwardRef<
                 );
               })}
             </Flex>
+
+            {promotionalCredits.canExpand && (
+              <ExpandListToggle
+                isExpanded={promotionalCredits.isExpanded}
+                onToggle={promotionalCredits.toggle}
+                total={promotionalCredits.total}
+                $marginTop="0.5rem"
+              />
+            )}
           </Flex>
         )}
 

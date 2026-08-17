@@ -1,18 +1,22 @@
-import { Fragment, forwardRef, useMemo, useState } from "react";
+import { Fragment, forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  useTruncatedList,
+} from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
-  createKeyboardExecutionHandler,
   getFeatureName,
   getPerLicenseGrantsForFeature,
   toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
+import { ExpandListToggle } from "../../shared";
 import { Box, Flex, Icon, Text } from "../../ui";
 
 import { UsageDetails } from "./UsageDetails";
@@ -94,8 +98,6 @@ export const IncludedFeatures = forwardRef<
 
   const isLightBackground = useIsLightBackground();
 
-  const [showCount, setShowCount] = useState(VISIBLE_ENTITLEMENT_COUNT);
-
   const { plan, addOns, featureUsage } = useMemo(() => {
     const orderedFeatureUsage = props.visibleFeatures?.reduce(
       (acc: FeatureUsageResponseData[], id) => {
@@ -124,15 +126,9 @@ export const IncludedFeatures = forwardRef<
     data?.featureUsage?.features,
   ]);
 
-  const featureListSize = featureUsage.length;
-
-  const handleToggleShowAll = () => {
-    setShowCount((prev) =>
-      prev > VISIBLE_ENTITLEMENT_COUNT
-        ? VISIBLE_ENTITLEMENT_COUNT
-        : featureListSize,
-    );
-  };
+  const visibleFeatureUsage = useTruncatedList(featureUsage, {
+    limit: VISIBLE_ENTITLEMENT_COUNT,
+  });
 
   // Check if we should render this component at all:
   // * If there are any plans or addons, render it, even if the list is empty.
@@ -145,9 +141,6 @@ export const IncludedFeatures = forwardRef<
   if (!shouldShowFeatures) {
     return null;
   }
-
-  const shouldShowExpand = featureListSize > VISIBLE_ENTITLEMENT_COUNT;
-  const isExpanded = showCount > VISIBLE_ENTITLEMENT_COUNT;
 
   return (
     <Element ref={ref} className={className} $containerType="inline-size">
@@ -168,7 +161,7 @@ export const IncludedFeatures = forwardRef<
           },
         }}
       >
-        {featureUsage.slice(0, showCount).map((entitlement, index) => {
+        {visibleFeatureUsage.items.map((entitlement, index) => {
           return (
             <Fragment key={index}>
               {props.icons.isVisible && entitlement.feature?.icon && (
@@ -266,21 +259,12 @@ export const IncludedFeatures = forwardRef<
         })}
       </Box>
 
-      {shouldShowExpand && (
-        <Flex $alignItems="center" $marginTop="1rem">
-          <Icon
-            name={isExpanded ? "chevron-up" : "chevron-down"}
-            color="#D0D0D0"
-          />
-
-          <Text
-            onClick={handleToggleShowAll}
-            onKeyDown={createKeyboardExecutionHandler(handleToggleShowAll)}
-            display="link"
-          >
-            {isExpanded ? t("Hide all") : t("See all")}
-          </Text>
-        </Flex>
+      {visibleFeatureUsage.canExpand && (
+        <ExpandListToggle
+          isExpanded={visibleFeatureUsage.isExpanded}
+          onToggle={visibleFeatureUsage.toggle}
+          $marginTop="1rem"
+        />
       )}
     </Element>
   );

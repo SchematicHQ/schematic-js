@@ -3,6 +3,7 @@ export * from "./billing-threshold-tooltip";
 export * from "./checkout-dialog";
 export * from "./currency-period-mismatch-notice";
 export * from "./currency-toggle";
+export * from "./expand-list-toggle";
 export * from "./hard-limit-tooltip";
 export * from "./invalid-currency-notice";
 export * from "./payment-dialog";

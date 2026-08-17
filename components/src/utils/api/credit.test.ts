@@ -5,12 +5,16 @@ import {
   BillingCreditAutoTopupAvailability,
   BillingCreditExpiryType,
   BillingCreditExpiryUnit,
+  BillingCreditGrantReason,
   BillingPlanCreditGrantResetCadence,
   BillingPlanCreditGrantResetType,
   PlanCreditGrantScaling,
+  type CreditCompanyGrantView,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
 import {
+  aggregateActiveGrantsByBundle,
+  aggregateActiveGrantsByCredit,
   deriveCreditBundles,
   filterCreditBundles,
   findLicenseSource,
@@ -411,5 +415,162 @@ describe("per-license plan credit grants", () => {
       expect(findLicenseSource([other, seats], undefined)).toBeUndefined();
       expect(findLicenseSource([other], "license-1")).toBeUndefined();
     });
+  });
+});
+
+describe("aggregating active grants", () => {
+  const grant = (id: string, overrides: Partial<CreditCompanyGrantView> = {}) =>
+    ({
+      id,
+      billingCreditId: "tokens",
+      billingCreditBundleId: null,
+      creditName: "Tokens",
+      quantity: 100,
+      quantityRemaining: 60,
+      quantityUsed: 40,
+      createdAt: new Date(2026, 0, 1),
+      expiresAt: null,
+      zeroedOutDate: null,
+      ...overrides,
+    }) as unknown as CreditCompanyGrantView;
+
+  it("returns each entry's grants newest-first", () => {
+    const result = aggregateActiveGrantsByCredit([
+      grant("b", { createdAt: new Date(2026, 3, 1) }),
+      grant("c", { createdAt: new Date(2026, 6, 1) }),
+      grant("a", { createdAt: new Date(2026, 0, 1) }),
+    ]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].grants.map((g) => g.id)).toEqual(["c", "b", "a"]);
+  });
+
+  it("returns entries newest-first by their most recent grant", () => {
+    const result = aggregateActiveGrantsByBundle([
+      grant("old-a", {
+        billingCreditBundleId: "stale",
+        createdAt: new Date(2026, 0, 1),
+      }),
+      grant("new", {
+        billingCreditBundleId: "fresh",
+        createdAt: new Date(2026, 6, 1),
+      }),
+      grant("mid", {
+        billingCreditBundleId: "middling",
+        createdAt: new Date(2026, 3, 1),
+      }),
+      // A second, newer grant promotes the otherwise-stale bundle to the front.
+      grant("new-a", {
+        billingCreditBundleId: "stale",
+        createdAt: new Date(2026, 9, 1),
+      }),
+    ]);
+
+    expect(result.map((entry) => entry.bundleId)).toEqual([
+      "stale",
+      "fresh",
+      "middling",
+    ]);
+  });
+
+  it("keeps entries in ledger order when keying by credit", () => {
+    const result = aggregateActiveGrantsByCredit([
+      grant("a", { billingCreditId: "seats", createdAt: new Date(2026, 0, 1) }),
+      grant("b", {
+        billingCreditId: "tokens",
+        createdAt: new Date(2026, 6, 1),
+      }),
+    ]);
+
+    // Recency reorders the grants inside an entry, never the entries: a credit
+    // granted mid-cycle must not jump ahead of the plan's other credits.
+    expect(result.map((entry) => entry.id)).toEqual(["seats", "tokens"]);
+  });
+
+  it("reads each entry's scalars off its most recent grant", () => {
+    const [entry] = aggregateActiveGrantsByBundle([
+      grant("old", {
+        billingCreditBundleId: "bundle-1",
+        quantity: 100,
+        createdAt: new Date(2026, 0, 1),
+      }),
+      grant("new", {
+        billingCreditBundleId: "bundle-1",
+        quantity: 500,
+        createdAt: new Date(2026, 6, 1),
+      }),
+    ]);
+
+    expect(entry.grants[0].id).toBe("new");
+    expect(entry.quantity).toBe(500);
+    expect(entry.total.value).toBe(600);
+  });
+
+  it("keeps bundles bought two different ways in separate entries", () => {
+    const result = aggregateActiveGrantsByBundle([
+      grant("purchased", {
+        billingCreditBundleId: "bundle-1",
+        grantReason: BillingCreditGrantReason.Purchased,
+      }),
+      grant("topped-up", {
+        billingCreditBundleId: "bundle-1",
+        grantReason: BillingCreditGrantReason.BillingCreditAutoTopup,
+      }),
+    ]);
+
+    expect(result).toHaveLength(2);
+    expect(result.map((entry) => entry.grantReason).sort()).toEqual([
+      BillingCreditGrantReason.BillingCreditAutoTopup,
+      BillingCreditGrantReason.Purchased,
+    ]);
+  });
+
+  it("does not mutate the grants it is given", () => {
+    const grants = [
+      grant("b", { createdAt: new Date(2026, 3, 1) }),
+      grant("a", { createdAt: new Date(2026, 6, 1) }),
+    ];
+
+    aggregateActiveGrantsByCredit(grants);
+
+    expect(grants.map((g) => g.id)).toEqual(["b", "a"]);
+  });
+
+  it("drops expired and zeroed-out grants and sums the rest", () => {
+    const result = aggregateActiveGrantsByCredit([
+      grant("live"),
+      grant("expired", { expiresAt: new Date(2020, 0, 1) }),
+      grant("zeroed", { zeroedOutDate: new Date(2026, 0, 2) }),
+      grant("also-live"),
+    ]);
+
+    expect(result[0].grants.map((g) => g.id).sort()).toEqual([
+      "also-live",
+      "live",
+    ]);
+    expect(result[0].total).toEqual({ value: 200, remaining: 120, used: 80 });
+  });
+
+  it("collapses one entry per credit regardless of bundle", () => {
+    const result = aggregateActiveGrantsByCredit([
+      grant("a", { billingCreditBundleId: "bundle-1" }),
+      grant("b", { billingCreditBundleId: "bundle-2" }),
+      grant("c", { billingCreditId: "seats", billingCreditBundleId: null }),
+    ]);
+
+    expect(result).toHaveLength(2);
+  });
+
+  it("keys by bundle, falling back to grant id when there is none", () => {
+    const result = aggregateActiveGrantsByBundle([
+      grant("a", { billingCreditBundleId: "bundle-1" }),
+      grant("b", { billingCreditBundleId: "bundle-1" }),
+      grant("c", { billingCreditBundleId: null }),
+    ]);
+
+    expect(result).toHaveLength(2);
+    const bundled = result.find((entry) => entry.bundleId === "bundle-1");
+    expect(bundled?.grants.map((g) => g.id).sort()).toEqual(["a", "b"]);
+    expect(bundled?.total.value).toBe(200);
   });
 });

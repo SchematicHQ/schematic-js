@@ -68,12 +68,14 @@ export const TransitionBox = styled(Box)<TransitionBoxProps>`
       : css`
           height: 0;
           overflow: hidden;
+          visibility: hidden;
         `;
   }}
   opacity: 1;
   transition:
     height 0.1s ease-in,
-    opacity 0.1s ease-out;
+    opacity 0.1s ease-out,
+    visibility 0.1s ease-out;
 
   @starting-style {
     height: 0;
