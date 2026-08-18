@@ -32,7 +32,7 @@ export interface UpdateCheckoutTaxIDRequestBody {
    * @type {TaxIDInput}
    * @memberof UpdateCheckoutTaxIDRequestBody
    */
-  taxId?: TaxIDInput;
+  taxId: TaxIDInput;
 }
 
 /**
@@ -41,6 +41,7 @@ export interface UpdateCheckoutTaxIDRequestBody {
 export function instanceOfUpdateCheckoutTaxIDRequestBody(
   value: object,
 ): value is UpdateCheckoutTaxIDRequestBody {
+  if (!("taxId" in value) || value["taxId"] === undefined) return false;
   return true;
 }
 
@@ -58,8 +59,7 @@ export function UpdateCheckoutTaxIDRequestBodyFromJSONTyped(
     return json;
   }
   return {
-    taxId:
-      json["tax_id"] == null ? undefined : TaxIDInputFromJSON(json["tax_id"]),
+    taxId: TaxIDInputFromJSON(json["tax_id"]),
   };
 }
 
