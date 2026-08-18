@@ -93,6 +93,8 @@ export * from "./PlanType";
 export * from "./PlanVersionResponseData";
 export * from "./PlanVersionStatus";
 export * from "./PlanViewPublicResponseData";
+export * from "./PreflightEventUsageRequestBody";
+export * from "./PreflightRequestBody";
 export * from "./PreviewObject";
 export * from "./PreviewObjectResponseData";
 export * from "./PublicPlansResponseData";

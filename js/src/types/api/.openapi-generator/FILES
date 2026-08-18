@@ -92,6 +92,8 @@ models/PlanType.ts
 models/PlanVersionResponseData.ts
 models/PlanVersionStatus.ts
 models/PlanViewPublicResponseData.ts
+models/PreflightEventUsageRequestBody.ts
+models/PreflightRequestBody.ts
 models/PreviewObject.ts
 models/PreviewObjectResponseData.ts
 models/PublicPlansResponseData.ts
