@@ -44,6 +44,12 @@ export interface EventBodyFlagCheck {
    */
   flagKey: string;
   /**
+   * Whether the check was a preflight, asking whether an action would be allowed rather than reporting one that happened. Absent on ordinary checks
+   * @type {boolean}
+   * @memberof EventBodyFlagCheck
+   */
+  preflight?: boolean;
+  /**
    * The reason why the value was returned
    * @type {string}
    * @memberof EventBodyFlagCheck
@@ -109,6 +115,7 @@ export function EventBodyFlagCheckFromJSONTyped(
     error: json["error"] == null ? undefined : json["error"],
     flagId: json["flag_id"] == null ? undefined : json["flag_id"],
     flagKey: json["flag_key"],
+    preflight: json["preflight"] == null ? undefined : json["preflight"],
     reason: json["reason"],
     reqCompany: json["req_company"] == null ? undefined : json["req_company"],
     reqUser: json["req_user"] == null ? undefined : json["req_user"],
@@ -135,6 +142,7 @@ export function EventBodyFlagCheckToJSONTyped(
     error: value["error"],
     flag_id: value["flagId"],
     flag_key: value["flagKey"],
+    preflight: value["preflight"],
     reason: value["reason"],
     req_company: value["reqCompany"],
     req_user: value["reqUser"],

@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PreflightRequestBody } from "./PreflightRequestBody";
+import {
+  PreflightRequestBodyFromJSON,
+  PreflightRequestBodyFromJSONTyped,
+  PreflightRequestBodyToJSON,
+  PreflightRequestBodyToJSONTyped,
+} from "./PreflightRequestBody";
+
 /**
  *
  * @export
@@ -25,6 +33,12 @@ export interface CheckFlagRequestBody {
    * @memberof CheckFlagRequestBody
    */
   company?: { [key: string]: string } | null;
+  /**
+   * Hypothetical usage to evaluate the flag against, for answering "would this action be allowed?" before performing it. Only supported when checking a single flag. Values are caller-asserted and can widen a verdict as well as narrow it, so do not forward untrusted input here when the result gates access. Only the flag value reflects the preflight; the entitlement and usage figures in the response are the company's current, unsimulated ones
+   * @type {PreflightRequestBody}
+   * @memberof CheckFlagRequestBody
+   */
+  preflight?: PreflightRequestBody;
   /**
    *
    * @type {{ [key: string]: string; }}
@@ -55,6 +69,10 @@ export function CheckFlagRequestBodyFromJSONTyped(
   }
   return {
     company: json["company"] == null ? undefined : json["company"],
+    preflight:
+      json["preflight"] == null
+        ? undefined
+        : PreflightRequestBodyFromJSON(json["preflight"]),
     user: json["user"] == null ? undefined : json["user"],
   };
 }
@@ -73,6 +91,7 @@ export function CheckFlagRequestBodyToJSONTyped(
 
   return {
     company: value["company"],
+    preflight: PreflightRequestBodyToJSON(value["preflight"]),
     user: value["user"],
   };
 }
