@@ -146,9 +146,10 @@ export interface BillingPlanCreditGrantResponseData {
    */
   autoTopupThresholdPercent?: number | null;
   /**
-   * Whether buyers can purchase one-time credit bundles on this grant, independent of auto top-up availability.
+   * Deprecated: bundle availability is a per-bundle plan compatibility set now; use compatible_plan_ids on credit bundles instead.
    * @type {boolean}
    * @memberof BillingPlanCreditGrantResponseData
+   * @deprecated
    */
   canBuyBundles: boolean;
   /**
