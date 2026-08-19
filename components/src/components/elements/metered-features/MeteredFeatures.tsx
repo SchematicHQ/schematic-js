@@ -24,8 +24,8 @@ import {
   formatCurrency,
   formatNumber,
   formatOrdinal,
-  getBundleOffCreditIds,
   getFeatureName,
+  getPurchasableCreditIds,
   getSubscriptionPeriod,
   getUsageDetails,
   groupPlanCreditGrants,
@@ -261,9 +261,13 @@ export const MeteredFeatures = forwardRef<
     [data?.featureUsage?.features],
   );
 
-  const bundleOffCreditIds = useMemo(
-    () => getBundleOffCreditIds(data?.company?.plan?.includedCreditGrants),
-    [data?.company?.plan?.includedCreditGrants],
+  // Credits with at least one bundle purchasable on the company's current
+  // plan; "Buy More" shows for exactly these, so the button never opens a
+  // checkout the API would reject (and never shows when there is nothing
+  // compatible to buy).
+  const purchasableCreditIds = useMemo(
+    () => getPurchasableCreditIds(data?.creditBundles, data?.company?.plan?.id),
+    [data?.creditBundles, data?.company?.plan?.id],
   );
 
   // Track expanded credits by id rather than seeding an array from creditGroups:
@@ -527,7 +531,7 @@ export const MeteredFeatures = forwardRef<
                       }
                     />
 
-                    {canCheckout && !bundleOffCreditIds.has(credit.id) && (
+                    {canCheckout && purchasableCreditIds.has(credit.id) && (
                       <Button
                         type="button"
                         onClick={() => {
