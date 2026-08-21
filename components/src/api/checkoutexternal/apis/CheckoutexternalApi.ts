@@ -22,6 +22,8 @@ import type {
   DeletePaymentMethodResponse,
   FetchCustomerBalanceResponse,
   GetCheckoutTaxIDResponse,
+  GetCreditUsageByUserResponse,
+  GetFeatureUsageByUserResponse,
   GetSetupIntentResponse,
   HydrateComponentResponse,
   HydrateResponse,
@@ -52,6 +54,10 @@ import {
   FetchCustomerBalanceResponseToJSON,
   GetCheckoutTaxIDResponseFromJSON,
   GetCheckoutTaxIDResponseToJSON,
+  GetCreditUsageByUserResponseFromJSON,
+  GetCreditUsageByUserResponseToJSON,
+  GetFeatureUsageByUserResponseFromJSON,
+  GetFeatureUsageByUserResponseToJSON,
   GetSetupIntentResponseFromJSON,
   GetSetupIntentResponseToJSON,
   HydrateComponentResponseFromJSON,
@@ -84,6 +90,18 @@ export interface CheckoutRequest {
 
 export interface DeletePaymentMethodRequest {
   checkoutId: string;
+}
+
+export interface GetCreditUsageByUserRequest {
+  billingCreditId: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface GetFeatureUsageByUserRequest {
+  featureId: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface GetSetupIntentRequest {
@@ -400,6 +418,134 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<GetCheckoutTaxIDResponse> {
     const response = await this.getCheckoutTaxIDRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get credit usage by user
+   */
+  async getCreditUsageByUserRaw(
+    requestParameters: GetCreditUsageByUserRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCreditUsageByUserResponse>> {
+    if (requestParameters["billingCreditId"] == null) {
+      throw new runtime.RequiredError(
+        "billingCreditId",
+        'Required parameter "billingCreditId" was null or undefined when calling getCreditUsageByUser().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
+    }
+
+    if (requestParameters["offset"] != null) {
+      queryParameters["offset"] = requestParameters["offset"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/usage-by-user/credits/{billing_credit_id}`.replace(
+          `{${"billing_credit_id"}}`,
+          encodeURIComponent(String(requestParameters["billingCreditId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCreditUsageByUserResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get credit usage by user
+   */
+  async getCreditUsageByUser(
+    requestParameters: GetCreditUsageByUserRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCreditUsageByUserResponse> {
+    const response = await this.getCreditUsageByUserRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Get feature usage by user
+   */
+  async getFeatureUsageByUserRaw(
+    requestParameters: GetFeatureUsageByUserRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetFeatureUsageByUserResponse>> {
+    if (requestParameters["featureId"] == null) {
+      throw new runtime.RequiredError(
+        "featureId",
+        'Required parameter "featureId" was null or undefined when calling getFeatureUsageByUser().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
+    }
+
+    if (requestParameters["offset"] != null) {
+      queryParameters["offset"] = requestParameters["offset"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/usage-by-user/features/{feature_id}`.replace(
+          `{${"feature_id"}}`,
+          encodeURIComponent(String(requestParameters["featureId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetFeatureUsageByUserResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get feature usage by user
+   */
+  async getFeatureUsageByUser(
+    requestParameters: GetFeatureUsageByUserRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetFeatureUsageByUserResponse> {
+    const response = await this.getFeatureUsageByUserRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 
