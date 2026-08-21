@@ -304,15 +304,74 @@ describe("v3 elements branch-audit regressions", () => {
       expect.objectContaining({ canTrial: true, id: "plan_1" }),
       expect.objectContaining({ period: "month" }),
     );
+    // The toggle offers recurring periods only.
+    expect(screen.queryByRole("button", { name: "One-time" })).toBeNull();
 
     // The one-time add-on shows its one-time price under the monthly toggle…
     expect(screen.getByText("$99.00")).toBeDefined();
+    // …hands off its own period…
+    fireEvent.click(screen.getAllByRole("button", { name: "Choose plan" })[0]);
+    expect(onSelectPlan).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: "addon_once" }),
+      expect.objectContaining({ period: "one_time" }),
+    );
     // …and keeps it when the toggle changes.
     fireEvent.click(screen.getByRole("button", { name: "Billed yearly" }));
     await waitFor(() => {
       expect(screen.getByText("$100.00")).toBeDefined();
     });
     expect(screen.getByText("$99.00")).toBeDefined();
+  });
+
+  it("PricingTable disables the call to action for plans the company can't move to", async () => {
+    const blockedCatalog = {
+      ...companyCatalog,
+      add_ons: [
+        {
+          ...companyCatalog.add_ons[0],
+          compatible_plan_ids: ["plan_other"],
+          name: "Elsewhere only",
+        },
+      ],
+      plans: [
+        {
+          ...companyCatalog.plans[0],
+          company_can_trial: false,
+          current: true,
+          id: "plan_current",
+          name: "Current",
+        },
+        {
+          ...companyCatalog.plans[0],
+          company_can_trial: false,
+          id: "plan_over",
+          invalid_reason: "usage_exceeded",
+          name: "Too small",
+          valid: false,
+        },
+      ],
+    };
+    const client = new SchematicCustomerClient({
+      accessToken: "token_1",
+      fetchApi: routedFetch({ "/catalog/view": blockedCatalog }),
+    });
+    render(
+      withProvider(
+        client,
+        <PricingTable callToActionUrl="/checkout" locale="en-US" />,
+      ),
+    );
+    await waitFor(() => {
+      expect(screen.getByText("Too small")).toBeDefined();
+    });
+    // Blocked cards render disabled buttons, never live links.
+    const over = screen.getByRole("button", { name: "Over plan limit" });
+    expect(over.hasAttribute("disabled")).toBe(true);
+    const incompatible = screen.getByRole("button", {
+      name: "Not available on your plan",
+    });
+    expect(incompatible.hasAttribute("disabled")).toBe(true);
+    expect(screen.queryByRole("link", { name: "Over plan limit" })).toBeNull();
   });
 
   it("CreditUsage offers to buy more from the catalog's bundles", async () => {

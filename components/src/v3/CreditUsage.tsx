@@ -50,8 +50,10 @@ export const CreditUsage: React.FC<CreditUsageProps> = ({
 }) => {
   const { data, error, isPending, refetch } = useCreditBalances();
   const wantsBundles = buyMoreUrl !== undefined || onBuyBundle !== undefined;
-  // The catalog is only consulted when a purchase handoff is configured;
-  // its errors never block the balances.
+  // The catalog (shared with the other elements on the page, so usually
+  // already cached) supplies the bundles behind "Buy more"; it is only read
+  // when a purchase handoff is configured, and its errors never block the
+  // balances.
   const catalog = useCatalog();
   const providerLocale = useSchematicLocale();
   const locale = localeProp ?? providerLocale;

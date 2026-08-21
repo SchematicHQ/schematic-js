@@ -20,7 +20,7 @@ import { mapValues } from "../runtime";
  */
 export interface CatalogCapabilitiesResponseData {
   /**
-   * Whether the 'powered by Schematic' badge must be shown.
+   * Whether the consumer may hide the 'powered by Schematic' badge (the account's badge-hideable entitlement); false means the badge must be shown.
    * @type {boolean}
    * @memberof CatalogCapabilitiesResponseData
    */

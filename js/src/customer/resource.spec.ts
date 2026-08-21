@@ -85,6 +85,22 @@ describe("Resource", () => {
   });
 });
 
+describe("Resource single flight", () => {
+  it("a listener calling ensure() during the start notification joins the request", async () => {
+    let fetches = 0;
+    const resource = new Resource(async () => {
+      fetches += 1;
+      return "ok";
+    });
+    resource.subscribe(() => {
+      void resource.ensure();
+    });
+    await resource.ensure();
+    expect(fetches).toBe(1);
+    expect(resource.getSnapshot().data).toBe("ok");
+  });
+});
+
 describe("Resource errors", () => {
   it("never treats a failure as fresh: the next ensure() retries", async () => {
     let attempt = 0;

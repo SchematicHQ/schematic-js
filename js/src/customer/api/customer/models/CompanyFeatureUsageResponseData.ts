@@ -137,11 +137,17 @@ export interface CompanyFeatureUsageResponseData {
    */
   currencyPrices: Array<CatalogCurrencyPricesResponseData>;
   /**
-   * What the period's usage costs so far, in minor units: billable units × the metered price for the subscription's billing period, tiers applied. Pay-as-you-go bills every unit; overage bills only units above the soft limit. Null for every other price behavior or when nothing is billable yet.
+   * What the period's usage costs so far, in minor units of current_cost_currency: the metered price for the subscription's currency and billing period, tiers applied. Pay-as-you-go bills every unit; overage bills only usage above the soft limit. Null for every other price behavior or when nothing is billable yet.
    * @type {number}
    * @memberof CompanyFeatureUsageResponseData
    */
   currentCost?: number | null;
+  /**
+   * ISO 4217 currency of current_cost; null whenever current_cost is.
+   * @type {string}
+   * @memberof CompanyFeatureUsageResponseData
+   */
+  currentCostCurrency?: string | null;
   /**
    * The limit in force after price behavior and soft limits; null means unlimited.
    * @type {number}
@@ -362,6 +368,10 @@ export function CompanyFeatureUsageResponseDataFromJSONTyped(
     ),
     currentCost:
       json["current_cost"] == null ? undefined : json["current_cost"],
+    currentCostCurrency:
+      json["current_cost_currency"] == null
+        ? undefined
+        : json["current_cost_currency"],
     effectiveLimit:
       json["effective_limit"] == null ? undefined : json["effective_limit"],
     featureDescription: json["feature_description"],
@@ -450,6 +460,7 @@ export function CompanyFeatureUsageResponseDataToJSONTyped(
       CatalogCurrencyPricesResponseDataToJSON,
     ),
     current_cost: value["currentCost"],
+    current_cost_currency: value["currentCostCurrency"],
     effective_limit: value["effectiveLimit"],
     feature_description: value["featureDescription"],
     feature_icon: value["featureIcon"],

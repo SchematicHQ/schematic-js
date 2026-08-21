@@ -226,13 +226,18 @@ export const PlanCard: React.FC<{
 
   const showCallToAction =
     callToActionUrl !== undefined || onSelectPlan !== undefined;
+  // A plan the company can't move to renders a disabled control in both
+  // the link and button forms — never a live link labeled with the reason.
+  const blocked = !plan.valid || plan.compatibleWithCurrentPlan === false;
   const callToActionCopy = !plan.valid
     ? "Over plan limit"
-    : plan.canTrial
-      ? plan.trialDays !== undefined
-        ? `Start ${plan.trialDays}-day trial`
-        : "Start trial"
-      : "Choose plan";
+    : plan.compatibleWithCurrentPlan === false
+      ? "Not available on your plan"
+      : plan.canTrial
+        ? plan.trialDays !== undefined
+          ? `Start ${plan.trialDays}-day trial`
+          : "Start trial"
+        : "Choose plan";
 
   return (
     <div className="schematic-card schematic-plan-card">
@@ -278,7 +283,7 @@ export const PlanCard: React.FC<{
           </div>
         ) : (
           showCallToAction &&
-          (callToActionUrl !== undefined ? (
+          (callToActionUrl !== undefined && !blocked ? (
             <a
               className="schematic-cta"
               href={callToActionUrl}
@@ -290,7 +295,7 @@ export const PlanCard: React.FC<{
           ) : (
             <button
               className="schematic-cta"
-              disabled={!plan.valid}
+              disabled={blocked}
               type="button"
               onClick={() => onSelectPlan?.(plan)}
             >
@@ -362,6 +367,8 @@ export const PricingTable: React.FC<PricingTableProps> = ({
       showZeroPriceAsFree,
     ],
   );
+  // The handoff carries the period the CARD is priced at: the selected
+  // recurring period for plans, one_time for one-time offerings.
   const selectPlan = useMemo(
     () =>
       onSelectPlan !== undefined && vm !== undefined
@@ -370,7 +377,7 @@ export const PricingTable: React.FC<PricingTableProps> = ({
               ...(vm.selectedCurrency !== undefined
                 ? { currency: vm.selectedCurrency }
                 : {}),
-              period: vm.selectedPeriod,
+              period: plan.period,
             })
         : undefined,
     [onSelectPlan, vm],
@@ -393,7 +400,7 @@ export const PricingTable: React.FC<PricingTableProps> = ({
       )}
       {vm.showPeriodToggle && (
         <div className="schematic-pricing-table__toggle">
-          {vm.periods.map((option) => (
+          {vm.togglePeriods.map((option) => (
             <button
               aria-pressed={option === vm.selectedPeriod}
               key={option}

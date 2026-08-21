@@ -132,8 +132,9 @@ export const deriveUsage = (
     vm.resetsAt = usage.resetsAt;
     vm.formattedResetsAt = formatDate(usage.resetsAt, options);
   }
-  // The cost is billed in the subscription's currency: the metered price
-  // at the selected period and currency, falling back to any priced slot.
+  // The server names the currency it costed in; older rows without it fall
+  // back to the metered price at the selected period and currency, then
+  // any priced slot.
   const meteredEntity = {
     currencyPrices: usage.currencyPrices,
     monthlyPrice: usage.meteredMonthlyPrice,
@@ -141,6 +142,7 @@ export const deriveUsage = (
     yearlyPrice: usage.meteredYearlyPrice,
   };
   const costCurrency =
+    usage.currentCostCurrency ??
     resolvePrice(
       meteredEntity,
       options.period ?? PricePeriod.Month,

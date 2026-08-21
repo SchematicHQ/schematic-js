@@ -373,6 +373,63 @@ describe("SchematicCustomerClient branch-audit regressions", () => {
     expect(calls).toHaveLength(1);
   });
 
+  it("does not seed a catalog of the wrong shape", async () => {
+    const { calls, fetchApi } = captureFetch(() =>
+      jsonResponse(envelope(catalogBody({ id: "ctlg_live", name: "Live" }))),
+    );
+    // A public catalog prefetched on the server, handed to a client that
+    // holds a token: the company view is a different shape, so it fetches.
+    const client = new SchematicCustomerClient({
+      accessToken: "token_1",
+      fetchApi,
+      initialData: {
+        catalog: {
+          mode: "public",
+          addOns: [],
+          capabilities: { badgeVisibility: false, checkout: false },
+          creditBundles: [],
+          defaultCurrency: "usd",
+          id: "ctlg_seed",
+          name: "Seeded",
+          plans: [],
+        },
+      },
+    });
+    const catalog = client.catalog();
+    expect(catalog.getSnapshot().isPending).toBe(true);
+    await catalog.ensure();
+    expect(calls).toHaveLength(1);
+    expect(catalog.getSnapshot().data?.mode).toBe("company");
+  });
+
+  it("keeps the invoice page count when loading more fails", async () => {
+    const rows = Array.from({ length: 30 }, (_, i) => ({
+      amount_due: 100,
+      created_at: "2026-01-01T00:00:00Z",
+      currency: "usd",
+      id: `inv_${i}`,
+    }));
+    const { calls, fetchApi } = captureFetch((call, index) => {
+      if (index === 1) {
+        return jsonResponse({ error: "boom" }, 500);
+      }
+      const limit = Number(new URL(call.url).searchParams.get("limit"));
+      return jsonResponse(envelope(rows.slice(0, limit)));
+    });
+    const client = new SchematicCustomerClient({
+      accessToken: "token_1",
+      fetchApi,
+    });
+    const invoices = client.invoices();
+    await invoices.ensure();
+    await client.fetchMoreInvoices();
+    expect(invoices.getSnapshot().error).toBeDefined();
+    // The retry asks for page two again, not page three.
+    await client.fetchMoreInvoices();
+    expect(new URL(calls[2].url).searchParams.get("limit")).toBe("21");
+    expect(invoices.getSnapshot().data?.rows).toHaveLength(20);
+  });
+
   it("drops initialData on a session change", () => {
     const { fetchApi } = captureFetch(() =>
       jsonResponse(envelope(companyBody({ name: "Live" }))),

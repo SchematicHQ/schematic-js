@@ -167,14 +167,23 @@ export interface PlanOfferings {
   currencies: string[];
   customPlanCta?: CustomPlanCta;
   defaultCurrency: string;
-  /** Periods offered by at least one plan, in display order. */
+  /** Periods offered by at least one plan or add-on, in display order. */
   periods: PricePeriod[];
   plans: PlanOffering[];
-  /** The period actually applied after re-snapping an invalid selection. */
+  /**
+   * The period actually applied to recurring cards after re-snapping an
+   * invalid selection. One-time cards ignore it (see PlanOffering.period).
+   */
   selectedPeriod: PricePeriod;
   /** The currency actually applied; undefined = single-currency catalog. */
   selectedCurrency?: string;
   showPeriodToggle: boolean;
+  /**
+   * The periods a period toggle should offer: the recurring ones only. A
+   * one-time plan or add-on is always priced at its one-time price, so
+   * one_time is never a selection.
+   */
+  togglePeriods: PricePeriod[];
 }
 
 const availableCurrencies = (
@@ -396,10 +405,15 @@ export const derivePlanOfferings = (
   const periods = PERIOD_ORDER.filter((period) =>
     everything.some((plan) => offeredPeriods(plan).includes(period)),
   );
+  const togglePeriods: PricePeriod[] = periods.filter(
+    (period) => period !== PricePeriod.OneTime,
+  );
+  // Only recurring periods are selectable; a catalog of one-time offerings
+  // alone still prices its cards at their own period.
   const selectedPeriod =
-    selection.period !== undefined && periods.includes(selection.period)
+    selection.period !== undefined && togglePeriods.includes(selection.period)
       ? selection.period
-      : (periods[0] ?? PricePeriod.Month);
+      : (togglePeriods[0] ?? PricePeriod.Month);
 
   const bundles = catalog.creditBundles ?? [];
   const currencies = availableCurrencies(
@@ -454,7 +468,7 @@ export const derivePlanOfferings = (
     selectedPeriod,
     ...(selectedCurrency !== undefined ? { selectedCurrency } : {}),
     showPeriodToggle:
-      selection.showPeriodToggle !== false &&
-      periods.filter((period) => period !== PricePeriod.OneTime).length > 1,
+      selection.showPeriodToggle !== false && togglePeriods.length > 1,
+    togglePeriods,
   };
 };

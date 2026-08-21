@@ -209,10 +209,17 @@ export class SchematicCustomerClient {
         'catalog with mode "public" requires a publishableKey; only an accessToken is configured',
       );
     }
-    // Server-prefetched data describes the client's default parameters, so
-    // only the default catalog resource is seeded with it.
-    const isDefault =
-      params?.mode === undefined && params?.catalogId === undefined;
+    // Server-prefetched data seeds the resource it actually describes: the
+    // client's default parameters, AND the same shape (a public catalog
+    // prefetched for an SSR page must not stand in for the company view
+    // a token-holding client would fetch) for the same catalog.
+    const seed = this._options.initialData?.catalog;
+    const seedMatches =
+      params?.mode === undefined &&
+      params?.catalogId === undefined &&
+      seed !== undefined &&
+      seed.mode === mode &&
+      (catalogId === undefined || seed.id === catalogId);
     return this._resource(
       `catalog:${mode}:${catalogId ?? ""}`,
       async () => {
@@ -231,7 +238,7 @@ export class SchematicCustomerClient {
             : await api.getPublicCatalog();
         return { mode: "public" as const, ...response.data };
       },
-      isDefault ? this._options.initialData?.catalog : undefined,
+      seedMatches ? seed : undefined,
     );
   }
 
@@ -310,11 +317,20 @@ export class SchematicCustomerClient {
     );
   }
 
-  /** Loads the next page of invoice history into the matching resource. */
-  fetchMoreInvoices(params?: ListInvoicesParams): Promise<void> {
+  /**
+   * Loads the next page of invoice history into the matching resource. A
+   * failed load leaves the page count where it was, so the next attempt
+   * asks for the same page rather than skipping one.
+   */
+  async fetchMoreInvoices(params?: ListInvoicesParams): Promise<void> {
     const key = invoicesKey(params);
-    this._invoicePages.set(key, (this._invoicePages.get(key) ?? 1) + 1);
-    return this.invoices(params).refetch();
+    const pages = this._invoicePages.get(key) ?? 1;
+    this._invoicePages.set(key, pages + 1);
+    const resource = this.invoices(params);
+    await resource.refetch();
+    if (resource.getSnapshot().error !== undefined) {
+      this._invoicePages.set(key, pages);
+    }
   }
 
   /**

@@ -98,6 +98,13 @@ describe("deriveUsage", () => {
       deriveUsage(row, { currency: "eur", locale: "en-US" })
         .formattedCurrentCost,
     ).toBe("€12.50");
+    // The server's own currency wins over any client-side resolution.
+    expect(
+      deriveUsage(
+        { ...row, currentCostCurrency: "gbp" },
+        { currency: "eur", locale: "en-US" },
+      ).formattedCurrentCost,
+    ).toBe("£12.50");
   });
 
   it("formats the precomputed current cost in the metered price currency", () => {

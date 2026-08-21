@@ -260,6 +260,18 @@ describe("derivePlanOfferings branch-audit regressions", () => {
       { locale: "en-US", period: PricePeriod.Year },
     );
     expect(vm.selectedPeriod).toBe(PricePeriod.Year);
+    // The toggle never offers one_time, even though it is an offered period.
+    expect(vm.periods).toContain(PricePeriod.OneTime);
+    expect(vm.togglePeriods).toEqual([PricePeriod.Month, PricePeriod.Year]);
+    expect(vm.showPeriodToggle).toBe(true);
+    // Asking for one_time re-snaps to the first recurring period instead of
+    // blanking every recurring card.
+    const snapped = derivePlanOfferings(
+      { addOns: [oneTimeAddOn], plans: [plan()] },
+      { locale: "en-US", period: PricePeriod.OneTime },
+    );
+    expect(snapped.selectedPeriod).toBe(PricePeriod.Month);
+    expect(snapped.plans[0]?.price.kind).toBe("priced");
     const addOn = vm.addOns[0];
     expect(addOn?.period).toBe(PricePeriod.OneTime);
     expect(addOn?.price).toMatchObject({

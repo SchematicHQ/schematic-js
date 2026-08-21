@@ -150,12 +150,9 @@ export class Resource<T> {
 
   private _start(isRefetching: boolean): Promise<void> {
     const generation = this._generation;
-    this._setState({
-      ...this._state,
-      error: undefined,
-      isPending: this._state.data === undefined,
-      isRefetching,
-    });
+    // The in-flight promise is recorded BEFORE listeners hear about the
+    // state change, so a listener that calls ensure() synchronously joins
+    // this request instead of starting a duplicate.
     const run = (async () => {
       try {
         const data = await this._fetcher();
@@ -190,6 +187,12 @@ export class Resource<T> {
       }
     })();
     this._inflight = run;
+    this._setState({
+      ...this._state,
+      error: undefined,
+      isPending: this._state.data === undefined,
+      isRefetching,
+    });
     return run;
   }
 
