@@ -1093,6 +1093,11 @@
   dependencies:
     styled-components "^6.3.12"
 
+"@schematichq/schematic-react@^1.6.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@schematichq/schematic-react/-/schematic-react-1.5.0.tgz#1f7aacdfe38087771aee0afddf50b0dca29edce0"
+  integrity sha512-8Y9hQ75/XXj2fwuk4dfLsGki37o5/Cnc4C9/XdTrKHAqKq1Lvc1gX74IIqPPxOH6GLEmmA9rxOvPRFgyy5YywQ==
+
 "@standard-schema/spec@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@standard-schema/spec/-/spec-1.1.0.tgz#a79b55dbaf8604812f52d140b2c9ab41bc150bb8"

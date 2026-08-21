@@ -18,6 +18,12 @@
       "import": "./dist/schematic-components.esm.js",
       "require": "./dist/schematic-components.cjs.js",
       "default": "./dist/schematic-components.esm.js"
+    },
+    "./v3": {
+      "types": "./dist/schematic-components-v3.d.ts",
+      "import": "./dist/schematic-components-v3.esm.js",
+      "require": "./dist/schematic-components-v3.cjs.js",
+      "default": "./dist/schematic-components-v3.esm.js"
     }
   },
   "files": [
@@ -25,7 +31,10 @@
     "dist/schematic-components.esm.js",
     "dist/schematic-components.browser.cjs.js",
     "dist/schematic-components.browser.esm.js",
-    "dist/schematic-components.d.ts"
+    "dist/schematic-components.d.ts",
+    "dist/schematic-components-v3.cjs.js",
+    "dist/schematic-components-v3.esm.js",
+    "dist/schematic-components-v3.d.ts"
   ],
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
@@ -37,13 +46,16 @@
     "dev": "yarn dev:browser:esm",
     "dev:cjs": "node esbuild.mjs --format=cjs --variant=server --watch",
     "dev:esm": "node esbuild.mjs --format=esm --variant=server --watch",
+    "dev:v3": "node esbuild.mjs --format=esm --entry=v3 --watch",
     "dev:browser:esm": "node esbuild.mjs --format=esm --variant=browser --watch",
-    "build": "yarn tsc && yarn openapi && yarn format && yarn lint && yarn clean && yarn build:cjs && yarn build:esm && yarn build:browser:cjs && yarn build:browser:esm && yarn build:types",
+    "build": "yarn tsc && yarn openapi && yarn format && yarn lint && yarn clean && yarn build:cjs && yarn build:esm && yarn build:browser:cjs && yarn build:browser:esm && yarn build:v3:cjs && yarn build:v3:esm && yarn build:types",
     "build:cjs": "node esbuild.mjs --format=cjs --variant=server",
     "build:esm": "node esbuild.mjs --format=esm --variant=server",
     "build:browser:cjs": "node esbuild.mjs --format=cjs --variant=browser",
     "build:browser:esm": "node esbuild.mjs --format=esm --variant=browser",
-    "build:types": "npx tsc && npx api-extractor run",
+    "build:types": "npx tsc && npx api-extractor run && npx api-extractor run -c api-extractor-v3.json",
+    "build:v3:cjs": "node esbuild.mjs --format=cjs --entry=v3",
+    "build:v3:esm": "node esbuild.mjs --format=esm --entry=v3",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint src",
@@ -61,7 +73,8 @@
     "pako": "^3.0.1",
     "react-i18next": "16.1.6",
     "styled-components": "^6.5.3",
-    "uuid": "^14.0.1"
+    "uuid": "^14.0.1",
+    "@schematichq/schematic-react": "^1.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

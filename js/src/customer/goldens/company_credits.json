@@ -1,0 +1,35 @@
+{
+  "data": {
+    "balances": [
+      {
+        "credit_description": "",
+        "credit_icon": null,
+        "credit_id": "bilcr_fw7bhwPVFas",
+        "credit_name": "Credit irony",
+        "credit_plural_name": null,
+        "credit_singular_name": null,
+        "expires_at": null,
+        "grants": [
+          {
+            "bundle_id": "bilcrb_fw7bhwPVFas",
+            "bundle_name": "Bundle artisan",
+            "created_at": "2026-08-21T15:56:22.329515Z",
+            "expires_at": null,
+            "grant_reason": "purchased",
+            "id": "bilcrg_fw7bhwPVFas",
+            "plan_id": null,
+            "plan_name": null,
+            "quantity": 500,
+            "quantity_remaining": 500,
+            "quantity_used": 0,
+            "renewal_period": null,
+            "valid_from": null
+          }
+        ],
+        "remaining": 500,
+        "total": 500,
+        "used": 0
+      }
+    ]
+  }
+}

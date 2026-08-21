@@ -2473,3 +2473,7 @@ const notifyCreditBalanceListener = (
 };
 
 export * from "./types";
+
+// Customer data layer for catalog-API consumer surfaces (pricing tables,
+// plan managers, usage meters). See src/customer/.
+export * from "./customer";
