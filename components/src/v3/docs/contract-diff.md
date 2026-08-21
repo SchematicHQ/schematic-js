@@ -1,7 +1,7 @@
 # Contract diff: v3 elements vs RFC 0007
 
 The v3 elements were built against a TypeScript contract derived from what
-they render (`src/v3/contract/`). This document maps that contract onto the
+they render (now `js/src/catalog/contract/` in schematic-js, re-exported by schematic-react). This document maps that contract onto the
 shapes in RFC 0007 (`docs/docs/RFCs/0007-catalog-response-types.md` in
 schematic-api) field by field. It is the deliverable back to the API side:
 every line is justified by a named element, and "dropped" means no element
@@ -207,7 +207,7 @@ directly and drop `days_until_due`, which no element reads otherwise.
 
 The list wrapper `{ rows }` is read as the array.
 
-## `CompanyCreditBalancesOutput` → `CreditBalance[]`
+## `CompanyCreditBalancesOutput` → `CreditBalanceEntry[]`
 
 | Stub                                      | RFC                                                                                                           | Bucket          | Why |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------- | --- |
@@ -250,3 +250,25 @@ aggregation, `is_initial`, `component`.
 6. **Consider** nesting the feature / credit identity blocks and `expiry`.
 7. **Define** `/company/upcoming-invoice` without a subscription (`null`).
 8. **Drop** from sub-admin tiers: `billing_strategy`, `pricing_model`, `bundle_type`, `license_id` on entitlements, `payment_method` on the subscription, `badge_visibility`, `checkout_settings` (until the checkout phase).
+
+## Type names
+
+Seven contract names were changed to avoid colliding with existing
+schematic-js exports once the contract moved there: `ChargeType` →
+`PlanChargeType`, `CreditBalance` → `CreditBalanceEntry`,
+`EntitlementValueType` → `EntitlementValueKind`, `FeatureType` →
+`FeatureKind`, `MetricPeriod` → `EntitlementMetricPeriod`,
+`MetricPeriodMonthReset` → `EntitlementMonthReset`, `PlanPriceCadence` →
+`PriceCadence`. The wire values are unchanged.
+
+## Wire format, as implemented
+
+`schematic-js` decodes responses with one generic pass — snake_case keys to
+camelCase, and the timestamp fields (`created_at`, `due_date`, `expires_at`,
+`resets_at`, `valid_from`, `trial_end`, `cancel_at`, `current_period_start`,
+`current_period_end`, `effective_at`, `billing_cycle_anchor`, `paid_at`,
+`published_at`) to `Date` — after unwrapping the `{ data }` envelope and the
+`rows` / `balances` list wrappers. `toWire` is the inverse, and the
+components suite round-trips every fixture scenario through both, so the
+fixtures double as wire examples. When the API publishes its spec, generated
+models replace `decode`; nothing above the client changes.

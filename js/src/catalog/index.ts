@@ -17,5 +17,7 @@ export {
   decodeFeatureUsage,
   decodeInvoices,
   decodeUpcomingInvoice,
+  snakeCase,
+  toWire,
   unwrap,
 } from "./decode";

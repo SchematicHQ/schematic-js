@@ -54,6 +54,31 @@ export function decode(value: unknown): unknown {
   return value;
 }
 
+export function snakeCase(key: string): string {
+  return key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+}
+
+/**
+ * Contract → wire: the inverse of `decode`, for fixtures and tests. Keys go
+ * to snake_case and `Date`s to RFC3339 strings.
+ */
+export function toWire(value: unknown): unknown {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (Array.isArray(value)) {
+    return value.map(toWire);
+  }
+  if (value !== null && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+      out[snakeCase(key)] = toWire(raw);
+    }
+    return out;
+  }
+  return value;
+}
+
 /** Unwraps the API's `{ data: … }` envelope when present. */
 export function unwrap(body: unknown): unknown {
   if (body !== null && typeof body === "object" && "data" in body) {

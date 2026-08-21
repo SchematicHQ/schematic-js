@@ -38,7 +38,14 @@ export function CatalogProvider({
   // The seed is read once: later prop changes never overwrite live data.
   const initialRef = useRef(initialData);
 
+  // Forward the token prop only when it changes, so a client configured
+  // with its own token is not cleared by a provider that never set one.
+  const forwardedToken = useRef<AccessToken | undefined>(undefined);
   useEffect(() => {
+    if (forwardedToken.current === accessToken) {
+      return;
+    }
+    forwardedToken.current = accessToken;
     catalogClient?.setAccessToken?.(accessToken);
   }, [accessToken, catalogClient]);
 

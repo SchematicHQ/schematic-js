@@ -139,6 +139,28 @@ describe("catalog hooks", () => {
     expect(client.setAccessToken).toHaveBeenLastCalledWith("t2");
   });
 
+  it_("leave a client-owned token alone when no prop is given", () => {
+    const client = fakeClient({ setAccessToken: vi.fn() });
+    const { rerender } = render(
+      <CatalogProvider catalogClient={client}>
+        <span />
+      </CatalogProvider>,
+    );
+    expect(client.setAccessToken).not.toHaveBeenCalled();
+    rerender(
+      <CatalogProvider catalogClient={client} accessToken="t1">
+        <span />
+      </CatalogProvider>,
+    );
+    rerender(
+      <CatalogProvider catalogClient={client}>
+        <span />
+      </CatalogProvider>,
+    );
+    expect(client.setAccessToken).toHaveBeenNthCalledWith(1, "t1");
+    expect(client.setAccessToken).toHaveBeenNthCalledWith(2, undefined);
+  });
+
   it_("page invoices with limit + 1 and append on loadMore", async () => {
     const rows = Array.from({ length: 30 }, (_, i) => invoice(`inv_${i}`));
     const client = fakeClient({
