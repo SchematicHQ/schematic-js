@@ -55,7 +55,7 @@ export function Invoices({
 
   return (
     <StatusFrame
-      className={cx("schematic-invoices", className)}
+      className={cx("schematic-card", "schematic-invoices", className)}
       error={error}
       hasData={list !== undefined}
       isPending={isPending}

@@ -345,8 +345,12 @@ export function deriveEntitlement(
     description: feature.description,
     value,
     overage,
+    // An overage price is tiered by construction (included band + overage
+    // band); its rate is the `overage` line, not a tier table.
     tiers:
-      price !== undefined && (priceBehavior === "tier" || tiered)
+      price !== undefined &&
+      priceBehavior !== "overage" &&
+      (priceBehavior === "tier" || tiered)
         ? tierSummary(price.tiers, price.tiersMode, price.currency, locale)
         : null,
     hardLimit:
@@ -612,7 +616,9 @@ export function deriveUsage(
             unit: featureName(feature, overageQuantity),
           },
     tiers:
-      price !== undefined && (priceBehavior === "tier" || tiered)
+      price !== undefined &&
+      priceBehavior !== "overage" &&
+      (priceBehavior === "tier" || tiered)
         ? tierSummary(price.tiers, price.tiersMode, price.currency, locale)
         : null,
     resetsAt:

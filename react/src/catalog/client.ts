@@ -1,3 +1,5 @@
+import type { CatalogClient } from "@schematichq/schematic-js";
+
 import type {
   AnyCatalog,
   CatalogData,
@@ -6,44 +8,16 @@ import type {
   CompanyContext,
   CreditBalanceEntry,
   FeatureUsageRow,
-  Invoice,
   InvoicePage,
   UpcomingInvoice,
 } from "./contract";
 import { Resource } from "./store";
 
-/**
- * What the provider needs from a catalog API client. schematic-js implements
- * it against the catalog + company endpoints; tests and server-rendered
- * pages supply fakes or prefetched data.
- */
-export interface CatalogClient {
-  /** The public catalog, or the company's view when an access token is held. */
-  fetchCatalog(): Promise<AnyCatalog>;
-  fetchCompany(): Promise<CompanyContext>;
-  fetchFeatureUsage(): Promise<FeatureUsageRow[]>;
-  fetchCreditBalances(): Promise<CreditBalanceEntry[]>;
-  /** One page of invoice history; the store asks for `limit + 1` rows to learn `hasMore`. */
-  fetchInvoices(params: { limit: number; offset: number }): Promise<Invoice[]>;
-  /** `null` when there is no subscription to invoice. */
-  fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
-  /**
-   * Called when the credentials the client fetches with change (a new access
-   * token, a different company). The store resets every resource.
-   */
-  onCredentialsChange?(listener: () => void): () => void;
-  /** Installs or clears the access token; the provider forwards its prop here. */
-  setAccessToken?(token: AccessToken | undefined): void;
-}
-
-/**
- * An access token as a string, or an async provider the client calls (and
- * re-calls after a 401) — the shape schematic-js accepts.
- */
-export type AccessTokenProvider = () => Promise<
-  string | { token: string; expiresAt?: Date }
->;
-export type AccessToken = string | AccessTokenProvider;
+export type {
+  AccessToken,
+  AccessTokenProvider,
+  CatalogClient,
+} from "@schematichq/schematic-js";
 
 /** Rows requested per invoices page. */
 export const INVOICE_PAGE_SIZE = 12;

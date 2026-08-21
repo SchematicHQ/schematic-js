@@ -98,11 +98,29 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
     [client],
   );
 
+  // The catalog client is built once per key and reads the access token from
+  // its prop (forwarded by CatalogProvider), so a token change resets the
+  // catalog resources without rebuilding the client.
+  const { apiUrl, additionalHeaders } = initialOptsRef.current;
+  const resolvedCatalogClient = useMemo(
+    () =>
+      catalogClient ??
+      new SchematicJS.SchematicCatalogClient({
+        publishableKey: initialOptsRef.current.publishableKey,
+        accessToken,
+        apiUrl,
+        additionalHeaders,
+      }),
+    // The token is forwarded through CatalogProvider's setAccessToken; only
+    // the client identity matters here.
+    [additionalHeaders, apiUrl, catalogClient],
+  );
+
   return (
     <SchematicContext.Provider value={contextValue}>
       <CatalogProvider
         accessToken={accessToken}
-        catalogClient={catalogClient}
+        catalogClient={resolvedCatalogClient}
         initialData={initialData}
         locale={locale}
       >

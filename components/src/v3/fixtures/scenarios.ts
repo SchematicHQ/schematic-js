@@ -58,7 +58,7 @@ const aiCredits = () =>
     name: "AI credits",
     singularName: "AI credit",
     pluralName: "AI credits",
-    icon: "sparkles",
+    icon: "credit",
   });
 
 export function starterEntitlements(): Entitlement[] {
@@ -69,7 +69,7 @@ export function starterEntitlements(): Entitlement[] {
         id: "feat_dashboard",
         name: "Dashboard",
         type: "boolean",
-        icon: "chart-bar",
+        icon: "board",
       }),
     }),
     numericEntitlement("API calls", 1000, {
@@ -93,7 +93,7 @@ export function starterEntitlements(): Entitlement[] {
         singularName: "seat",
         pluralName: "seats",
         type: "trait",
-        icon: "user",
+        icon: "key",
       }),
       valueType: "numeric",
       valueBool: null,
@@ -110,7 +110,7 @@ export function proEntitlements(): Entitlement[] {
         id: "feat_dashboard",
         name: "Dashboard",
         type: "boolean",
-        icon: "chart-bar",
+        icon: "board",
       }),
     }),
     entitlement({
@@ -155,7 +155,7 @@ export function proEntitlements(): Entitlement[] {
         singularName: "seat",
         pluralName: "seats",
         type: "trait",
-        icon: "user",
+        icon: "key",
       }),
       valueType: "numeric",
       valueBool: null,
@@ -219,7 +219,7 @@ export function enterpriseEntitlements(): Entitlement[] {
         id: "feat_support",
         name: "Priority support",
         type: "boolean",
-        icon: "headset",
+        icon: "bell",
       }),
     }),
     entitlement({
@@ -228,7 +228,7 @@ export function enterpriseEntitlements(): Entitlement[] {
         id: "feat_sso",
         name: "SSO",
         type: "boolean",
-        icon: "lock",
+        icon: "verified",
       }),
     }),
   ];
@@ -240,14 +240,14 @@ export function publicPlans() {
       id: "plan_free",
       name: "Free",
       description: "For trying things out.",
-      icon: "seedling",
+      icon: "plan",
       entitlements: starterEntitlements(),
     }),
     plan({
       id: "plan_pro",
       name: "Pro",
       description: "For growing teams.",
-      icon: "rocket",
+      icon: "diamond",
       prices: [
         withId(monthly(4900), "price_pro_m"),
         withId(yearly(49000), "price_pro_y"),
@@ -271,7 +271,7 @@ export function publicPlans() {
       id: "plan_enterprise",
       name: "Enterprise",
       description: "For organizations with custom needs.",
-      icon: "building",
+      icon: "bank",
       prices: [
         withId(monthly(29900), "price_ent_m"),
         withId(yearly(299000), "price_ent_y"),
@@ -287,7 +287,7 @@ export function publicAddOns() {
       id: "addon_analytics",
       name: "Advanced analytics",
       description: "Funnels, cohorts, and exports.",
-      icon: "chart-line",
+      icon: "arrow-analytics",
       prices: [
         withId(monthly(1900), "price_analytics_m"),
         withId(yearly(19000), "price_analytics_y"),
@@ -310,7 +310,7 @@ export function publicAddOns() {
       id: "addon_onboarding",
       name: "Onboarding session",
       description: "A one-time setup call with our team.",
-      icon: "calendar",
+      icon: "present",
       chargeType: "one_time",
       prices: [withId(oneTime(50000), "price_onboarding")],
       compatiblePlanIds: null,
@@ -409,7 +409,7 @@ export function proCompany(): CatalogData {
         catalogId: cat.id,
         name: "Pro",
         description: "For growing teams.",
-        icon: "rocket",
+        icon: "diamond",
         price: withId(monthly(4900), "price_pro_m"),
       }),
       addOns: [

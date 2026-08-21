@@ -69,7 +69,7 @@ export function UpcomingBill({
 
   return (
     <StatusFrame
-      className={cx("schematic-upcoming-bill", className)}
+      className={cx("schematic-card", "schematic-upcoming-bill", className)}
       error={error}
       hasData={invoice !== undefined}
       isPending={isPending}

@@ -127,7 +127,7 @@ export function creditRef(overrides: Partial<CreditRef> = {}): CreditRef {
     name: "Credits",
     singularName: "credit",
     pluralName: "credits",
-    icon: "coins",
+    icon: "credit",
     ...overrides,
   };
 }

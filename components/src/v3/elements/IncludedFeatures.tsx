@@ -173,7 +173,7 @@ export function IncludedFeatures({
 
   return (
     <StatusFrame
-      className={cx("schematic-included-features", className)}
+      className={cx("schematic-card", "schematic-included-features", className)}
       error={usage.error}
       hasData={rows !== undefined && !companyLoading}
       isPending={usage.isPending || companyLoading}

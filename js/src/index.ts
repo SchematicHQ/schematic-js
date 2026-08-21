@@ -1358,9 +1358,9 @@ export class Schematic {
     // Always maintain the in-memory mirror — even when persistFlagState is
     // false — so we can bound this.checks/planChecks growth below.
     if (this.cachedFlagState === null) {
-      this.cachedFlagState = (
-        this.persistFlagState ? this.readFlagStateCache() : null
-      ) ?? {
+      this.cachedFlagState = (this.persistFlagState
+        ? this.readFlagStateCache()
+        : null) ?? {
         version: cacheVersion,
         contexts: {},
       };
@@ -2473,3 +2473,4 @@ const notifyCreditBalanceListener = (
 };
 
 export * from "./types";
+export * from "./catalog";
