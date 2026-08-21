@@ -24,14 +24,20 @@ const format = args.includes("--format=cjs") ? "cjs" : "esm";
 const variant = args.includes("--variant=browser") ? "browser" : "server";
 // The v3 entry (src/v3) has no styled-components, so it needs no
 // browser/server split — one bundle pair serves every environment.
-const entry = args.includes("--entry=v3") ? "v3" : "main";
+const entry = args.includes("--entry=v3-fixtures")
+  ? "v3-fixtures"
+  : args.includes("--entry=v3")
+    ? "v3"
+    : "main";
 const watch = args.includes("--watch");
 
 const ext = format === "cjs" ? "cjs.js" : "esm.js";
 const outfile =
-  entry === "v3"
-    ? `dist/schematic-components-v3.${ext}`
-    : variant === "browser"
+  entry === "v3-fixtures"
+    ? `dist/schematic-components-v3-fixtures.${ext}`
+    : entry === "v3"
+      ? `dist/schematic-components-v3.${ext}`
+      : variant === "browser"
       ? `dist/schematic-components.browser.${ext}`
       : `dist/schematic-components.${ext}`;
 
@@ -70,7 +76,13 @@ const ssrSafeStyledComponents = {
 };
 
 const options = {
-  entryPoints: [entry === "v3" ? "src/v3/index.ts" : "src/index.ts"],
+  entryPoints: [
+    entry === "v3-fixtures"
+      ? "src/v3/fixtures/index.ts"
+      : entry === "v3"
+        ? "src/v3/index.ts"
+        : "src/index.ts",
+  ],
   bundle: true,
   format,
   outfile,
@@ -79,9 +91,9 @@ const options = {
   // the host's provider writes); React itself is external for the same
   // reason. Phase 2 adds @schematichq/schematic-react here.
   external:
-    entry === "v3"
-      ? ["react", "react-dom"]
-      : ["react", "react-dom", "@stripe/react-stripe-js"],
+    entry === "main"
+      ? ["react", "react-dom", "@stripe/react-stripe-js"]
+      : ["react", "react-dom"],
   define: {
     "process.env.SCHEMATIC_COMPONENTS_VERSION": JSON.stringify(version),
   },

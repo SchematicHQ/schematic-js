@@ -1,6 +1,10 @@
 import iconFontCss from "@schematichq/schematic-icons/styles.css";
 import React from "react";
 
+import { includedFeaturesCss } from "./includedFeatures";
+import { meteredFeaturesCss } from "./meteredFeatures";
+import { planManagerCss } from "./planManager";
+
 /**
  * The v3 elements style themselves through CSS custom properties on plain
  * semantic markup — no styled-components, no theme provider. Override any
@@ -517,6 +521,10 @@ export const schematicStylesCss = `
 .schematic-plan-card .schematic-cta {
   width: 100%;
 }
+
+${includedFeaturesCss}
+${meteredFeaturesCss}
+${planManagerCss}
 
 /*
  * The schematic-icons icon font (inlined from the package's styles.css): the

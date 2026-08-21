@@ -8,7 +8,12 @@ import type {
 import { isCompanyCatalog } from "../contract";
 
 import { deriveEntitlement, type EntitlementSummary } from "./entitlement";
-import { featureName, formatCurrency, formatDate } from "./format";
+import {
+  featureName,
+  formatCurrency,
+  formatDate,
+  formatNumber,
+} from "./format";
 import { derivePlanCredits, type PlanCreditSummary } from "./offerings";
 import { PERIOD_SHORT, derivePeriod, type PricePeriod } from "./period";
 import { priceAmount, pricePeriod } from "./prices";
@@ -89,7 +94,11 @@ export interface AutoTopupLine {
   /** Whether the company may edit the setting. */
   selfService: boolean;
   thresholdCredits: number | null;
+  /** "50" — `thresholdCredits` for the locale. */
+  thresholdText: string | null;
   amount: number | null;
+  /** "500" — `amount` for the locale. */
+  amountText: string | null;
   /** Credit unit name for `amount`. */
   unit: string;
 }
@@ -157,6 +166,7 @@ function addOnLine(addOn: CompanyPlan, locale: string): AddOnLine {
 function autoTopupLines(
   topups: CreditAutoTopup[],
   credits: Map<string, CreditRef>,
+  locale: string,
 ): AutoTopupLine[] {
   return topups.flatMap((topup) => {
     const credit = credits.get(topup.creditId);
@@ -169,7 +179,13 @@ function autoTopupLines(
         enabled: topup.enabled,
         selfService: topup.selfService,
         thresholdCredits: topup.thresholdCredits,
+        thresholdText:
+          topup.thresholdCredits === null
+            ? null
+            : formatNumber(topup.thresholdCredits, locale),
         amount: topup.amount,
+        amountText:
+          topup.amount === null ? null : formatNumber(topup.amount, locale),
         unit: featureName(credit, topup.amount ?? 0),
       },
     ];
@@ -307,7 +323,7 @@ export function derivePlanSummary(
       : [];
   const creditRefs = new Map(credits.map((c) => [c.credit.id, c.credit]));
   const autoTopups = showCredits
-    ? autoTopupLines(company.creditAutoTopups, creditRefs)
+    ? autoTopupLines(company.creditAutoTopups, creditRefs, locale)
     : [];
 
   const awaitingActivation =

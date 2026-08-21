@@ -12,4 +12,13 @@ export {
   type PlanSelection,
   type PricingTableProps,
 } from "./elements/PricingTable";
+export {
+  IncludedFeatures,
+  type IncludedFeaturesProps,
+} from "./elements/IncludedFeatures";
+export {
+  MeteredFeatures,
+  type MeteredFeaturesProps,
+} from "./elements/MeteredFeatures";
+export { PlanManager, type PlanManagerProps } from "./elements/PlanManager";
 export type { ElementProps } from "./elements/common";

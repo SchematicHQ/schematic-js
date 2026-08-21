@@ -230,6 +230,13 @@ export function usageText(usage: UsageSummary): string | null {
     usage.allocation.kind !== "none"
   ) {
     parts.push(`${usage.usage.usedText} ${usage.usage.unit} used`);
+  } else if (usage.cost !== null || usage.resetsAt !== null) {
+    // A plain limited row keeps its count when cost or reset facts follow.
+    parts.push(
+      usage.usage.limitText === null
+        ? `${usage.usage.usedText} used`
+        : `${usage.usage.usedText} of ${usage.usage.limitText} used`,
+    );
   }
   if (usage.cost !== null) {
     parts.push(
