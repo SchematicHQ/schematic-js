@@ -838,7 +838,7 @@
     argparse "~1.0.9"
     string-argv "~0.3.1"
 
-"@schematichq/schematic-js@^1.5.0":
+"@schematichq/schematic-js@^1.6.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@schematichq/schematic-js/-/schematic-js-1.5.0.tgz#d1b3cf3d1e6f8a84c4d2aeeae159aa685309a60f"
   integrity sha512-d+pMyDLwBKpZfpSsrna/+miGGj44qQei13vTqQ1TBVEMDKGC2S0/ad8DaZy+MslDTV6WBfUj/KEsORs6T+4PBA==

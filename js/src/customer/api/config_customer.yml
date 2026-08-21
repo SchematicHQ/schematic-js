@@ -1,0 +1,8 @@
+# Narrow client for the temporary-access-token catalog + company surface. The input spec is
+# supplied by scripts/generate-customer-api.sh, which filters the full
+# apikeypublishable spec down to the catalog-view and company paths before generating.
+generatorName: typescript-fetch
+enablePostProcessFile: true
+outputDir: ./src/customer/api/customer/
+skipValidateSpec: true
+generateAliasAsModel: true

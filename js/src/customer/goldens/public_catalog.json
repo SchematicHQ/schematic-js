@@ -1,0 +1,444 @@
+{
+  "data": {
+    "capabilities": {
+      "badge_visibility": false,
+      "checkout": false
+    },
+    "custom_plan_cta": {
+      "cta_text": null,
+      "cta_url": null,
+      "price_text": null
+    },
+    "default_currency": "usd",
+    "description": null,
+    "id": "cat_fw7bhwPVFas",
+    "name": "Default",
+    "pricing_model": null,
+    "pricing_url": null,
+    "add_ons": [
+      {
+        "available_periods": [
+          "monthly",
+          "yearly"
+        ],
+        "billing_strategy": "provider_managed",
+        "charge_type": "recurring",
+        "compatible_plan_ids": null,
+        "currency_prices": [
+          {
+            "currency": "usd",
+            "monthly_price": {
+              "currency": "usd",
+              "id": "bilpp_EVz3iWZT1X3",
+              "interval": "month",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 500,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "one_time_price": null,
+            "quarterly_price": null,
+            "yearly_price": {
+              "currency": "usd",
+              "id": "bilpp_5KnLJA3zn7j",
+              "interval": "year",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 5000,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            }
+          }
+        ],
+        "description": "",
+        "entitlements": [],
+        "icon": "yellow",
+        "id": "plan_PA2DgbCphEY",
+        "included_credit_grants": [],
+        "is_trialable": false,
+        "monthly_price": {
+          "currency": "usd",
+          "id": "bilpp_EVz3iWZT1X3",
+          "interval": "month",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 500,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "name": "Add-on harvest b42955f8-f334-4b90-9206-ffc5ed6745c6",
+        "one_time_price": null,
+        "quarterly_price": null,
+        "trial_days": null,
+        "yearly_price": {
+          "currency": "usd",
+          "id": "bilpp_5KnLJA3zn7j",
+          "interval": "year",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 5000,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        }
+      },
+      {
+        "available_periods": [],
+        "billing_strategy": "provider_managed",
+        "charge_type": "one_time",
+        "compatible_plan_ids": null,
+        "currency_prices": [
+          {
+            "currency": "usd",
+            "monthly_price": null,
+            "one_time_price": {
+              "currency": "usd",
+              "id": "bilpp_WSGrPzHbWrf",
+              "interval": "one-time",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 9900,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "quarterly_price": null,
+            "yearly_price": null
+          }
+        ],
+        "description": "",
+        "entitlements": [],
+        "icon": "yellow",
+        "id": "plan_AhFmEocWmyF",
+        "included_credit_grants": [],
+        "is_trialable": false,
+        "monthly_price": null,
+        "name": "Add-on catalog 295d8a8e-443b-414f-a4c6-dbee2fb51bff",
+        "one_time_price": {
+          "currency": "usd",
+          "id": "bilpp_WSGrPzHbWrf",
+          "interval": "one-time",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 9900,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "quarterly_price": null,
+        "trial_days": null,
+        "yearly_price": null
+      }
+    ],
+    "credit_bundles": [
+      {
+        "bundle_type": "fixed",
+        "credit_icon": null,
+        "credit_id": "bilcr_8iLXw7U4wNh",
+        "credit_name": "Credit keytar",
+        "credit_plural_name": null,
+        "credit_singular_name": null,
+        "currency_prices": [
+          {
+            "currency": "usd",
+            "price": {
+              "currency": "usd",
+              "id": "bilpp_h5EMSedC8pY",
+              "interval": "one-time",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 2,
+              "price_decimal": "0",
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "unit_price": null
+          }
+        ],
+        "expiry_type": "no_expiry",
+        "expiry_unit": "days",
+        "expiry_unit_count": null,
+        "id": "bilcrb_fw7bhwPVFas",
+        "name": "Bundle pickled",
+        "price": {
+          "currency": "usd",
+          "id": "bilpp_h5EMSedC8pY",
+          "interval": "one-time",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 2,
+          "price_decimal": "0",
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "quantity": 500,
+        "unit_price": null
+      }
+    ],
+    "plans": [
+      {
+        "available_periods": [
+          "monthly"
+        ],
+        "billing_strategy": "provider_managed",
+        "charge_type": "recurring",
+        "compatible_plan_ids": null,
+        "currency_prices": [
+          {
+            "currency": "usd",
+            "monthly_price": {
+              "currency": "usd",
+              "id": "bilpp_fw7bhwPVFas",
+              "interval": "month",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 2500,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "one_time_price": null,
+            "quarterly_price": null,
+            "yearly_price": null
+          }
+        ],
+        "description": "",
+        "entitlements": [
+          {
+            "consumption_rate": null,
+            "credit_equivalent_limit": null,
+            "credit_icon": null,
+            "credit_id": null,
+            "credit_name": null,
+            "credit_plural_name": null,
+            "credit_singular_name": null,
+            "currency_prices": [],
+            "feature_description": "",
+            "feature_icon": "server-search",
+            "feature_id": "feat_fw7bhwPVFas",
+            "feature_name": "basket 9773f9f7-55ce-4bf8-aa20-1c6b67a56269",
+            "feature_plural_name": null,
+            "feature_singular_name": null,
+            "feature_type": "trait",
+            "license_id": null,
+            "metered_monthly_price": null,
+            "metered_quarterly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "price_behavior": null,
+            "soft_limit": null,
+            "value_bool": null,
+            "value_numeric": 100,
+            "value_type": "numeric",
+            "warning_threshold": null,
+            "id": "pltl_fw7bhwPVFas"
+          },
+          {
+            "consumption_rate": null,
+            "credit_equivalent_limit": null,
+            "credit_icon": null,
+            "credit_id": null,
+            "credit_name": null,
+            "credit_plural_name": null,
+            "credit_singular_name": null,
+            "currency_prices": [
+              {
+                "currency": "usd",
+                "monthly_price": {
+                  "currency": "usd",
+                  "id": "bilpp_PA2DgbCphEY",
+                  "interval": "month",
+                  "interval_count": 1,
+                  "overage_unit_price_decimal": null,
+                  "package_size": 1,
+                  "price": 50,
+                  "price_decimal": "0",
+                  "price_tiers": [],
+                  "scheme": "per_unit",
+                  "tiers_mode": null
+                },
+                "one_time_price": null,
+                "quarterly_price": null,
+                "yearly_price": null
+              }
+            ],
+            "feature_description": "",
+            "feature_icon": "server-search",
+            "feature_id": "feat_8iLXw7U4wNh",
+            "feature_name": "selvage 3c644124-f08f-4fc2-b68a-ffc58be6e525",
+            "feature_plural_name": null,
+            "feature_singular_name": null,
+            "feature_type": "boolean",
+            "license_id": null,
+            "metered_monthly_price": {
+              "currency": "usd",
+              "id": "bilpp_PA2DgbCphEY",
+              "interval": "month",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 50,
+              "price_decimal": "0",
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "metered_quarterly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "price_behavior": "pay_in_advance",
+            "soft_limit": null,
+            "value_bool": null,
+            "value_numeric": null,
+            "value_type": "trait",
+            "warning_threshold": null,
+            "id": "pltl_8iLXw7U4wNh"
+          },
+          {
+            "consumption_rate": 4,
+            "credit_equivalent_limit": 25,
+            "credit_icon": null,
+            "credit_id": "bilcr_fw7bhwPVFas",
+            "credit_name": "credit-55f6c80f-e6ee-400a-b4cc-f4665719e235",
+            "credit_plural_name": null,
+            "credit_singular_name": null,
+            "currency_prices": [],
+            "feature_description": "Authentic microdosing pug swag gastropub.",
+            "feature_icon": "server-search",
+            "feature_id": "feat_PA2DgbCphEY",
+            "feature_name": "hashtag 86ecb90c-c546-4826-8759-5d06c06e733e",
+            "feature_plural_name": null,
+            "feature_singular_name": null,
+            "feature_type": "event",
+            "license_id": null,
+            "metered_monthly_price": null,
+            "metered_quarterly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": "current_month",
+            "metric_period_month_reset": "billing_cycle",
+            "price_behavior": "credit_burndown",
+            "soft_limit": null,
+            "value_bool": null,
+            "value_numeric": null,
+            "value_type": "credit",
+            "warning_threshold": null,
+            "id": "pltl_PA2DgbCphEY"
+          }
+        ],
+        "icon": "yellow",
+        "id": "plan_fw7bhwPVFas",
+        "included_credit_grants": [
+          {
+            "company_credit_amount": 0,
+            "credit_amount": 100,
+            "credit_icon": null,
+            "credit_id": "bilcr_fw7bhwPVFas",
+            "credit_name": "credit-55f6c80f-e6ee-400a-b4cc-f4665719e235",
+            "credit_plural_name": null,
+            "credit_singular_name": null,
+            "id": "bilpcg_fw7bhwPVFas",
+            "license_id": null,
+            "reset_cadence": "monthly",
+            "scaling": "fixed"
+          }
+        ],
+        "is_trialable": false,
+        "monthly_price": {
+          "currency": "usd",
+          "id": "bilpp_fw7bhwPVFas",
+          "interval": "month",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 2500,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "name": "hail 57d00655-1a82-4cea-86d5-084e3861de21",
+        "one_time_price": null,
+        "quarterly_price": null,
+        "trial_days": null,
+        "yearly_price": null
+      },
+      {
+        "available_periods": [
+          "monthly"
+        ],
+        "billing_strategy": "provider_managed",
+        "charge_type": "recurring",
+        "compatible_plan_ids": null,
+        "currency_prices": [
+          {
+            "currency": "eur",
+            "monthly_price": {
+              "currency": "eur",
+              "id": "bilpp_anBRjjREUpV",
+              "interval": "month",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 1900,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "one_time_price": null,
+            "quarterly_price": null,
+            "yearly_price": null
+          }
+        ],
+        "description": "",
+        "entitlements": [],
+        "icon": "yellow",
+        "id": "plan_8iLXw7U4wNh",
+        "included_credit_grants": [],
+        "is_trialable": true,
+        "monthly_price": {
+          "currency": "eur",
+          "id": "bilpp_anBRjjREUpV",
+          "interval": "month",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 1900,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "name": "hedge a959ae03-dba2-42e0-88cf-61376c772490",
+        "one_time_price": null,
+        "quarterly_price": null,
+        "trial_days": 14,
+        "yearly_price": null
+      }
+    ]
+  }
+}

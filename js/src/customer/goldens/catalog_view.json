@@ -1,0 +1,350 @@
+{
+  "data": {
+    "capabilities": {
+      "badge_visibility": false,
+      "checkout": true
+    },
+    "custom_plan_cta": {
+      "cta_text": null,
+      "cta_url": null,
+      "price_text": null
+    },
+    "default_currency": "usd",
+    "description": null,
+    "id": "cat_fw7bhwPVFas",
+    "name": "Default",
+    "pricing_model": null,
+    "pricing_url": null,
+    "checkout_settings": {
+      "collect_address": false,
+      "collect_email": false,
+      "collect_phone": false,
+      "collect_tax_id": false,
+      "proration_behavior": "invoice_immediately",
+      "tax_collection_enabled": false
+    },
+    "prevent_self_service_downgrade": false,
+    "prevent_self_service_downgrade_button_text": null,
+    "prevent_self_service_downgrade_url": null,
+    "trial_expiry_plan": null,
+    "trial_payment_method_required": null,
+    "add_ons": [
+      {
+        "available_periods": [
+          "monthly"
+        ],
+        "billing_strategy": "provider_managed",
+        "charge_type": "recurring",
+        "compatible_plan_ids": null,
+        "currency_prices": [
+          {
+            "currency": "usd",
+            "monthly_price": {
+              "currency": "usd",
+              "id": "bilpp_EVz3iWZT1X3",
+              "interval": "month",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 500,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "one_time_price": null,
+            "quarterly_price": null,
+            "yearly_price": null
+          }
+        ],
+        "description": "",
+        "entitlements": [],
+        "icon": "yellow",
+        "id": "plan_AhFmEocWmyF",
+        "included_credit_grants": [],
+        "is_trialable": false,
+        "monthly_price": {
+          "currency": "usd",
+          "id": "bilpp_EVz3iWZT1X3",
+          "interval": "month",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 500,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "name": "Add-on reel 21cc0622-8ac3-42ea-a168-e972c43f626b",
+        "one_time_price": null,
+        "quarterly_price": null,
+        "trial_days": null,
+        "yearly_price": null,
+        "company_can_trial": false,
+        "current": false,
+        "invalid_reason": null,
+        "usage_violations": [],
+        "valid": true
+      }
+    ],
+    "credit_bundles": [],
+    "plans": [
+      {
+        "available_periods": [
+          "monthly",
+          "quarterly",
+          "yearly"
+        ],
+        "billing_strategy": "provider_managed",
+        "charge_type": "recurring",
+        "compatible_plan_ids": null,
+        "currency_prices": [
+          {
+            "currency": "usd",
+            "monthly_price": {
+              "currency": "usd",
+              "id": "bilpp_fw7bhwPVFas",
+              "interval": "month",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 10000,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "one_time_price": null,
+            "quarterly_price": {
+              "currency": "usd",
+              "id": "bilpp_8iLXw7U4wNh",
+              "interval": "month",
+              "interval_count": 3,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 27000,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "yearly_price": {
+              "currency": "usd",
+              "id": "bilpp_PA2DgbCphEY",
+              "interval": "year",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 190000,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            }
+          }
+        ],
+        "description": "Account yearly always none within float leisure never from few.",
+        "entitlements": [
+          {
+            "consumption_rate": null,
+            "credit_equivalent_limit": null,
+            "credit_icon": null,
+            "credit_id": null,
+            "credit_name": null,
+            "credit_plural_name": null,
+            "credit_singular_name": null,
+            "currency_prices": [],
+            "feature_description": "90's paleo irony readymade narwhal.",
+            "feature_icon": "server-search",
+            "feature_id": "feat_fw7bhwPVFas",
+            "feature_name": "sriracha b154cfba-45f3-46c8-9812-4f188aba8459",
+            "feature_plural_name": null,
+            "feature_singular_name": null,
+            "feature_type": "boolean",
+            "license_id": null,
+            "metered_monthly_price": null,
+            "metered_quarterly_price": null,
+            "metered_yearly_price": null,
+            "metric_period": null,
+            "metric_period_month_reset": null,
+            "price_behavior": null,
+            "soft_limit": null,
+            "value_bool": null,
+            "value_numeric": 25,
+            "value_type": "numeric",
+            "warning_threshold": null,
+            "id": "pltl_fw7bhwPVFas"
+          }
+        ],
+        "icon": "yellow",
+        "id": "plan_fw7bhwPVFas",
+        "included_credit_grants": [],
+        "is_trialable": false,
+        "monthly_price": {
+          "currency": "usd",
+          "id": "bilpp_fw7bhwPVFas",
+          "interval": "month",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 10000,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "name": "Donkey 6a95ec86-0d26-4e22-815e-dbef8dd4dc51",
+        "one_time_price": null,
+        "quarterly_price": {
+          "currency": "usd",
+          "id": "bilpp_8iLXw7U4wNh",
+          "interval": "month",
+          "interval_count": 3,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 27000,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "trial_days": null,
+        "yearly_price": {
+          "currency": "usd",
+          "id": "bilpp_PA2DgbCphEY",
+          "interval": "year",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 190000,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "company_can_trial": false,
+        "current": true,
+        "invalid_reason": null,
+        "usage_violations": [],
+        "valid": true
+      },
+      {
+        "available_periods": [
+          "monthly"
+        ],
+        "billing_strategy": "provider_managed",
+        "charge_type": "recurring",
+        "compatible_plan_ids": null,
+        "currency_prices": [
+          {
+            "currency": "usd",
+            "monthly_price": {
+              "currency": "usd",
+              "id": "bilpp_AhFmEocWmyF",
+              "interval": "month",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 900,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "one_time_price": null,
+            "quarterly_price": null,
+            "yearly_price": null
+          }
+        ],
+        "description": "",
+        "entitlements": [],
+        "icon": "yellow",
+        "id": "plan_8iLXw7U4wNh",
+        "included_credit_grants": [],
+        "is_trialable": false,
+        "monthly_price": {
+          "currency": "usd",
+          "id": "bilpp_AhFmEocWmyF",
+          "interval": "month",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 900,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "name": "wad 15ebeb91-5e9d-4a80-96c9-825283b3855d",
+        "one_time_price": null,
+        "quarterly_price": null,
+        "trial_days": null,
+        "yearly_price": null,
+        "company_can_trial": false,
+        "current": false,
+        "invalid_reason": null,
+        "usage_violations": [],
+        "valid": true
+      },
+      {
+        "available_periods": [
+          "monthly"
+        ],
+        "billing_strategy": "provider_managed",
+        "charge_type": "recurring",
+        "compatible_plan_ids": null,
+        "currency_prices": [
+          {
+            "currency": "usd",
+            "monthly_price": {
+              "currency": "usd",
+              "id": "bilpp_anBRjjREUpV",
+              "interval": "month",
+              "interval_count": 1,
+              "overage_unit_price_decimal": null,
+              "package_size": 1,
+              "price": 90000,
+              "price_decimal": null,
+              "price_tiers": [],
+              "scheme": "per_unit",
+              "tiers_mode": null
+            },
+            "one_time_price": null,
+            "quarterly_price": null,
+            "yearly_price": null
+          }
+        ],
+        "description": "",
+        "entitlements": [],
+        "icon": "yellow",
+        "id": "plan_PA2DgbCphEY",
+        "included_credit_grants": [],
+        "is_trialable": false,
+        "monthly_price": {
+          "currency": "usd",
+          "id": "bilpp_anBRjjREUpV",
+          "interval": "month",
+          "interval_count": 1,
+          "overage_unit_price_decimal": null,
+          "package_size": 1,
+          "price": 90000,
+          "price_decimal": null,
+          "price_tiers": [],
+          "scheme": "per_unit",
+          "tiers_mode": null
+        },
+        "name": "forest cd16adb8-86c8-47f1-8aa6-8e5f411a759d",
+        "one_time_price": null,
+        "quarterly_price": null,
+        "trial_days": null,
+        "yearly_price": null,
+        "company_can_trial": false,
+        "current": false,
+        "invalid_reason": null,
+        "usage_violations": [],
+        "valid": true
+      }
+    ]
+  }
+}

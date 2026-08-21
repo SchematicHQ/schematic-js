@@ -1,0 +1,8 @@
+# Narrow client for the publishable-key catalog surface. The input spec is
+# supplied by scripts/generate-customer-api.sh, which filters the full
+# apikeypublishable spec down to the catalog paths before generating.
+generatorName: typescript-fetch
+enablePostProcessFile: true
+outputDir: ./src/customer/api/public/
+skipValidateSpec: true
+generateAliasAsModel: true

@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-js",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "main": "dist/schematic.cjs.js",
   "module": "dist/schematic.esm.js",
   "types": "dist/schematic.d.ts",
@@ -31,7 +31,9 @@
     "test": "vitest run",
     "test:reactnative": "vitest run --config vitest.config.reactnative.ts",
     "test:watch": "vitest",
-    "tsc": "npx tsc"
+    "tsc": "npx tsc",
+    "sync-goldens": "bash scripts/sync-goldens.sh",
+    "generate-customer-api": "bash scripts/generate-customer-api.sh"
   },
   "dependencies": {
     "cross-fetch": "^4.1.0",
