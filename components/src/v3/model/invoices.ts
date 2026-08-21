@@ -88,6 +88,29 @@ export interface UpcomingInvoiceSummary {
   contractEndsAt: { date: Date; text: string } | null;
 }
 
+/**
+ * When the subscription is scheduled to end (`cancelAt`), the end date as
+ * a formatted part; `null` otherwise. Shared by the upcoming-invoice summary
+ * and the empty state, which still shows the contract end when there is
+ * nothing left to invoice.
+ */
+export function deriveContractEnd(
+  subscription: Subscription | null | undefined,
+  options: { locale: string },
+): { date: Date; text: string } | null {
+  if (
+    subscription === undefined ||
+    subscription === null ||
+    subscription.cancelAt === null
+  ) {
+    return null;
+  }
+  return {
+    date: subscription.cancelAt,
+    text: formatDate(subscription.cancelAt, options.locale),
+  };
+}
+
 export function deriveUpcomingInvoice(
   invoice: UpcomingInvoice,
   subscription: Subscription | null,
@@ -147,14 +170,6 @@ export function deriveUpcomingInvoice(
         : null,
     periodWord: period === null ? null : PERIOD_WORD[period],
     period,
-    contractEndsAt:
-      subscription?.cancelAt === null ||
-      subscription === undefined ||
-      subscription === null
-        ? null
-        : {
-            date: subscription.cancelAt,
-            text: formatDate(subscription.cancelAt, locale),
-          },
+    contractEndsAt: deriveContractEnd(subscription, { locale }),
   };
 }

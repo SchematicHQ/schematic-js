@@ -21,4 +21,7 @@ export {
   type MeteredFeaturesProps,
 } from "./elements/MeteredFeatures";
 export { PlanManager, type PlanManagerProps } from "./elements/PlanManager";
+export { CreditUsage, type CreditUsageProps } from "./elements/CreditUsage";
+export { Invoices, type InvoicesProps } from "./elements/Invoices";
+export { UpcomingBill, type UpcomingBillProps } from "./elements/UpcomingBill";
 export type { ElementProps } from "./elements/common";

@@ -1,9 +1,12 @@
 import iconFontCss from "@schematichq/schematic-icons/styles.css";
 import React from "react";
 
+import { creditUsageCss } from "./creditUsage";
 import { includedFeaturesCss } from "./includedFeatures";
+import { invoicesCss } from "./invoices";
 import { meteredFeaturesCss } from "./meteredFeatures";
 import { planManagerCss } from "./planManager";
+import { upcomingBillCss } from "./upcomingBill";
 
 /**
  * The v3 elements style themselves through CSS custom properties on plain
@@ -525,6 +528,9 @@ export const schematicStylesCss = `
 ${includedFeaturesCss}
 ${meteredFeaturesCss}
 ${planManagerCss}
+${creditUsageCss}
+${invoicesCss}
+${upcomingBillCss}
 
 /*
  * The schematic-icons icon font (inlined from the package's styles.css): the

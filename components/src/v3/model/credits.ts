@@ -58,6 +58,8 @@ export interface BundleOffer {
   /** "$25.00" for a fixed bundle, or the per-credit price for custom quantities. */
   priceText: string | null;
   isPerCredit: boolean;
+  /** Singular credit name, for "per AI credit" on custom-quantity bundles. */
+  unit: string;
 }
 
 export interface CreditBalanceSummary {
@@ -118,6 +120,7 @@ function bundleOffer(
         ? null
         : formatCurrency(priceAmount(shown), shown.currency, locale),
     isPerCredit: bundle.quantity === null,
+    unit: featureName(bundle.credit, 1),
   };
 }
 
