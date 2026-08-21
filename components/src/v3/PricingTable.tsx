@@ -11,7 +11,7 @@ import {
 } from "@schematichq/schematic-react";
 import React, { useMemo, useState } from "react";
 
-import { StatusFrame, cx } from "./common";
+import { PERIOD_WORDS, SHORT_PERIODS, StatusFrame, cx } from "./common";
 
 export interface PricingTableProps extends DisplayToggles {
   className?: string;
@@ -45,19 +45,6 @@ const PERIOD_LABELS: Record<string, string> = {
   one_time: "One-time",
   quarter: "Billed quarterly",
   year: "Billed yearly",
-};
-
-const PERIOD_WORDS: Record<string, string> = {
-  month: "month",
-  one_time: "one-time",
-  quarter: "quarter",
-  year: "year",
-};
-
-const SHORT_PERIODS: Record<string, string> = {
-  month: "mo",
-  quarter: "qtr",
-  year: "yr",
 };
 
 const METRIC_PERIOD_NAMES: Record<string, string> = {
@@ -399,7 +386,11 @@ export const PricingTable: React.FC<PricingTableProps> = ({
         </select>
       )}
       {vm.showPeriodToggle && (
-        <div className="schematic-pricing-table__toggle">
+        <div
+          aria-label="Billing period"
+          className="schematic-pricing-table__toggle"
+          role="group"
+        >
           {vm.togglePeriods.map((option) => (
             <button
               aria-pressed={option === vm.selectedPeriod}

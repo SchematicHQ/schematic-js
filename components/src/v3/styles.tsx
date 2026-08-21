@@ -68,6 +68,16 @@ export const schematicStylesCss = `
   color: var(--schematic-muted);
 }
 
+.schematic-visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .schematic-skeleton {
   animation: schematic-pulse 1.2s ease-in-out infinite;
   min-height: 2.5rem;

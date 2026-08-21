@@ -56,10 +56,11 @@ export const Invoices: React.FC<InvoicesProps> = ({
       ) : (
         <>
           <table>
+            <caption className="schematic-visually-hidden">Invoices</caption>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Amount</th>
+                <th scope="col">Date</th>
+                <th scope="col">Amount</th>
               </tr>
             </thead>
             <tbody>

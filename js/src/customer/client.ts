@@ -209,14 +209,12 @@ export class SchematicCustomerClient {
         'catalog with mode "public" requires a publishableKey; only an accessToken is configured',
       );
     }
-    // Server-prefetched data seeds the resource it actually describes: the
-    // client's default parameters, AND the same shape (a public catalog
-    // prefetched for an SSR page must not stand in for the company view
-    // a token-holding client would fetch) for the same catalog.
+    // Server-prefetched data seeds the resource it actually describes —
+    // same shape (a public catalog prefetched for an SSR page must not
+    // stand in for the company view) and same catalog — whichever call
+    // creates that resource first.
     const seed = this._options.initialData?.catalog;
     const seedMatches =
-      params?.mode === undefined &&
-      params?.catalogId === undefined &&
       seed !== undefined &&
       seed.mode === mode &&
       (catalogId === undefined || seed.id === catalogId);
@@ -323,10 +321,10 @@ export class SchematicCustomerClient {
    * asks for the same page rather than skipping one.
    */
   async fetchMoreInvoices(params?: ListInvoicesParams): Promise<void> {
+    const resource = this.invoices(params);
     const key = invoicesKey(params);
     const pages = this._invoicePages.get(key) ?? 1;
     this._invoicePages.set(key, pages + 1);
-    const resource = this.invoices(params);
     await resource.refetch();
     if (resource.getSnapshot().error !== undefined) {
       this._invoicePages.set(key, pages);

@@ -1,5 +1,21 @@
 import React from "react";
 
+/** Human labels for the display periods, for "/month"-style suffixes. */
+export const PERIOD_WORDS: Record<string, string> = {
+  month: "month",
+  one_time: "one-time",
+  quarter: "quarter",
+  year: "year",
+};
+
+/** Short period labels for "/mo"-style suffixes. */
+export const SHORT_PERIODS: Record<string, string> = {
+  month: "mo",
+  one_time: "once",
+  quarter: "qtr",
+  year: "yr",
+};
+
 /** Joins class names, skipping empty and undefined ones. */
 export const cx = (...names: (string | undefined | false)[]): string =>
   names.filter((name): name is string => Boolean(name)).join(" ");

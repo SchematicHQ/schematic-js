@@ -73,8 +73,7 @@
     "pako": "^3.0.1",
     "react-i18next": "16.1.6",
     "styled-components": "^6.5.3",
-    "uuid": "^14.0.1",
-    "@schematichq/schematic-react": "^1.6.0"
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -107,12 +106,14 @@
     "react-dom": "^19.2.8",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.67.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "@schematichq/schematic-react": "^1.6.0"
   },
   "peerDependencies": {
     "@stripe/react-stripe-js": ">=3",
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "@schematichq/schematic-react": "^1.6.0"
   },
   "resolutions": {
     "minimatch": ">=3.1.3",

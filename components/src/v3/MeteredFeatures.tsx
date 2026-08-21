@@ -36,6 +36,7 @@ export const Meter: React.FC<{ meter: UsageSummary }> = ({ meter }) => {
       </div>
       {meter.percent !== undefined && (
         <div
+          aria-label={meter.featureName}
           aria-valuemax={100}
           aria-valuemin={0}
           aria-valuenow={Math.round(meter.percent)}

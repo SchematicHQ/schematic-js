@@ -31,6 +31,14 @@ export interface ResourceOptions<T = unknown> {
 
 const DEFAULT_STALE_TIME_MS = 30_000;
 
+const startFetch = <T>(fetcher: ResourceFetcher<T>): Promise<T> => {
+  try {
+    return fetcher();
+  } catch (err) {
+    return Promise.reject(err instanceof Error ? err : new Error(String(err)));
+  }
+};
+
 export class Resource<T> {
   private _fetcher: ResourceFetcher<T>;
   private readonly _staleTimeMs: number;
@@ -155,7 +163,10 @@ export class Resource<T> {
     // this request instead of starting a duplicate.
     const run = (async () => {
       try {
-        const data = await this._fetcher();
+        // A fetcher that throws synchronously is turned into a rejection so
+        // it settles like any other failure — after the in-flight promise
+        // and pending state are recorded — instead of wedging the store.
+        const data = await startFetch(this._fetcher);
         if (generation !== this._generation) {
           return;
         }

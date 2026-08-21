@@ -55,9 +55,11 @@ export const IncludedFeatures: React.FC<IncludedFeaturesProps> = ({
           const usage =
             summary.limit !== undefined
               ? `${summary.formattedUsed} / ${summary.formattedLimit}`
-              : summary.featureType === "boolean"
-                ? "Included"
-                : summary.formattedUsed;
+              : summary.entitlement.kind === "unlimited"
+                ? `${summary.formattedUsed} / Unlimited`
+                : summary.featureType === "boolean"
+                  ? "Included"
+                  : summary.formattedUsed;
           return (
             <div className="schematic-row" key={key}>
               <span>{summary.featureName}</span>

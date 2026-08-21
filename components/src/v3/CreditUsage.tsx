@@ -51,9 +51,10 @@ export const CreditUsage: React.FC<CreditUsageProps> = ({
   const { data, error, isPending, refetch } = useCreditBalances();
   const wantsBundles = buyMoreUrl !== undefined || onBuyBundle !== undefined;
   // The catalog (shared with the other elements on the page, so usually
-  // already cached) supplies the bundles behind "Buy more"; it is only read
-  // when a purchase handoff is configured, and its errors never block the
-  // balances.
+  // already cached) supplies the bundles behind "Buy more". The hook is
+  // unconditional — it subscribes and fetches either way — but the result
+  // is only consulted when a purchase handoff is configured, and its
+  // errors never block the balances.
   const catalog = useCatalog();
   const providerLocale = useSchematicLocale();
   const locale = localeProp ?? providerLocale;
@@ -99,6 +100,7 @@ export const CreditUsage: React.FC<CreditUsageProps> = ({
                 </span>
               </div>
               <div
+                aria-label={credit.creditName}
                 aria-valuemax={100}
                 aria-valuemin={0}
                 aria-valuenow={Math.round(credit.percentUsed)}

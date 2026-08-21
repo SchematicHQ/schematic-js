@@ -7,7 +7,7 @@ import {
 } from "@schematichq/schematic-react";
 import React, { useMemo } from "react";
 
-import { StatusFrame, cx } from "./common";
+import { PERIOD_WORDS, StatusFrame, cx } from "./common";
 
 export interface PlanManagerProps {
   className?: string;
@@ -105,7 +105,9 @@ export const PlanManager: React.FC<PlanManagerProps> = ({
                   {vm.currentPlan.formattedPrice}
                   {vm.currentPlan.period !== undefined && (
                     <span className="schematic-muted">
-                      /{vm.currentPlan.period}
+                      /
+                      {PERIOD_WORDS[vm.currentPlan.period] ??
+                        vm.currentPlan.period}
                     </span>
                   )}
                 </div>
@@ -121,7 +123,9 @@ export const PlanManager: React.FC<PlanManagerProps> = ({
                 <span>
                   {addOn.formattedPrice}
                   {addOn.period !== undefined && (
-                    <span className="schematic-muted">/{addOn.period}</span>
+                    <span className="schematic-muted">
+                      /{PERIOD_WORDS[addOn.period] ?? addOn.period}
+                    </span>
                   )}
                 </span>
               )}

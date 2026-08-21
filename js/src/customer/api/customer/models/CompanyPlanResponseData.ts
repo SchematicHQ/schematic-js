@@ -70,7 +70,7 @@ export interface CompanyPlanResponseData {
    */
   name: string;
   /**
-   * The company's subscription price for this plan; null for free or custom-billed plans.
+   * What the company pays for this plan: its subscription line item, or the one-time price of a purchased one-time add-on. Null for free plans and for custom-billed plans with no subscription line.
    * @type {CatalogPriceResponseData}
    * @memberof CompanyPlanResponseData
    */

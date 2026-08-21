@@ -3,15 +3,15 @@
     "add_ons": [],
     "custom_billing": null,
     "id": "comp_fw7bhwPVFas",
-    "name": "Walk Score",
+    "name": "Earth Networks",
     "plan": {
       "catalog_id": "cat_fw7bhwPVFas",
-      "description": "For her over is himself others many another lean electricity.",
+      "description": "Account yearly always none within float leisure never from few.",
       "icon": "",
       "id": "plan_fw7bhwPVFas",
       "is_add_on": false,
       "is_custom": false,
-      "name": "Goat 9526a363-1143-48d4-ab89-cd3a6cb78677",
+      "name": "Donkey 6a95ec86-0d26-4e22-815e-dbef8dd4dc51",
       "price": {
         "currency": "usd",
         "id": "bilpp_fw7bhwPVFas",
@@ -32,21 +32,21 @@
       "cancel_at": null,
       "cancel_at_period_end": false,
       "currency": "usd",
-      "current_period_end": "2026-08-21T18:51:05Z",
-      "current_period_start": "2026-08-21T16:51:05Z",
+      "current_period_end": "2026-08-21T19:58:53Z",
+      "current_period_start": "2026-08-21T17:58:53Z",
       "id": "bilsub_fw7bhwPVFas",
       "interval": "month",
       "interval_count": 1,
       "payment_method": {
-        "brand": "JCB",
-        "expiry_month": 7,
-        "expiry_year": 2028,
-        "last4": "5418",
+        "brand": "Visa",
+        "expiry_month": 3,
+        "expiry_year": 2029,
+        "last4": "4825",
         "type": "card"
       },
       "status": "active",
       "total_price": 10000,
-      "trial_end": "2026-08-20T17:51:05Z",
+      "trial_end": "2026-08-20T18:58:53Z",
       "trialing": false
     }
   }

@@ -102,6 +102,22 @@ describe("Resource single flight", () => {
 });
 
 describe("Resource errors", () => {
+  it("a fetcher that throws synchronously settles as an error, not a permanent pending", async () => {
+    let attempt = 0;
+    const resource = new Resource<string>(() => {
+      attempt += 1;
+      if (attempt === 1) {
+        throw new Error("sync boom");
+      }
+      return Promise.resolve("ok");
+    });
+    await resource.ensure();
+    expect(resource.getSnapshot().isPending).toBe(false);
+    expect(resource.getSnapshot().error?.message).toBe("sync boom");
+    await resource.ensure();
+    expect(resource.getSnapshot().data).toBe("ok");
+  });
+
   it("never treats a failure as fresh: the next ensure() retries", async () => {
     let attempt = 0;
     const resource = new Resource(async () => {
