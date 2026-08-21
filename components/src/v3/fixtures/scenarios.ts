@@ -10,7 +10,7 @@ import type {
   CompanyCatalog,
   CreditBundle,
   Entitlement,
-} from "../contract";
+} from "@schematichq/schematic-react";
 
 import {
   booleanEntitlement,

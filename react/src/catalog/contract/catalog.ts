@@ -13,15 +13,15 @@
  */
 
 import type {
-  ChargeType,
+  PlanChargeType,
   CreditExpiryType,
   CreditExpiryUnit,
   CreditGrantScaling,
   CreditResetCadence,
-  EntitlementValueType,
-  FeatureType,
-  MetricPeriod,
-  MetricPeriodMonthReset,
+  EntitlementValueKind,
+  FeatureKind,
+  EntitlementMetricPeriod,
+  EntitlementMonthReset,
   PlanInvalidReason,
   PriceBehavior,
   PriceInterval,
@@ -89,7 +89,7 @@ export interface FeatureRef {
   /** Marketing description; `null` = none. PricingTable, IncludedFeatures (showFeatureDescription). */
   description: string | null;
   /** Drives which element shows the feature. IncludedFeatures, MeteredFeatures. */
-  type: FeatureType;
+  type: FeatureKind;
 }
 
 export interface CreditRef {
@@ -120,7 +120,7 @@ export interface EntitlementCredit extends CreditRef {
 export interface EntitlementDisplay {
   feature: FeatureRef;
   /** PricingTable, IncludedFeatures: selects the value branch. */
-  valueType: EntitlementValueType;
+  valueType: EntitlementValueKind;
   /** Boolean entitlements: whether the feature is on. IncludedFeatures. */
   valueBool: boolean | null;
   /** Numeric entitlements: the included quantity. PricingTable, IncludedFeatures, MeteredFeatures. */
@@ -134,9 +134,9 @@ export interface EntitlementDisplay {
   /** Credit-burndown entitlements only. PricingTable, IncludedFeatures. */
   credit: EntitlementCredit | null;
   /** Usage reset cadence for event features. PricingTable, IncludedFeatures ("per month"). */
-  metricPeriod: MetricPeriod | null;
+  metricPeriod: EntitlementMetricPeriod | null;
   /** When `metricPeriod` is `current_month`: first-of-month or billing-cycle reset. IncludedFeatures. */
-  metricPeriodMonthReset: MetricPeriodMonthReset | null;
+  metricPeriodMonthReset: EntitlementMonthReset | null;
   /** Configured warning tier as a unit count; `null` = none. MeteredFeatures, IncludedFeatures (showWarningThresholdAsLimit). */
   warningThreshold: number | null;
 }
@@ -173,7 +173,7 @@ export interface CatalogPlan {
   /** Icon name or emoji; "" when unset. PricingTable. */
   icon: string;
   /** `free` / `recurring` / `one_time`. PricingTable: price branch and period handling. */
-  chargeType: ChargeType;
+  chargeType: PlanChargeType;
   /**
    * Every price point the plan is sold at: one per currency × cadence for
    * recurring plans, one per currency for one-time plans, empty for free

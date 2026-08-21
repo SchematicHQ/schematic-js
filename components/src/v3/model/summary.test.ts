@@ -1,4 +1,5 @@
-import type { CompanyContext } from "../contract";
+import type { CompanyContext } from "@schematichq/schematic-react";
+
 import {
   NOW,
   checkoutBehavior,

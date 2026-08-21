@@ -1,4 +1,5 @@
-import type { CreditGrantReason } from "../contract";
+import type { CreditGrantReason } from "@schematichq/schematic-react";
+
 import {
   catalog,
   creditBalance,

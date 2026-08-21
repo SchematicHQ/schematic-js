@@ -1,7 +1,13 @@
+import {
+  useCatalog,
+  useCompany,
+  useFeatureUsage,
+  type AnyCatalog,
+  type CatalogPlan,
+  type FeatureUsageRow,
+} from "@schematichq/schematic-react";
 import { useMemo, useState } from "react";
 
-import type { AnyCatalog, CatalogPlan, FeatureUsageRow } from "../contract";
-import { useCatalog, useCompany, useFeatureUsage } from "../data";
 import {
   derivePeriod,
   derivePlanCredits,

@@ -4,7 +4,7 @@ import type {
   InvoiceStatus,
   Subscription,
   UpcomingInvoice,
-} from "../contract";
+} from "@schematichq/schematic-react";
 
 import { formatCurrency, formatDate } from "./format";
 import { PERIOD_WORD, derivePeriod, type PricePeriod } from "./period";

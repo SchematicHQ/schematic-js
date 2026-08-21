@@ -15,7 +15,7 @@ import type {
   CompanyContext,
   CompanyPlan,
   CreditAutoTopup,
-  CreditBalance,
+  CreditBalanceEntry,
   CreditBundle,
   CreditGrant,
   CreditGrantRow,
@@ -33,7 +33,7 @@ import type {
   ScheduledDowngrade,
   Subscription,
   UpcomingInvoice,
-} from "../contract";
+} from "@schematichq/schematic-react";
 
 let counter = 0;
 /** Deterministic IDs: `${prefix}_1`, `${prefix}_2`, … in call order. */
@@ -480,8 +480,8 @@ export function creditGrantRow(
 }
 
 export function creditBalance(
-  overrides: Partial<CreditBalance> = {},
-): CreditBalance {
+  overrides: Partial<CreditBalanceEntry> = {},
+): CreditBalanceEntry {
   const grants = overrides.grants ?? [creditGrantRow()];
   const total = grants.reduce((sum, g) => sum + g.quantity, 0);
   const used = grants.reduce((sum, g) => sum + g.quantityUsed, 0);

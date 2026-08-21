@@ -1,4 +1,4 @@
-import type { Price, PriceTier, TiersMode } from "../contract";
+import type { Price, PriceTier, TiersMode } from "@schematichq/schematic-react";
 
 import {
   RECURRING_PERIODS,

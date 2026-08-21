@@ -1,13 +1,13 @@
-import type {
-  AnyCatalog,
-  CatalogPlan,
-  CompanyCatalogPlan,
-  CreditGrant,
-  CreditRef,
-  CustomPlanCta,
-  PlanInvalidReason,
-} from "../contract";
-import { isCompanyCatalog } from "../contract";
+import {
+  isCompanyCatalog,
+  type AnyCatalog,
+  type CatalogPlan,
+  type CompanyCatalogPlan,
+  type CreditGrant,
+  type CreditRef,
+  type CustomPlanCta,
+  type PlanInvalidReason,
+} from "@schematichq/schematic-react";
 
 import { deriveEntitlement, type EntitlementSummary } from "./entitlement";
 import { featureName, formatCurrency, formatNumber } from "./format";

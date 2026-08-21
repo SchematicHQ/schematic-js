@@ -1,6 +1,6 @@
+import { useCompany, useUpcomingInvoice } from "@schematichq/schematic-react";
 import { useMemo } from "react";
 
-import { useCompany, useUpcomingInvoice } from "../data";
 import {
   deriveContractEnd,
   deriveUpcomingInvoice,

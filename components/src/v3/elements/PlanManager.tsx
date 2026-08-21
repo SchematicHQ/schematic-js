@@ -1,6 +1,6 @@
+import { useCatalog, useCompany } from "@schematichq/schematic-react";
 import { useMemo } from "react";
 
-import { useCatalog, useCompany } from "../data";
 import {
   derivePlanSummary,
   resolveLocale,

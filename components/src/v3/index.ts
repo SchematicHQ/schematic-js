@@ -3,8 +3,39 @@
  * catalog API, with the contract, derivations, and data seam they use.
  */
 
-export * from "./contract";
-export * from "./data";
+// The contract types, hooks, and providers live in schematic-react; the
+// ones an element consumer needs are re-exported here for convenience.
+export {
+  CatalogDataProvider,
+  useCatalog,
+  useCompany,
+  useCreditBalances,
+  useFeatureUsage,
+  useInvalidateCatalog,
+  useInvoices,
+  useSchematicLocale,
+  useUpcomingInvoice,
+  type AnyCatalog,
+  type Catalog,
+  type CatalogData,
+  type CatalogDataProviderProps,
+  type CatalogDataStatus,
+  type CatalogPlan,
+  type CompanyCatalog,
+  type CompanyCatalogPlan,
+  type CompanyContext,
+  type CreditBalanceEntry,
+  type CreditBundle,
+  type Entitlement,
+  type FeatureUsageRow,
+  type Invoice,
+  type InvoicePage,
+  type Price,
+  type ResourceHandle,
+  type ResourceState,
+  type Subscription,
+  type UpcomingInvoice,
+} from "@schematichq/schematic-react";
 export * from "./model";
 export * from "./styles";
 export {

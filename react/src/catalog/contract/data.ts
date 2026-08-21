@@ -7,7 +7,7 @@
 
 import type { AnyCatalog } from "./catalog";
 import type { CompanyContext } from "./company";
-import type { CreditBalance } from "./credits";
+import type { CreditBalanceEntry } from "./credits";
 import type { InvoicePage, UpcomingInvoice } from "./invoices";
 import type { FeatureUsageRow } from "./usage";
 
@@ -30,7 +30,7 @@ export interface CatalogResources {
   /** `GET /company/usage`. */
   usage: FeatureUsageRow[];
   /** `GET /company/credits`. */
-  credits: CreditBalance[];
+  credits: CreditBalanceEntry[];
   /** `GET /company/invoices?limit&offset`. */
   invoices: InvoicePage;
   /** `GET /company/upcoming-invoice`; `null` when there is no subscription to invoice. */

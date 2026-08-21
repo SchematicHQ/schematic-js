@@ -1,4 +1,4 @@
-import type { PlanPriceCadence, PriceInterval } from "../contract";
+import type { PriceCadence, PriceInterval } from "@schematichq/schematic-react";
 
 /**
  * The display period vocabulary. The API keeps the provider encoding
@@ -39,7 +39,7 @@ export function derivePeriod(
 }
 
 /** `available_periods` cadence → display period. */
-export function periodFromCadence(cadence: PlanPriceCadence): PricePeriod {
+export function periodFromCadence(cadence: PriceCadence): PricePeriod {
   switch (cadence) {
     case "monthly":
       return "month";

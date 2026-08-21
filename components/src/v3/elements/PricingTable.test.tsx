@@ -1,7 +1,7 @@
+import { CatalogDataProvider } from "@schematichq/schematic-react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { CatalogDataProvider } from "../data";
 import { proCompanyCatalog, publicCatalog } from "../fixtures/scenarios";
 
 import { PricingTable, type PricingTableProps } from "./PricingTable";

@@ -1,6 +1,12 @@
 import * as SchematicJS from "@schematichq/schematic-js";
 import React, { createContext, useEffect, useMemo, useRef } from "react";
 
+import {
+  CatalogProvider,
+  type AccessToken,
+  type CatalogClient,
+  type CatalogData,
+} from "../catalog";
 import { version } from "../version";
 
 type BaseSchematicProviderProps = Omit<
@@ -8,6 +14,17 @@ type BaseSchematicProviderProps = Omit<
   "client" | "publishableKey" | "useWebSocket"
 > & {
   children: React.ReactNode;
+  /**
+   * A temporary access token (or async provider of one) for the company
+   * endpoints. Held alongside the publishable key, which keeps serving flags.
+   */
+  accessToken?: AccessToken;
+  /** A catalog API client; schematic-js supplies one when omitted. */
+  catalogClient?: CatalogClient;
+  /** Prefetched catalog data, so the first render is complete (SSR). */
+  initialData?: CatalogData;
+  /** BCP 47 tag the elements format in; defaults to the viewer's language. */
+  locale?: string;
 };
 
 type SchematicProviderPropsWithClient = BaseSchematicProviderProps & {
@@ -32,8 +49,12 @@ export const SchematicContext = createContext<SchematicContextProps | null>(
 );
 
 export const SchematicProvider: React.FC<SchematicProviderProps> = ({
+  accessToken,
+  catalogClient,
   children,
   client: providedClient,
+  initialData,
+  locale,
   publishableKey,
   ...clientOpts
 }) => {
@@ -79,7 +100,14 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
 
   return (
     <SchematicContext.Provider value={contextValue}>
-      {children}
+      <CatalogProvider
+        accessToken={accessToken}
+        catalogClient={catalogClient}
+        initialData={initialData}
+        locale={locale}
+      >
+        {children}
+      </CatalogProvider>
     </SchematicContext.Provider>
   );
 };

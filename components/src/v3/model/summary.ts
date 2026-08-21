@@ -1,11 +1,11 @@
-import type {
-  AnyCatalog,
-  CompanyContext,
-  CompanyPlan,
-  CreditAutoTopup,
-  CreditRef,
-} from "../contract";
-import { isCompanyCatalog } from "../contract";
+import {
+  isCompanyCatalog,
+  type AnyCatalog,
+  type CompanyContext,
+  type CompanyPlan,
+  type CreditAutoTopup,
+  type CreditRef,
+} from "@schematichq/schematic-react";
 
 import { deriveEntitlement, type EntitlementSummary } from "./entitlement";
 import {

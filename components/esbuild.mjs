@@ -90,10 +90,18 @@ const options = {
   // (a bundled copy would read a different context instance than the one
   // the host's provider writes); React itself is external for the same
   // reason. Phase 2 adds @schematichq/schematic-react here.
+  // The v3 entries must never inline the schematic SDKs: the hooks resolve
+  // the host's provider through a module-level React context, and a bundled
+  // copy would read a different context instance than the provider writes.
   external:
     entry === "main"
       ? ["react", "react-dom", "@stripe/react-stripe-js"]
-      : ["react", "react-dom"],
+      : [
+          "react",
+          "react-dom",
+          "@schematichq/schematic-js",
+          "@schematichq/schematic-react",
+        ],
   define: {
     "process.env.SCHEMATIC_COMPONENTS_VERSION": JSON.stringify(version),
   },

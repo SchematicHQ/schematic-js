@@ -11,23 +11,23 @@
 export type PriceInterval = "day" | "week" | "month" | "year" | "one-time";
 
 /** Recurring cadences a plan is sold at. Never contains a one-time entry. */
-export type PlanPriceCadence = "monthly" | "quarterly" | "yearly";
+export type PriceCadence = "monthly" | "quarterly" | "yearly";
 
-export type ChargeType = "free" | "one_time" | "recurring";
+export type PlanChargeType = "free" | "one_time" | "recurring";
 
 export type PriceScheme = "per_unit" | "tiered";
 
 export type TiersMode = "graduated" | "volume";
 
-export type FeatureType = "boolean" | "event" | "license" | "trait";
+export type FeatureKind = "boolean" | "event" | "license" | "trait";
 
-export type EntitlementValueType =
+export type EntitlementValueKind =
   "boolean" | "credit" | "numeric" | "trait" | "unlimited";
 
 export type PriceBehavior =
   "credit_burndown" | "overage" | "pay_as_you_go" | "pay_in_advance" | "tier";
 
-export type MetricPeriod =
+export type EntitlementMetricPeriod =
   | "all_time"
   | "billing"
   | "current_day"
@@ -35,7 +35,7 @@ export type MetricPeriod =
   | "current_week"
   | "current_year";
 
-export type MetricPeriodMonthReset = "billing_cycle" | "first_of_month";
+export type EntitlementMonthReset = "billing_cycle" | "first_of_month";
 
 /** Where a company's entitlement comes from. */
 export type EntitlementSource = "company" | "plan";

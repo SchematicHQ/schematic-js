@@ -27,7 +27,7 @@ export interface CreditGrantRow {
   expiresAt: Date | null;
 }
 
-export interface CreditBalance {
+export interface CreditBalanceEntry {
   credit: CreditRef & { description: string };
   /** Sum of `quantity` over live grants. CreditUsage meter. */
   total: number;

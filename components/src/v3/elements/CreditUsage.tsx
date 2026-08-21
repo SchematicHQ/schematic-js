@@ -1,6 +1,10 @@
+import {
+  useCatalog,
+  useCompany,
+  useCreditBalances,
+} from "@schematichq/schematic-react";
 import { useMemo, useState } from "react";
 
-import { useCatalog, useCompany, useCreditBalances } from "../data";
 import {
   deriveCreditBalances,
   resolveLocale,

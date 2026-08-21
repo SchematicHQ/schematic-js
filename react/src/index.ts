@@ -37,6 +37,8 @@ export type {
   UseSchematicPlanOpts,
 };
 
+export * from "./catalog";
+
 export {
   RuleType,
   Schematic,

@@ -1,7 +1,11 @@
+import {
+  useCatalog,
+  useCompany,
+  useFeatureUsage,
+  type FeatureUsageRow,
+} from "@schematichq/schematic-react";
 import { useMemo } from "react";
 
-import type { FeatureUsageRow } from "../contract";
-import { useCatalog, useCompany, useFeatureUsage } from "../data";
 import {
   derivePeriod,
   deriveUsage,

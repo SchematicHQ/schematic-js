@@ -1,6 +1,6 @@
+import { useInvoices } from "@schematichq/schematic-react";
 import { useMemo, useState } from "react";
 
-import { useInvoices } from "../data";
 import { deriveInvoiceList, resolveLocale, type InvoiceRow } from "../model";
 
 import { StatusFrame, cx, type ElementProps } from "./common";

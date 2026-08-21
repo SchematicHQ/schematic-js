@@ -4,7 +4,11 @@
  * variations the derivation branches on.
  */
 
-import type { CompanyContext, CompanyPlan, Subscription } from "../contract";
+import type {
+  CompanyContext,
+  CompanyPlan,
+  Subscription,
+} from "@schematichq/schematic-react";
 
 import {
   customBilling,

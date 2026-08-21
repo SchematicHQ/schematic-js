@@ -1,10 +1,10 @@
 import type {
   AnyCatalog,
-  CreditBalance,
+  CreditBalanceEntry,
   CreditBundle,
   CreditGrantRow,
   CreditRef,
-} from "../contract";
+} from "@schematichq/schematic-react";
 
 import { DEFAULT_WARNING_PERCENT, type UsageState } from "./entitlement";
 import {
@@ -139,7 +139,7 @@ export function bundleCompatible(
 }
 
 export function deriveCreditBalances(
-  balances: CreditBalance[],
+  balances: CreditBalanceEntry[],
   options: CreditOptions,
 ): CreditBalanceSummary[] {
   const { catalog, currentPlanId, locale } = options;

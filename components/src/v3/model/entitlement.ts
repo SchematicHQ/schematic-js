@@ -1,11 +1,11 @@
 import type {
   EntitlementDisplay,
+  EntitlementMetricPeriod,
   FeatureRef,
   FeatureUsageRow,
-  MetricPeriod,
   PriceTier,
   TiersMode,
-} from "../contract";
+} from "@schematichq/schematic-react";
 
 import {
   featureName,
@@ -32,7 +32,7 @@ import {
  * element's job.
  */
 
-const METRIC_PERIOD_WORD: Record<MetricPeriod, string | null> = {
+const METRIC_PERIOD_WORD: Record<EntitlementMetricPeriod, string | null> = {
   all_time: null,
   billing: "billing period",
   current_day: "day",

@@ -1,6 +1,6 @@
+import { useCatalog } from "@schematichq/schematic-react";
 import { useMemo, useState } from "react";
 
-import { useCatalog } from "../data";
 import {
   PERIOD_ADVERB,
   derivePlanOfferings,

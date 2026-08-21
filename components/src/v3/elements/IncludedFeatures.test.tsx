@@ -1,8 +1,11 @@
+import {
+  CatalogDataProvider,
+  type CatalogData,
+  type CompanyCatalog,
+} from "@schematichq/schematic-react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 
-import type { CatalogData, CompanyCatalog } from "../contract";
-import { CatalogDataProvider } from "../data";
 import { creditGrant, daysFromNow } from "../fixtures/builders";
 import { SCENARIOS } from "../fixtures/scenarios";
 
