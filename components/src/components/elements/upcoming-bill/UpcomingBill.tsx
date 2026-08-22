@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type InvoiceResponseData } from "../../../api/checkoutexternal";
+import { type UpcomingInvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -67,7 +67,7 @@ export const UpcomingBill = forwardRef<
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error>();
   const [upcomingInvoice, setUpcomingInvoice] = useState<
-    InvoiceResponseData | undefined
+    UpcomingInvoiceResponseData | undefined
   >(data?.upcomingInvoice);
 
   const discounts = useMemo(() => {
