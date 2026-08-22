@@ -34,6 +34,13 @@ import {
   ComponentCheckoutSettingsToJSON,
   ComponentCheckoutSettingsToJSONTyped,
 } from "./ComponentCheckoutSettings";
+import type { UpcomingInvoiceResponseData } from "./UpcomingInvoiceResponseData";
+import {
+  UpcomingInvoiceResponseDataFromJSON,
+  UpcomingInvoiceResponseDataFromJSONTyped,
+  UpcomingInvoiceResponseDataToJSON,
+  UpcomingInvoiceResponseDataToJSONTyped,
+} from "./UpcomingInvoiceResponseData";
 import type { BillingCreditBundleView } from "./BillingCreditBundleView";
 import {
   BillingCreditBundleViewFromJSON,
@@ -48,13 +55,6 @@ import {
   StripeEmbedInfoToJSON,
   StripeEmbedInfoToJSONTyped,
 } from "./StripeEmbedInfo";
-import type { InvoiceResponseData } from "./InvoiceResponseData";
-import {
-  InvoiceResponseDataFromJSON,
-  InvoiceResponseDataFromJSONTyped,
-  InvoiceResponseDataToJSON,
-  InvoiceResponseDataToJSONTyped,
-} from "./InvoiceResponseData";
 import type { ComponentDisplaySettings } from "./ComponentDisplaySettings";
 import {
   ComponentDisplaySettingsFromJSON,
@@ -301,10 +301,10 @@ export interface ComponentHydrateResponseData {
   trialPaymentMethodRequired?: boolean | null;
   /**
    *
-   * @type {InvoiceResponseData}
+   * @type {UpcomingInvoiceResponseData}
    * @memberof ComponentHydrateResponseData
    */
-  upcomingInvoice?: InvoiceResponseData;
+  upcomingInvoice?: UpcomingInvoiceResponseData;
 }
 
 /**
@@ -457,7 +457,7 @@ export function ComponentHydrateResponseDataFromJSONTyped(
     upcomingInvoice:
       json["upcoming_invoice"] == null
         ? undefined
-        : InvoiceResponseDataFromJSON(json["upcoming_invoice"]),
+        : UpcomingInvoiceResponseDataFromJSON(json["upcoming_invoice"]),
   };
 }
 
@@ -521,6 +521,8 @@ export function ComponentHydrateResponseDataToJSONTyped(
     stripe_embed: StripeEmbedInfoToJSON(value["stripeEmbed"]),
     subscription: CompanySubscriptionResponseDataToJSON(value["subscription"]),
     trial_payment_method_required: value["trialPaymentMethodRequired"],
-    upcoming_invoice: InvoiceResponseDataToJSON(value["upcomingInvoice"]),
+    upcoming_invoice: UpcomingInvoiceResponseDataToJSON(
+      value["upcomingInvoice"],
+    ),
   };
 }

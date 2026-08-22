@@ -169,6 +169,7 @@ export * from "./TaxIDInput";
 export * from "./TaxIdType";
 export * from "./TraitDefinition";
 export * from "./TraitType";
+export * from "./UpcomingInvoiceResponseData";
 export * from "./UpdateAddOnRequestBody";
 export * from "./UpdateAutoTopupOverrideRequestBody";
 export * from "./UpdateCheckoutFieldValuesRequestBody";

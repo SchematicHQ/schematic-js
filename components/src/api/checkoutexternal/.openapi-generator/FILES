@@ -171,6 +171,7 @@ models/TaxIDInput.ts
 models/TaxIdType.ts
 models/TraitDefinition.ts
 models/TraitType.ts
+models/UpcomingInvoiceResponseData.ts
 models/UpdateAddOnRequestBody.ts
 models/UpdateAutoTopupOverrideRequestBody.ts
 models/UpdateCheckoutFieldValuesRequestBody.ts
