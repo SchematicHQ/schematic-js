@@ -1,4 +1,10 @@
-import type { ComponentProps, HydrateDataWithCompanyContext } from "../types";
+import merge from "lodash/merge";
+
+import type {
+  ComponentProps,
+  DeepPartial,
+  HydrateDataWithCompanyContext,
+} from "../types";
 
 export interface TypographySettings {
   fontFamily: string;
@@ -418,13 +424,58 @@ export interface WarningThresholdConfig {
   showAsLimit?: boolean;
 }
 
+/**
+ * Where a settings update came from. Settings are layered rather than
+ * last-writer-wins, because the two producers arrive in a fixed and unhelpful
+ * order: the consuming app supplies its theme on mount, while the design stored
+ * in the dashboard is only known once the component has hydrated. Layering lets
+ * a runtime theme survive hydration (and every re-hydration after a checkout).
+ *
+ * - `builder`: the design authored in the Schematic dashboard, inflated from the
+ *   component AST.
+ * - `consumer`: the `settings` prop on `EmbedProvider` and `updateSettings()`
+ *   calls made by the consuming app. Wins over the stored design.
+ *
+ * An update with no source lands in the lowest layer; it is how the provider's
+ * `prefers-color-scheme` listener contributes a default without overriding
+ * either of the above.
+ */
+export type SettingsSource = "builder" | "consumer";
+
+/**
+ * The settings layers in ascending order of precedence. `settings` is derived
+ * from these by {@link resolveSettings}; nothing should assign to it directly.
+ */
+export const SETTINGS_LAYERS = [
+  "baseSettings",
+  "builderSettings",
+  "settingsOverrides",
+] as const;
+
+export type SettingsLayer = (typeof SETTINGS_LAYERS)[number];
+
+export const SETTINGS_LAYER_BY_SOURCE: Record<SettingsSource, SettingsLayer> = {
+  builder: "builderSettings",
+  consumer: "settingsOverrides",
+};
+
 export interface EmbedState {
   isPending: boolean;
   stale: boolean;
   accessToken?: string;
   data?: HydrateDataWithCompanyContext;
   error?: Error;
+  /**
+   * The effective settings, derived from the layers below. Read this; write to
+   * the layers via an `UPDATE_SETTINGS` action.
+   */
   settings: EmbedSettings;
+  /** Lowest-precedence layer: settings applied without an explicit source. */
+  baseSettings: DeepPartial<EmbedSettings>;
+  /** The design stored in the dashboard, applied once the component hydrates. */
+  builderSettings: DeepPartial<EmbedSettings>;
+  /** Runtime settings from the consuming app; these win over the stored design. */
+  settingsOverrides: DeepPartial<EmbedSettings>;
   layout: EmbedLayout;
   checkoutState?: CheckoutState;
   currencyFilter?: string[];
@@ -432,9 +483,22 @@ export interface EmbedState {
   checkoutPrefill?: CheckoutPrefill;
 }
 
+/** Collapse the settings layers into the effective settings. */
+export const resolveSettings = (
+  layers: Pick<EmbedState, SettingsLayer>,
+): EmbedSettings =>
+  merge(
+    {},
+    defaultSettings,
+    ...SETTINGS_LAYERS.map((layer) => layers[layer]),
+  ) as EmbedSettings;
+
 export const initialState: EmbedState = {
   isPending: false,
   stale: true,
   settings: { ...defaultSettings },
+  baseSettings: {},
+  builderSettings: {},
+  settingsOverrides: {},
   layout: "portal",
 };

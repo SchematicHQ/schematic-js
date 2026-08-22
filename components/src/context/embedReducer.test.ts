@@ -4,8 +4,7 @@ import type { PaymentMethodResponseData } from "../api/checkoutexternal";
 import type { HydrateDataWithCompanyContext } from "../types";
 
 import { reducer } from "./embedReducer";
-import type { BypassConfig } from "./embedState";
-import { initialState } from "./embedState";
+import { initialState, type BypassConfig, type EmbedState } from "./embedState";
 
 describe("embedReducer - SET_PLANID_BYPASS", () => {
   describe("Legacy String Mode", () => {
@@ -674,6 +673,109 @@ describe("embedReducer - checkoutSettings are preserved across re-normalize", ()
 
     expect(result.data?.checkoutSettings.bundlePurchaseBehavior).toBe(
       "individual",
+    );
+  });
+});
+
+describe("embedReducer - UPDATE_SETTINGS", () => {
+  // What the consuming app asks for at runtime, e.g. to follow its own dark mode.
+  const consumerTheme = { theme: { card: { background: "#111111" } } };
+  // What the dashboard stores. This is a *complete* theme, which is why a plain
+  // last-writer-wins merge used to erase everything the consumer had set.
+  const builderTheme = {
+    theme: { card: { background: "#FFFFFF" }, primary: "#AABBCC" },
+  };
+
+  const applyConsumer = (state: EmbedState, settings = consumerTheme) =>
+    reducer(state, {
+      type: "UPDATE_SETTINGS",
+      settings,
+      update: true,
+      source: "consumer" as const,
+    });
+
+  const applyBuilder = (state: EmbedState) =>
+    reducer(state, {
+      type: "UPDATE_SETTINGS",
+      settings: builderTheme,
+      update: true,
+      source: "builder" as const,
+    });
+
+  it("keeps consumer settings when the stored design arrives afterwards", () => {
+    const result = applyBuilder(applyConsumer(initialState));
+
+    expect(result.settings.theme.card.background).toBe("#111111");
+  });
+
+  it("applies stored design values the consumer did not set", () => {
+    const result = applyBuilder(applyConsumer(initialState));
+
+    expect(result.settings.theme.primary).toBe("#AABBCC");
+  });
+
+  it("resolves the same way regardless of arrival order", () => {
+    const builderFirst = applyConsumer(applyBuilder(initialState));
+    const consumerFirst = applyBuilder(applyConsumer(initialState));
+
+    expect(builderFirst.settings).toEqual(consumerFirst.settings);
+  });
+
+  it("keeps consumer settings when the stored design is re-applied", () => {
+    // Re-hydration (after a checkout or unsubscribe) replays the builder update.
+    const result = applyBuilder(applyBuilder(applyConsumer(initialState)));
+
+    expect(result.settings.theme.card.background).toBe("#111111");
+  });
+
+  it("lets a later consumer update override an earlier one", () => {
+    const result = applyConsumer(applyBuilder(applyConsumer(initialState)), {
+      theme: { card: { background: "#222222" } },
+    });
+
+    expect(result.settings.theme.card.background).toBe("#222222");
+  });
+
+  it("ranks an unsourced update below both sources", () => {
+    // The provider's `prefers-color-scheme` listener dispatches without a source.
+    const withSystem = reducer(initialState, {
+      type: "UPDATE_SETTINGS",
+      settings: { theme: { colorMode: "dark", primary: "#333333" } },
+      update: true,
+    });
+    const result = applyBuilder(applyConsumer(withSystem));
+
+    expect(result.settings.theme.primary).toBe("#AABBCC");
+    // …but it still contributes where nothing else does.
+    expect(result.settings.theme.colorMode).toBe("dark");
+  });
+
+  it("replaces the consumer layer and the stored design without `update`", () => {
+    const seeded = applyBuilder(applyConsumer(initialState));
+
+    const result = reducer(seeded, {
+      type: "UPDATE_SETTINGS",
+      settings: { theme: { card: { background: "#222222" } } },
+      source: "consumer",
+    });
+
+    expect(result.settings.theme.card.background).toBe("#222222");
+    // The stored design's other values are discarded, back to the defaults.
+    expect(result.settings.theme.primary).toBe(
+      initialState.settings.theme.primary,
+    );
+  });
+
+  it("merges into the existing consumer values with `update`", () => {
+    const seeded = applyConsumer(initialState);
+
+    const result = applyConsumer(seeded, {
+      theme: { card: { background: "#222222" } },
+    });
+
+    expect(result.settings.theme.card.background).toBe("#222222");
+    expect(result.settings.theme.card.padding).toBe(
+      initialState.settings.theme.card.padding,
     );
   });
 });

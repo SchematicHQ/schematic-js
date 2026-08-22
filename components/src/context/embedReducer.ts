@@ -15,13 +15,17 @@ import type {
 } from "../types";
 
 import {
-  defaultSettings,
+  SETTINGS_LAYERS,
+  SETTINGS_LAYER_BY_SOURCE,
+  resolveSettings,
   type BypassConfig,
   type CheckoutPrefill,
   type CheckoutState,
   type EmbedLayout,
   type EmbedSettings,
   type EmbedState,
+  type SettingsLayer,
+  type SettingsSource,
 } from "./embedState";
 
 const dispatchPlanChangedEvent = <T extends object>(detail: T) => {
@@ -54,6 +58,7 @@ type EmbedAction =
       type: "UPDATE_SETTINGS";
       settings: DeepPartial<EmbedSettings>;
       update?: boolean;
+      source?: SettingsSource;
     }
   | { type: "CHANGE_LAYOUT"; layout: EmbedLayout }
   | { type: "SET_CHECKOUT_STATE"; state: CheckoutState }
@@ -243,13 +248,34 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
     }
 
     case "UPDATE_SETTINGS": {
-      const settings = action.update
-        ? merge({}, defaultSettings, state.settings, action.settings)
-        : merge({}, defaultSettings, action.settings);
+      const target = action.source
+        ? SETTINGS_LAYER_BY_SOURCE[action.source]
+        : "baseSettings";
+      const targetIndex = SETTINGS_LAYERS.indexOf(target);
+
+      // Each source writes to its own layer, so the effective settings no longer
+      // depend on dispatch order: the dashboard design can land after the
+      // consuming app's theme (it always does) without overwriting it.
+      const layers = {} as Pick<EmbedState, SettingsLayer>;
+      SETTINGS_LAYERS.forEach((layer, index) => {
+        if (layer === target) {
+          // Without `update`, the caller is asking to replace its settings
+          // rather than merge into them.
+          layers[layer] = action.update
+            ? merge({}, state[layer], action.settings)
+            : action.settings;
+        } else {
+          // A replace also discards the layers this one takes precedence over,
+          // preserving the old "reset to defaults plus these values" behavior.
+          layers[layer] =
+            !action.update && index < targetIndex ? {} : state[layer];
+        }
+      });
 
       return {
         ...state,
-        settings,
+        ...layers,
+        settings: resolveSettings(layers),
       };
     }
 

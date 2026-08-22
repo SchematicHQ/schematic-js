@@ -26,12 +26,15 @@ import {
   type EmbedLayout,
   type EmbedSettings,
   type EmbedState,
+  type SettingsLayer,
 } from "./embedState";
 
 // apis are not defined immediately on mount
 type DebouncedApiPromise<R> = Promise<R | undefined> | undefined;
 
-export interface EmbedContextProps extends EmbedState {
+// The settings layers are an implementation detail of the reducer; consumers read
+// the resolved `settings` and write through `updateSettings`.
+export interface EmbedContextProps extends Omit<EmbedState, SettingsLayer> {
   hydratePublic: () => DebouncedApiPromise<PublicPlansResponseData>;
   hydrate: () => DebouncedApiPromise<HydrateDataWithCompanyContext>;
   hydrateComponent: (
@@ -75,10 +78,23 @@ export interface EmbedContextProps extends EmbedState {
   initializeWithPlan: (config: string | BypassConfig) => void;
   requestUnsubscribe: () => void;
   setData: (data: HydrateDataWithCompanyContext) => void;
+  /**
+   * Apply settings from the consuming app. These take precedence over the design
+   * stored in the dashboard regardless of which arrives first, and survive the
+   * re-hydration that follows a checkout or unsubscribe. Pass `{ update: true }`
+   * to merge into the current values rather than replace them.
+   */
   updateSettings: (
     settings: DeepPartial<EmbedSettings>,
     options?: { update?: boolean },
   ) => void;
+  /**
+   * Apply the design authored in the dashboard. Internal: `SchematicEmbed` calls
+   * this with the settings inflated from the component AST. Anything supplied via
+   * {@link EmbedContextProps.updateSettings} or the provider's `settings` prop
+   * wins over it.
+   */
+  setBuilderSettings: (settings: DeepPartial<EmbedSettings>) => void;
   debug: (message: string, ...args: unknown[]) => void;
 }
 
@@ -113,6 +129,7 @@ export const initialContext = {
   requestUnsubscribe: stub,
   setData: stub,
   updateSettings: stub,
+  setBuilderSettings: stub,
   debug: stub,
   finishCheckout: stub,
 };
