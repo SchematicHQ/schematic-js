@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
-import type { InvoiceResponseData } from "./InvoiceResponseData";
+import type { UpcomingInvoiceResponseData } from "./UpcomingInvoiceResponseData";
 import {
-  InvoiceResponseDataFromJSON,
-  InvoiceResponseDataFromJSONTyped,
-  InvoiceResponseDataToJSON,
-  InvoiceResponseDataToJSONTyped,
-} from "./InvoiceResponseData";
+  UpcomingInvoiceResponseDataFromJSON,
+  UpcomingInvoiceResponseDataFromJSONTyped,
+  UpcomingInvoiceResponseDataToJSON,
+  UpcomingInvoiceResponseDataToJSONTyped,
+} from "./UpcomingInvoiceResponseData";
 
 /**
  *
@@ -29,10 +29,10 @@ import {
 export interface HydrateUpcomingInvoiceResponse {
   /**
    *
-   * @type {InvoiceResponseData}
+   * @type {UpcomingInvoiceResponseData}
    * @memberof HydrateUpcomingInvoiceResponse
    */
-  data: InvoiceResponseData;
+  data: UpcomingInvoiceResponseData;
   /**
    * Input parameters
    * @type {object}
@@ -66,7 +66,7 @@ export function HydrateUpcomingInvoiceResponseFromJSONTyped(
     return json;
   }
   return {
-    data: InvoiceResponseDataFromJSON(json["data"]),
+    data: UpcomingInvoiceResponseDataFromJSON(json["data"]),
     params: json["params"],
   };
 }
@@ -86,7 +86,7 @@ export function HydrateUpcomingInvoiceResponseToJSONTyped(
   }
 
   return {
-    data: InvoiceResponseDataToJSON(value["data"]),
+    data: UpcomingInvoiceResponseDataToJSON(value["data"]),
     params: value["params"],
   };
 }
