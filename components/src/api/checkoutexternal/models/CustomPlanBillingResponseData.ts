@@ -102,6 +102,12 @@ export interface CustomPlanBillingResponseData {
    */
   planId: string;
   /**
+   * Whether the shortened period the renewal date created was billed pro rata when the subscription started. False means that period is free and the first invoice is the one raised on the renewal date.
+   * @type {boolean}
+   * @memberof CustomPlanBillingResponseData
+   */
+  prorateFirstPeriod?: boolean | null;
+  /**
    *
    * @type {Date}
    * @memberof CustomPlanBillingResponseData
@@ -194,6 +200,10 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
     paidAt: json["paid_at"] == null ? undefined : new Date(json["paid_at"]),
     planBillingSource: PlanBillingSourceFromJSON(json["plan_billing_source"]),
     planId: json["plan_id"],
+    prorateFirstPeriod:
+      json["prorate_first_period"] == null
+        ? undefined
+        : json["prorate_first_period"],
     publishedAt:
       json["published_at"] == null ? undefined : new Date(json["published_at"]),
     sendInvoice: json["send_invoice"],
@@ -239,6 +249,7 @@ export function CustomPlanBillingResponseDataToJSONTyped(
         : (value["paidAt"] as any).toISOString(),
     plan_billing_source: PlanBillingSourceToJSON(value["planBillingSource"]),
     plan_id: value["planId"],
+    prorate_first_period: value["prorateFirstPeriod"],
     published_at:
       value["publishedAt"] == null
         ? undefined
