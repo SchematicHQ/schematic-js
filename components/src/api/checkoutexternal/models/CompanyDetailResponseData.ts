@@ -76,6 +76,13 @@ import {
   GenericPreviewObjectToJSON,
   GenericPreviewObjectToJSONTyped,
 } from "./GenericPreviewObject";
+import type { PendingMigrationResponseData } from "./PendingMigrationResponseData";
+import {
+  PendingMigrationResponseDataFromJSON,
+  PendingMigrationResponseDataFromJSONTyped,
+  PendingMigrationResponseDataToJSON,
+  PendingMigrationResponseDataToJSONTyped,
+} from "./PendingMigrationResponseData";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
@@ -199,6 +206,12 @@ export interface CompanyDetailResponseData {
    * @memberof CompanyDetailResponseData
    */
   paymentMethods: Array<PaymentMethodResponseData>;
+  /**
+   *
+   * @type {PendingMigrationResponseData}
+   * @memberof CompanyDetailResponseData
+   */
+  pendingMigration?: PendingMigrationResponseData;
   /**
    *
    * @type {CompanyPlanWithBillingSubView}
@@ -335,6 +348,10 @@ export function CompanyDetailResponseDataFromJSONTyped(
     paymentMethods: (json["payment_methods"] as Array<any>).map(
       PaymentMethodResponseDataFromJSON,
     ),
+    pendingMigration:
+      json["pending_migration"] == null
+        ? undefined
+        : PendingMigrationResponseDataFromJSON(json["pending_migration"]),
     plan:
       json["plan"] == null
         ? undefined
@@ -403,6 +420,9 @@ export function CompanyDetailResponseDataToJSONTyped(
     name: value["name"],
     payment_methods: (value["paymentMethods"] as Array<any>).map(
       PaymentMethodResponseDataToJSON,
+    ),
+    pending_migration: PendingMigrationResponseDataToJSON(
+      value["pendingMigration"],
     ),
     plan: CompanyPlanWithBillingSubViewToJSON(value["plan"]),
     plans: (value["plans"] as Array<any>).map(GenericPreviewObjectToJSON),
