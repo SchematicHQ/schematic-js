@@ -8,3 +8,10 @@ declare namespace NodeJS {
 declare const process: {
   env: NodeJS.ProcessEnv;
 };
+
+// The v3 stylesheet inlines the schematic-icons icon-font CSS; esbuild loads
+// .css imports as plain strings for the v3 entry (see esbuild.mjs).
+declare module "*.css" {
+  const css: string;
+  export default css;
+}

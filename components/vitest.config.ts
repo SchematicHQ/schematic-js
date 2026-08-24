@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -7,6 +9,18 @@ export default defineConfig({
   // explode with "Cannot read properties of null (reading 'useContext')".
   resolve: {
     dedupe: ["react", "react-dom", "styled-components"],
+    // The SDKs are yarn-linked; resolve them to their sources so tests run
+    // against the working tree rather than a stale dist.
+    alias: {
+      "@schematichq/schematic-react": path.resolve(
+        __dirname,
+        "../react/src/index.ts",
+      ),
+      "@schematichq/schematic-js": path.resolve(
+        __dirname,
+        "../js/src/index.ts",
+      ),
+    },
   },
   test: {
     environment: "jsdom",

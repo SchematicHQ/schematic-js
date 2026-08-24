@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "2.24.0",
+  "version": "3.0.0",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -18,6 +18,18 @@
       "import": "./dist/schematic-components.esm.js",
       "require": "./dist/schematic-components.cjs.js",
       "default": "./dist/schematic-components.esm.js"
+    },
+    "./v3": {
+      "types": "./dist/schematic-components-v3.d.ts",
+      "import": "./dist/schematic-components-v3.esm.js",
+      "require": "./dist/schematic-components-v3.cjs.js",
+      "default": "./dist/schematic-components-v3.esm.js"
+    },
+    "./v3/fixtures": {
+      "types": "./dist/schematic-components-v3-fixtures.d.ts",
+      "import": "./dist/schematic-components-v3-fixtures.esm.js",
+      "require": "./dist/schematic-components-v3-fixtures.cjs.js",
+      "default": "./dist/schematic-components-v3-fixtures.esm.js"
     }
   },
   "files": [
@@ -25,7 +37,13 @@
     "dist/schematic-components.esm.js",
     "dist/schematic-components.browser.cjs.js",
     "dist/schematic-components.browser.esm.js",
-    "dist/schematic-components.d.ts"
+    "dist/schematic-components.d.ts",
+    "dist/schematic-components-v3.cjs.js",
+    "dist/schematic-components-v3.esm.js",
+    "dist/schematic-components-v3.d.ts",
+    "dist/schematic-components-v3-fixtures.cjs.js",
+    "dist/schematic-components-v3-fixtures.esm.js",
+    "dist/schematic-components-v3-fixtures.d.ts"
   ],
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
@@ -37,13 +55,18 @@
     "dev": "yarn dev:browser:esm",
     "dev:cjs": "node esbuild.mjs --format=cjs --variant=server --watch",
     "dev:esm": "node esbuild.mjs --format=esm --variant=server --watch",
+    "dev:v3": "node esbuild.mjs --format=esm --entry=v3 --watch",
     "dev:browser:esm": "node esbuild.mjs --format=esm --variant=browser --watch",
-    "build": "yarn tsc && yarn openapi && yarn format && yarn lint && yarn clean && yarn build:cjs && yarn build:esm && yarn build:browser:cjs && yarn build:browser:esm && yarn build:types",
+    "build": "yarn tsc && yarn openapi && yarn format && yarn lint && yarn clean && yarn build:cjs && yarn build:esm && yarn build:browser:cjs && yarn build:browser:esm && yarn build:v3:cjs && yarn build:v3:esm && yarn build:v3:fixtures:cjs && yarn build:v3:fixtures:esm && yarn build:types",
     "build:cjs": "node esbuild.mjs --format=cjs --variant=server",
     "build:esm": "node esbuild.mjs --format=esm --variant=server",
     "build:browser:cjs": "node esbuild.mjs --format=cjs --variant=browser",
     "build:browser:esm": "node esbuild.mjs --format=esm --variant=browser",
-    "build:types": "npx tsc && npx api-extractor run",
+    "build:v3:cjs": "node esbuild.mjs --format=cjs --entry=v3",
+    "build:v3:esm": "node esbuild.mjs --format=esm --entry=v3",
+    "build:v3:fixtures:cjs": "node esbuild.mjs --format=cjs --entry=v3-fixtures",
+    "build:v3:fixtures:esm": "node esbuild.mjs --format=esm --entry=v3-fixtures",
+    "build:types": "npx tsc && npx api-extractor run && npx api-extractor run -c api-extractor-v3.json && npx api-extractor run -c api-extractor-v3-fixtures.json",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint src",
@@ -51,7 +74,8 @@
     "test": "./test.sh",
     "test:watch": "vitest",
     "tsc": "npx tsc",
-    "test:demo": "../scripts/test-components.sh"
+    "test:demo": "../scripts/test-components.sh",
+    "test:v3": "./test.sh src/v3"
   },
   "dependencies": {
     "@schematichq/schematic-icons": "^0.8.0",
@@ -94,12 +118,14 @@
     "react-dom": "^19.2.8",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.67.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "@schematichq/schematic-react": "^1.6.0"
   },
   "peerDependencies": {
     "@stripe/react-stripe-js": ">=3",
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "@schematichq/schematic-react": "^1.6.0"
   },
   "resolutions": {
     "minimatch": ">=3.1.3",
