@@ -67,7 +67,7 @@
     "@eslint/js": "^10.0.1",
     "@eslint/json": "^2.0.1",
     "@eslint/markdown": "^8.0.3",
-    "@microsoft/api-extractor": "^7.58.12",
+    "@microsoft/api-extractor": "^7.58.13",
     "@openapitools/openapi-generator-cli": "^2.40.1",
     "@stripe/react-stripe-js": "^6.8.1",
     "@swc/core": "^1.16.0",
