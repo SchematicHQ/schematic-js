@@ -131,6 +131,7 @@ export * from "./ListInvoicesResponse";
 export * from "./MetricPeriod";
 export * from "./MetricPeriodMonthReset";
 export * from "./PaymentMethodResponseData";
+export * from "./PendingMigrationResponseData";
 export * from "./PlanBillingSource";
 export * from "./PlanCatalogMembershipResponseData";
 export * from "./PlanCreditGrantScaling";

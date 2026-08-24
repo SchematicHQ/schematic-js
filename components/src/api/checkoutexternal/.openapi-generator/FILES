@@ -133,6 +133,7 @@ models/ListInvoicesResponse.ts
 models/MetricPeriod.ts
 models/MetricPeriodMonthReset.ts
 models/PaymentMethodResponseData.ts
+models/PendingMigrationResponseData.ts
 models/PlanBillingSource.ts
 models/PlanCatalogMembershipResponseData.ts
 models/PlanCreditGrantScaling.ts
