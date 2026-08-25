@@ -78,7 +78,7 @@
     "@types/pako": "^3.0.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "@vitest/browser": "^4.1.10",
+    "@vitest/browser": "^4.1.11",
     "esbuild": "^0.28.2",
     "eslint": "^10.8.1",
     "eslint-import-resolver-typescript": "^4.4.5",
@@ -94,7 +94,7 @@
     "react-dom": "^19.2.8",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.67.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "peerDependencies": {
     "@stripe/react-stripe-js": ">=3",
