@@ -677,10 +677,10 @@
     "@microsoft/tsdoc-config" "~0.18.1"
     "@rushstack/node-core-library" "5.24.0"
 
-"@microsoft/api-extractor@^7.58.13":
-  version "7.58.13"
-  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor/-/api-extractor-7.58.13.tgz#423064e174aaf0db821296f271fc530cd3cc5910"
-  integrity sha512-htjkWdR+ovlBiQuBbMutIuiu/dzKYpFrBRRuHGlpo7J81cPzmMTBKxE8j+aWSs5HxvXHCvatVe4vQ9CKqSvZaA==
+"@microsoft/api-extractor@^7.59.0":
+  version "7.59.0"
+  resolved "https://registry.yarnpkg.com/@microsoft/api-extractor/-/api-extractor-7.59.0.tgz#a34506bcea6f2bd7c09c0f6c83589070291f1634"
+  integrity sha512-KDYV8kSVjmG8JJWVg1f1aKxteNG1IQ44D07Rjhlcci8wlqrSFNhUfgv7dJhwT0W2h3NDIL5Vz2f+/DfO4OpDHw==
   dependencies:
     "@microsoft/api-extractor-model" "7.33.11"
     "@microsoft/tsdoc" "~0.16.0"
