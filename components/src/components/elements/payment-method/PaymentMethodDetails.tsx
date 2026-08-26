@@ -23,7 +23,7 @@ import type {
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../../types";
-import { createKeyboardExecutionHandler } from "../../../utils";
+import { createKeyboardExecutionHandler, stripeLocale } from "../../../utils";
 import { PaymentForm } from "../../shared";
 import { Box, Button, Flex, Icon, Loader, Text } from "../../ui";
 
@@ -86,7 +86,7 @@ export const PaymentMethodDetails = ({
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const {
     data,
@@ -166,6 +166,8 @@ export const PaymentMethodDetails = ({
     setShowDifferentPaymentMethods((prev) => !prev);
   };
 
+  const locale = useMemo(() => stripeLocale(i18n.language), [i18n.language]);
+
   const initializeStripe = useCallback(() => {
     if (stripe || !setupIntent) {
       return;
@@ -174,7 +176,7 @@ export const PaymentMethodDetails = ({
     let publishableKey =
       setupIntent.publishableKey || setupIntent.schematicPublishableKey;
 
-    const stripeOptions: StripeConstructorOptions = {};
+    const stripeOptions: StripeConstructorOptions = { locale };
 
     if (setupIntent.accountId) {
       publishableKey = setupIntent.schematicPublishableKey;
@@ -196,7 +198,7 @@ export const PaymentMethodDetails = ({
         setError(t("Unable to load payment form."));
         setShowPaymentForm(false);
       });
-  }, [t, stripe, setupIntent]);
+  }, [t, stripe, setupIntent, locale]);
 
   const initializePaymentMethod = useCallback(() => {
     const pending = createSetupIntent() ?? Promise.resolve(undefined);
@@ -324,6 +326,7 @@ export const PaymentMethodDetails = ({
           <Elements
             stripe={stripe}
             options={{
+              locale,
               appearance: {
                 theme: "stripe",
                 variables: {
