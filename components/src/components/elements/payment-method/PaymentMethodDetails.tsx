@@ -86,7 +86,7 @@ export const PaymentMethodDetails = ({
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
 
-  const { t, i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   const {
     data,
