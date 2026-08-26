@@ -69,15 +69,32 @@ export const stripeLocale = (language?: string): StripeElementLocale => {
     return DEFAULT_LOCALE;
   }
 
-  const exact = SUPPORTED_LOCALES.find(
-    (locale) => locale.toLowerCase() === language.toLowerCase(),
-  );
+  const match = (tag: string) =>
+    SUPPORTED_LOCALES.find(
+      (locale) => locale.toLowerCase() === tag.toLowerCase(),
+    );
+
+  // A tag may arrive underscore-separated (e.g. `pt_BR`) when the language
+  // comes from a backend or cookie rather than `navigator.language`.
+  const segments = language.split(/[-_]/);
+  const [base] = segments;
+
+  const exact = match(segments.join("-"));
   if (exact) {
     return exact;
   }
 
+  // A script subtag (e.g. `zh-Hant-TW`) hides the region Stripe keys on, so
+  // try language + region before falling back to the bare language, which
+  // would show a Traditional Chinese reader the Simplified form.
+  if (segments.length > 2) {
+    const withoutScript = match(`${base}-${segments[segments.length - 1]}`);
+    if (withoutScript) {
+      return withoutScript;
+    }
+  }
+
   // A regional tag Stripe does not carry (e.g. `en-US`) still resolves
   // through its base language.
-  const base = language.split("-")[0].toLowerCase();
-  return SUPPORTED_LOCALES.find((locale) => locale === base) ?? DEFAULT_LOCALE;
+  return match(base) ?? DEFAULT_LOCALE;
 };

@@ -13,6 +13,17 @@ describe("stripeLocale", () => {
     expect(stripeLocale("PT-br")).toBe("pt-BR");
   });
 
+  it("normalizes an underscore-separated tag", () => {
+    expect(stripeLocale("pt_BR")).toBe("pt-BR");
+    expect(stripeLocale("es_419")).toBe("es-419");
+    expect(stripeLocale("de_CH")).toBe("de");
+  });
+
+  it("resolves the region behind a script subtag", () => {
+    expect(stripeLocale("zh-Hant-TW")).toBe("zh-TW");
+    expect(stripeLocale("zh-Hans-CN")).toBe("zh");
+  });
+
   it("falls back to the base language for an unsupported region", () => {
     expect(stripeLocale("en-US")).toBe("en");
     expect(stripeLocale("de-CH")).toBe("de");
