@@ -3,6 +3,7 @@ import {
   loadStripe,
   type Stripe,
   type StripeConstructorOptions,
+  type StripeElementLocale,
 } from "@stripe/stripe-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -86,7 +87,7 @@ export const PaymentMethodDetails = ({
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const {
     data,
@@ -324,6 +325,11 @@ export const PaymentMethodDetails = ({
           <Elements
             stripe={stripe}
             options={{
+              // Stripe defaults to `auto`, which follows the browser language and
+              // renders a form in a different language than the rest of the embed.
+              // Stripe locks this in at mount; if the embed ever supports switching
+              // language at runtime, this provider will need `key={i18n.language}`.
+              locale: (i18n.language || "en") as StripeElementLocale,
               appearance: {
                 theme: "stripe",
                 variables: {
