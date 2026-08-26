@@ -7,5 +7,6 @@ export * from "./event";
 export * from "./markdown";
 export * from "./pluralize";
 export * from "./string";
+export * from "./stripeLocale";
 export * from "./style";
 export * from "./taxIds";
