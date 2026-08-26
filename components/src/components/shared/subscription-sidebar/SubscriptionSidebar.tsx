@@ -14,6 +14,8 @@ import {
   EntitlementPriceBehavior,
   ProrationBehavior,
   ResponseError,
+  type ChangeSubscriptionRequestBody,
+  type CheckoutResponse,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
@@ -98,6 +100,15 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
     clientSecret: string;
     callback: (confirmed: boolean) => void;
   }) => void;
+  /**
+   * Spike seam: replaces the legacy `POST /checkout` confirm call. The
+   * checkout dialog supplies a /checkouts-draft implementation (final cart
+   * PUT carrying payment method + opt-in, then finalize) when the
+   * experimental checkouts API is enabled.
+   */
+  checkoutOverride?: (
+    requestBody: ChangeSubscriptionRequestBody,
+  ) => Promise<CheckoutResponse | undefined>;
 }
 
 export const SubscriptionSidebar = forwardRef<
@@ -139,6 +150,7 @@ export const SubscriptionSidebar = forwardRef<
       willTrialWithoutPaymentMethod = false,
       willScheduleDowngrade = false,
       setConfirmPaymentIntent,
+      checkoutOverride,
       ...rest
     },
     ref,
@@ -644,7 +656,9 @@ export const SubscriptionSidebar = forwardRef<
         const creditBundlesRequestBody =
           buildCreditBundlesRequestBody(creditBundles);
 
-        const checkoutResponseFromBackend = await checkout({
+        const checkoutResponseFromBackend = await (
+          checkoutOverride ?? checkout
+        )({
           newPlanId: isCreditOnlyPurchase ? "" : (planId ?? ""),
           newPriceId: isCreditOnlyPurchase ? "" : (planPriceId ?? ""),
           addOnIds: isCreditOnlyPurchase ? [] : addOnRequestBody,
@@ -740,6 +754,7 @@ export const SubscriptionSidebar = forwardRef<
     }, [
       t,
       checkout,
+      checkoutOverride,
       setConfirmPaymentIntent,
       paymentMethodId,
       planPeriod,

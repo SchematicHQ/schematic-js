@@ -16,6 +16,7 @@ import {
   CompanyPlanCreditGrantView,
   EntitlementPriceBehavior,
   ResponseError,
+  type ChangeSubscriptionRequestBody,
   type FeatureUsageResponseData,
   type PlanEntitlementResponseData,
   type PreviewSubscriptionFinanceResponseData,
@@ -27,8 +28,10 @@ import {
   TRAILING_DEBOUNCE_SETTINGS,
 } from "../../../const";
 import {
+  snapshotToFinance,
   useAvailableCurrenciesWithInvalid,
   useAvailablePlans,
+  useCheckoutDraft,
   useEmbed,
   useIsLightBackground,
   useSubscriptionCurrency,
@@ -190,7 +193,27 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     debug,
     updateTaxId,
     getTaxId,
+    experimentalCheckoutsApi,
+    checkoutsApi,
   } = useEmbed();
+
+  // Spike seam: when the experimental /checkouts API is on, the cart lives
+  // server-side as a draft and every preview is a create-or-PUT re-price.
+  const { price: priceDraft, finalize: finalizeDraft } = useCheckoutDraft(
+    experimentalCheckoutsApi ? (checkoutsApi ?? null) : null,
+  );
+
+  // Confirm path on the draft API. Finalize carries only the version
+  // (gap #10), so the payment method and opt-in acceptance ride a final cart
+  // PUT first.
+  const checkoutViaDraft = useCallback(
+    async (requestBody: ChangeSubscriptionRequestBody) => {
+      await priceDraft(requestBody);
+      const data = await finalizeDraft();
+      return { data, params: {} };
+    },
+    [priceDraft, finalizeDraft],
+  );
 
   const isLightBackground = useIsLightBackground();
 
@@ -1122,22 +1145,53 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         resolvedCreditBundles,
       );
 
+      const requestBody = {
+        newPlanId: isCreditOnly ? "" : (plan?.id ?? ""),
+        newPriceId: isCreditOnly ? "" : (planPriceId ?? ""),
+        addOnIds: isCreditOnly ? [] : addOnRequestBody,
+        autoTopupOverrides: isCreditOnly ? [] : autoTopupRequestBody,
+        payInAdvance: isCreditOnly
+          ? []
+          : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
+        creditBundles: creditBundlesRequestBody,
+        customFieldValues: Object.entries(customFieldValues).map(
+          ([id, value]) => ({ id, value }),
+        ),
+        skipTrial,
+        ...(code && { promoCode: code }),
+      };
+
       try {
-        const response = await previewCheckout({
-          newPlanId: isCreditOnly ? "" : (plan?.id ?? ""),
-          newPriceId: isCreditOnly ? "" : (planPriceId ?? ""),
-          addOnIds: isCreditOnly ? [] : addOnRequestBody,
-          autoTopupOverrides: isCreditOnly ? [] : autoTopupRequestBody,
-          payInAdvance: isCreditOnly
-            ? []
-            : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
-          creditBundles: creditBundlesRequestBody,
-          customFieldValues: Object.entries(customFieldValues).map(
-            ([id, value]) => ({ id, value }),
-          ),
-          skipTrial,
-          ...(code && { promoCode: code }),
-        });
+        // Spike seam: on the /checkouts API the preview is a create-or-PUT of
+        // the draft; the persisted price snapshot replaces the preview
+        // finance object. Stages remain purely a client concern — the server
+        // only ever sees full cart writes.
+        if (experimentalCheckoutsApi) {
+          const draftData = await priceDraft(requestBody);
+
+          if (isStale() || !draftData) {
+            return;
+          }
+
+          const snapshot = draftData.priceSnapshot;
+          if (snapshot) {
+            setCharges(snapshotToFinance(snapshot));
+            setIsPaymentMethodRequired(snapshot.paymentMethodRequired);
+            // Gap #2: the snapshot has no opt-in copy to render.
+            setOptInRequired(snapshot.optInRequired);
+            setOptInTitle(null);
+            setOptInText(null);
+            setWillScheduleDowngrade(snapshot.isScheduledDowngrade);
+          }
+
+          if (typeof updates.promoCode !== "undefined") {
+            setPromoCode(code);
+          }
+
+          return;
+        }
+
+        const response = await previewCheckout(requestBody);
 
         // A newer preview superseded this one while it was in flight; let the
         // newer request's response drive the UI.
@@ -1231,6 +1285,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       data?.company?.plan?.includedCreditGrants,
       data?.company?.billingSubscription,
       previewCheckout,
+      experimentalCheckoutsApi,
+      priceDraft,
       planPeriod,
       selectedPlan,
       effectiveCurrency,
@@ -2146,6 +2202,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           willTrialWithoutPaymentMethod={willTrialWithoutPaymentMethod}
           willScheduleDowngrade={willScheduleDowngrade}
           currency={hasCurrency ? effectiveCurrency : undefined}
+          {...(experimentalCheckoutsApi && {
+            checkoutOverride: checkoutViaDraft,
+          })}
         />
       </DialogContent>
     </Dialog>

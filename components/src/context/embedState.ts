@@ -478,6 +478,12 @@ export interface EmbedState {
   settingsOverrides: DeepPartial<EmbedSettings>;
   layout: EmbedLayout;
   checkoutState?: CheckoutState;
+  /**
+   * Spike seam: when set, the embed sources its catalog from /catalog/view and
+   * runs the checkout flow against the /checkouts draft API instead of
+   * /checkout/preview + /checkout. See gaps-in-checkout-api.cm.md.
+   */
+  experimentalCheckoutsApi?: boolean;
   currencyFilter?: string[];
   warningThresholdConfig?: WarningThresholdConfig;
   checkoutPrefill?: CheckoutPrefill;

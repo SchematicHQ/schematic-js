@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   CheckoutexternalApi,
   Configuration as CheckoutConfiguration,
+  ResponseError,
   type ChangeSubscriptionRequestBody,
   type CheckoutResponseData,
   type ConfigurationParameters,
@@ -22,6 +23,7 @@ import {
 import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
 import { ERROR_UNKNOWN, isError } from "../utils";
+import { adaptCatalog, recordGap } from "../utils/api/catalogAdapter";
 
 import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
@@ -61,6 +63,13 @@ export interface EmbedProviderProps {
    */
   warningThresholdConfig?: WarningThresholdConfig;
   checkoutPrefill?: CheckoutPrefill;
+  /**
+   * Spike seam: source the catalog from /catalog/view and run the checkout
+   * flow against the /checkouts draft API instead of /checkout/preview +
+   * /checkout. Falls back to hydrate data when the catalog endpoint is
+   * unavailable. See gaps-in-checkout-api.cm.md.
+   */
+  experimentalCheckoutsApi?: boolean;
 }
 
 const normalizeCurrencyFilter = (
@@ -96,6 +105,7 @@ export const EmbedProvider = ({
   currencyFilter,
   warningThresholdConfig,
   checkoutPrefill,
+  experimentalCheckoutsApi,
   ...options
 }: EmbedProviderProps) => {
   const sessionId = useMemo(() => uuidv4(), []);
@@ -134,6 +144,7 @@ export const EmbedProvider = ({
       currencyFilter: normalizeCurrencyFilter(currencyFilter),
       warningThresholdConfig,
       checkoutPrefill: normalizeCheckoutPrefill(checkoutPrefill),
+      experimentalCheckoutsApi,
     };
     const resolvedState = merge({}, initialState, providedState);
 
@@ -228,6 +239,38 @@ export const EmbedProvider = ({
    * (e.g. triggering a checkout flow from a custom element)
    * Requires an access token to be managed externally
    */
+  /**
+   * Spike seam: replace the catalog half of the hydrate payload with the
+   * /catalog/view projection. A 404 means the account is not flagged into the
+   * multi-product catalog; there is no distinct "fall back" signal (gap #17),
+   * so any 404 silently stays on hydrate data.
+   */
+  const overlayCatalogView = useCallback(async () => {
+    if (!experimentalCheckoutsApi || !checkoutApi) {
+      return;
+    }
+
+    try {
+      const response = await checkoutApi.catalogView();
+      dispatch({
+        type: "HYDRATE_CATALOG",
+        overlay: adaptCatalog(response.data),
+      });
+    } catch (err) {
+      if (err instanceof ResponseError && err.response.status === 404) {
+        recordGap(
+          17,
+          "catalog view 404 (multi-product-catalog flag off?) is " +
+            "indistinguishable from a real 404; falling back to hydrate",
+        );
+        debug("catalog view unavailable; staying on hydrate data");
+        return;
+      }
+
+      debug("catalog view failed", err);
+    }
+  }, [experimentalCheckoutsApi, checkoutApi, debug]);
+
   const hydrate = useCallback(async () => {
     dispatch({ type: "HYDRATE_STARTED" });
 
@@ -239,6 +282,7 @@ export const EmbedProvider = ({
           type: "HYDRATE",
           data: response.data,
         });
+        await overlayCatalogView();
       }
 
       return response?.data;
@@ -248,7 +292,7 @@ export const EmbedProvider = ({
         error: isError(err) ? err : ERROR_UNKNOWN,
       });
     }
-  }, [checkoutApi]);
+  }, [checkoutApi, overlayCatalogView]);
 
   const debouncedHydrate = useMemo(
     () => debounce(hydrate, FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS),
@@ -274,6 +318,7 @@ export const EmbedProvider = ({
             type: "HYDRATE_COMPONENT",
             data: response.data,
           });
+          await overlayCatalogView();
         }
 
         return response?.data;
@@ -284,7 +329,7 @@ export const EmbedProvider = ({
         });
       }
     },
-    [checkoutApi],
+    [checkoutApi, overlayCatalogView],
   );
 
   const debouncedHydrateComponent = useMemo(
@@ -722,6 +767,8 @@ export const EmbedProvider = ({
         currencyFilter: state.currencyFilter,
         warningThresholdConfig: state.warningThresholdConfig,
         checkoutPrefill: state.checkoutPrefill,
+        experimentalCheckoutsApi: state.experimentalCheckoutsApi,
+        checkoutsApi: checkoutApi,
         hydratePublic: debouncedHydratePublic,
         hydrate: debouncedHydrate,
         hydrateComponent: debouncedHydrateComponent,

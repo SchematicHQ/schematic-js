@@ -15,12 +15,20 @@
 import * as runtime from "../runtime";
 import type {
   ApiError,
+  CatalogViewByIDResponse,
+  CatalogViewResponse,
   ChangeSubscriptionRequestBody,
   CheckoutResponse,
+  CheckoutStatus,
   CheckoutUnsubscribeResponse,
+  CreateCheckoutRequest,
+  CreateCheckoutResponse,
   CreateSetupIntentResponse,
   DeletePaymentMethodResponse,
   FetchCustomerBalanceResponse,
+  FinalizeCheckoutRequest,
+  FinalizeCheckoutResponse,
+  GetCheckoutResponse,
   GetCheckoutTaxIDResponse,
   GetCreditUsageByUserResponse,
   GetFeatureUsageByUserResponse,
@@ -28,10 +36,13 @@ import type {
   HydrateComponentResponse,
   HydrateResponse,
   HydrateUpcomingInvoiceResponse,
+  ListCheckoutsResponse,
   ListInvoicesResponse,
   PreviewCheckoutResponse,
   UpdateCheckoutFieldValuesRequestBody,
   UpdateCheckoutFieldValuesResponse,
+  UpdateCheckoutRequest,
+  UpdateCheckoutResponse,
   UpdateCheckoutTaxIDRequestBody,
   UpdateCheckoutTaxIDResponse,
   UpdatePaymentMethodRequestBody,
@@ -40,18 +51,34 @@ import type {
 import {
   ApiErrorFromJSON,
   ApiErrorToJSON,
+  CatalogViewByIDResponseFromJSON,
+  CatalogViewByIDResponseToJSON,
+  CatalogViewResponseFromJSON,
+  CatalogViewResponseToJSON,
   ChangeSubscriptionRequestBodyFromJSON,
   ChangeSubscriptionRequestBodyToJSON,
   CheckoutResponseFromJSON,
   CheckoutResponseToJSON,
+  CheckoutStatusFromJSON,
+  CheckoutStatusToJSON,
   CheckoutUnsubscribeResponseFromJSON,
   CheckoutUnsubscribeResponseToJSON,
+  CreateCheckoutRequestFromJSON,
+  CreateCheckoutRequestToJSON,
+  CreateCheckoutResponseFromJSON,
+  CreateCheckoutResponseToJSON,
   CreateSetupIntentResponseFromJSON,
   CreateSetupIntentResponseToJSON,
   DeletePaymentMethodResponseFromJSON,
   DeletePaymentMethodResponseToJSON,
   FetchCustomerBalanceResponseFromJSON,
   FetchCustomerBalanceResponseToJSON,
+  FinalizeCheckoutRequestFromJSON,
+  FinalizeCheckoutRequestToJSON,
+  FinalizeCheckoutResponseFromJSON,
+  FinalizeCheckoutResponseToJSON,
+  GetCheckoutResponseFromJSON,
+  GetCheckoutResponseToJSON,
   GetCheckoutTaxIDResponseFromJSON,
   GetCheckoutTaxIDResponseToJSON,
   GetCreditUsageByUserResponseFromJSON,
@@ -66,6 +93,8 @@ import {
   HydrateResponseToJSON,
   HydrateUpcomingInvoiceResponseFromJSON,
   HydrateUpcomingInvoiceResponseToJSON,
+  ListCheckoutsResponseFromJSON,
+  ListCheckoutsResponseToJSON,
   ListInvoicesResponseFromJSON,
   ListInvoicesResponseToJSON,
   PreviewCheckoutResponseFromJSON,
@@ -74,6 +103,10 @@ import {
   UpdateCheckoutFieldValuesRequestBodyToJSON,
   UpdateCheckoutFieldValuesResponseFromJSON,
   UpdateCheckoutFieldValuesResponseToJSON,
+  UpdateCheckoutRequestFromJSON,
+  UpdateCheckoutRequestToJSON,
+  UpdateCheckoutResponseFromJSON,
+  UpdateCheckoutResponseToJSON,
   UpdateCheckoutTaxIDRequestBodyFromJSON,
   UpdateCheckoutTaxIDRequestBodyToJSON,
   UpdateCheckoutTaxIDResponseFromJSON,
@@ -84,11 +117,28 @@ import {
   UpdatePaymentMethodResponseToJSON,
 } from "../models/index";
 
+export interface CatalogViewByIDRequest {
+  catalogId: string;
+}
+
 export interface CheckoutRequest {
   changeSubscriptionRequestBody: ChangeSubscriptionRequestBody;
 }
 
+export interface CreateCheckoutOperationRequest {
+  createCheckoutRequest: CreateCheckoutRequest;
+}
+
 export interface DeletePaymentMethodRequest {
+  checkoutId: string;
+}
+
+export interface FinalizeCheckoutOperationRequest {
+  checkoutId: string;
+  finalizeCheckoutRequest: FinalizeCheckoutRequest;
+}
+
+export interface GetCheckoutRequest {
   checkoutId: string;
 }
 
@@ -121,6 +171,13 @@ export interface HydrateUpcomingInvoiceRequest {
   componentId: string;
 }
 
+export interface ListCheckoutsRequest {
+  companyId?: string;
+  statuses?: Array<CheckoutStatus>;
+  limit?: number;
+  offset?: number;
+}
+
 export interface ListInvoicesRequest {
   limit?: number;
   offset?: number;
@@ -128,6 +185,11 @@ export interface ListInvoicesRequest {
 
 export interface PreviewCheckoutRequest {
   changeSubscriptionRequestBody: ChangeSubscriptionRequestBody;
+}
+
+export interface UpdateCheckoutOperationRequest {
+  checkoutId: string;
+  updateCheckoutRequest: UpdateCheckoutRequest;
 }
 
 export interface UpdateCheckoutFieldValuesRequest {
@@ -146,6 +208,103 @@ export interface UpdatePaymentMethodRequest {
  *
  */
 export class CheckoutexternalApi extends runtime.BaseAPI {
+  /**
+   * Catalog view
+   */
+  async catalogViewRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<CatalogViewResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/catalog/view`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      CatalogViewResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Catalog view
+   */
+  async catalogView(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<CatalogViewResponse> {
+    const response = await this.catalogViewRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Catalog view by ID
+   */
+  async catalogViewByIDRaw(
+    requestParameters: CatalogViewByIDRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<CatalogViewByIDResponse>> {
+    if (requestParameters["catalogId"] == null) {
+      throw new runtime.RequiredError(
+        "catalogId",
+        'Required parameter "catalogId" was null or undefined when calling catalogViewByID().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/catalogs/{catalog_id}/view`.replace(
+          `{${"catalog_id"}}`,
+          encodeURIComponent(String(requestParameters["catalogId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      CatalogViewByIDResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Catalog view by ID
+   */
+  async catalogViewByID(
+    requestParameters: CatalogViewByIDRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<CatalogViewByIDResponse> {
+    const response = await this.catalogViewByIDRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
   /**
    * Checkout
    */
@@ -239,6 +398,64 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<CheckoutUnsubscribeResponse> {
     const response = await this.checkoutUnsubscribeRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Create checkout
+   */
+  async createCheckoutRaw(
+    requestParameters: CreateCheckoutOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<CreateCheckoutResponse>> {
+    if (requestParameters["createCheckoutRequest"] == null) {
+      throw new runtime.RequiredError(
+        "createCheckoutRequest",
+        'Required parameter "createCheckoutRequest" was null or undefined when calling createCheckout().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkouts`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: CreateCheckoutRequestToJSON(
+          requestParameters["createCheckoutRequest"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      CreateCheckoutResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Create checkout
+   */
+  async createCheckout(
+    requestParameters: CreateCheckoutOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<CreateCheckoutResponse> {
+    const response = await this.createCheckoutRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 
@@ -377,6 +594,130 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<FetchCustomerBalanceResponse> {
     const response = await this.fetchCustomerBalanceRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Finalize checkout
+   */
+  async finalizeCheckoutRaw(
+    requestParameters: FinalizeCheckoutOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<FinalizeCheckoutResponse>> {
+    if (requestParameters["checkoutId"] == null) {
+      throw new runtime.RequiredError(
+        "checkoutId",
+        'Required parameter "checkoutId" was null or undefined when calling finalizeCheckout().',
+      );
+    }
+
+    if (requestParameters["finalizeCheckoutRequest"] == null) {
+      throw new runtime.RequiredError(
+        "finalizeCheckoutRequest",
+        'Required parameter "finalizeCheckoutRequest" was null or undefined when calling finalizeCheckout().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkouts/{checkout_id}/finalize`.replace(
+          `{${"checkout_id"}}`,
+          encodeURIComponent(String(requestParameters["checkoutId"])),
+        ),
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: FinalizeCheckoutRequestToJSON(
+          requestParameters["finalizeCheckoutRequest"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      FinalizeCheckoutResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Finalize checkout
+   */
+  async finalizeCheckout(
+    requestParameters: FinalizeCheckoutOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<FinalizeCheckoutResponse> {
+    const response = await this.finalizeCheckoutRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Get checkout
+   */
+  async getCheckoutRaw(
+    requestParameters: GetCheckoutRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCheckoutResponse>> {
+    if (requestParameters["checkoutId"] == null) {
+      throw new runtime.RequiredError(
+        "checkoutId",
+        'Required parameter "checkoutId" was null or undefined when calling getCheckout().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkouts/{checkout_id}`.replace(
+          `{${"checkout_id"}}`,
+          encodeURIComponent(String(requestParameters["checkoutId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCheckoutResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get checkout
+   */
+  async getCheckout(
+    requestParameters: GetCheckoutRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCheckoutResponse> {
+    const response = await this.getCheckoutRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 
@@ -769,6 +1110,68 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
+   * List checkouts
+   */
+  async listCheckoutsRaw(
+    requestParameters: ListCheckoutsRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<ListCheckoutsResponse>> {
+    const queryParameters: any = {};
+
+    if (requestParameters["companyId"] != null) {
+      queryParameters["company_id"] = requestParameters["companyId"];
+    }
+
+    if (requestParameters["statuses"] != null) {
+      queryParameters["statuses"] = requestParameters["statuses"];
+    }
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
+    }
+
+    if (requestParameters["offset"] != null) {
+      queryParameters["offset"] = requestParameters["offset"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkouts`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      ListCheckoutsResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * List checkouts
+   */
+  async listCheckouts(
+    requestParameters: ListCheckoutsRequest = {},
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<ListCheckoutsResponse> {
+    const response = await this.listCheckoutsRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
    * List invoices
    */
   async listInvoicesRaw(
@@ -874,6 +1277,74 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<PreviewCheckoutResponse> {
     const response = await this.previewCheckoutRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Update checkout
+   */
+  async updateCheckoutRaw(
+    requestParameters: UpdateCheckoutOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UpdateCheckoutResponse>> {
+    if (requestParameters["checkoutId"] == null) {
+      throw new runtime.RequiredError(
+        "checkoutId",
+        'Required parameter "checkoutId" was null or undefined when calling updateCheckout().',
+      );
+    }
+
+    if (requestParameters["updateCheckoutRequest"] == null) {
+      throw new runtime.RequiredError(
+        "updateCheckoutRequest",
+        'Required parameter "updateCheckoutRequest" was null or undefined when calling updateCheckout().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkouts/{checkout_id}`.replace(
+          `{${"checkout_id"}}`,
+          encodeURIComponent(String(requestParameters["checkoutId"])),
+        ),
+        method: "PUT",
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdateCheckoutRequestToJSON(
+          requestParameters["updateCheckoutRequest"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      UpdateCheckoutResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Update checkout
+   */
+  async updateCheckout(
+    requestParameters: UpdateCheckoutOperationRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UpdateCheckoutResponse> {
+    const response = await this.updateCheckoutRaw(
       requestParameters,
       initOverrides,
     );

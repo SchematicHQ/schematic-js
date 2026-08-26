@@ -5,6 +5,7 @@ import {
   type ChangeSubscriptionRequestBody,
   type CheckoutResponse,
   type CheckoutUnsubscribeResponse,
+  type CheckoutexternalApi,
   type DeletePaymentMethodResponse,
   type FetchCustomerBalanceResponse,
   type GetCheckoutTaxIDResponse,
@@ -96,6 +97,12 @@ export interface EmbedContextProps extends Omit<EmbedState, SettingsLayer> {
    */
   setBuilderSettings: (settings: DeepPartial<EmbedSettings>) => void;
   debug: (message: string, ...args: unknown[]) => void;
+  /**
+   * Spike seam: the raw checkout-external client, exposed so the checkout
+   * dialog can drive the /checkouts draft API directly when
+   * `experimentalCheckoutsApi` is on. Undefined until an access token is set.
+   */
+  checkoutsApi?: CheckoutexternalApi;
 }
 
 export const stub = () => {

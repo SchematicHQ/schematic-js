@@ -13,6 +13,7 @@ import type {
   HydrateData,
   HydrateDataWithCompanyContext,
 } from "../types";
+import { type CatalogOverlay } from "../utils/api/catalogAdapter";
 
 import {
   SETTINGS_LAYERS,
@@ -46,6 +47,7 @@ type EmbedAction =
       type: "HYDRATE_EXTERNAL";
       data: HydrateDataWithCompanyContext;
     }
+  | { type: "HYDRATE_CATALOG"; overlay: CatalogOverlay }
   | { type: "CHECKOUT"; data: BillingSubscriptionResponseData }
   | { type: "UNSUBSCRIBE"; data: DeleteResponse }
   | { type: "UPDATE_PAYMENT_METHOD"; paymentMethod: PaymentMethodResponseData }
@@ -149,6 +151,23 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         error: undefined,
         isPending: false,
         stale: false,
+      };
+    }
+
+    case "HYDRATE_CATALOG": {
+      // Spike seam: overlay the /catalog/view projection onto the hydrate
+      // payload. Company state, usage, and the component AST stay
+      // hydrate-sourced; only the catalog slices are replaced.
+      if (!state.data) {
+        return state;
+      }
+
+      return {
+        ...state,
+        data: {
+          ...state.data,
+          ...action.overlay,
+        },
       };
     }
 
