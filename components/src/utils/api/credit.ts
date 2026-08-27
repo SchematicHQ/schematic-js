@@ -27,12 +27,14 @@ function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   }
 }
 
-function isPerLicenseGrant(
-  grant: Pick<PlanCreditGrantView, "scaling" | "licenseId">,
-) {
-  return (
-    grant.scaling === PlanCreditGrantScaling.PerLicense && !!grant.licenseId
-  );
+/**
+ * Whether the grant scales with a license's quantity. Keyed on `scaling`
+ * alone: a grant that declares per-license scaling without naming a license
+ * still grants `creditAmount` per unit, and reading it as a flat grant would
+ * both mislabel that amount and discard `companyCreditAmount`.
+ */
+function isPerLicenseGrant(grant: Pick<PlanCreditGrantView, "scaling">) {
+  return grant.scaling === PlanCreditGrantScaling.PerLicense;
 }
 
 /**
@@ -57,8 +59,12 @@ export function groupPlanCreditGrants(creditGrants: PlanCreditGrantView[]) {
       const current = acc[key];
 
       const perLicense = isPerLicenseGrant(grant)
-        ? // isPerLicenseGrant guarantees licenseId is set
-          [{ amount: grant.creditAmount, licenseId: grant.licenseId! }]
+        ? [
+            {
+              amount: grant.creditAmount,
+              licenseId: grant.licenseId ?? undefined,
+            },
+          ]
         : [];
       const fixedQuantity = isPerLicenseGrant(grant)
         ? (grant.companyCreditAmount ?? 0)
@@ -101,7 +107,11 @@ export function resolvePlanCreditQuantity(
   let total = credit.fixedQuantity;
 
   for (const grant of credit.perLicenseGrants) {
-    const licenseQuantity = resolveLicenseQuantity(grant.licenseId);
+    // An unnamed license has no quantity to look up, so the total is
+    // unresolvable — the same outcome as a license the caller cannot resolve.
+    const licenseQuantity = grant.licenseId
+      ? resolveLicenseQuantity(grant.licenseId)
+      : undefined;
     if (typeof licenseQuantity !== "number") {
       return undefined;
     }
@@ -143,6 +153,22 @@ export function findLicenseSource<
   }
 
   return sources.find((source) => source.feature?.licenseId === licenseId);
+}
+
+/**
+ * The one license among the sources, when there is exactly one. A grant that
+ * declares per-license scaling without naming a license still scales by that
+ * license if the plan sells only one, so per-unit copy can name it instead of
+ * falling back to the generic word. Returns `undefined` when the plan sells
+ * no license or more than one, because either case leaves the license
+ * ambiguous.
+ */
+export function findSoleLicenseSource<
+  T extends { feature?: { licenseId?: string | null } | null },
+>(sources: T[] = []): T | undefined {
+  const licensed = sources.filter((source) => !!source.feature?.licenseId);
+
+  return licensed.length === 1 ? licensed[0] : undefined;
 }
 
 /** Comparator ordering anything with a `createdAt` newest-first. */

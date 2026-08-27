@@ -615,7 +615,7 @@ export const PlanManager = forwardRef<
                     composition,
                     resolveLicenseQuantity,
                   );
-                  const licenseQuantity = perLicenseGrant
+                  const licenseQuantity = perLicenseGrant?.licenseId
                     ? resolveLicenseQuantity(perLicenseGrant.licenseId)
                     : undefined;
                   const creditPeriod =

@@ -386,6 +386,51 @@ describe("`PricingTable`", () => {
       expect(creditGrantText).not.toBeInTheDocument();
     });
 
+    test("Should show per-seat and company credit grants separately", async () => {
+      server.use(
+        http.get("https://api.schematichq.com/public/plans", async () => {
+          const response = cloneDeep(plansJson);
+
+          response.data.display_settings.show_credits = true;
+
+          const plan = response.data.active_plans[2];
+          const grant = plan.included_credit_grants[0];
+          Object.assign(grant, {
+            credit_amount: 7000,
+            company_credit_amount: 500,
+            // The grant scales by license but names none, as the reported
+            // Flex plan did — the seat qualifier and the company grant must
+            // still show.
+            scaling: "per_license",
+            credit_name: "Credits",
+            singular_name: "Credit",
+            plural_name: "Credits",
+            reset_cadence: "monthly",
+          });
+
+          Object.assign(plan.entitlements[0].feature, {
+            license_id: "license-1",
+            name: "Seat",
+            singular_name: "Seat",
+            plural_name: "Seats",
+          });
+
+          return HttpResponse.json(response);
+        }),
+      );
+
+      render(<PricingTable callToActionUrl="/" />);
+
+      await screen.findByText("Professional");
+
+      expect(
+        screen.getByText("7000 Credits per Seat per month"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("+ 500 Credits per month for your company"),
+      ).toBeInTheDocument();
+    });
+
     test("Should show the correct period based on plan price availability", async () => {
       server.use(
         http.get("https://api.schematichq.com/public/plans", async () => {
