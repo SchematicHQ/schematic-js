@@ -18,6 +18,7 @@ import {
   deriveCreditBundles,
   filterCreditBundles,
   findLicenseSource,
+  findSoleLicenseSource,
   formatBundleExpiry,
   getPerLicenseGrantsForFeature,
   getPurchasableCreditIds,
@@ -345,13 +346,37 @@ describe("per-license plan credit grants", () => {
       expect(credit.perLicenseGrants).toEqual([]);
     });
 
-    it("treats a per-license grant without a license id as fixed", () => {
+    it("keeps a per-license grant without a license id per-license", () => {
       const [credit] = groupPlanCreditGrants([
-        { ...perLicenseGrant, licenseId: undefined },
+        {
+          ...perLicenseGrant,
+          licenseId: undefined,
+          companyCreditAmount: 500,
+        },
       ]);
 
-      expect(credit.fixedQuantity).toBe(100);
-      expect(credit.perLicenseGrants).toEqual([]);
+      expect(credit.perLicenseGrants).toEqual([
+        { amount: 100, licenseId: undefined },
+      ]);
+      expect(credit.fixedQuantity).toBe(500);
+      expect(credit.quantity).toBe(500);
+    });
+
+    it("carries every per-license grant on the same credit", () => {
+      const [credit] = groupPlanCreditGrants([
+        perLicenseGrant,
+        {
+          ...perLicenseGrant,
+          id: "grant-per-license-2",
+          creditAmount: 40,
+          licenseId: "license-2",
+        },
+      ]);
+
+      expect(credit.perLicenseGrants).toEqual([
+        { amount: 100, licenseId: "license-1" },
+        { amount: 40, licenseId: "license-2" },
+      ]);
     });
   });
 
@@ -372,6 +397,14 @@ describe("per-license plan credit grants", () => {
       const [fixedOnly] = groupPlanCreditGrants([fixedGrant]);
 
       expect(resolvePlanCreditQuantity(fixedOnly, () => undefined)).toBe(500);
+    });
+
+    it("returns undefined when a per-license grant names no license", () => {
+      const [unnamed] = groupPlanCreditGrants([
+        { ...perLicenseGrant, licenseId: undefined },
+      ]);
+
+      expect(resolvePlanCreditQuantity(unnamed, () => 4)).toBeUndefined();
     });
   });
 
@@ -403,6 +436,22 @@ describe("per-license plan credit grants", () => {
     it("returns undefined without a license id or match", () => {
       expect(findLicenseSource([other, seats], undefined)).toBeUndefined();
       expect(findLicenseSource([other], "license-1")).toBeUndefined();
+    });
+  });
+
+  describe("findSoleLicenseSource", () => {
+    const seats = { feature: { licenseId: "license-1" } };
+    const agents = { feature: { licenseId: "license-2" } };
+    const other = { feature: { licenseId: null } };
+
+    it("returns the only licensed source", () => {
+      expect(findSoleLicenseSource([other, seats])).toBe(seats);
+    });
+
+    it("returns undefined when the license is ambiguous or absent", () => {
+      expect(findSoleLicenseSource([seats, agents])).toBeUndefined();
+      expect(findSoleLicenseSource([other])).toBeUndefined();
+      expect(findSoleLicenseSource()).toBeUndefined();
     });
   });
 });

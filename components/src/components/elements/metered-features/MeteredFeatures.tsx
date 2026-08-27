@@ -561,9 +561,9 @@ export const MeteredFeatures = forwardRef<
                       data?.featureUsage?.features ?? [],
                       perLicenseGrant.licenseId,
                     )?.feature;
-                    const licenseQuantity = resolveLicenseQuantity(
-                      perLicenseGrant.licenseId,
-                    );
+                    const licenseQuantity = perLicenseGrant.licenseId
+                      ? resolveLicenseQuantity(perLicenseGrant.licenseId)
+                      : undefined;
                     const total = resolvePlanCreditQuantity(
                       composition,
                       resolveLicenseQuantity,

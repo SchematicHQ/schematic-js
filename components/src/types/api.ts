@@ -55,8 +55,12 @@ export interface CreditWithCompanyContext {
 export interface PerLicenseCreditGrant {
   /** credits granted per unit of the license */
   amount: number;
-  /** the license whose quantity scales the grant */
-  licenseId: string;
+  /**
+   * The license whose quantity scales the grant. Undefined when the grant
+   * declares per-license scaling without naming a license: the per-unit copy
+   * still holds, but no effective total can be resolved from it.
+   */
+  licenseId?: string;
 }
 
 export type Credit = Omit<
