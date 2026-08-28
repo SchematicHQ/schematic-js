@@ -93,7 +93,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.67.0",
+    "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11"
   },
   "peerDependencies": {
