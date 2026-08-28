@@ -43,7 +43,7 @@
     "@openapitools/openapi-generator-cli": "^2.41.0",
     "@vitest/browser": "^4.1.11",
     "esbuild": "^0.28.2",
-    "eslint": "^10.9.0",
+    "eslint": "^10.9.1",
     "globals": "^17.11.0",
     "happy-dom": "^20.11.6",
     "husky": "^9.1.7",
