@@ -17,11 +17,9 @@ cd ../components || exit 1
 pnpm install
 pnpm run build
 
-# A tarball rather than `yarn link`. The demo app is a separate repo still on
-# yarn, but no yarn will register a link from here: a corepack shim refuses
-# because `packageManager` names pnpm, and a real yarn 1.22 makes its own
-# check and chokes on the same field. Packing also exercises the `files` list
-# and `exports` map the way a real install does.
+# A tarball rather than `yarn link`, which is the truer test: it exercises the
+# `files` list and `exports` map the demo app would get from npm, where a
+# symlinked source tree bypasses both.
 echo "📦 Packing components..."
 TARBALL=$(pnpm pack --pack-destination "${TMPDIR:-/tmp}" | tail -n1) || exit 1
 echo "   $TARBALL"
@@ -29,15 +27,29 @@ echo "   $TARBALL"
 echo "🏠 Navigating to demo app..."
 cd ../../schematic-next-example || exit 1
 
+# Installing the tarball pins the demo app's manifest to a path under TMPDIR,
+# which the OS eventually reaps -- leave that behind and the next plain
+# install over there fails on an unresolvable version. Stash the two files
+# and put them back however we exit, rather than `git checkout`-ing them,
+# which would take any unrelated edits down with it. node_modules keeps the
+# packed build either way.
+MANIFEST_BACKUP=$(mktemp -d) || exit 1
+cp package.json pnpm-lock.yaml "$MANIFEST_BACKUP/" || exit 1
+restore_manifest() {
+    cp "$MANIFEST_BACKUP"/package.json "$MANIFEST_BACKUP"/pnpm-lock.yaml . 2>/dev/null
+    rm -rf "$MANIFEST_BACKUP"
+}
+trap restore_manifest EXIT
+
 echo "🏗️ Installing dependencies against the packed build..."
-yarn add "$TARBALL"
+pnpm add "$TARBALL"
 
 if [ "$choice" == "local" ]; then
     echo "🏗️ Building demo app..."
-    yarn build
+    pnpm run build
 
     echo "🚀 Starting dev server..."
-    yarn dev
+    pnpm run dev
 fi
 
 if [ "$choice" == "vercel" ]; then

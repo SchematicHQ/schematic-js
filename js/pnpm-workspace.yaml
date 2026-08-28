@@ -2,6 +2,12 @@
 # hijacked-maintainer release usually gets yanked. Frozen installs unaffected.
 minimumReleaseAge: 1440
 
+# Our own packages are exempt: a deploy job installs one into the demo app
+# seconds after publishing it, and Dependabot bumps the sibling SDKs on the
+# same day they go out. The delay is there for third-party supply chains.
+minimumReleaseAgeExclude:
+  - "@schematichq/*"
+
 # Auto-install when node_modules has drifted from the lockfile, so a script
 # never silently runs against a stale tree.
 verifyDepsBeforeRun: install

@@ -28,9 +28,8 @@ jobs:
         with:
           node-version: '24.x'
 
-      # `enable pnpm` and not a bare `enable`: this job still drives the demo
-      # app below with the runner's own yarn, which a corepack yarn shim would
-      # shadow.
+      # `enable pnpm` and not a bare `enable`: the latter also shims npm, which
+      # would shadow the npm used to install the Vercel CLI below.
       - name: Enable corepack
         run: corepack enable pnpm
 
@@ -44,13 +43,9 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm run build
 
-      # A tarball rather than the `yarn link` this used to do. Nothing can
-      # register a link from components/ any more: a corepack yarn shim
-      # refuses because `packageManager` names pnpm, and the runner's real
-      # yarn 1.22 makes its own check and reports the field as the nonsense
-      # "yarn@pnpm@11.9.0". Packing is the better test regardless -- it
-      # exercises the `files` list and `exports` map, which a symlinked
-      # source tree bypasses.
+      # A tarball rather than the `yarn link` this used to do. Packing is the
+      # truer test: it exercises the `files` list and `exports` map the demo
+      # app would get from npm, which a symlinked source tree bypasses.
       - name: Pack components
         id: pack
         working-directory: components
@@ -69,7 +64,7 @@ jobs:
           cd schematic-next-example
 
           echo "📦 Installing demo app dependencies against the packed build..."
-          yarn add "${{ steps.pack.outputs.tarball }}"
+          pnpm add "${{ steps.pack.outputs.tarball }}"
 
           echo "✅ Components package installed successfully!"
 
