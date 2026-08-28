@@ -2,9 +2,7 @@
 # hijacked-maintainer release usually gets yanked. Frozen installs unaffected.
 minimumReleaseAge: 1440
 
-# Our own packages are exempt: a deploy job installs one into the demo app
-# seconds after publishing it, and Dependabot bumps the sibling SDKs on the
-# same day they go out. The delay is there for third-party supply chains.
+# Except our own: deploy jobs install a version seconds after publishing it.
 minimumReleaseAgeExclude:
   - "@schematichq/*"
 
@@ -12,10 +10,8 @@ minimumReleaseAgeExclude:
 # never silently runs against a stale tree.
 verifyDepsBeforeRun: install
 
-# No `frozenLockfile: true`, deliberately: it would stop the auto-install above
-# re-resolving the ranges below, but Dependabot's `pnpm update --no-save` then
-# dies ERR_PNPM_OUTDATED_LOCKFILE. CI installs are frozen anyway (pnpm reads
-# CI=true), so it only ever covered developer machines.
+# No `frozenLockfile: true`: it breaks Dependabot's `pnpm update --no-save`
+# with ERR_PNPM_OUTDATED_LOCKFILE, and CI already installs frozen via CI=true.
 
 overrides:
   minimatch: ">=3.1.3"
@@ -23,14 +19,9 @@ overrides:
   undici: ^7.29.0
 
 allowBuilds:
-  # Denied on purpose. esbuild's postinstall is only an optimization: it moves
-  # the platform binary from the @esbuild/<platform> optional dependency over
-  # `esbuild/bin/esbuild`, saving one process spawn per invocation. It skips
-  # that under yarn, which is why this never bit us before. pnpm has already
-  # written node_modules/.bin/esbuild as a shim that runs the file through
-  # node, so after the swap `pnpm exec esbuild` feeds node a Mach-O binary and
-  # dies on "Invalid or unexpected token". Left unbuilt, bin/esbuild stays the
-  # JS launcher and spawns the same platform binary itself.
+  # Denied: its postinstall overwrites bin/esbuild with the platform binary,
+  # which pnpm's node shim then feeds to node ("Invalid or unexpected token").
+  # Unbuilt, bin/esbuild stays the JS launcher and spawns that binary itself.
   esbuild: false
   # Native bindings that ship prebuilt per-platform packages as optional
   # dependencies. Their install scripts only compile or fetch a binding when

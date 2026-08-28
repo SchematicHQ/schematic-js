@@ -43,9 +43,8 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm run build
 
-      # A tarball rather than the `yarn link` this used to do. Packing is the
-      # truer test: it exercises the `files` list and `exports` map the demo
-      # app would get from npm, which a symlinked source tree bypasses.
+      # Packing is the truer test: it exercises the `files` list and `exports`
+      # map the demo app would get from npm, which a symlink bypasses.
       - name: Pack components
         id: pack
         working-directory: components

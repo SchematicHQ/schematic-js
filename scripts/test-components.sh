@@ -17,9 +17,8 @@ cd ../components || exit 1
 pnpm install
 pnpm run build
 
-# A tarball rather than `yarn link`, which is the truer test: it exercises the
-# `files` list and `exports` map the demo app would get from npm, where a
-# symlinked source tree bypasses both.
+# Packing is the truer test: it exercises the `files` list and `exports` map
+# the demo app would get from npm, which a symlink bypasses.
 echo "📦 Packing components..."
 TARBALL=$(pnpm pack --pack-destination "${TMPDIR:-/tmp}" | tail -n1) || exit 1
 echo "   $TARBALL"
@@ -27,12 +26,9 @@ echo "   $TARBALL"
 echo "🏠 Navigating to demo app..."
 cd ../../schematic-next-example || exit 1
 
-# Installing the tarball pins the demo app's manifest to a path under TMPDIR,
-# which the OS eventually reaps -- leave that behind and the next plain
-# install over there fails on an unresolvable version. Stash the two files
-# and put them back however we exit, rather than `git checkout`-ing them,
-# which would take any unrelated edits down with it. node_modules keeps the
-# packed build either way.
+# `pnpm add` pins the demo app's manifest to a TMPDIR path the OS will reap,
+# so restore both files on exit. Copies rather than `git checkout`, which
+# would take unrelated edits with it.
 MANIFEST_BACKUP=$(mktemp -d) || exit 1
 cp package.json pnpm-lock.yaml "$MANIFEST_BACKUP/" || exit 1
 restore_manifest() {
