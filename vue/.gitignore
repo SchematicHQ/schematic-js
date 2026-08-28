@@ -4,8 +4,6 @@ dist/
 .DS_Store
 coverage/
 .nyc_output/
-.yarn/
-yarn-error.log
 
 # IDE
 .vscode/

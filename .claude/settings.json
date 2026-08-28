@@ -6,16 +6,15 @@
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(linear:*)",
-      "Bash(rg:*)",
-      "Bash(yarn build)",
-      "Bash(yarn format)",
-      "Bash(yarn lint)",
-      "Bash(yarn openapi)",
-      "Bash(yarn test)",
-      "Bash(yarn tsc)",
-      "Bash(yarn)"
+      "Bash(pnpm build)",
+      "Bash(pnpm format)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm openapi)",
+      "Bash(pnpm test)",
+      "Bash(pnpm tsc)",
+      "Bash(pnpm)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }
 }
-

@@ -28,21 +28,33 @@ jobs:
         with:
           node-version: '24.x'
 
+      # `enable pnpm` and not a bare `enable`: this job still drives the demo
+      # app below with the runner's own yarn, which a corepack yarn shim would
+      # shadow.
+      - name: Enable corepack
+        run: corepack enable pnpm
+
       - name: Install Vercel CLI
-        run: yarn global add vercel
+        run: npm install -g vercel
 
       - name: Build Components Package
         run: |
           echo "🔨 Building components package..."
           cd components
-          yarn install
-          yarn build
+          pnpm install --frozen-lockfile
+          pnpm run build
 
-      - name: Link components
-        run: |
-          echo "📦 Linking components..."
-          cd components
-          yarn link
+      # A tarball rather than the `yarn link` this used to do. Nothing can
+      # register a link from components/ any more: a corepack yarn shim
+      # refuses because `packageManager` names pnpm, and the runner's real
+      # yarn 1.22 makes its own check and reports the field as the nonsense
+      # "yarn@pnpm@11.9.0". Packing is the better test regardless -- it
+      # exercises the `files` list and `exports` map, which a symlinked
+      # source tree bypasses.
+      - name: Pack components
+        id: pack
+        working-directory: components
+        run: echo "tarball=$(pnpm pack --pack-destination "$RUNNER_TEMP" | tail -n1)" >> "$GITHUB_OUTPUT"
 
       - name: Clone Demo App
         uses: actions/checkout@v7
@@ -51,18 +63,15 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: schematic-next-example
 
-      - name: Setup Demo App & Link Components
+      - name: Setup Demo App & Install Components
         run: |
           echo "🏠 Setting up demo app..."
           cd schematic-next-example
 
-          echo "🔗 Linking components to demo app..."
-          yarn link "@schematichq/schematic-components"
+          echo "📦 Installing demo app dependencies against the packed build..."
+          yarn add "${{ steps.pack.outputs.tarball }}"
 
-          echo "📦 Installing demo app dependencies..."
-          yarn install --force
-
-          echo "✅ Components package linked successfully!"
+          echo "✅ Components package installed successfully!"
 
       - name: Pull Vercel Environment Information
         run: |

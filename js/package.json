@@ -17,21 +17,21 @@
     "url": "git+ssh://git@github.com/SchematicHQ/schematic-js.git"
   },
   "scripts": {
-    "build": "./version.sh && yarn cache-version && npx tsc && yarn clean && yarn build:browser && yarn build:cjs && yarn build:esm && yarn build:types",
+    "build": "./version.sh && pnpm run cache-version && pnpm exec tsc && pnpm run clean && pnpm run build:browser && pnpm run build:cjs && pnpm run build:esm && pnpm run build:types",
     "cache-version": "node scripts/generate-cache-version.mjs",
-    "build:browser": "npx esbuild src/browser.ts --bundle --minify --outfile=dist/schematic.browser.js --platform=browser",
-    "build:cjs": "npx esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.cjs.js",
-    "build:esm": "npx esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js",
-    "build:types": "npx tsc && npx api-extractor run",
+    "build:browser": "pnpm exec esbuild src/browser.ts --bundle --minify --outfile=dist/schematic.browser.js --platform=browser",
+    "build:cjs": "pnpm exec esbuild src/index.ts --bundle --format=cjs --outfile=dist/schematic.cjs.js",
+    "build:esm": "pnpm exec esbuild src/index.ts --bundle --format=esm --outfile=dist/schematic.esm.js",
+    "build:types": "pnpm exec tsc && pnpm exec api-extractor run",
     "clean": "rm -rf dist",
     "format": "prettier --write src/*.ts",
     "lint": "eslint src --report-unused-disable-directives --fix",
-    "openapi": "rm -rf src/types/api/ && npx openapi-generator-cli generate -c openapi-config.yaml && prettier --write \"src/types/api/**/*.{ts,tsx}\"",
+    "openapi": "rm -rf src/types/api/ && pnpm exec openapi-generator-cli generate -c openapi-config.yaml && prettier --write \"src/types/api/**/*.{ts,tsx}\"",
     "prepare": "husky",
     "test": "vitest run",
     "test:reactnative": "vitest run --config vitest.config.reactnative.ts",
     "test:watch": "vitest",
-    "tsc": "npx tsc"
+    "tsc": "pnpm exec tsc"
   },
   "dependencies": {
     "cross-fetch": "^4.1.0",
@@ -54,9 +54,5 @@
     "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11"
   },
-  "resolutions": {
-    "rollup": ">=4.59.0",
-    "undici": "^7.29.0"
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b"
 }

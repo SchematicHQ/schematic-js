@@ -17,12 +17,14 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24.x
-      - name: Yarn install
+      - name: Enable corepack
+        run: corepack enable pnpm
+      - name: Install dependencies
         working-directory: ./components
-        run: yarn install
+        run: pnpm install --frozen-lockfile
       - name: Build
         working-directory: ./components
-        run: yarn build
+        run: pnpm run build
 
   lint:
     name: Lint
@@ -33,12 +35,14 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24.x
-      - name: Yarn install
+      - name: Enable corepack
+        run: corepack enable pnpm
+      - name: Install dependencies
         working-directory: ./components
-        run: yarn install
+        run: pnpm install --frozen-lockfile
       - name: Lint
         working-directory: ./components
-        run: yarn lint
+        run: pnpm run lint
 
   test:
     name: Test (Node ${{ matrix.node-version }})
@@ -52,10 +56,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Yarn install
+      - name: Enable corepack
+        run: corepack enable pnpm
+      - name: Install dependencies
         working-directory: ./components
-        run: yarn install
+        run: pnpm install --frozen-lockfile
       - name: Test
         working-directory: ./components
-        run: yarn test
+        run: pnpm run test
 

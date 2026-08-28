@@ -4,14 +4,14 @@
       "Bash(awk:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(rg:*)",
       "Bash(npx jest:*)",
-      "Bash(yarn)",
-      "Bash(yarn build)",
-      "Bash(yarn format)",
-      "Bash(yarn lint)",
-      "Bash(yarn test)",
-      "Bash(yarn tsc)"
+      "Bash(pnpm build)",
+      "Bash(pnpm format)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm test)",
+      "Bash(pnpm tsc)",
+      "Bash(pnpm)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }

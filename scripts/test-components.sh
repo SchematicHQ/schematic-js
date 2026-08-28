@@ -14,20 +14,23 @@ fi
 # build components
 echo "🔨 Building components..."
 cd ../components || exit 1
-yarn install
-yarn build
+pnpm install
+pnpm run build
 
-echo "📦 Linking components..."
-yarn link
+# A tarball rather than `yarn link`. The demo app is a separate repo still on
+# yarn, but no yarn will register a link from here: a corepack shim refuses
+# because `packageManager` names pnpm, and a real yarn 1.22 makes its own
+# check and chokes on the same field. Packing also exercises the `files` list
+# and `exports` map the way a real install does.
+echo "📦 Packing components..."
+TARBALL=$(pnpm pack --pack-destination "${TMPDIR:-/tmp}" | tail -n1) || exit 1
+echo "   $TARBALL"
 
 echo "🏠 Navigating to demo app..."
 cd ../../schematic-next-example || exit 1
 
-echo "🔗 Linking components to demo app..."
-yarn link "@schematichq/schematic-components"
-
-echo "🏗️ Installing dependencies..."
-yarn install --force
+echo "🏗️ Installing dependencies against the packed build..."
+yarn add "$TARBALL"
 
 if [ "$choice" == "local" ]; then
     echo "🏗️ Building demo app..."
