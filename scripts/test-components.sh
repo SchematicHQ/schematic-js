@@ -14,27 +14,38 @@ fi
 # build components
 echo "🔨 Building components..."
 cd ../components || exit 1
-yarn install
-yarn build
+pnpm install
+pnpm run build
 
-echo "📦 Linking components..."
-yarn link
+# Packing is the truer test: it exercises the `files` list and `exports` map
+# the demo app would get from npm, which a symlink bypasses.
+echo "📦 Packing components..."
+TARBALL=$(pnpm pack --pack-destination "${TMPDIR:-/tmp}" | tail -n1) || exit 1
+echo "   $TARBALL"
 
 echo "🏠 Navigating to demo app..."
 cd ../../schematic-next-example || exit 1
 
-echo "🔗 Linking components to demo app..."
-yarn link "@schematichq/schematic-components"
+# `pnpm add` pins the demo app's manifest to a TMPDIR path the OS will reap,
+# so restore both files on exit. Copies rather than `git checkout`, which
+# would take unrelated edits with it.
+MANIFEST_BACKUP=$(mktemp -d) || exit 1
+cp package.json pnpm-lock.yaml "$MANIFEST_BACKUP/" || exit 1
+restore_manifest() {
+    cp "$MANIFEST_BACKUP"/package.json "$MANIFEST_BACKUP"/pnpm-lock.yaml . 2>/dev/null
+    rm -rf "$MANIFEST_BACKUP"
+}
+trap restore_manifest EXIT
 
-echo "🏗️ Installing dependencies..."
-yarn install --force
+echo "🏗️ Installing dependencies against the packed build..."
+pnpm add "$TARBALL"
 
 if [ "$choice" == "local" ]; then
     echo "🏗️ Building demo app..."
-    yarn build
+    pnpm run build
 
     echo "🚀 Starting dev server..."
-    yarn dev
+    pnpm run dev
 fi
 
 if [ "$choice" == "vercel" ]; then

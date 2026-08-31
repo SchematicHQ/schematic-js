@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-- Build: `yarn build`
-- Lint: `yarn lint`
-- Format: `yarn format`
-- Test all: `yarn test`
+- Build: `pnpm build`
+- Lint: `pnpm lint`
+- Format: `pnpm format`
+- Test all: `pnpm test`
 - Test single file: `jest src/path/to/file.spec.ts`
 - Test specific test: `jest -t "test description pattern"`
 

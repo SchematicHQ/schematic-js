@@ -30,10 +30,12 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24.x
+      - name: Enable corepack
+        run: corepack enable pnpm
 
-      - name: Yarn install
+      - name: Install dependencies
         working-directory: ./js
-        run: yarn install
+        run: pnpm install --frozen-lockfile
 
       - name: Update version
         working-directory: ./js
@@ -41,11 +43,11 @@ jobs:
 
       - name: Update cache version
         working-directory: ./js
-        run: yarn cache-version
+        run: pnpm run cache-version
 
       - name: Build browser bundle
         working-directory: ./js
-        run: yarn build:browser
+        run: pnpm run build:browser
 
       - name: 🚀auth-oidc-aws-prod
         uses: aws-actions/configure-aws-credentials@v6.2.3

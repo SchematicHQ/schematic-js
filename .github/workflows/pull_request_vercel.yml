@@ -28,21 +28,27 @@ jobs:
         with:
           node-version: '24.x'
 
+      # `enable pnpm` and not a bare `enable`: the latter also shims npm, which
+      # would shadow the npm used to install the Vercel CLI below.
+      - name: Enable corepack
+        run: corepack enable pnpm
+
       - name: Install Vercel CLI
-        run: yarn global add vercel
+        run: npm install -g vercel
 
       - name: Build Components Package
         run: |
           echo "🔨 Building components package..."
           cd components
-          yarn install
-          yarn build
+          pnpm install --frozen-lockfile
+          pnpm run build
 
-      - name: Link components
-        run: |
-          echo "📦 Linking components..."
-          cd components
-          yarn link
+      # Packing is the truer test: it exercises the `files` list and `exports`
+      # map the demo app would get from npm, which a symlink bypasses.
+      - name: Pack components
+        id: pack
+        working-directory: components
+        run: echo "tarball=$(pnpm pack --pack-destination "$RUNNER_TEMP" | tail -n1)" >> "$GITHUB_OUTPUT"
 
       - name: Clone Demo App
         uses: actions/checkout@v7
@@ -51,18 +57,15 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: schematic-next-example
 
-      - name: Setup Demo App & Link Components
+      - name: Setup Demo App & Install Components
         run: |
           echo "🏠 Setting up demo app..."
           cd schematic-next-example
 
-          echo "🔗 Linking components to demo app..."
-          yarn link "@schematichq/schematic-components"
+          echo "📦 Installing demo app dependencies against the packed build..."
+          pnpm add "${{ steps.pack.outputs.tarball }}"
 
-          echo "📦 Installing demo app dependencies..."
-          yarn install --force
-
-          echo "✅ Components package linked successfully!"
+          echo "✅ Components package installed successfully!"
 
       - name: Pull Vercel Environment Information
         run: |

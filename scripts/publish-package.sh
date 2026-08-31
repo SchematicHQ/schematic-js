@@ -104,11 +104,11 @@ fi
 
 # Install dependencies
 echo "Installing dependencies..."
-yarn install
+pnpm install --frozen-lockfile
 
 # Build
 echo "Building..."
-yarn build
+pnpm run build
 
 # Determine publish directory
 # ng-packagr (used by angular) generates a complete package in dist/
