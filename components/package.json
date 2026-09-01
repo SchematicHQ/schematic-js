@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "2.24.0",
+  "version": "3.0.0",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -18,6 +18,19 @@
       "import": "./dist/schematic-components.esm.js",
       "require": "./dist/schematic-components.cjs.js",
       "default": "./dist/schematic-components.esm.js"
+    },
+    "./v3": {
+      "types": "./dist/schematic-components-v3.d.ts",
+      "import": "./dist/schematic-components-v3.esm.js",
+      "require": "./dist/schematic-components-v3.cjs.js",
+      "default": "./dist/schematic-components-v3.esm.js"
+    },
+    "./v3/locales/en.json": "./dist/locales/en.json",
+    "./v3/fixtures": {
+      "types": "./dist/schematic-components-v3-fixtures.d.ts",
+      "import": "./dist/schematic-components-v3-fixtures.esm.js",
+      "require": "./dist/schematic-components-v3-fixtures.cjs.js",
+      "default": "./dist/schematic-components-v3-fixtures.esm.js"
     }
   },
   "files": [
@@ -25,7 +38,14 @@
     "dist/schematic-components.esm.js",
     "dist/schematic-components.browser.cjs.js",
     "dist/schematic-components.browser.esm.js",
-    "dist/schematic-components.d.ts"
+    "dist/schematic-components.d.ts",
+    "dist/schematic-components-v3.cjs.js",
+    "dist/schematic-components-v3.esm.js",
+    "dist/schematic-components-v3.d.ts",
+    "dist/schematic-components-v3-fixtures.cjs.js",
+    "dist/schematic-components-v3-fixtures.esm.js",
+    "dist/schematic-components-v3-fixtures.d.ts",
+    "dist/locales/en.json"
   ],
   "author": "Schematic <engineering@schematichq.com>",
   "license": "MIT",
@@ -37,13 +57,19 @@
     "dev": "pnpm run dev:browser:esm",
     "dev:cjs": "node esbuild.mjs --format=cjs --variant=server --watch",
     "dev:esm": "node esbuild.mjs --format=esm --variant=server --watch",
+    "dev:v3": "node esbuild.mjs --format=esm --entry=v3 --watch",
     "dev:browser:esm": "node esbuild.mjs --format=esm --variant=browser --watch",
-    "build": "pnpm run tsc && pnpm run openapi && pnpm run format && pnpm run lint && pnpm run clean && pnpm run build:cjs && pnpm run build:esm && pnpm run build:browser:cjs && pnpm run build:browser:esm && pnpm run build:types",
+    "build": "pnpm run tsc && pnpm run openapi && pnpm run format && pnpm run lint && pnpm run clean && pnpm run build:cjs && pnpm run build:esm && pnpm run build:browser:cjs && pnpm run build:browser:esm && pnpm run build:v3:cjs && pnpm run build:v3:esm && pnpm run build:v3:fixtures:cjs && pnpm run build:v3:fixtures:esm && pnpm run build:v3:locales && pnpm run build:types",
     "build:cjs": "node esbuild.mjs --format=cjs --variant=server",
     "build:esm": "node esbuild.mjs --format=esm --variant=server",
     "build:browser:cjs": "node esbuild.mjs --format=cjs --variant=browser",
     "build:browser:esm": "node esbuild.mjs --format=esm --variant=browser",
-    "build:types": "pnpm exec tsc && pnpm exec api-extractor run",
+    "build:v3:cjs": "node esbuild.mjs --format=cjs --entry=v3",
+    "build:v3:esm": "node esbuild.mjs --format=esm --entry=v3",
+    "build:v3:fixtures:cjs": "node esbuild.mjs --format=cjs --entry=v3-fixtures",
+    "build:v3:fixtures:esm": "node esbuild.mjs --format=esm --entry=v3-fixtures",
+    "build:v3:locales": "mkdir -p dist/locales && cp src/v3/locales/en.json dist/locales/en.json",
+    "build:types": "pnpm exec tsc && pnpm exec api-extractor run && pnpm exec api-extractor run -c api-extractor-v3.json && pnpm exec api-extractor run -c api-extractor-v3-fixtures.json",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "eslint src",
@@ -51,7 +77,9 @@
     "test": "./test.sh",
     "test:watch": "vitest",
     "tsc": "pnpm exec tsc",
-    "test:demo": "../scripts/test-components.sh"
+    "test:demo": "../scripts/test-components.sh",
+    "test:v3": "./test.sh src/v3",
+    "v3:locales": "node scripts/write-locales.mjs"
   },
   "dependencies": {
     "@schematichq/schematic-icons": "^0.8.0",
@@ -69,6 +97,8 @@
     "@eslint/markdown": "^8.0.3",
     "@microsoft/api-extractor": "^7.59.0",
     "@openapitools/openapi-generator-cli": "^2.41.0",
+    "@schematichq/schematic-js": "workspace:^",
+    "@schematichq/schematic-react": "workspace:^",
     "@stripe/react-stripe-js": "^6.8.2",
     "@swc/core": "^1.16.1",
     "@testing-library/dom": "^10.4.1",
@@ -100,9 +130,9 @@
   "peerDependencies": {
     "@stripe/react-stripe-js": ">=3",
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "@schematichq/schematic-react": "workspace:^"
   },
-  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b",
   "msw": {
     "workerDirectory": [
       "",

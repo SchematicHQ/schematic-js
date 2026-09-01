@@ -37,6 +37,9 @@ export type {
   UseSchematicPlanOpts,
 };
 
+export * from "./company";
+export * from "./i18n";
+
 export {
   RuleType,
   Schematic,

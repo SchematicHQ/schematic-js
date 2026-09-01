@@ -1,6 +1,13 @@
 import * as SchematicJS from "@schematichq/schematic-js";
 import React, { createContext, useEffect, useMemo, useRef } from "react";
 
+import {
+  CompanyProvider,
+  type AccessToken,
+  type CompanyClient,
+  type CompanyData,
+} from "../company";
+import { type SchematicI18nConfig } from "../i18n";
 import { version } from "../version";
 
 type BaseSchematicProviderProps = Omit<
@@ -8,7 +15,22 @@ type BaseSchematicProviderProps = Omit<
   "client" | "publishableKey" | "useWebSocket"
 > & {
   children: React.ReactNode;
-};
+  /**
+   * A temporary access token (or async provider of one) for the company
+   * endpoints. Held alongside the publishable key, which keeps serving flags.
+   */
+  accessToken?: AccessToken;
+  /** A company API client; schematic-js supplies one when omitted. */
+  companyClient?: CompanyClient;
+  /** Prefetched company data, so the first render is complete (SSR). */
+  initialData?: CompanyData;
+  /**
+   * The host's name for the session — a company id, say. A change drops
+   * every loaded resource. Needed only when `accessToken` is a provider
+   * function; see `CompanyProviderProps`.
+   */
+  sessionKey?: string;
+} & SchematicI18nConfig;
 
 type SchematicProviderPropsWithClient = BaseSchematicProviderProps & {
   client: SchematicJS.Schematic;
@@ -32,9 +54,17 @@ export const SchematicContext = createContext<SchematicContextProps | null>(
 );
 
 export const SchematicProvider: React.FC<SchematicProviderProps> = ({
+  accessToken,
+  companyClient,
   children,
   client: providedClient,
+  initialData,
+  locale,
+  onMissingString,
   publishableKey,
+  sessionKey,
+  strings,
+  translate,
   ...clientOpts
 }) => {
   const initialOptsRef = useRef({
@@ -77,9 +107,37 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
     [client],
   );
 
+  // The company client is built once per key and reads the access token from
+  // its prop (forwarded by CompanyProvider), so a token change resets the
+  // company resources without rebuilding the client.
+  const { apiUrl, additionalHeaders } = initialOptsRef.current;
+  const resolvedCompanyClient = useMemo(
+    () =>
+      companyClient ??
+      new SchematicJS.SchematicCompanyClient({
+        accessToken,
+        apiUrl,
+        additionalHeaders,
+      }),
+    // The token is forwarded through CompanyProvider's setAccessToken; only
+    // the client identity matters here.
+    [additionalHeaders, apiUrl, companyClient],
+  );
+
   return (
     <SchematicContext.Provider value={contextValue}>
-      {children}
+      <CompanyProvider
+        accessToken={accessToken}
+        companyClient={resolvedCompanyClient}
+        initialData={initialData}
+        locale={locale}
+        sessionKey={sessionKey}
+        strings={strings}
+        translate={translate}
+        onMissingString={onMissingString}
+      >
+        {children}
+      </CompanyProvider>
     </SchematicContext.Provider>
   );
 };
