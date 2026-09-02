@@ -103,6 +103,7 @@ export * from "./RawEventResponseData";
 export * from "./RuleConditionDetailResponseData";
 export * from "./RuleConditionGroupDetailResponseData";
 export * from "./RuleConditionGroupResponseData";
+export * from "./RuleConditionPlanVersionResponseData";
 export * from "./RuleConditionResponseData";
 export * from "./RuleDetailResponseData";
 export * from "./RuleResponseData";
