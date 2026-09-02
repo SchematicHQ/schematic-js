@@ -62,6 +62,13 @@ import {
   PreviewObjectResponseDataToJSON,
   PreviewObjectResponseDataToJSONTyped,
 } from "./PreviewObjectResponseData";
+import type { RuleConditionPlanVersionResponseData } from "./RuleConditionPlanVersionResponseData";
+import {
+  RuleConditionPlanVersionResponseDataFromJSON,
+  RuleConditionPlanVersionResponseDataFromJSONTyped,
+  RuleConditionPlanVersionResponseDataToJSON,
+  RuleConditionPlanVersionResponseDataToJSONTyped,
+} from "./RuleConditionPlanVersionResponseData";
 
 /**
  *
@@ -147,6 +154,12 @@ export interface RuleConditionDetailResponseData {
    * @memberof RuleConditionDetailResponseData
    */
   operator: ComparableOperator;
+  /**
+   *
+   * @type {Array<RuleConditionPlanVersionResponseData>}
+   * @memberof RuleConditionDetailResponseData
+   */
+  planVersions?: Array<RuleConditionPlanVersionResponseData>;
   /**
    *
    * @type {Array<string>}
@@ -264,6 +277,12 @@ export function RuleConditionDetailResponseDataFromJSONTyped(
     metricValue:
       json["metric_value"] == null ? undefined : json["metric_value"],
     operator: ComparableOperatorFromJSON(json["operator"]),
+    planVersions:
+      json["plan_versions"] == null
+        ? undefined
+        : (json["plan_versions"] as Array<any>).map(
+            RuleConditionPlanVersionResponseDataFromJSON,
+          ),
     resourceIds: json["resource_ids"],
     resources: (json["resources"] as Array<any>).map(
       PreviewObjectResponseDataFromJSON,
@@ -315,6 +334,12 @@ export function RuleConditionDetailResponseDataToJSONTyped(
     ),
     metric_value: value["metricValue"],
     operator: ComparableOperatorToJSON(value["operator"]),
+    plan_versions:
+      value["planVersions"] == null
+        ? undefined
+        : (value["planVersions"] as Array<any>).map(
+            RuleConditionPlanVersionResponseDataToJSON,
+          ),
     resource_ids: value["resourceIds"],
     resources: (value["resources"] as Array<any>).map(
       PreviewObjectResponseDataToJSON,
