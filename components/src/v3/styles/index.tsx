@@ -1,31 +1,16 @@
 import React from "react";
 
 import { invoicesCss } from "./invoices";
+import { withTokenDefaults } from "./tokens";
 
-export const schematicStylesCss = `
-:where(:root) {
-  --schematic-accent: #194bfb;
-  --schematic-accent-contrast: #ffffff;
-  --schematic-background: #ffffff;
-  --schematic-border: hsla(0, 0%, 0%, 0.125);
-  --schematic-card-divider: hsla(0, 0%, 0%, 0.175);
-  --schematic-card-padding: 2.8125rem;
-  --schematic-danger: #d75a5c;
-  --schematic-font-body: "Public Sans", system-ui, sans-serif;
-  --schematic-font-heading: "Manrope", system-ui, sans-serif;
-  --schematic-line-height: 1.5;
-  --schematic-line-height-heading: 1.2;
-  --schematic-meter-track: #f2f4f7;
-  --schematic-muted: #8a8a8a;
-  --schematic-primary: #000000;
-  --schematic-primary-contrast: #ffffff;
-  --schematic-radius: 0.625rem;
-  --schematic-shadow: 0px 1px 20px 0px #1018280f, 0px 1px 3px 0px #1018281a;
-  --schematic-space: 1rem;
-  --schematic-text: #000000;
-  --schematic-warning: #ffaa06;
-}
+export { SCHEMATIC_TOKENS, schematicTokensCss } from "./tokens";
 
+/**
+ * The rules as authored: every colour goes through a token, and no token
+ * carries its default here. `withTokenDefaults` supplies those below, so a
+ * host's own value wins from wherever it is declared. See ./tokens.ts.
+ */
+const rulesCss = `
 :where([class^="schematic-"]) {
   box-sizing: border-box;
   color: var(--schematic-text);
@@ -147,8 +132,16 @@ export const schematicStylesCss = `
 }
 
 .schematic-cta:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--schematic-primary) 85%, #ffffff);
-  border-color: color-mix(in srgb, var(--schematic-primary) 85%, #ffffff);
+  background: color-mix(
+    in srgb,
+    var(--schematic-primary) 85%,
+    var(--schematic-primary-contrast)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--schematic-primary) 85%,
+    var(--schematic-primary-contrast)
+  );
 }
 
 .schematic-cta:focus-visible,
@@ -498,8 +491,13 @@ export const schematicStylesCss = `
 }
 
 ${invoicesCss}
-
 `;
+
+/**
+ * The stylesheet `<SchematicStyles />` injects: the rules above with every
+ * token's default inlined as a `var()` fallback.
+ */
+export const schematicStylesCss = withTokenDefaults(rulesCss);
 
 /**
  * Injects the default v3 stylesheet. Render once, anywhere above the

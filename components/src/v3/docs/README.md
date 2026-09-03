@@ -78,10 +78,56 @@ matching markup on both sides rather than a hydration mismatch per row.
 ## Styling
 
 `<SchematicStyles />` injects one stylesheet driven by `--schematic-*`
-custom properties: `accent`, `background`, `border`, `card-divider`,
-`card-padding`, `danger`, `font-body`, `font-heading`, `meter-track`,
-`muted`, `primary`, `primary-contrast`, `radius`, `shadow`, `space`, `text`,
-`warning`. Override them on `:root` or any ancestor.
+custom properties: `accent`, `accent-contrast`, `background`, `border`,
+`card-divider`, `card-padding`, `danger`, `font-body`, `font-heading`,
+`line-height`, `line-height-heading`, `meter-track`, `muted`, `primary`,
+`primary-contrast`, `radius`, `shadow`, `space`, `text`, `warning`.
+
+### Light and dark
+
+The elements follow `color-scheme`. Declare it wherever your theme is
+decided and they come with it — no bridge, no attribute of ours to toggle:
+
+```css
+:root {
+  color-scheme: light;
+}
+:root:where(.dark) {
+  color-scheme: dark;
+}
+```
+
+That is the whole contract. It works with a class-based switcher, with
+`color-scheme: light dark` to follow the OS, and with a page that is only
+ever one of the two. **A host that themes without declaring `color-scheme`
+gets the light palette**, since that is all `light-dark()` can infer.
+
+### Overriding a token
+
+Set it anywhere — `:root`, an ancestor, inside a cascade layer, at any
+specificity:
+
+```css
+:root {
+  --schematic-accent: var(--brand);
+}
+```
+
+The defaults are not declared in a rule; they are `var()` fallbacks inlined
+at each use. A fallback applies only when the property is set nowhere, so
+your value cannot lose a cascade to ours. That matters more than it sounds:
+a default declared on `:root` would beat a host's own `@layer base { :root }`
+tokens outright, because layer order is resolved before specificity, and
+nothing about the failure would be visible.
+
+The cost is that `--schematic-*` is undefined until you set it, so your own
+CSS cannot read our defaults. `schematicTokensCss` is the palette as a
+`:root` block if you want them globally; import it deliberately, and put it
+where your own tokens can still win. `SCHEMATIC_TOKENS` is the same data as
+an object.
+
+Overriding `background` and `text` alone leaves a card looking half-themed —
+`border`, `card-divider`, and `shadow` carry the rest.
 
 Or skip the stylesheet and write your own against the class names below —
 they are API, and each element's doc shows the tree it renders.

@@ -8,7 +8,9 @@ import { Invoices } from "../elements/Invoices";
 import { invoice, invoicePage } from "../fixtures/builders";
 import { SCENARIOS } from "../fixtures/scenarios";
 
-import { schematicStylesCss } from ".";
+import { withTokenDefaults } from "./tokens";
+
+import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
 
 /**
  * The sheet and the markup are one contract, written in two files. Every
@@ -120,5 +122,76 @@ describe("the packaged stylesheet", () => {
       compounds(selector).some((compound) => !compound.includes(".")),
     );
     expect(reaching).toEqual([]);
+  });
+});
+
+/** A colour written out rather than taken from a token. */
+const COLOUR_LITERAL = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/;
+
+/**
+ * The sheet with every `var()` fallback removed — what is left is what the
+ * rules say on their own. Walks the parens rather than matching them, since
+ * a fallback nests: `var(--x, light-dark(#fff, #000))`.
+ */
+function withoutFallbacks(css: string): string {
+  let out = "";
+  for (let i = 0; i < css.length; i += 1) {
+    if (!css.startsWith("var(", i)) {
+      out += css[i];
+      continue;
+    }
+    let depth = 0;
+    let cut = -1;
+    let j = i + 3;
+    for (; j < css.length; j += 1) {
+      const c = css[j];
+      if (c === "(") depth += 1;
+      else if (c === ")") {
+        depth -= 1;
+        if (depth === 0) break;
+      } else if (c === "," && depth === 1 && cut === -1) cut = j;
+    }
+    out += cut === -1 ? css.slice(i, j + 1) : `${css.slice(i, cut)})`;
+    i = j;
+  }
+  return out;
+}
+
+describe("the palette", () => {
+  test("reaches the rules as fallbacks, never as a declaration", () => {
+    // A `:root` rule would have to win a cascade; a host's own tokens do not
+    // reliably beat one, because a declaration inside `@layer base` loses to
+    // an unlayered rule whatever its specificity.
+    expect(schematicStylesCss).not.toMatch(/:root/);
+    expect(schematicStylesCss.match(/var\(--schematic-[a-z-]+\)/g)).toBeNull();
+  });
+
+  test("no rule hard-codes a colour", () => {
+    const rules = withoutFallbacks(schematicStylesCss);
+    const offenders = rules
+      .split("\n")
+      .filter(
+        (line) => COLOUR_LITERAL.test(line) && !line.trim().startsWith("*"),
+      );
+    expect(offenders).toEqual([]);
+  });
+
+  test("every colour token carries both themes", () => {
+    const unthemed = Object.entries(SCHEMATIC_TOKENS)
+      .filter(([, value]) => COLOUR_LITERAL.test(value))
+      .filter(([, value]) => !value.includes("light-dark("))
+      .map(([name]) => name);
+    expect(unthemed).toEqual([]);
+  });
+
+  test("a token with no entry fails loudly rather than resolving to nothing", () => {
+    expect(() =>
+      withTokenDefaults("a { color: var(--schematic-nope); }"),
+    ).toThrow(/Unknown Schematic token: --schematic-nope/);
+  });
+
+  test("a fallback already written by hand is left alone", () => {
+    const css = "a { color: var(--schematic-text, red); }";
+    expect(withTokenDefaults(css)).toBe(css);
   });
 });
