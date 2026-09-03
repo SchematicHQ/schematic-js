@@ -20,7 +20,13 @@ import { mapValues } from "../runtime";
  */
 export interface EventBodyInference {
   /**
-   * Number of input tokens served from cache
+   * Number of input tokens written to a prompt cache; a subset of input_tokens
+   * @type {number}
+   * @memberof EventBodyInference
+   */
+  cacheCreationInputTokens?: number;
+  /**
+   * Number of input tokens served from cache; a subset of input_tokens
    * @type {number}
    * @memberof EventBodyInference
    */
@@ -50,7 +56,7 @@ export interface EventBodyInference {
    */
   event?: string;
   /**
-   * Number of input tokens for the inference request
+   * Total number of input tokens for the inference request, including those served from and written to a prompt cache
    * @type {number}
    * @memberof EventBodyInference
    */
@@ -134,6 +140,10 @@ export function EventBodyInferenceFromJSONTyped(
     return json;
   }
   return {
+    cacheCreationInputTokens:
+      json["cache_creation_input_tokens"] == null
+        ? undefined
+        : json["cache_creation_input_tokens"],
     cachedInputTokens:
       json["cached_input_tokens"] == null
         ? undefined
@@ -169,6 +179,7 @@ export function EventBodyInferenceToJSONTyped(
   }
 
   return {
+    cache_creation_input_tokens: value["cacheCreationInputTokens"],
     cached_input_tokens: value["cachedInputTokens"],
     company: value["company"],
     cost: value["cost"],
