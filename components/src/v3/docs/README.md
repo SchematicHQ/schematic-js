@@ -90,6 +90,7 @@ they are API, and each element's doc shows the tree it renders.
 | ----------------------------- | --------------------------------------------------------- |
 | `schematic-card`              | Every element's root, with the element's own class.       |
 | `schematic-header`            | The heading row inside a card.                            |
+| `schematic-header__title`     | The heading itself, whatever `headingLevel` renders.      |
 | `schematic-muted`             | Secondary text.                                           |
 | `schematic-small`             | Smaller text.                                             |
 | `schematic-chip`              | A short status label; the raw value is `[data-status]`.   |
@@ -97,6 +98,8 @@ they are API, and each element's doc shows the tree it renders.
 | `schematic-cta`               | Filled action; `--outline` and `--small` modifiers.       |
 | `schematic-link-button`       | Inline text action ("See more", "Retry", "Load more").    |
 | `schematic-status`            | The error row that replaces a card's content.             |
+| `schematic-status__message`   | The message within it.                                    |
+| `schematic-status__retry`     | Its retry action.                                         |
 | `schematic-error`             | Error text.                                               |
 | `schematic-status-note`       | A failure reported under content that is still on screen. |
 | `schematic-skeleton`          | The pending placeholder, rendered inside the card.        |
@@ -106,3 +109,7 @@ they are API, and each element's doc shows the tree it renders.
 
 An element's root keeps the same class list in every state; `data-state` is
 `pending`, `error`, or `ready`.
+
+Every node an element renders carries at least one `schematic-` class, so no
+rule has to reach for a tag or a position — `elements/markup.test.tsx` holds
+that line along with the per-element trees.

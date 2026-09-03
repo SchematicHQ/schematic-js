@@ -39,15 +39,6 @@ export const schematicStylesCss = `
   box-sizing: inherit;
 }
 
-:where([class^="schematic-"]) h2,
-:where([class^="schematic-"]) h3 {
-  font-family: var(--schematic-font-heading);
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: var(--schematic-line-height-heading);
-  margin: 0 0 calc(var(--schematic-space) / 2);
-}
-
 :where([class^="schematic-"]) p {
   margin: 0;
 }
@@ -251,18 +242,6 @@ export const schematicStylesCss = `
   background: var(--schematic-danger);
 }
 
-.schematic-row {
-  align-items: baseline;
-  display: flex;
-  gap: var(--schematic-space);
-  justify-content: space-between;
-  padding: calc(var(--schematic-space) / 4) 0;
-}
-
-.schematic-row > :last-child {
-  text-align: end;
-}
-
 .schematic-notice {
   border: 1px solid var(--schematic-border);
   border-inline-start: 4px solid var(--schematic-accent);
@@ -325,9 +304,12 @@ export const schematicStylesCss = `
   margin-bottom: var(--schematic-space);
 }
 
-.schematic-header h2,
-.schematic-header h3 {
-  margin: 0;
+.schematic-header__title {
+  font-family: var(--schematic-font-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: var(--schematic-line-height-heading);
+  margin: 0 0 calc(var(--schematic-space) / 2);
 }
 
 .schematic-feature-list {

@@ -4,6 +4,7 @@ import {
 } from "@schematichq/schematic-react";
 import { fireEvent, render, screen } from "@testing-library/react";
 
+import { invoice, invoicePage } from "../fixtures/builders";
 import { SCENARIOS } from "../fixtures/scenarios";
 
 import { Invoices } from "./Invoices";
@@ -44,9 +45,20 @@ describe("Invoices markup contract", () => {
     expect(classNames(root)).toEqual([
       "schematic-chip",
       "schematic-header",
+      "schematic-header__title",
       "schematic-invoices__actions",
       "schematic-invoices__amount",
+      "schematic-invoices__body",
+      "schematic-invoices__cell",
+      "schematic-invoices__chip",
+      "schematic-invoices__column",
+      "schematic-invoices__count",
       "schematic-invoices__date",
+      "schematic-invoices__head",
+      "schematic-invoices__head-row",
+      "schematic-invoices__link",
+      "schematic-invoices__row",
+      "schematic-invoices__see-more",
       "schematic-invoices__status",
       "schematic-invoices__table",
       "schematic-link-button",
@@ -65,6 +77,7 @@ describe("Invoices markup contract", () => {
     expect(root).toHaveAttribute("data-state", "ready");
     expect(classNames(root)).toEqual([
       "schematic-header",
+      "schematic-header__title",
       "schematic-invoices__empty",
       "schematic-muted",
     ]);
@@ -131,6 +144,8 @@ describe("Invoices markup contract", () => {
       "schematic-error",
       "schematic-link-button",
       "schematic-status",
+      "schematic-status__message",
+      "schematic-status__retry",
     ]);
   });
 
@@ -140,5 +155,50 @@ describe("Invoices markup contract", () => {
     });
     expect(root).toHaveAttribute("data-state", "ready");
     expect(classNames(root)).toContain("schematic-status-note");
+  });
+});
+
+/**
+ * The rule behind the lists above: nothing an element renders is reachable
+ * only by tag or by position. A host writing its own CSS gets a class for
+ * every node, so a rule never has to say `.schematic-invoices__table td`
+ * and never breaks when a node moves.
+ */
+function unclassed(root: HTMLElement): string[] {
+  const nodes = [root, ...root.querySelectorAll<HTMLElement>("*")];
+  return nodes
+    .filter(
+      (node) =>
+        !Array.from(node.classList).some((name) =>
+          name.startsWith("schematic-"),
+        ),
+    )
+    .map((node) => `${node.tagName.toLowerCase()}.${node.className}`);
+}
+
+describe("every node carries a schematic class", () => {
+  const pending = { isPending: true };
+  const failed = { error: new Error("Boom") };
+
+  test.each([
+    ["loaded", SCENARIOS.pro(), undefined],
+    ["empty", SCENARIOS.trialing(), undefined],
+    ["pending", {}, { invoices: pending }],
+    ["failed", {}, { invoices: failed }],
+    ["failed with rows on screen", SCENARIOS.pro(), { invoices: failed }],
+  ] as const)("Invoices, %s", (_state, data, status) => {
+    expect(unclassed(renderInvoices(data, status))).toEqual([]);
+  });
+
+  test("Invoices, a row whose invoice has no hosted URL", () => {
+    const data = SCENARIOS.pro();
+    data.invoices = invoicePage([invoice({ url: null })]);
+    expect(unclassed(renderInvoices(data))).toEqual([]);
+  });
+
+  test("Invoices, expanded past the collapsed rows", () => {
+    const root = renderInvoices(SCENARIOS.pro());
+    fireEvent.click(screen.getByRole("button", { name: "See more" }));
+    expect(unclassed(root)).toEqual([]);
   });
 });

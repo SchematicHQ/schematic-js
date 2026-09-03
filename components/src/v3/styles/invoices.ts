@@ -9,7 +9,7 @@ export const invoicesCss = `
   width: 100%;
 }
 
-.schematic-invoices__table th {
+.schematic-invoices__column {
   border-bottom: 1px solid var(--schematic-border);
   color: var(--schematic-muted);
   font-size: 0.875rem;
@@ -17,13 +17,13 @@ export const invoicesCss = `
   padding-bottom: calc(var(--schematic-space) / 2);
 }
 
-.schematic-invoices__table td {
+.schematic-invoices__cell {
   border-top: 1px solid var(--schematic-border);
   padding: calc(var(--schematic-space) / 2) 0;
   vertical-align: middle;
 }
 
-.schematic-invoices__table tbody tr:first-child td {
+.schematic-invoices__row:first-child .schematic-invoices__cell {
   border-top: none;
 }
 
@@ -31,12 +31,12 @@ export const invoicesCss = `
   text-align: start;
 }
 
-.schematic-invoices__date a {
+.schematic-invoices__link {
   color: var(--schematic-accent);
   text-decoration: none;
 }
 
-.schematic-invoices__date a:hover {
+.schematic-invoices__link:hover {
   text-decoration: underline;
 }
 

@@ -131,9 +131,11 @@ export function Invoices({
         <>
           {showHeader && (
             <div className="schematic-header">
-              <Heading>{t("invoicesHeader")}</Heading>
+              <Heading className="schematic-header__title">
+                {t("invoicesHeader")}
+              </Heading>
               {rows.length > 0 && (
-                <span className="schematic-small schematic-muted">
+                <span className="schematic-small schematic-muted schematic-invoices__count">
                   {rows.length}{" "}
                   {plural(locale, rows.length, {
                     one: "invoice",
@@ -149,35 +151,48 @@ export function Invoices({
             </p>
           ) : (
             <table className="schematic-invoices__table">
-              <thead>
-                <tr>
+              <thead className="schematic-invoices__head">
+                <tr className="schematic-invoices__head-row">
                   {showDate && (
-                    <th className="schematic-invoices__date" scope="col">
+                    <th
+                      className="schematic-invoices__column schematic-invoices__date"
+                      scope="col"
+                    >
                       {t("invoicesDateColumn")}
                     </th>
                   )}
                   {showAmount && (
-                    <th className="schematic-invoices__amount" scope="col">
+                    <th
+                      className="schematic-invoices__column schematic-invoices__amount"
+                      scope="col"
+                    >
                       {t("invoicesAmountColumn")}
                     </th>
                   )}
                   {showStatus && (
-                    <th className="schematic-invoices__status" scope="col">
+                    <th
+                      className="schematic-invoices__column schematic-invoices__status"
+                      scope="col"
+                    >
                       {t("invoicesStatusColumn")}
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="schematic-invoices__body">
                 {visible.map((row) => (
-                  <tr key={row.id} data-testid="schematic-invoice">
+                  <tr
+                    className="schematic-invoices__row"
+                    key={row.id}
+                    data-testid="schematic-invoice"
+                  >
                     {showDate && (
-                      <td className="schematic-invoices__date">
+                      <td className="schematic-invoices__cell schematic-invoices__date">
                         <InvoiceDate row={row} />
                       </td>
                     )}
                     {showAmount && (
-                      <td className="schematic-invoices__amount">
+                      <td className="schematic-invoices__cell schematic-invoices__amount">
                         {row.isCredit ? (
                           <span
                             className="schematic-invoices__credit"
@@ -191,10 +206,10 @@ export function Invoices({
                       </td>
                     )}
                     {showStatus && (
-                      <td className="schematic-invoices__status">
+                      <td className="schematic-invoices__cell schematic-invoices__status">
                         {row.status !== null && (
                           <span
-                            className="schematic-chip"
+                            className="schematic-chip schematic-invoices__chip"
                             data-status={row.status}
                           >
                             {statusLabel(row.status, t)}
@@ -211,7 +226,7 @@ export function Invoices({
             <div className="schematic-invoices__actions">
               {canCollapse && (
                 <button
-                  className="schematic-link-button"
+                  className="schematic-link-button schematic-invoices__see-more"
                   type="button"
                   onClick={() => setExpanded((value) => !value)}
                 >
@@ -220,7 +235,7 @@ export function Invoices({
               )}
               {showingAll && list.hasMore && (
                 <button
-                  className="schematic-link-button"
+                  className="schematic-link-button schematic-invoices__load-more"
                   disabled={isPending}
                   type="button"
                   // Expanding with it: the next page can take the list past
@@ -285,10 +300,17 @@ function statusLabel(status: InvoiceStatus, t: Translator): string {
 
 function InvoiceDate({ row }: { row: InvoiceRow }) {
   if (row.url === null) {
-    return <span>{row.dateText}</span>;
+    return (
+      <span className="schematic-invoices__date-text">{row.dateText}</span>
+    );
   }
   return (
-    <a href={row.url} rel="noreferrer" target="_blank">
+    <a
+      className="schematic-invoices__link"
+      href={row.url}
+      rel="noreferrer"
+      target="_blank"
+    >
       {row.dateText}
     </a>
   );

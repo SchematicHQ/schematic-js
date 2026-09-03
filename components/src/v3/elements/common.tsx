@@ -177,10 +177,12 @@ export const StatusFrame: React.FC<{
     return (
       <div className={className} data-state="error">
         <div className="schematic-status" role="alert">
-          <span className="schematic-error">{error.message}</span>
+          <span className="schematic-error schematic-status__message">
+            {error.message}
+          </span>
           {onRetry !== undefined && (
             <button
-              className="schematic-link-button"
+              className="schematic-link-button schematic-status__retry"
               type="button"
               onClick={onRetry}
             >

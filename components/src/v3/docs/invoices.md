@@ -84,44 +84,73 @@ the list, so a rename is a deliberate, breaking change.
 What the element renders, for a host styling it without `<SchematicStyles />`.
 The root's class list is the same in all three states — read `data-state` to
 tell them apart. Each column's class sits on its header as well as its cells,
-so alignment is set once and the two cannot disagree.
+so alignment is set once and the two cannot disagree; `__column` and
+`__cell` tell the two apart.
 
 ```html
 <div class="schematic-card schematic-invoices" data-state="ready">
   <div class="schematic-header">
-    <h2>Invoices</h2>
+    <h2 class="schematic-header__title">Invoices</h2>
     <!-- the row count, omitted when there are none -->
-    <span class="schematic-small schematic-muted">3 invoices</span>
+    <span class="schematic-small schematic-muted schematic-invoices__count">
+      3 invoices
+    </span>
   </div>
 
   <!-- with no rows, in place of the table -->
   <p class="schematic-muted schematic-invoices__empty">No invoices yet</p>
 
   <table class="schematic-invoices__table">
-    <thead>
-      <tr>
-        <th class="schematic-invoices__date" scope="col">Date</th>
-        <th class="schematic-invoices__amount" scope="col">Amount</th>
-        <th class="schematic-invoices__status" scope="col">Status</th>
+    <thead class="schematic-invoices__head">
+      <tr class="schematic-invoices__head-row">
+        <th
+          class="schematic-invoices__column schematic-invoices__date"
+          scope="col"
+        >
+          Date
+        </th>
+        <th
+          class="schematic-invoices__column schematic-invoices__amount"
+          scope="col"
+        >
+          Amount
+        </th>
+        <th
+          class="schematic-invoices__column schematic-invoices__status"
+          scope="col"
+        >
+          Status
+        </th>
       </tr>
     </thead>
-    <tbody>
-      <tr data-testid="schematic-invoice">
-        <td class="schematic-invoices__date"><a>…</a></td>
-        <td class="schematic-invoices__amount">
-          <!-- credit notes only -->
+    <tbody class="schematic-invoices__body">
+      <tr class="schematic-invoices__row" data-testid="schematic-invoice">
+        <td class="schematic-invoices__cell schematic-invoices__date">
+          <!-- .schematic-invoices__date-text when the invoice has no URL -->
+          <a class="schematic-invoices__link">…</a>
+        </td>
+        <td class="schematic-invoices__cell schematic-invoices__amount">
+          <!-- credit notes only; a plain amount is bare text in the cell -->
           <span class="schematic-invoices__credit">($15.00)</span>
         </td>
-        <td class="schematic-invoices__status">
-          <span class="schematic-chip" data-status="paid">Paid</span>
+        <td class="schematic-invoices__cell schematic-invoices__status">
+          <span
+            class="schematic-chip schematic-invoices__chip"
+            data-status="paid"
+            >Paid</span
+          >
         </td>
       </tr>
     </tbody>
   </table>
 
   <div class="schematic-invoices__actions">
-    <button class="schematic-link-button">See more</button>
-    <button class="schematic-link-button">Load more</button>
+    <button class="schematic-link-button schematic-invoices__see-more">
+      See more
+    </button>
+    <button class="schematic-link-button schematic-invoices__load-more">
+      Load more
+    </button>
   </div>
 
   <!-- a failure with rows still on screen -->
@@ -151,8 +180,8 @@ so alignment is set once and the two cannot disagree.
 
 <div class="schematic-card schematic-invoices" data-state="error">
   <div class="schematic-status">
-    <span class="schematic-error">…</span>
-    <button class="schematic-link-button">Retry</button>
+    <span class="schematic-error schematic-status__message">…</span>
+    <button class="schematic-link-button schematic-status__retry">Retry</button>
   </div>
 </div>
 ```
