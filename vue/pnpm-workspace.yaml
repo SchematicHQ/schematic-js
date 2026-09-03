@@ -30,3 +30,4 @@ allowBuilds:
   # dependencies. Their install scripts only compile or fetch a binding when
   # the matching optional package is missing, which it never is here.
   unrs-resolver: false
+  "@parcel/watcher": false
