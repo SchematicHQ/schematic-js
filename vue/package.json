@@ -42,7 +42,7 @@
     "eslint-plugin-vue": "^9.30.0",
     "globals": "^17.11.0",
     "husky": "^9.1.7",
-    "jest": "^30.4.2",
+    "jest": "^30.5.0",
     "jest-environment-jsdom": "^30.5.0",
     "jest-esbuild": "^0.4.0",
     "prettier": "^3.9.6",
