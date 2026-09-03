@@ -49,7 +49,7 @@
     "ts-jest": "^29.4.12",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.68.0",
-    "vue": "^3.5.41"
+    "vue": "^3.5.42"
   },
   "peerDependencies": {
     "vue": ">=3.3"
