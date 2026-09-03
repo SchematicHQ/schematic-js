@@ -34,6 +34,13 @@ import {
   MetricPeriodMonthResetToJSON,
   MetricPeriodMonthResetToJSONTyped,
 } from "./MetricPeriodMonthReset";
+import type { BillingCreditResponseData } from "./BillingCreditResponseData";
+import {
+  BillingCreditResponseDataFromJSON,
+  BillingCreditResponseDataFromJSONTyped,
+  BillingCreditResponseDataToJSON,
+  BillingCreditResponseDataToJSONTyped,
+} from "./BillingCreditResponseData";
 import type { FeatureResponseData } from "./FeatureResponseData";
 import {
   FeatureResponseDataFromJSON,
@@ -167,6 +174,18 @@ export interface CompanyOverrideResponseData {
   valueBool?: boolean | null;
   /**
    *
+   * @type {BillingCreditResponseData}
+   * @memberof CompanyOverrideResponseData
+   */
+  valueCredit?: BillingCreditResponseData;
+  /**
+   *
+   * @type {string}
+   * @memberof CompanyOverrideResponseData
+   */
+  valueCreditId?: string | null;
+  /**
+   *
    * @type {number}
    * @memberof CompanyOverrideResponseData
    */
@@ -260,6 +279,12 @@ export function CompanyOverrideResponseDataFromJSONTyped(
         : json["rule_id_usage_exceeded"],
     updatedAt: new Date(json["updated_at"]),
     valueBool: json["value_bool"] == null ? undefined : json["value_bool"],
+    valueCredit:
+      json["value_credit"] == null
+        ? undefined
+        : BillingCreditResponseDataFromJSON(json["value_credit"]),
+    valueCreditId:
+      json["value_credit_id"] == null ? undefined : json["value_credit_id"],
     valueNumeric:
       json["value_numeric"] == null ? undefined : json["value_numeric"],
     valueTrait:
@@ -310,6 +335,8 @@ export function CompanyOverrideResponseDataToJSONTyped(
     rule_id_usage_exceeded: value["ruleIdUsageExceeded"],
     updated_at: value["updatedAt"].toISOString(),
     value_bool: value["valueBool"],
+    value_credit: BillingCreditResponseDataToJSON(value["valueCredit"]),
+    value_credit_id: value["valueCreditId"],
     value_numeric: value["valueNumeric"],
     value_trait: EntityTraitDefinitionResponseDataToJSON(value["valueTrait"]),
     value_trait_id: value["valueTraitId"],
