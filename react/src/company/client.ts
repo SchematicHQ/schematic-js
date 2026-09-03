@@ -7,8 +7,13 @@ import type {
   CompanyResources,
   InvoicePage,
   InvoiceQuery,
+  UpcomingInvoice,
 } from "./contract";
-import { DEFAULT_INVOICE_QUERY, normalizeInvoiceQuery } from "./contract";
+import {
+  DEFAULT_INVOICE_QUERY,
+  SINGLETON,
+  normalizeInvoiceQuery,
+} from "./contract";
 import { KeyedResource } from "./store";
 
 export type {
@@ -30,11 +35,15 @@ export const INVOICE_PAGE_SIZE = 12;
  * The store for one session: a `KeyedResource` per company resource, built
  * over a `CompanyClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
- * resource. This release carries the invoices resource; the others join it
- * with their elements.
+ * resource. This release carries the invoices and upcoming-invoice
+ * resources; the others join them with their elements.
  */
 export class CompanyStore {
   readonly invoices: KeyedResource<InvoicePage, InvoiceQuery>;
+  readonly upcomingInvoice: KeyedResource<
+    UpcomingInvoice | null,
+    Record<string, never>
+  >;
   private _unsubscribe: (() => void) | undefined;
 
   constructor(
@@ -51,8 +60,17 @@ export class CompanyStore {
         Math.max(this._pageSize, current?.invoices.length ?? 0),
       ),
     );
+    this.upcomingInvoice = new KeyedResource(() =>
+      this._client.fetchUpcomingInvoice(),
+    );
     if (initialData.invoices !== undefined) {
       this.invoices.seed(DEFAULT_INVOICE_QUERY, initialData.invoices);
+    }
+    // `!== undefined`, not a truthiness check: `null` is a company with no
+    // next bill, and seeding it is what spares the page a request whose
+    // answer the prefetch already has.
+    if (initialData.upcomingInvoice !== undefined) {
+      this.upcomingInvoice.seed(SINGLETON, initialData.upcomingInvoice);
     }
   }
 
@@ -79,10 +97,16 @@ export class CompanyStore {
     };
   }
 
+  /**
+   * The family for one resource. The fields are named for their resource, so
+   * `this[name]` is the right object; TypeScript widens it to a union of
+   * every resource's family and cannot correlate that back to `K`, which is
+   * what the cast bridges.
+   */
   resource<K extends CompanyResourceName>(
     name: K,
   ): KeyedResource<CompanyResources[K], CompanyResourceParams[K]> {
-    return this[name] as KeyedResource<
+    return this[name] as unknown as KeyedResource<
       CompanyResources[K],
       CompanyResourceParams[K]
     >;
@@ -152,4 +176,7 @@ export class CompanyStore {
   }
 }
 
-export const RESOURCE_NAMES: readonly CompanyResourceName[] = ["invoices"];
+export const RESOURCE_NAMES: readonly CompanyResourceName[] = [
+  "invoices",
+  "upcomingInvoice",
+];

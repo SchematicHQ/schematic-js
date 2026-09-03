@@ -63,5 +63,49 @@
   "invoiceStatusVoid": "Void",
   "@invoiceStatusVoid": {
     "description": "Invoice status: cancelled, and never owed."
+  },
+  "upcomingBillLoading": "Loading your next bill",
+  "@upcomingBillLoading": {
+    "description": "Accessible name for the next-bill card while it loads. Read aloud, never seen."
+  },
+  "upcomingBillHeader": "Next bill due {{date}}",
+  "@upcomingBillHeader": {
+    "description": "Heading of the next-bill card. {{date}} is when the company will be charged."
+  },
+  "upcomingBillHeaderUndated": "Next bill",
+  "@upcomingBillHeaderUndated": {
+    "description": "Heading of the next-bill card when the billing provider gives no date."
+  },
+  "upcomingBillEstimate": "Estimated bill",
+  "@upcomingBillEstimate": {
+    "description": "Sits beside the amount. The bill is an estimate: usage before the billing date can still change it."
+  },
+  "upcomingBillEmpty": "No upcoming invoice",
+  "@upcomingBillEmpty": {
+    "description": "Replaces the card's contents when the company has nothing to be billed for."
+  },
+  "upcomingBillBalanceApplied": "Applied balance towards next invoice",
+  "@upcomingBillBalanceApplied": {
+    "description": "Row label. Account credit that this invoice will use up. The amount beside it is negative."
+  },
+  "upcomingBillBalanceRemaining": "Remaining balance after next invoice",
+  "@upcomingBillBalanceRemaining": {
+    "description": "Row label. Account credit still left after this invoice is paid."
+  },
+  "upcomingBillDiscount": "Discount",
+  "@upcomingBillDiscount": {
+    "description": "Row label over each discount applied to the bill."
+  },
+  "upcomingBillDiscountValue": "{{value}} off",
+  "@upcomingBillDiscountValue": {
+    "description": "What a discount takes off, e.g. \"20% off\" or \"$5.00 off\". {{value}} is already formatted."
+  },
+  "upcomingBillDiscountRepeating_one": "{{value}} off for {{count}} month",
+  "@upcomingBillDiscountRepeating_one": {
+    "description": "A discount that repeats for one more billing month, e.g. \"20% off for 1 month\"."
+  },
+  "upcomingBillDiscountRepeating_other": "{{value}} off for {{count}} months",
+  "@upcomingBillDiscountRepeating_other": {
+    "description": "A discount that repeats for a fixed number of billing months, e.g. \"20% off for 3 months\"."
   }
 }

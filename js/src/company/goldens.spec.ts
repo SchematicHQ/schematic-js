@@ -2,8 +2,11 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  GetCompanyUpcomingInvoiceResponseFromJSON,
   ListCompanyInvoicesResponseFromJSON,
+  instanceOfCompanyDiscountResponseData,
   instanceOfCompanyInvoiceResponseData,
+  instanceOfCompanyUpcomingInvoiceResponseData,
 } from "./api/company/models";
 
 /**
@@ -61,6 +64,30 @@ describe("goldens", () => {
         `company_invoices data[${invoice.id}]`,
       );
       expect(invoice.createdAt).toBeInstanceOf(Date);
+    }
+  });
+
+  it("company_upcoming_invoice decodes through the generated models", () => {
+    const response = GetCompanyUpcomingInvoiceResponseFromJSON(
+      golden("company_upcoming_invoice"),
+    );
+
+    requireContract(
+      instanceOfCompanyUpcomingInvoiceResponseData(response.data),
+      "company_upcoming_invoice data",
+    );
+    expect(response.data.dueDate).toBeInstanceOf(Date);
+    // The recorded bill is discounted and part-paid from the company's
+    // balance, so the golden exercises every field an element reads rather
+    // than a bare total.
+    expect(response.data.subtotal).toBeGreaterThan(response.data.amountDue);
+    expect(response.data.customerBalanceApplied).toBeGreaterThan(0);
+    expect(response.data.discounts.length).toBeGreaterThan(0);
+    for (const discount of response.data.discounts) {
+      requireContract(
+        instanceOfCompanyDiscountResponseData(discount),
+        `company_upcoming_invoice discounts[${discount.couponName}]`,
+      );
     }
   });
 });

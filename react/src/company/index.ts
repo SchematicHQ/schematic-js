@@ -20,6 +20,7 @@ export {
 export {
   useInvalidateCompanyData,
   useInvoices,
+  useUpcomingInvoice,
   type InvoicesHandle,
 } from "./hooks";
 export { CompanyProvider, type CompanyProviderProps } from "./provider";

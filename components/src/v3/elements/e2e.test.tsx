@@ -6,6 +6,7 @@ import { vi } from "vitest";
 import { SCENARIOS } from "../fixtures/scenarios";
 
 import { Invoices } from "./Invoices";
+import { UpcomingBill } from "./UpcomingBill";
 
 /**
  * The whole stack: wire JSON → schematic-js client → schematic-react store
@@ -26,6 +27,23 @@ function serve(scenario: ReturnType<(typeof SCENARIOS)["pro"]>) {
         { status: 200 },
       );
     }
+    if (url.pathname === "/company/upcoming-invoice") {
+      const upcoming = scenario.upcomingInvoice;
+      // The endpoint reports "nothing to bill" as a 404, which the client
+      // reads as `null` — the arm that keeps an empty state from looking
+      // like a failure.
+      return upcoming == null
+        ? new Response(JSON.stringify({ error: "not found" }), { status: 404 })
+        : new Response(
+            JSON.stringify({
+              data: companyApi.CompanyUpcomingInvoiceResponseDataToJSON(
+                upcoming,
+              ),
+              params: {},
+            }),
+            { status: 200 },
+          );
+    }
     return new Response(JSON.stringify({ error: "not found" }), {
       status: 404,
     });
@@ -33,11 +51,15 @@ function serve(scenario: ReturnType<(typeof SCENARIOS)["pro"]>) {
   return fetchImpl as unknown as typeof fetch;
 }
 
-function renderStack(ui: React.ReactNode, accessToken?: string) {
+function renderStack(
+  ui: React.ReactNode,
+  accessToken?: string,
+  scenario = SCENARIOS.pro(),
+) {
   const client = new SchematicCompanyClient({
     accessToken,
     apiUrl: "https://api.test",
-    fetch: serve(SCENARIOS.pro()),
+    fetch: serve(scenario),
   });
   return render(
     <SchematicProvider publishableKey="pk_test" companyClient={client}>
@@ -57,5 +79,21 @@ describe("end to end", () => {
   test("Invoices reports the missing token rather than crashing", async () => {
     renderStack(<Invoices />);
     expect(await screen.findByRole("alert")).toHaveTextContent(/access token/);
+  });
+
+  test("UpcomingBill", async () => {
+    renderStack(<UpcomingBill locale="en-US" />, "tok");
+    expect(
+      await screen.findByTestId("schematic-upcoming-total"),
+    ).toHaveTextContent("$68.00");
+    expect(screen.getByTestId("schematic-discount")).toHaveTextContent(
+      "20% off for 3 months",
+    );
+  });
+
+  test("UpcomingBill renders the empty state for a 404", async () => {
+    renderStack(<UpcomingBill locale="en-US" />, "tok", SCENARIOS.unbilled());
+    expect(await screen.findByText("No upcoming invoice")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

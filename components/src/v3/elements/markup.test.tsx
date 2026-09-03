@@ -4,10 +4,16 @@ import {
 } from "@schematichq/schematic-react";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-import { invoice, invoicePage } from "../fixtures/builders";
+import {
+  discount,
+  invoice,
+  invoicePage,
+  upcomingInvoice,
+} from "../fixtures/builders";
 import { SCENARIOS } from "../fixtures/scenarios";
 
 import { Invoices } from "./Invoices";
+import { UpcomingBill } from "./UpcomingBill";
 
 /**
  * The markup contract. A host that skips <SchematicStyles /> writes CSS
@@ -158,10 +164,95 @@ describe("Invoices markup contract", () => {
   });
 });
 
+function renderUpcomingBill(
+  data: CompanyData,
+  status?: React.ComponentProps<typeof CompanyDataProvider>["status"],
+) {
+  const { container } = render(
+    <CompanyDataProvider data={data} status={status}>
+      <UpcomingBill locale="en-US" />
+    </CompanyDataProvider>,
+  );
+  return container.firstElementChild as HTMLElement;
+}
+
+describe("UpcomingBill markup contract", () => {
+  test("the loaded card", () => {
+    const root = renderUpcomingBill(SCENARIOS.pro());
+    expect(root.className).toBe("schematic-card schematic-upcoming-bill");
+    expect(root).toHaveAttribute("data-state", "ready");
+    expect(classNames(root)).toEqual([
+      "schematic-chip",
+      "schematic-header",
+      "schematic-header__title",
+      "schematic-muted",
+      "schematic-row",
+      "schematic-row__label",
+      "schematic-row__value",
+      "schematic-small",
+      "schematic-upcoming-bill__amount",
+      "schematic-upcoming-bill__balance-applied",
+      "schematic-upcoming-bill__balance-remaining",
+      "schematic-upcoming-bill__code",
+      "schematic-upcoming-bill__discount",
+      "schematic-upcoming-bill__discount-row",
+      "schematic-upcoming-bill__discount-value",
+      "schematic-upcoming-bill__estimate",
+      "schematic-upcoming-bill__rows",
+      "schematic-upcoming-bill__total",
+    ]);
+  });
+
+  test("the card with nothing to bill", () => {
+    const root = renderUpcomingBill(SCENARIOS.unbilled());
+    expect(root).toHaveAttribute("data-state", "ready");
+    expect(classNames(root)).toEqual([
+      "schematic-muted",
+      "schematic-upcoming-bill__empty",
+    ]);
+  });
+
+  test("a bill with no balance or discounts drops the rows block", () => {
+    const root = renderUpcomingBill({ upcomingInvoice: upcomingInvoice() });
+    expect(classNames(root)).not.toContain("schematic-upcoming-bill__rows");
+  });
+
+  test("the pending card keeps the card's own shape", () => {
+    const root = renderUpcomingBill(
+      {},
+      { upcomingInvoice: { isPending: true } },
+    );
+    expect(root.className).toBe("schematic-card schematic-upcoming-bill");
+    expect(root).toHaveAttribute("data-state", "pending");
+    expect(root).toHaveAttribute("role", "status");
+    expect(
+      Array.from(
+        root.querySelectorAll<HTMLElement>(".schematic-skeleton__cell"),
+        (cell) => cell.dataset.column,
+      ),
+    ).toEqual(["amount", "row"]);
+  });
+
+  test("the failed card", () => {
+    const root = renderUpcomingBill(
+      {},
+      { upcomingInvoice: { error: new Error("Boom") } },
+    );
+    expect(root).toHaveAttribute("data-state", "error");
+    expect(classNames(root)).toEqual([
+      "schematic-error",
+      "schematic-link-button",
+      "schematic-status",
+      "schematic-status__message",
+      "schematic-status__retry",
+    ]);
+  });
+});
+
 /**
  * The rule behind the lists above: nothing an element renders is reachable
  * only by tag or by position. A host writing its own CSS gets a class for
- * every node, so a rule never has to say `.schematic-invoices__table td`
+ * every node, so a rule never has to say `.schematic-row > span:last-child`
  * and never breaks when a node moves.
  */
 function unclassed(root: HTMLElement): string[] {
@@ -199,6 +290,29 @@ describe("every node carries a schematic class", () => {
   test("Invoices, expanded past the collapsed rows", () => {
     const root = renderInvoices(SCENARIOS.pro());
     fireEvent.click(screen.getByRole("button", { name: "See more" }));
+    expect(unclassed(root)).toEqual([]);
+  });
+
+  test.each([
+    ["loaded", SCENARIOS.pro(), undefined],
+    ["nothing to bill", SCENARIOS.unbilled(), undefined],
+    ["pending", {}, { upcomingInvoice: pending }],
+    ["failed", {}, { upcomingInvoice: failed }],
+    [
+      "failed with the bill on screen",
+      SCENARIOS.pro(),
+      { upcomingInvoice: failed },
+    ],
+  ] as const)("UpcomingBill, %s", (_state, data, status) => {
+    expect(unclassed(renderUpcomingBill(data, status))).toEqual([]);
+  });
+
+  test("UpcomingBill, a coupon named in place of a promo code", () => {
+    const root = renderUpcomingBill({
+      upcomingInvoice: upcomingInvoice({
+        discounts: [discount({ customerFacingCode: null })],
+      }),
+    });
     expect(unclassed(root)).toEqual([]);
   });
 });

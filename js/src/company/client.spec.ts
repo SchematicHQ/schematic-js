@@ -24,7 +24,9 @@ function fakeFetch(
       const headers = (init?.headers ?? {}) as Record<string, string>;
       calls.push({ url, headers });
       const { status = 200, body = {} } = respond(url, headers);
-      return new Response(body === null ? "" : JSON.stringify(body), {
+      // `null` rather than "": a 204 may not carry a body at all, and the
+      // Response constructor rejects an empty string as one.
+      return new Response(body === null ? null : JSON.stringify(body), {
         status,
         headers: { "Content-Type": "application/json" },
       });
@@ -32,6 +34,18 @@ function fakeFetch(
   );
   return { calls, fetchImpl: fetchImpl as unknown as typeof fetch };
 }
+
+const wireUpcoming = {
+  data: {
+    amount_due: 6800,
+    currency: "usd",
+    customer_balance_applied: 1500,
+    customer_balance_remaining: 0,
+    discounts: [],
+    due_date: "2026-09-15T00:00:00Z",
+    subtotal: 8300,
+  },
+};
 
 const wireInvoices = {
   data: [
@@ -422,6 +436,66 @@ describe("SchematicCompanyClient", () => {
     );
   });
 
+  it("decodes the upcoming invoice", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireUpcoming }));
+    const client = new SchematicCompanyClient({
+      accessToken: "t",
+      fetch: fetchImpl,
+    });
+    const invoice = await client.fetchUpcomingInvoice();
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/upcoming-invoice",
+    );
+    expect(invoice?.amountDue).toBe(6800);
+    expect(invoice?.dueDate).toBeInstanceOf(Date);
+  });
+
+  it.each([204, 404])(
+    "reads %i on the upcoming invoice as no next bill",
+    async (status) => {
+      // A company with no subscription, or an account not on the flag: a
+      // state the element renders, not a failure it reports.
+      const { fetchImpl } = fakeFetch(() => ({ status, body: null }));
+      const client = new SchematicCompanyClient({
+        accessToken: "t",
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchUpcomingInvoice()).resolves.toBeNull();
+    },
+  );
+
+  it("still reports a failed upcoming invoice", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ status: 500, body: "oops" }));
+    const client = new SchematicCompanyClient({
+      accessToken: "t",
+      fetch: fetchImpl,
+    });
+    await expect(client.fetchUpcomingInvoice()).rejects.toBeInstanceOf(
+      SchematicApiError,
+    );
+  });
+
+  it("refreshes a stale token before reading it as no next bill", async () => {
+    // 401 is never a nullOn status: the retry has to run first, or an
+    // expired token would look like a company with nothing to bill.
+    const tokens = ["stale", "fresh"];
+    let served = 0;
+    const { calls, fetchImpl } = fakeFetch((_url, headers) => {
+      served += 1;
+      return headers["X-Schematic-Api-Key"] === "fresh"
+        ? { body: wireUpcoming }
+        : { status: 401, body: { error: "expired" } };
+    });
+    const client = new SchematicCompanyClient({
+      accessToken: () => Promise.resolve(tokens.shift() ?? "fresh"),
+      fetch: fetchImpl,
+    });
+    const invoice = await client.fetchUpcomingInvoice();
+    expect(served).toBe(2);
+    expect(calls[1].headers["X-Schematic-Api-Key"]).toBe("fresh");
+    expect(invoice?.amountDue).toBe(6800);
+  });
+
   it("throws SchematicApiError with the body for other failures", async () => {
     const { fetchImpl } = fakeFetch(() => ({ status: 500, body: "oops" }));
     const client = new SchematicCompanyClient({
@@ -441,10 +515,16 @@ describe("SchematicCompanyClient", () => {
 });
 
 describe("fetchCompanyData", () => {
-  it("prefetches invoices as a page and skips failures", async () => {
-    const { fetchImpl } = fakeFetch(() => ({
-      body: { data: Array.from({ length: 13 }, (_, i) => ({ id: `i${i}` })) },
-    }));
+  it("prefetches every resource and skips failures", async () => {
+    const { fetchImpl } = fakeFetch((url) =>
+      url.includes("upcoming-invoice")
+        ? { body: wireUpcoming }
+        : {
+            body: {
+              data: Array.from({ length: 13 }, (_, i) => ({ id: `i${i}` })),
+            },
+          },
+    );
     const client = new SchematicCompanyClient({
       accessToken: "t",
       fetch: fetchImpl,
@@ -452,6 +532,7 @@ describe("fetchCompanyData", () => {
     const data = await fetchCompanyData(client);
     expect(data.invoices).toMatchObject({ hasMore: true });
     expect(data.invoices?.invoices).toHaveLength(12);
+    expect(data.upcomingInvoice).toMatchObject({ amountDue: 6800 });
 
     const { fetchImpl: failing } = fakeFetch(() => ({
       status: 500,
@@ -461,5 +542,21 @@ describe("fetchCompanyData", () => {
       new SchematicCompanyClient({ accessToken: "t", fetch: failing }),
     );
     expect(empty.invoices).toBeUndefined();
+    expect(empty.upcomingInvoice).toBeUndefined();
+  });
+
+  it("seeds a company with no next bill as loaded, not missing", async () => {
+    // `null` is the answer, so the key is present: a provider seeded with
+    // it renders the empty state instead of a permanent skeleton.
+    const { fetchImpl } = fakeFetch((url) =>
+      url.includes("upcoming-invoice")
+        ? { status: 404, body: null }
+        : { body: { data: [] } },
+    );
+    const data = await fetchCompanyData(
+      new SchematicCompanyClient({ accessToken: "t", fetch: fetchImpl }),
+    );
+    expect(data.upcomingInvoice).toBeNull();
+    expect("upcomingInvoice" in data).toBe(true);
   });
 });

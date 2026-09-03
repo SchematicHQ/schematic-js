@@ -4,7 +4,8 @@ import { formatCurrency, formatDate } from "./format";
 
 /**
  * `deriveInvoiceList`: invoice history rows, each carrying the raw value and
- * the formatted text. (`deriveUpcomingInvoice` ships with UpcomingBill.)
+ * the formatted text. (The next bill is `deriveUpcomingInvoice`, in
+ * ./upcoming.)
  */
 
 /**

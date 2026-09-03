@@ -1,9 +1,13 @@
-import { ListCompanyInvoicesResponseFromJSON } from "./api/company/models";
+import {
+  GetCompanyUpcomingInvoiceResponseFromJSON,
+  ListCompanyInvoicesResponseFromJSON,
+} from "./api/company/models";
 import type {
   CompanyData,
   CompanyResourceName,
   Invoice,
   InvoiceQuery,
+  UpcomingInvoice,
 } from "./contract";
 
 /**
@@ -23,6 +27,8 @@ export interface InvoicesRequest extends InvoiceQuery {
 
 export interface CompanyClient {
   fetchInvoices(params: InvoicesRequest): Promise<Invoice[]>;
+  /** `null` when the company has no next bill. */
+  fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
   onCredentialsChange?(listener: () => void): () => void;
   /**
    * Installs the token, and optionally the host's name for the session it
@@ -83,8 +89,9 @@ interface ResolvingToken {
 }
 
 /**
- * The company API client — today, the `/company/invoices` slice of
- * it; the catalog and remaining company reads ship with their elements.
+ * The company API client — today, the `/company/invoices` and
+ * `/company/upcoming-invoice` slice of it; the catalog and remaining
+ * company reads ship with their elements.
  *
  * Token handling: a string token is used as-is; a provider is called once
  * and cached (single-flight) until it expires or a request returns 401, in
@@ -265,6 +272,29 @@ export class SchematicCompanyClient implements CompanyClient {
     });
   }
 
+  /**
+   * The next bill, or `null` when there is none.
+   *
+   * A company with no subscription has nothing to preview and the endpoint
+   * says so with a 404, which is a state rather than a failure — an element
+   * shows "no upcoming invoice" instead of an error. An account that is not
+   * on the company-context-api flag 404s the same way, and arrives here as
+   * the same `null`; that is the rollout switch, not something a page in
+   * production has to tell apart.
+   */
+  fetchUpcomingInvoice(): Promise<UpcomingInvoice | null> {
+    const path = "/company/upcoming-invoice";
+    return this._request(path, { nullOn: [204, 404] }).then((body) => {
+      if (body === null) {
+        return null;
+      }
+      if (typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return GetCompanyUpcomingInvoiceResponseFromJSON(body).data;
+    });
+  }
+
   private async _credential(): Promise<string> {
     if (this._accessToken === undefined) {
       throw new Error("An access token is required to read company data.");
@@ -324,7 +354,15 @@ export class SchematicCompanyClient implements CompanyClient {
     return promise;
   }
 
-  private async _request(path: string): Promise<unknown> {
+  /**
+   * `nullOn` lists statuses that are an answer rather than a failure, and
+   * resolve to `null`. A 401 is never one of them: the refresh-and-retry
+   * below runs first, and only a second rejection surfaces.
+   */
+  private async _request(
+    path: string,
+    options: { nullOn?: number[] } = {},
+  ): Promise<unknown> {
     const send = async (credential: string): Promise<Response> =>
       this._fetch(`${this._apiUrl}${path}`, {
         method: "GET",
@@ -348,6 +386,13 @@ export class SchematicCompanyClient implements CompanyClient {
       // than held open for the life of the retry.
       await readBody(response);
       response = await send(await this._resolveToken(provider, true));
+    }
+
+    if (options.nullOn?.includes(response.status) === true) {
+      // Drain it: the body is not read below, and an undrained response
+      // holds its connection open.
+      await readBody(response);
+      return null;
     }
 
     const body = await readBody(response);
@@ -414,7 +459,7 @@ export async function fetchCompanyData(
   client: CompanyClient,
   names?: CompanyResourceName[],
 ): Promise<CompanyData> {
-  const wanted = names ?? ["invoices"];
+  const wanted = names ?? ["invoices", "upcomingInvoice"];
   const data: CompanyData = {};
   await Promise.all(
     wanted.map(async (name) => {
@@ -431,6 +476,9 @@ export async function fetchCompanyData(
             };
             break;
           }
+          case "upcomingInvoice":
+            data.upcomingInvoice = await client.fetchUpcomingInvoice();
+            break;
         }
       } catch {
         // left out

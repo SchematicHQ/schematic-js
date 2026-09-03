@@ -64,9 +64,39 @@ export type ElementStrings = {
   invoiceStatusPaid: string;
   invoiceStatusUncollectible: string;
   invoiceStatusVoid: string;
+
+  /** UpcomingBill: the accessible name while the next bill loads. */
+  upcomingBillLoading: string;
+  /** UpcomingBill: the card heading, with the date the bill is due. */
+  upcomingBillHeader: string;
+  /** UpcomingBill: the heading when the provider names no due date. */
+  upcomingBillHeaderUndated: string;
+  /** UpcomingBill: beside the amount, which is an estimate until it is charged. */
+  upcomingBillEstimate: string;
+  /** UpcomingBill: shown when the company has no next bill. */
+  upcomingBillEmpty: string;
+  /** UpcomingBill: the row for balance this invoice consumes. */
+  upcomingBillBalanceApplied: string;
+  /** UpcomingBill: the row for balance surviving this invoice. */
+  upcomingBillBalanceRemaining: string;
+  /** UpcomingBill: the label on a discount row. */
+  upcomingBillDiscount: string;
+  /** UpcomingBill: what a discount takes off, e.g. "20% off". */
+  upcomingBillDiscountValue: string;
+  /** UpcomingBill: a repeating discount, e.g. "20% off for 3 months". */
+  upcomingBillDiscountRepeating_one: string;
+  upcomingBillDiscountRepeating_other: string;
 };
 
-export type StringKey = keyof ElementStrings;
+/**
+ * Keys whose copy varies by count. The catalogue declares them with
+ * i18next's `_one` / `_other` suffixes; an element asks for the bare name
+ * and passes `{ count }`, and `lookup` picks the form — the same call a
+ * host's own catalogue answers.
+ */
+export type PluralStringKey = "upcomingBillDiscountRepeating";
+
+export type StringKey = keyof ElementStrings | PluralStringKey;
 
 /** A flat catalogue: what a host's `strings` and our defaults both are. */
 export type StringCatalog = Record<string, string | undefined>;
@@ -109,17 +139,34 @@ export const DEFAULT_STRINGS: ElementStrings = {
   invoiceStatusPaid: "Paid",
   invoiceStatusUncollectible: "Uncollectible",
   invoiceStatusVoid: "Void",
+
+  upcomingBillLoading: "Loading your next bill",
+  upcomingBillHeader: "Next bill due {{date}}",
+  upcomingBillHeaderUndated: "Next bill",
+  upcomingBillEstimate: "Estimated bill",
+  upcomingBillEmpty: "No upcoming invoice",
+  upcomingBillBalanceApplied: "Applied balance towards next invoice",
+  upcomingBillBalanceRemaining: "Remaining balance after next invoice",
+  upcomingBillDiscount: "Discount",
+  upcomingBillDiscountValue: "{{value}} off",
+  upcomingBillDiscountRepeating_one: "{{value}} off for {{count}} month",
+  upcomingBillDiscountRepeating_other: "{{value}} off for {{count}} months",
 };
 
-/** Every key, for a host wiring its catalogue up by hand. */
-export const STRING_KEYS = Object.keys(DEFAULT_STRINGS) as StringKey[];
+/**
+ * Every catalogue entry, for a host wiring one up by hand. Plural keys
+ * appear in their suffixed forms — those are the entries a catalogue holds.
+ */
+export const STRING_KEYS = Object.keys(
+  DEFAULT_STRINGS,
+) as (keyof ElementStrings)[];
 
 /**
  * What each string is for, in a translator's terms: where it appears and
  * what constrains it. Shipped beside the copy in `locales/en.json`, because
  * "Open" and "Draft" are unguessable on their own.
  */
-export const STRING_DESCRIPTIONS: Record<StringKey, string> = {
+export const STRING_DESCRIPTIONS: Record<keyof ElementStrings, string> = {
   retry: "Button. Runs a failed request again. Appears in every element.",
 
   invoicesLoading:
@@ -146,6 +193,28 @@ export const STRING_DESCRIPTIONS: Record<StringKey, string> = {
   invoiceStatusUncollectible:
     "Invoice status: written off after payment failed.",
   invoiceStatusVoid: "Invoice status: cancelled, and never owed.",
+
+  upcomingBillLoading:
+    "Accessible name for the next-bill card while it loads. Read aloud, never seen.",
+  upcomingBillHeader:
+    "Heading of the next-bill card. {{date}} is when the company will be charged.",
+  upcomingBillHeaderUndated:
+    "Heading of the next-bill card when the billing provider gives no date.",
+  upcomingBillEstimate:
+    "Sits beside the amount. The bill is an estimate: usage before the billing date can still change it.",
+  upcomingBillEmpty:
+    "Replaces the card's contents when the company has nothing to be billed for.",
+  upcomingBillBalanceApplied:
+    "Row label. Account credit that this invoice will use up. The amount beside it is negative.",
+  upcomingBillBalanceRemaining:
+    "Row label. Account credit still left after this invoice is paid.",
+  upcomingBillDiscount: "Row label over each discount applied to the bill.",
+  upcomingBillDiscountValue:
+    'What a discount takes off, e.g. "20% off" or "$5.00 off". {{value}} is already formatted.',
+  upcomingBillDiscountRepeating_one:
+    'A discount that repeats for one more billing month, e.g. "20% off for 1 month".',
+  upcomingBillDiscountRepeating_other:
+    'A discount that repeats for a fixed number of billing months, e.g. "20% off for 3 months".',
 };
 
 /**
@@ -213,7 +282,11 @@ export function lookup(
  * catalogue has never heard of.
  */
 export function defaultString(key: StringKey, vars?: StringVars): string {
-  return lookup(DEFAULT_STRINGS, key, vars) ?? DEFAULT_STRINGS[key] ?? key;
+  return (
+    lookup(DEFAULT_STRINGS, key, vars) ??
+    (DEFAULT_STRINGS as StringCatalog)[key] ??
+    key
+  );
 }
 
 /**

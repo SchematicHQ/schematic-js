@@ -7,8 +7,8 @@ import { SchematicProvider } from "../context";
 
 import { CompanyStore, type CompanyClient } from "./client";
 import { CompanyDataProvider, MISSING_COMPANY_SOURCE_MESSAGE } from "./context";
-import type { CompanyData, Invoice } from "./contract";
-import { useInvoices } from "./hooks";
+import type { CompanyData, Invoice, UpcomingInvoice } from "./contract";
+import { useInvoices, useUpcomingInvoice } from "./hooks";
 import { CompanyProvider } from "./provider";
 
 const isDOMEnvironment = typeof document !== "undefined";
@@ -17,6 +17,8 @@ const it_ = isDOMEnvironment ? it : it.skip;
 const flush = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)));
 
 const invoice = (id: string) => ({ id }) as unknown as Invoice;
+const upcoming = (amountDue: number) =>
+  ({ amountDue }) as unknown as UpcomingInvoice;
 const page = (...ids: string[]): CompanyData["invoices"] => ({
   invoices: ids.map(invoice),
   hasMore: false,
@@ -29,6 +31,7 @@ function fakeClient(overrides: Partial<CompanyClient> = {}): CompanyClient & {
   return {
     listeners,
     fetchInvoices: vi.fn(async () => []),
+    fetchUpcomingInvoice: vi.fn(async () => null),
     onCredentialsChange: (listener) => {
       listeners.push(listener);
       return () => {};
@@ -93,17 +96,30 @@ describe("company hooks", () => {
   it_("reset every resource when the client's credentials change", async () => {
     const client = fakeClient({
       fetchInvoices: vi.fn(async () => [invoice("inv_1")]),
+      fetchUpcomingInvoice: vi.fn(async () => upcoming(6800)),
     });
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <CompanyProvider companyClient={client}>{children}</CompanyProvider>
     );
-    const { result } = renderHook(() => useInvoices(), { wrapper });
+    const { result } = renderHook(
+      () => ({ invoices: useInvoices(), upcoming: useUpcomingInvoice() }),
+      { wrapper },
+    );
     await flush();
-    expect(result.current.data).toBeDefined();
+    expect(result.current.invoices.data).toBeDefined();
+    expect(result.current.upcoming.data).toBeDefined();
     act(() => client.listeners.forEach((l) => l()));
-    expect(result.current).toMatchObject({ data: undefined, isPending: true });
+    expect(result.current.invoices).toMatchObject({
+      data: undefined,
+      isPending: true,
+    });
+    expect(result.current.upcoming).toMatchObject({
+      data: undefined,
+      isPending: true,
+    });
     await flush();
     expect(client.fetchInvoices).toHaveBeenCalledTimes(2);
+    expect(client.fetchUpcomingInvoice).toHaveBeenCalledTimes(2);
   });
 
   it_("forward the accessToken prop to the client", () => {
@@ -685,6 +701,69 @@ describe("company hooks", () => {
   );
 });
 
+describe("useUpcomingInvoice", () => {
+  it_("loads the next bill through the client", async () => {
+    const client = fakeClient({
+      fetchUpcomingInvoice: vi.fn(async () => upcoming(6800)),
+    });
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: ({ children }) => (
+        <CompanyProvider companyClient={client}>{children}</CompanyProvider>
+      ),
+    });
+    expect(result.current.isPending).toBe(true);
+    await flush();
+    expect(result.current.data).toMatchObject({ amountDue: 6800 });
+    act(() => result.current.refetch());
+    await flush();
+    expect(client.fetchUpcomingInvoice).toHaveBeenCalledTimes(2);
+  });
+
+  it_("reads no next bill as loaded rather than pending", async () => {
+    // A company with nothing to bill answers `null`, and an element has to
+    // be able to tell that from "still loading" — otherwise it shows a
+    // skeleton forever.
+    const client = fakeClient();
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: ({ children }) => (
+        <CompanyProvider companyClient={client}>{children}</CompanyProvider>
+      ),
+    });
+    await flush();
+    expect(result.current.data).toBeNull();
+    expect(result.current.isPending).toBe(false);
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it_("serves a seeded null without a request", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: ({ children }) => (
+        <CompanyProvider
+          companyClient={client}
+          initialData={{ upcomingInvoice: null }}
+        >
+          {children}
+        </CompanyProvider>
+      ),
+    });
+    expect(result.current).toMatchObject({ data: null, isPending: false });
+    await flush();
+    expect(client.fetchUpcomingInvoice).not.toHaveBeenCalled();
+  });
+
+  it_("reads from CompanyDataProvider like every other resource", () => {
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: ({ children }) => (
+        <CompanyDataProvider data={{ upcomingInvoice: upcoming(1200) }}>
+          {children}
+        </CompanyDataProvider>
+      ),
+    });
+    expect(result.current.data).toMatchObject({ amountDue: 1200 });
+  });
+});
+
 describe("CompanyStore", () => {
   it("invalidateAll refetches only loaded resources", async () => {
     const client = fakeClient();
@@ -692,9 +771,12 @@ describe("CompanyStore", () => {
     store.invalidateAll();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(client.fetchInvoices).not.toHaveBeenCalled();
+    expect(client.fetchUpcomingInvoice).not.toHaveBeenCalled();
     await store.invoices.get({}).load();
+    await store.upcomingInvoice.get({}).load();
     store.invalidateAll();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(client.fetchInvoices).toHaveBeenCalledTimes(2);
+    expect(client.fetchUpcomingInvoice).toHaveBeenCalledTimes(2);
   });
 });

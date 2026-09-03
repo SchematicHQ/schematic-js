@@ -35,6 +35,17 @@ const KEYS = [
   "invoicesSeeMore",
   "invoicesStatusColumn",
   "retry",
+  "upcomingBillBalanceApplied",
+  "upcomingBillBalanceRemaining",
+  "upcomingBillDiscount",
+  "upcomingBillDiscountRepeating_one",
+  "upcomingBillDiscountRepeating_other",
+  "upcomingBillDiscountValue",
+  "upcomingBillEmpty",
+  "upcomingBillEstimate",
+  "upcomingBillHeader",
+  "upcomingBillHeaderUndated",
+  "upcomingBillLoading",
 ];
 
 describe("the string contract", () => {
@@ -144,9 +155,27 @@ describe("defaultString", () => {
   });
 
   test("interpolates vars a host passed through", () => {
-    // No default carries a placeholder today; the machinery is what a future
-    // count-bearing string relies on, so it is proven rather than assumed.
+    expect(defaultString("upcomingBillHeader", { date: "September 15" })).toBe(
+      "Next bill due September 15",
+    );
     expect(defaultString("retry", { count: 2 })).toBe("Retry");
+  });
+
+  test("picks an English plural form for a count-bearing key", () => {
+    // The bare name is what an element asks for; the catalogue holds the
+    // suffixed forms, here and in a host's own file.
+    expect(
+      defaultString("upcomingBillDiscountRepeating", {
+        count: 1,
+        value: "20%",
+      }),
+    ).toBe("20% off for 1 month");
+    expect(
+      defaultString("upcomingBillDiscountRepeating", {
+        count: 3,
+        value: "20%",
+      }),
+    ).toBe("20% off for 3 months");
   });
 });
 

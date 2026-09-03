@@ -8,12 +8,19 @@ import { render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { vi } from "vitest";
 
-import { daysFromNow, invoice, invoicePage } from "../fixtures/builders";
+import {
+  daysFromNow,
+  discount,
+  invoice,
+  invoicePage,
+  upcomingInvoice,
+} from "../fixtures/builders";
 import { SCENARIOS } from "../fixtures/scenarios";
 import { formatDate } from "../model";
 import { MISSING_STRING } from "../strings";
 
 import { Invoices, type InvoicesProps } from "./Invoices";
+import { UpcomingBill } from "./UpcomingBill";
 
 /**
  * The resolution ladder every element shares, exercised through one of them:
@@ -245,5 +252,89 @@ describe("locale", () => {
       </CompanyDataProvider>,
     );
     expect(heading()).toBe("Facturen");
+  });
+});
+
+/**
+ * Interpolation and plurals, which only a count-bearing element exercises:
+ * the elements never assemble a sentence from fragments, so a translator
+ * gets one string with placeholders and owns the word order.
+ */
+describe("interpolation and plurals", () => {
+  const renderBill = (
+    i18n: SchematicI18nConfig = {},
+    months: number | null = 3,
+  ) =>
+    render(
+      <CompanyDataProvider
+        data={{
+          upcomingInvoice: upcomingInvoice({
+            dueDate: daysFromNow(14),
+            discounts: [discount({ durationInMonths: months })],
+          }),
+        }}
+        {...i18n}
+      >
+        <UpcomingBill locale="en-US" />
+      </CompanyDataProvider>,
+    );
+
+  test("fills our own default with the value it names", () => {
+    renderBill();
+    expect(heading()).toBe(
+      `Next bill due ${formatDate(daysFromNow(14), "en-US")}`,
+    );
+  });
+
+  test("fills a host's override the same way", () => {
+    renderBill({ strings: { upcomingBillHeader: "Fällig am {{date}}" } });
+    expect(heading()).toBe(`Fällig am ${formatDate(daysFromNow(14), "en-US")}`);
+  });
+
+  test("hands the host's stack the count and the formatted value", () => {
+    const translate = vi.fn(() => undefined);
+    renderBill({ translate });
+    expect(translate).toHaveBeenCalledWith(
+      "upcomingBillDiscountRepeating",
+      expect.objectContaining({ count: 3, value: "20%" }),
+    );
+  });
+
+  test("the host's stack owns the plural form when it answers", () => {
+    renderBill({
+      translate: (key, vars) =>
+        key === "upcomingBillDiscountRepeating"
+          ? `${vars?.value as string} rabat gedurende ${vars?.count as number} maanden`
+          : undefined,
+    });
+    expect(screen.getByTestId("schematic-discount")).toHaveTextContent(
+      "20% rabat gedurende 3 maanden",
+    );
+  });
+
+  test("a host's own plural forms resolve under the viewer's locale", () => {
+    // The suffixed keys are what a catalogue holds; the element asks for the
+    // bare name, here and in the host's file.
+    renderBill(
+      {
+        locale: "en-US",
+        strings: {
+          upcomingBillDiscountRepeating_one: "{{value}} off, one more month",
+          upcomingBillDiscountRepeating_other:
+            "{{value}} off, {{count}} more months",
+        },
+      },
+      1,
+    );
+    expect(screen.getByTestId("schematic-discount")).toHaveTextContent(
+      "20% off, one more month",
+    );
+  });
+
+  test("English falls back through our own plural forms", () => {
+    renderBill({}, 1);
+    expect(screen.getByTestId("schematic-discount")).toHaveTextContent(
+      "20% off for 1 month",
+    );
   });
 });

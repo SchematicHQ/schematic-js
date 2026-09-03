@@ -4,16 +4,17 @@ Code-first React elements on the company API. Each element reads one or two
 resources through hooks from `@schematichq/schematic-react`, reduces them to
 a domain model with a pure derivation, and renders with CSS-variable styling.
 
-This release carries the first element; the rest land with the endpoints
-that feed them.
+This release carries the two billing elements; the rest land with the
+endpoints that feed them.
 
 Naming: `company` is the end-customer API tier that the elements read from
 (`SchematicCompanyClient`, `CompanyProvider`, `fetchCompanyData`); `catalog`
 is reserved for the offerings resource.
 
-| Element  | Hooks         | Derivation          | Recipe                       |
-| -------- | ------------- | ------------------- | ---------------------------- |
-| Invoices | `useInvoices` | `deriveInvoiceList` | [invoices.md](./invoices.md) |
+| Element      | Hooks                | Derivation              | Recipe                                 |
+| ------------ | -------------------- | ----------------------- | -------------------------------------- |
+| Invoices     | `useInvoices`        | `deriveInvoiceList`     | [invoices.md](./invoices.md)           |
+| UpcomingBill | `useUpcomingInvoice` | `deriveUpcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md) |
 
 Cross-cutting: [localization.md](./localization.md) — locale, copy, and
 rendering your own markup over the hooks.
@@ -25,6 +26,7 @@ import { SchematicProvider } from "@schematichq/schematic-react";
 import {
   Invoices,
   SchematicStyles,
+  UpcomingBill,
 } from "@schematichq/schematic-components/v3";
 
 <SchematicProvider
@@ -32,6 +34,7 @@ import {
   accessToken={async () => (await fetch("/api/access-token")).json()}
 >
   <SchematicStyles />
+  <UpcomingBill />
   <Invoices />
 </SchematicProvider>;
 ```
@@ -143,6 +146,9 @@ they are API, and each element's doc shows the tree it renders.
 | `schematic-badge`             | A filled pill.                                            |
 | `schematic-cta`               | Filled action; `--outline` and `--small` modifiers.       |
 | `schematic-link-button`       | Inline text action ("See more", "Retry", "Load more").    |
+| `schematic-row`               | A label / figure pair within a card.                      |
+| `schematic-row__label`        | The label in that pair.                                   |
+| `schematic-row__value`        | The figure in that pair.                                  |
 | `schematic-status`            | The error row that replaces a card's content.             |
 | `schematic-status__message`   | The message within it.                                    |
 | `schematic-status__retry`     | Its retry action.                                         |

@@ -1,0 +1,21 @@
+{
+  "data": {
+    "amount_due": 6800,
+    "currency": "usd",
+    "customer_balance_applied": 6800,
+    "customer_balance_remaining": 3200,
+    "discounts": [
+      {
+        "amount_off": 0,
+        "coupon_name": "Launch",
+        "currency": null,
+        "customer_facing_code": "LAUNCH20",
+        "duration": "repeating",
+        "duration_in_months": 3,
+        "percent_off": 20
+      }
+    ],
+    "due_date": "2026-09-16T01:41:53-04:00",
+    "subtotal": 8300
+  }
+}

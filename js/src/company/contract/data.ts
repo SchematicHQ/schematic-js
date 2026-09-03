@@ -2,12 +2,13 @@
  * The resource boundary the elements read through. One resource per unit of
  * server state that can be stale independently of the others — the hook
  * granularity the elements need, and therefore the endpoint granularity the
- * contract proposes. This release carries the invoices resource; the others
- * (catalog, company, usage, credits, upcomingInvoice) ship with their
+ * contract proposes. This release carries the invoices and upcoming-invoice
+ * resources; the others (catalog, company, usage, credits) ship with their
  * elements.
  */
 
 import type { InvoicePage, InvoiceQuery } from "./invoices";
+import type { UpcomingInvoice } from "./upcoming";
 
 /** Every resource reports through the same three-field status. */
 export interface ResourceState<T> {
@@ -34,6 +35,12 @@ export interface ResourceState<T> {
 export interface CompanyResources {
   /** `GET /company/invoices?limit&offset&include_pending`. */
   invoices: InvoicePage;
+  /**
+   * `GET /company/upcoming-invoice`. `null` is a loaded value — the company
+   * has no next bill, which the endpoint reports as a 404 — so only
+   * `undefined` means the resource has not loaded.
+   */
+  upcomingInvoice: UpcomingInvoice | null;
 }
 
 /**
@@ -43,7 +50,11 @@ export interface CompanyResources {
  */
 export interface CompanyResourceParams {
   invoices: InvoiceQuery;
+  upcomingInvoice: Record<string, never>;
 }
+
+/** The parameters of a singleton resource: there is one of it. */
+export const SINGLETON: Record<string, never> = {};
 
 export type CompanyResourceName = keyof CompanyResources;
 

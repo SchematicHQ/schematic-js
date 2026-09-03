@@ -3,7 +3,10 @@ apis/CheckoutexternalApi.ts
 apis/index.ts
 index.ts
 models/ApiError.ts
+models/CompanyDiscountResponseData.ts
 models/CompanyInvoiceResponseData.ts
+models/CompanyUpcomingInvoiceResponseData.ts
+models/GetCompanyUpcomingInvoiceResponse.ts
 models/InvoiceStatus.ts
 models/ListCompanyInvoicesParams.ts
 models/ListCompanyInvoicesResponse.ts

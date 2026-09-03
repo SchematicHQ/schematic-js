@@ -5,7 +5,13 @@ import {
 import { render } from "@testing-library/react";
 
 import { Invoices } from "../elements/Invoices";
-import { invoice, invoicePage } from "../fixtures/builders";
+import { UpcomingBill } from "../elements/UpcomingBill";
+import {
+  discount,
+  invoice,
+  invoicePage,
+  upcomingInvoice,
+} from "../fixtures/builders";
 import { SCENARIOS } from "../fixtures/scenarios";
 
 import { withTokenDefaults } from "./tokens";
@@ -17,19 +23,19 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * node an element renders carries a class (elements/markup.test.tsx holds
  * that line), so the sheet has no reason to reach for a tag or a position —
  * and a rule that no longer matches anything is a rename that only got
- * halfway. This renders the element in every state and checks that each
- * rule aimed at it still lands.
+ * halfway. This renders both elements in every state and checks that each
+ * rule aimed at them still lands.
  *
- * Only rules naming a shipped element or a class it uses are checked: the
- * sheet also carries styling for elements that land with the endpoints
- * feeding them, and those match nothing yet by definition.
+ * Only rules naming a shipped element or a class those elements use are
+ * checked: the sheet also carries styling for elements that land with the
+ * endpoints feeding them, and those match nothing yet by definition.
  */
 const SHIPPED =
-  /schematic-(invoices|card|header|status|skeleton|chip|muted|small|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|card|header|row|status|skeleton|chip|muted|small|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own.
- * Invoices passes one, so nothing here can match it.
+ * Both shipped elements pass one, so nothing here can match it.
  */
 const UNREACHABLE = new Set([".schematic-skeleton:empty"]);
 
@@ -76,7 +82,7 @@ function tree(node: React.ReactNode, data: CompanyData, status?: never) {
   return container.firstElementChild as HTMLElement;
 }
 
-/** Every state and branch the element can render. */
+/** Every state and branch the two elements can render. */
 function everyCard() {
   const noUrl = SCENARIOS.pro();
   noUrl.invoices = invoicePage([invoice({ url: null })]);
@@ -100,6 +106,19 @@ function everyCard() {
     } as never),
     tree(<Invoices locale="en-US" />, SCENARIOS.pro(), {
       invoices: { error: boom },
+    } as never),
+    tree(<UpcomingBill locale="en-US" />, SCENARIOS.pro()),
+    tree(<UpcomingBill locale="en-US" />, {
+      upcomingInvoice: upcomingInvoice({
+        discounts: [discount({ customerFacingCode: null })],
+      }),
+    }),
+    tree(<UpcomingBill locale="en-US" />, SCENARIOS.unbilled()),
+    tree(<UpcomingBill locale="en-US" />, {}, {
+      upcomingInvoice: { isPending: true },
+    } as never),
+    tree(<UpcomingBill locale="en-US" />, {}, {
+      upcomingInvoice: { error: boom },
     } as never),
   ];
 }

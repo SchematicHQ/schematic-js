@@ -2,6 +2,7 @@ import React from "react";
 
 import { invoicesCss } from "./invoices";
 import { withTokenDefaults } from "./tokens";
+import { upcomingBillCss } from "./upcomingBill";
 
 export { SCHEMATIC_TOKENS, schematicTokensCss } from "./tokens";
 
@@ -233,6 +234,18 @@ const rulesCss = `
 
 .schematic-meter--over .schematic-meter__fill {
   background: var(--schematic-danger);
+}
+
+.schematic-row {
+  align-items: baseline;
+  display: flex;
+  gap: var(--schematic-space);
+  justify-content: space-between;
+  padding: calc(var(--schematic-space) / 4) 0;
+}
+
+.schematic-row__value {
+  text-align: end;
 }
 
 .schematic-notice {
@@ -491,6 +504,8 @@ const rulesCss = `
 }
 
 ${invoicesCss}
+
+${upcomingBillCss}
 `;
 
 /**

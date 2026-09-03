@@ -1,8 +1,8 @@
 /**
  * `@schematichq/schematic-components/v3` — code-first elements on the
  * company API, with the contract, derivations, and data seam they use.
- * This release carries the Invoices element; the other elements land with
- * the endpoints that feed them.
+ * This release carries the Invoices and UpcomingBill elements; the others
+ * land with the endpoints that feed them.
  */
 
 // The contract types, hooks, and providers live in schematic-react; the
@@ -17,9 +17,11 @@ export {
   useSchematicLocale,
   useSchematicStrings,
   useSchematicTranslate,
+  useUpcomingInvoice,
   type CompanyData,
   type CompanyDataProviderProps,
   type CompanyDataStatus,
+  type Discount,
   type Invoice,
   type InvoicePage,
   type InvoiceQuery,
@@ -27,11 +29,13 @@ export {
   type ResourceState,
   type SchematicI18nConfig,
   type SchematicI18nProviderProps,
+  type UpcomingInvoice,
 } from "@schematichq/schematic-react";
 export * from "./model";
 export * from "./strings";
 export * from "./styles";
 export { Invoices, type InvoicesProps } from "./elements/Invoices";
+export { UpcomingBill, type UpcomingBillProps } from "./elements/UpcomingBill";
 // The locale and copy an element would resolve, for a host rendering its own
 // markup over the hooks and wanting the two to agree.
 export {
