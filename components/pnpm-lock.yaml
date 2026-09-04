@@ -17,8 +17,8 @@ importers:
         specifier: ^0.8.0
         version: 0.8.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@stripe/stripe-js':
-        specifier: ^9.14.0
-        version: 9.14.0
+        specifier: ^9.15.0
+        version: 9.15.0
       i18next:
         specifier: ^26.4.0
         version: 26.4.0(typescript@6.0.3)
@@ -55,7 +55,7 @@ importers:
         version: 2.41.0
       '@stripe/react-stripe-js':
         specifier: ^6.8.2
-        version: 6.8.2(@stripe/stripe-js@9.14.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 6.8.2(@stripe/stripe-js@9.15.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@swc/core':
         specifier: ^1.16.1
         version: 1.16.1
@@ -823,8 +823,8 @@ packages:
       react: '>=16.8.0 <20.0.0'
       react-dom: '>=16.8.0 <20.0.0'
 
-  '@stripe/stripe-js@9.14.0':
-    resolution: {integrity: sha512-eCeVT2ee5YWyzz+m/cGwuatcPobe0MxzUGJtat8vUuZo4vNg1bzhoImKaTG2uB1ytIO03MrYAP4d6PTiGl+IZQ==}
+  '@stripe/stripe-js@9.15.0':
+    resolution: {integrity: sha512-0ySfsYH9XzfEspNS6MXMU2cjGsxNXWDQT9JxS43nOAatj6jDEP0fLBm2BanfblzU/GL/kDjFFcKmGInHmrASeg==}
     engines: {node: '>=12.16'}
 
   '@swc/core-darwin-arm64@1.16.1':
@@ -4033,14 +4033,14 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@stripe/react-stripe-js@6.8.2(@stripe/stripe-js@9.14.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@stripe/react-stripe-js@6.8.2(@stripe/stripe-js@9.15.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@stripe/stripe-js': 9.14.0
+      '@stripe/stripe-js': 9.15.0
       prop-types: 15.8.1
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
-  '@stripe/stripe-js@9.14.0': {}
+  '@stripe/stripe-js@9.15.0': {}
 
   '@swc/core-darwin-arm64@1.16.1':
     optional: true
