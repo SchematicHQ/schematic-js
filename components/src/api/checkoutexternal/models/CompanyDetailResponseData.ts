@@ -13,13 +13,6 @@
  */
 
 import { mapValues } from "../runtime";
-import type { CompanyEventPeriodMetricsResponseData } from "./CompanyEventPeriodMetricsResponseData";
-import {
-  CompanyEventPeriodMetricsResponseDataFromJSON,
-  CompanyEventPeriodMetricsResponseDataFromJSONTyped,
-  CompanyEventPeriodMetricsResponseDataToJSON,
-  CompanyEventPeriodMetricsResponseDataToJSONTyped,
-} from "./CompanyEventPeriodMetricsResponseData";
 import type { CompanyPlanWithBillingSubView } from "./CompanyPlanWithBillingSubView";
 import {
   CompanyPlanWithBillingSubViewFromJSON,
@@ -34,6 +27,13 @@ import {
   FeatureEntitlementToJSON,
   FeatureEntitlementToJSONTyped,
 } from "./FeatureEntitlement";
+import type { CompanyBillingProfileResponseData } from "./CompanyBillingProfileResponseData";
+import {
+  CompanyBillingProfileResponseDataFromJSON,
+  CompanyBillingProfileResponseDataFromJSONTyped,
+  CompanyBillingProfileResponseDataToJSON,
+  CompanyBillingProfileResponseDataToJSONTyped,
+} from "./CompanyBillingProfileResponseData";
 import type { ScheduledDowngradeResponseData } from "./ScheduledDowngradeResponseData";
 import {
   ScheduledDowngradeResponseDataFromJSON,
@@ -41,13 +41,6 @@ import {
   ScheduledDowngradeResponseDataToJSON,
   ScheduledDowngradeResponseDataToJSONTyped,
 } from "./ScheduledDowngradeResponseData";
-import type { EntityKeyDetailResponseData } from "./EntityKeyDetailResponseData";
-import {
-  EntityKeyDetailResponseDataFromJSON,
-  EntityKeyDetailResponseDataFromJSONTyped,
-  EntityKeyDetailResponseDataToJSON,
-  EntityKeyDetailResponseDataToJSONTyped,
-} from "./EntityKeyDetailResponseData";
 import type { EntityTraitDetailResponseData } from "./EntityTraitDetailResponseData";
 import {
   EntityTraitDetailResponseDataFromJSON,
@@ -55,13 +48,6 @@ import {
   EntityTraitDetailResponseDataToJSON,
   EntityTraitDetailResponseDataToJSONTyped,
 } from "./EntityTraitDetailResponseData";
-import type { Rule } from "./Rule";
-import {
-  RuleFromJSON,
-  RuleFromJSONTyped,
-  RuleToJSON,
-  RuleToJSONTyped,
-} from "./Rule";
 import type { CustomPlanBillingResponseData } from "./CustomPlanBillingResponseData";
 import {
   CustomPlanBillingResponseDataFromJSON,
@@ -83,6 +69,27 @@ import {
   PendingMigrationResponseDataToJSON,
   PendingMigrationResponseDataToJSONTyped,
 } from "./PendingMigrationResponseData";
+import type { CompanyEventPeriodMetricsResponseData } from "./CompanyEventPeriodMetricsResponseData";
+import {
+  CompanyEventPeriodMetricsResponseDataFromJSON,
+  CompanyEventPeriodMetricsResponseDataFromJSONTyped,
+  CompanyEventPeriodMetricsResponseDataToJSON,
+  CompanyEventPeriodMetricsResponseDataToJSONTyped,
+} from "./CompanyEventPeriodMetricsResponseData";
+import type { EntityKeyDetailResponseData } from "./EntityKeyDetailResponseData";
+import {
+  EntityKeyDetailResponseDataFromJSON,
+  EntityKeyDetailResponseDataFromJSONTyped,
+  EntityKeyDetailResponseDataToJSON,
+  EntityKeyDetailResponseDataToJSONTyped,
+} from "./EntityKeyDetailResponseData";
+import type { Rule } from "./Rule";
+import {
+  RuleFromJSON,
+  RuleFromJSONTyped,
+  RuleToJSON,
+  RuleToJSONTyped,
+} from "./Rule";
 import type { PaymentMethodResponseData } from "./PaymentMethodResponseData";
 import {
   PaymentMethodResponseDataFromJSON,
@@ -116,6 +123,18 @@ export interface CompanyDetailResponseData {
    * @memberof CompanyDetailResponseData
    */
   billingCreditBalances?: { [key: string]: number } | null;
+  /**
+   *
+   * @type {CompanyBillingProfileResponseData}
+   * @memberof CompanyDetailResponseData
+   */
+  billingProfile?: CompanyBillingProfileResponseData;
+  /**
+   *
+   * @type {Array<CompanyBillingProfileResponseData>}
+   * @memberof CompanyDetailResponseData
+   */
+  billingProfiles?: Array<CompanyBillingProfileResponseData> | null;
   /**
    *
    * @type {BillingSubscriptionView}
@@ -314,6 +333,16 @@ export function CompanyDetailResponseDataFromJSONTyped(
       json["billing_credit_balances"] == null
         ? undefined
         : json["billing_credit_balances"],
+    billingProfile:
+      json["billing_profile"] == null
+        ? undefined
+        : CompanyBillingProfileResponseDataFromJSON(json["billing_profile"]),
+    billingProfiles:
+      json["billing_profiles"] == null
+        ? undefined
+        : (json["billing_profiles"] as Array<any>).map(
+            CompanyBillingProfileResponseDataFromJSON,
+          ),
     billingSubscription:
       json["billing_subscription"] == null
         ? undefined
@@ -387,6 +416,15 @@ export function CompanyDetailResponseDataToJSONTyped(
       CompanyPlanWithBillingSubViewToJSON,
     ),
     billing_credit_balances: value["billingCreditBalances"],
+    billing_profile: CompanyBillingProfileResponseDataToJSON(
+      value["billingProfile"],
+    ),
+    billing_profiles:
+      value["billingProfiles"] == null
+        ? undefined
+        : (value["billingProfiles"] as Array<any>).map(
+            CompanyBillingProfileResponseDataToJSON,
+          ),
     billing_subscription: BillingSubscriptionViewToJSON(
       value["billingSubscription"],
     ),

@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from "./ApiError";
+export * from "./BillingCollectionMethod";
 export * from "./BillingCreditAutoTopupAvailability";
 export * from "./BillingCreditBundleStatus";
 export * from "./BillingCreditBundleType";
@@ -46,6 +47,7 @@ export * from "./CheckoutResponse";
 export * from "./CheckoutResponseData";
 export * from "./CheckoutTaxIDView";
 export * from "./CheckoutUnsubscribeResponse";
+export * from "./CompanyBillingProfileResponseData";
 export * from "./CompanyCustomerBalance";
 export * from "./CompanyDetailResponseData";
 export * from "./CompanyEventPeriodMetricsResponseData";
