@@ -257,6 +257,15 @@
     "month, billed quarterly": "month, billed quarterly",
     "purchased": "purchased {{date}}",
 
+    "Usage by user": "Usage by user",
+    "X used by your team this period": "{{amount}} used by your team this period",
+    "Show all X users": "Show all {{count}} users",
+    "Show all": "Show all",
+    "Show fewer": "Show fewer",
+    "Unattributed": "Unattributed",
+    "Unable to load usage by user.": "Unable to load usage by user.",
+    "plus X more": "plus {{count}} more",
+
     "usage": {
       "limited": "{{amount}} of {{allocation}} used",
       "unlimited": "{{amount}} used"

@@ -37,6 +37,10 @@ vi.mock("../../../hooks", async (importOriginal) => {
       },
       settings: defaultSettings,
       setCheckoutState: vi.fn(),
+      // `UsageByUser` fetches on mount; these tests assert on the credit
+      // ledger, so resolve empty and let it render nothing.
+      getCreditUsageByUser: vi.fn(() => Promise.resolve(undefined)),
+      getFeatureUsageByUser: vi.fn(() => Promise.resolve(undefined)),
     }),
     useIsLightBackground: () => true,
     useWrapChildren: () => ({ ref: { current: null }, isWrapped: false }),
