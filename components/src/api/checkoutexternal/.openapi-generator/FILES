@@ -3,6 +3,7 @@ apis/CheckoutexternalApi.ts
 apis/index.ts
 index.ts
 models/ApiError.ts
+models/BillingCollectionMethod.ts
 models/BillingCreditAutoTopupAvailability.ts
 models/BillingCreditBundleStatus.ts
 models/BillingCreditBundleType.ts
@@ -48,6 +49,7 @@ models/CheckoutResponse.ts
 models/CheckoutResponseData.ts
 models/CheckoutTaxIDView.ts
 models/CheckoutUnsubscribeResponse.ts
+models/CompanyBillingProfileResponseData.ts
 models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts
 models/CompanyEventPeriodMetricsResponseData.ts
