@@ -120,6 +120,7 @@ export const UsageByUser = ({ source, unit }: UsageByUserProps) => {
   const { getCreditUsageByUser, getFeatureUsageByUser } = useEmbed();
   const [expanded, setExpanded] = useState(false);
   const [section, setSection] = useState<UsageByUserSection>();
+  const [error, setError] = useState<string>();
 
   const { kind, id } = source;
   useEffect(() => {
@@ -130,22 +131,28 @@ export const UsageByUser = ({ source, unit }: UsageByUserProps) => {
       }
     };
 
+    const fail = () => {
+      if (active) {
+        setError(t("Unable to load usage by user."));
+      }
+    };
+
     // Request only what the expanded list can render; the response reports the
     // period's own totals so the remainder stays accurate on a partial page.
     if (kind === "credit") {
-      getCreditUsageByUser(id, EXPANDED_COUNT)?.then(
-        (response) => response && apply(toCreditSection(response.data)),
-      );
+      getCreditUsageByUser(id, EXPANDED_COUNT)
+        ?.then((response) => response && apply(toCreditSection(response.data)))
+        .catch(fail);
     } else {
-      getFeatureUsageByUser(id, EXPANDED_COUNT)?.then(
-        (response) => response && apply(toFeatureSection(response.data)),
-      );
+      getFeatureUsageByUser(id, EXPANDED_COUNT)
+        ?.then((response) => response && apply(toFeatureSection(response.data)))
+        .catch(fail);
     }
 
     return () => {
       active = false;
     };
-  }, [getCreditUsageByUser, getFeatureUsageByUser, id, kind]);
+  }, [getCreditUsageByUser, getFeatureUsageByUser, id, kind, t]);
 
   const attributed = useMemo(
     () => [...(section?.entries ?? [])].sort((a, b) => b.amount - a.amount),
@@ -155,6 +162,19 @@ export const UsageByUser = ({ source, unit }: UsageByUserProps) => {
   const total = section?.total ?? 0;
   const totalUsers = section?.totalUsers ?? 0;
   const unattributed = section?.unattributed;
+
+  // A failed fetch should not take the surrounding meter down with it: say the
+  // breakdown is missing and leave the rest of the element intact.
+  if (error) {
+    return (
+      <Flex $flexDirection="column" $gap="0.25rem">
+        <Text display="heading4">{t("Usage by user")}</Text>
+        <Text display="text" $color={mutedColor(isLightBackground)}>
+          {error}
+        </Text>
+      </Flex>
+    );
+  }
 
   // Nothing to attribute — the header rollup already covers the company total.
   if (attributed.length === 0 && !unattributed) {
@@ -168,7 +188,18 @@ export const UsageByUser = ({ source, unit }: UsageByUserProps) => {
   // totalUsers counts attributed users only; the unattributed rollup always
   // renders when expanded, so it never counts against the remainder.
   const remaining = Math.max(totalUsers - visible.length, 0);
-  const shouldShowToggle = totalUsers > COLLAPSED_COUNT;
+  // Expanding reveals at most EXPANDED_COUNT users, so the toggle promises that
+  // many rather than every user in the period.
+  const expandedUserCount = Math.min(totalUsers, EXPANDED_COUNT);
+  const hiddenUsers = Math.max(
+    expandedUserCount - Math.min(attributed.length, COLLAPSED_COUNT),
+    0,
+  );
+  // The unattributed rollup renders only when expanded, so it has to count
+  // toward whether there is anything to expand to. Keying the toggle off the
+  // user count alone left it unreachable for a company with three or fewer
+  // named users, which is the common case.
+  const shouldShowToggle = hiddenUsers > 0 || Boolean(unattributed);
 
   const row = (key: string, label: string, amount: number, muted?: boolean) => (
     <Flex key={key} $alignItems="center" $gap="0.75rem" $padding="0.5rem 0">
@@ -236,7 +267,9 @@ export const UsageByUser = ({ source, unit }: UsageByUserProps) => {
           <Text display="link" onClick={() => setExpanded((prev) => !prev)}>
             {expanded
               ? t("Show fewer")
-              : t("Show all X users", { count: totalUsers })}
+              : hiddenUsers > 0
+                ? t("Show all X users", { count: expandedUserCount })
+                : t("Show all")}
           </Text>
         </Flex>
       )}

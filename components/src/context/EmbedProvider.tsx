@@ -21,7 +21,7 @@ import {
 } from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
-import { ERROR_UNKNOWN, isError } from "../utils";
+import { ERROR_UNKNOWN, debounceByKey, isError } from "../utils";
 
 import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
@@ -544,9 +544,12 @@ export const EmbedProvider = ({
     [checkoutApi],
   );
 
+  // Keyed by credit id: one `MeteredFeatures` renders a section per credit and
+  // they all fetch in the same tick, so a shared debounce would hand every
+  // section the first credit's response.
   const debouncedGetCreditUsageByUser = useMemo(
     () =>
-      debounce(
+      debounceByKey(
         getCreditUsageByUser,
         FETCH_DEBOUNCE_TIMEOUT,
         LEADING_DEBOUNCE_SETTINGS,
@@ -561,9 +564,10 @@ export const EmbedProvider = ({
     [checkoutApi],
   );
 
+  // Keyed by feature id, for the same reason as credits above.
   const debouncedGetFeatureUsageByUser = useMemo(
     () =>
-      debounce(
+      debounceByKey(
         getFeatureUsageByUser,
         FETCH_DEBOUNCE_TIMEOUT,
         LEADING_DEBOUNCE_SETTINGS,
