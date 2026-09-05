@@ -22,13 +22,24 @@ const { version } = require("./package.json");
 const args = process.argv.slice(2);
 const format = args.includes("--format=cjs") ? "cjs" : "esm";
 const variant = args.includes("--variant=browser") ? "browser" : "server";
+// The elements entry (src/elements) has no styled-components, so it needs no
+// browser/server split — one bundle pair serves every environment.
+const entry = args.includes("--entry=elements-fixtures")
+  ? "elements-fixtures"
+  : args.includes("--entry=elements")
+    ? "elements"
+    : "main";
 const watch = args.includes("--watch");
 
 const ext = format === "cjs" ? "cjs.js" : "esm.js";
 const outfile =
-  variant === "browser"
-    ? `dist/schematic-components.browser.${ext}`
-    : `dist/schematic-components.${ext}`;
+  entry === "elements-fixtures"
+    ? `dist/schematic-components-elements-fixtures.${ext}`
+    : entry === "elements"
+      ? `dist/schematic-components-elements.${ext}`
+      : variant === "browser"
+        ? `dist/schematic-components.browser.${ext}`
+        : `dist/schematic-components.${ext}`;
 
 // Resolve styled-components' universal build (the package's `main`/`module`
 // fields, not its `browser` remap) to an absolute path. Used by the server
@@ -65,11 +76,28 @@ const ssrSafeStyledComponents = {
 };
 
 const options = {
-  entryPoints: ["src/index.ts"],
+  entryPoints: [
+    entry === "elements-fixtures"
+      ? "src/elements/fixtures/index.ts"
+      : entry === "elements"
+        ? "src/elements/index.ts"
+        : "src/index.ts",
+  ],
   bundle: true,
   format,
   outfile,
-  external: ["react", "react-dom", "@stripe/react-stripe-js"],
+  // The elements entries must never inline React or the schematic SDKs: each
+  // carries a module-level React context, and a bundled copy would read a
+  // different context instance than the one the host's provider writes.
+  external:
+    entry === "main"
+      ? ["react", "react-dom", "@stripe/react-stripe-js"]
+      : [
+          "react",
+          "react-dom",
+          "@schematichq/schematic-js",
+          "@schematichq/schematic-react",
+        ],
   define: {
     "process.env.SCHEMATIC_COMPONENTS_VERSION": JSON.stringify(version),
   },

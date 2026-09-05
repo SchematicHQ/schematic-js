@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-js",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "main": "dist/schematic.cjs.js",
   "module": "dist/schematic.esm.js",
   "types": "dist/schematic.d.ts",
@@ -28,10 +28,11 @@
     "lint": "eslint src --report-unused-disable-directives --fix",
     "openapi": "rm -rf src/types/api/ && pnpm exec openapi-generator-cli generate -c openapi-config.yaml && prettier --write \"src/types/api/**/*.{ts,tsx}\"",
     "prepare": "husky",
-    "test": "vitest run",
+    "test": "vitest run && pnpm run tsc:check",
     "test:reactnative": "vitest run --config vitest.config.reactnative.ts",
     "test:watch": "vitest",
-    "tsc": "pnpm exec tsc"
+    "tsc": "pnpm exec tsc",
+    "tsc:check": "pnpm exec tsc -p tsconfig.test.json --noEmit"
   },
   "dependencies": {
     "cross-fetch": "^4.1.0",
@@ -41,18 +42,19 @@
     "@eslint/js": "^10.0.1",
     "@microsoft/api-extractor": "^7.59.0",
     "@openapitools/openapi-generator-cli": "^2.41.0",
+    "@types/node": "^26.4.0",
     "@vitest/browser": "^4.1.11",
     "esbuild": "^0.28.2",
     "eslint": "^10.9.1",
     "globals": "^17.11.0",
     "happy-dom": "^20.12.0",
     "husky": "^9.1.7",
+    "js-yaml": "^5.3.0",
     "jsdom": "^30.0.1",
     "mock-socket": "^9.3.1",
     "prettier": "^3.9.6",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.69.0",
     "vitest": "^4.1.11"
-  },
-  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b"
+  }
 }
