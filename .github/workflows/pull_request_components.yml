@@ -2,10 +2,17 @@ name: Pull request - schematic-components
 
 on:
   pull_request:
+    # The workspace links this package to js and react, so a change there is a
+    # change here.
     paths:
       - components/**
+      - js/**
+      - react/**
       - .github/workflows/**
       - scripts/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
 
 jobs:
   build:
@@ -20,11 +27,9 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./components
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-components..."
       - name: Build
-        working-directory: ./components
-        run: pnpm run build
+        run: pnpm --filter "@schematichq/schematic-components..." run build
 
   lint:
     name: Lint
@@ -38,11 +43,11 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./components
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-components..."
+      - name: Build workspace dependencies
+        run: pnpm --filter "@schematichq/schematic-components^..." run build
       - name: Lint
-        working-directory: ./components
-        run: pnpm run lint
+        run: pnpm --filter "@schematichq/schematic-components" run lint
 
   test:
     name: Test (Node ${{ matrix.node-version }})
@@ -59,9 +64,8 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./components
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-components..."
+      - name: Build workspace dependencies
+        run: pnpm --filter "@schematichq/schematic-components^..." run build
       - name: Test
-        working-directory: ./components
-        run: pnpm run test
-
+        run: pnpm --filter "@schematichq/schematic-components" run test

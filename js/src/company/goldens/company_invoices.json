@@ -1,0 +1,21 @@
+{
+  "data": {
+    "count": 1,
+    "invoices": [
+      {
+        "amount_due": 10000,
+        "created_at": "2026-09-04T20:05:57.834337Z",
+        "currency": "usd",
+        "due_date": null,
+        "id": "binv_fw7bhwPVFas",
+        "status": "paid",
+        "url": "https://invoice.example.com/paid"
+      }
+    ]
+  },
+  "params": {
+    "include_pending": null,
+    "limit": null,
+    "offset": null
+  }
+}

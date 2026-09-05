@@ -11,11 +11,13 @@ if [ "$choice" != "local" ] && [ "$choice" != "vercel" ]; then
     exit 1
 fi
 
-# build components
+# build components, plus the workspace packages it links to (js, react) —
+# their gitignored dist/ is what the `workspace:` links resolve to.
 echo "🔨 Building components..."
-cd ../components || exit 1
-pnpm install
-pnpm run build
+cd "$(dirname "$0")/.." || exit 1
+pnpm install || exit 1
+pnpm --filter "@schematichq/schematic-components..." run build || exit 1
+cd components || exit 1
 
 # Packing is the truer test: it exercises the `files` list and `exports` map
 # the demo app would get from npm, which a symlink bypasses.

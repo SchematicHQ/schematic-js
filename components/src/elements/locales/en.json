@@ -1,0 +1,95 @@
+{
+  "@@locale": "en",
+  "retry": "Retry",
+  "@retry": {
+    "description": "Button. Runs a failed request again. Appears in every element."
+  },
+  "invoicesLoading": "Loading invoices",
+  "@invoicesLoading": {
+    "description": "Accessible name for the invoice card while its history loads. Read aloud, never seen."
+  },
+  "invoicesHeader": "Invoices",
+  "@invoicesHeader": {
+    "description": "Heading of the invoice history card."
+  },
+  "invoicesCount": "{{count}} invoices",
+  "@invoicesCount": {
+    "description": "Count beside the heading when every invoice is on screen. Takes {{count}}."
+  },
+  "invoicesCount_one": "{{count}} invoice",
+  "@invoicesCount_one": {
+    "description": "Count beside the heading when every invoice is on screen. Takes {{count}}."
+  },
+  "invoicesCount_other": "{{count}} invoices",
+  "@invoicesCount_other": {
+    "description": "Count beside the heading when every invoice is on screen. Takes {{count}}."
+  },
+  "invoicesShowing": "{{shown}} of {{count}} invoices",
+  "@invoicesShowing": {
+    "description": "Count beside the heading while more history is loadable. Takes {{shown}} and {{count}}."
+  },
+  "invoicesShowing_one": "{{shown}} of {{count}} invoice",
+  "@invoicesShowing_one": {
+    "description": "Count beside the heading while more history is loadable. Takes {{shown}} and {{count}}."
+  },
+  "invoicesShowing_other": "{{shown}} of {{count}} invoices",
+  "@invoicesShowing_other": {
+    "description": "Count beside the heading while more history is loadable. Takes {{shown}} and {{count}}."
+  },
+  "invoicesEmpty": "No invoices yet",
+  "@invoicesEmpty": {
+    "description": "Replaces the table when the company has no invoices."
+  },
+  "invoicesDateColumn": "Date",
+  "@invoicesDateColumn": {
+    "description": "Column header over each invoice's due date. Also read by assistive technology."
+  },
+  "invoicesAmountColumn": "Amount",
+  "@invoicesAmountColumn": {
+    "description": "Column header over each invoice's amount. Also read by assistive technology."
+  },
+  "invoicesStatusColumn": "Status",
+  "@invoicesStatusColumn": {
+    "description": "Column header over each invoice's status. Also read by assistive technology."
+  },
+  "invoicesSeeMore": "See more",
+  "@invoicesSeeMore": {
+    "description": "Button. Expands the list from its first few rows to everything loaded."
+  },
+  "invoicesSeeLess": "See less",
+  "@invoicesSeeLess": {
+    "description": "Button. Collapses the expanded list back to its first few rows."
+  },
+  "invoicesLoadMore": "Load more",
+  "@invoicesLoadMore": {
+    "description": "Button. Fetches the next page of older invoices from the server."
+  },
+  "invoicesCredit": "Credit applied to your account",
+  "@invoicesCredit": {
+    "description": "Tooltip on a negative amount, which is a credit note rather than a charge."
+  },
+  "invoicesUndated": "View invoice",
+  "@invoicesUndated": {
+    "description": "Text of the link to a hosted invoice, used in place of a date the API sent unusable."
+  },
+  "invoiceStatusDraft": "Draft",
+  "@invoiceStatusDraft": {
+    "description": "Invoice status: not finalized, and not yet owed."
+  },
+  "invoiceStatusOpen": "Open",
+  "@invoiceStatusOpen": {
+    "description": "Invoice status: finalized and awaiting payment."
+  },
+  "invoiceStatusPaid": "Paid",
+  "@invoiceStatusPaid": {
+    "description": "Invoice status: settled in full."
+  },
+  "invoiceStatusUncollectible": "Uncollectible",
+  "@invoiceStatusUncollectible": {
+    "description": "Invoice status: written off after payment failed."
+  },
+  "invoiceStatusVoid": "Void",
+  "@invoiceStatusVoid": {
+    "description": "Invoice status: cancelled, and never owed."
+  }
+}

@@ -1,0 +1,9 @@
+# Narrow client for the temporary-access-token company surface. The input
+# spec is supplied by scripts/generate-company-api.sh, which filters the
+# full temporaryaccesstoken spec down to the shipped company paths before
+# generating.
+generatorName: typescript-fetch
+enablePostProcessFile: true
+outputDir: ./src/company/api/company/
+skipValidateSpec: true
+generateAliasAsModel: true

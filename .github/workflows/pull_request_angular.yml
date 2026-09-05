@@ -6,6 +6,9 @@ on:
       - angular/**
       - .github/workflows/**
       - scripts/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
 
 jobs:
   build:
@@ -20,11 +23,9 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./angular
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-angular..."
       - name: Build
-        working-directory: ./angular
-        run: pnpm run build
+        run: pnpm --filter "@schematichq/schematic-angular..." run build
 
   lint:
     name: Lint
@@ -38,11 +39,9 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./angular
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-angular..."
       - name: Lint
-        working-directory: ./angular
-        run: pnpm run lint
+        run: pnpm --filter "@schematichq/schematic-angular" run lint
 
   test:
     name: Test
@@ -56,8 +55,6 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./angular
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-angular..."
       - name: Test
-        working-directory: ./angular
-        run: pnpm run test
+        run: pnpm --filter "@schematichq/schematic-angular" run test

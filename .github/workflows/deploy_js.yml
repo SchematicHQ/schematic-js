@@ -12,7 +12,6 @@ jobs:
     uses: ./.github/workflows/lint_test.yml
     with:
       package: schematic-js
-      working_dir: js
 
   deploy:
     name: Browser Deploy
@@ -34,20 +33,17 @@ jobs:
         run: corepack enable pnpm
 
       - name: Install dependencies
-        working-directory: ./js
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-js..."
 
       - name: Update version
         working-directory: ./js
         run: ./version.sh
 
       - name: Update cache version
-        working-directory: ./js
-        run: pnpm run cache-version
+        run: pnpm --filter @schematichq/schematic-js run cache-version
 
       - name: Build browser bundle
-        working-directory: ./js
-        run: pnpm run build:browser
+        run: pnpm --filter @schematichq/schematic-js run build:browser
 
       - name: 🚀auth-oidc-aws-prod
         uses: aws-actions/configure-aws-credentials@v6.2.4

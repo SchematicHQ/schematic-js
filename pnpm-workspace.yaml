@@ -1,3 +1,15 @@
+# One workspace over all five published packages. Before this, each directory
+# was its own install root with its own lockfile and its own copy of the
+# settings below, and the two cross-package dependencies were expressed as
+# committed `link:` overrides — which meant CI installed a symlink to a sibling
+# whose `dist/` it never built.
+packages:
+  - angular
+  - components
+  - js
+  - react
+  - vue
+
 # Refuse to resolve a version published in the last 24h — the window in which a
 # hijacked-maintainer release usually gets yanked. Frozen installs unaffected.
 minimumReleaseAge: 1440
@@ -13,10 +25,24 @@ verifyDepsBeforeRun: install
 # No `frozenLockfile: true`: it breaks Dependabot's `pnpm update --no-save`
 # with ERR_PNPM_OUTDATED_LOCKFILE, and CI already installs frozen via CI=true.
 
+# `linkWorkspacePackages` stays at its pnpm 10+ default of false: only a
+# `workspace:` specifier links to a sibling. So react -> js and components ->
+# react resolve from the working tree, while vue and angular keep resolving
+# @schematichq/schematic-js from the registry at their declared ^1.5.0.
+
+# Merged from the five per-package files. A root workspace has one overrides
+# block, so every entry now applies repo-wide rather than to the one package
+# that needed it; each only bites where the package is actually in the graph.
 overrides:
+  handlebars: ">=4.7.9"
+  lodash: ">=4.18.0"
   minimatch: ">=3.1.3"
+  piscina: ">=5.2.0"
   rollup: ">=4.59.0"
   undici: ^7.29.0
+  # `<parent>><child>` scopes an override to one parent.
+  "@eslint/eslintrc>js-yaml": 4.3.1
+  "@istanbuljs/load-nyc-config>js-yaml": 3.15.1
 
 allowBuilds:
   "@openapitools/openapi-generator-cli": true
@@ -27,6 +53,7 @@ allowBuilds:
   # Native bindings that ship prebuilt per-platform packages as optional
   # dependencies. Their install scripts only compile or fetch a binding when
   # the matching optional package is missing, which it never is here.
+  "@parcel/watcher": false
   "@swc/core": false
   unrs-resolver: false
   # Rewrites the tracked components/mockServiceWorker.js in place. Node tests
