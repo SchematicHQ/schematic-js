@@ -6,6 +6,11 @@ import tseslint from "typescript-eslint";
 // We define separate linter configurations for tests vs. production code,
 // because we have separate typescript configs.
 export default defineConfig([
+  // Generated API clients are formatted by the generator + prettier; eslint
+  // fights the generator (e.g. --fix strips their eslint-disable headers).
+  {
+    ignores: ["src/company/api/company/**"],
+  },
   {
     files: ["**/*.{js,mjs,cjs,ts}"],
     ignores: ["**/*.spec.ts", "**/*.test.ts"],

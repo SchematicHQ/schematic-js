@@ -13,7 +13,6 @@ jobs:
     uses: ./.github/workflows/lint_test.yml
     with:
       package: schematic-angular
-      working_dir: angular
 
   publish:
     name: NPM Publish

@@ -12,7 +12,6 @@ jobs:
     uses: ./.github/workflows/lint_test.yml
     with:
       package: schematic-react
-      working_dir: react
 
   publish:
     name: NPM Publish

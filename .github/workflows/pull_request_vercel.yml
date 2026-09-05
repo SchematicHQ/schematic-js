@@ -2,8 +2,15 @@ name: Clone Demo App & Deploy to Vercel
 
 on:
   pull_request:
+    # js and react are workspace dependencies of components, so a change there
+    # changes what the demo app would get.
     paths:
       - components/**
+      - js/**
+      - react/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
 
 permissions:
   contents: read
@@ -39,9 +46,8 @@ jobs:
       - name: Build Components Package
         run: |
           echo "🔨 Building components package..."
-          cd components
-          pnpm install --frozen-lockfile
-          pnpm run build
+          pnpm install --frozen-lockfile --filter "@schematichq/schematic-components..."
+          pnpm --filter "@schematichq/schematic-components..." run build
 
       # Packing is the truer test: it exercises the `files` list and `exports`
       # map the demo app would get from npm, which a symlink bypasses.

@@ -102,13 +102,19 @@ if [[ "$ACTUAL_VERSION" != "$VERSION" ]]; then
     exit 1
 fi
 
-# Install dependencies
+# Install and build from the workspace root. The trailing `...` selects the
+# package plus its workspace dependencies, and `pnpm run` walks them in
+# topological order — js before react before components, the order the
+# `workspace:` links require.
+ROOT="$SCRIPT_DIR/.."
+FILTER="@schematichq/$PACKAGE..."
+
 echo "Installing dependencies..."
-pnpm install --frozen-lockfile
+pnpm -C "$ROOT" install --frozen-lockfile --filter "$FILTER"
 
 # Build
 echo "Building..."
-pnpm run build
+pnpm -C "$ROOT" --filter "$FILTER" run build
 
 # Determine publish directory
 # ng-packagr (used by angular) generates a complete package in dist/
@@ -171,5 +177,11 @@ elif [[ -n "${NPM_TOKEN:-}" ]]; then
 fi
 
 # Publish
+# `pnpm publish`, not `npm publish`: the internal deps are declared with the
+# `workspace:` protocol, and only pnpm rewrites those to the sibling's concrete
+# version on the way out. npm packs the literal "workspace:^" string, which
+# would publish an uninstallable peer range.
+# `--no-git-checks` because deploys run from a detached tag ref, and the build
+# above dirties the tree (version.sh, prettier, eslint --fix).
 echo "Publishing $VERSION to NPM with '$NPM_TAG' tag..."
-npm publish "./$PUBLISH_DIR" --access public --tag "$NPM_TAG"
+pnpm publish "./$PUBLISH_DIR" --access public --tag "$NPM_TAG" --no-git-checks

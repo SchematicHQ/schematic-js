@@ -6,6 +6,9 @@ on:
       - js/**
       - .github/workflows/**
       - scripts/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
 
 jobs:
   build:
@@ -20,11 +23,9 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./js
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-js..."
       - name: Build
-        working-directory: ./js
-        run: pnpm run build
+        run: pnpm --filter "@schematichq/schematic-js..." run build
 
   lint:
     name: Lint
@@ -38,11 +39,9 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./js
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-js..."
       - name: Lint
-        working-directory: ./js
-        run: pnpm run lint
+        run: pnpm --filter "@schematichq/schematic-js" run lint
 
   test:
     name: Test (Node ${{ matrix.node-version }})
@@ -59,11 +58,8 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./js
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/schematic-js..."
       - name: Test
-        working-directory: ./js
-        run: pnpm run test
+        run: pnpm --filter "@schematichq/schematic-js" run test
       - name: Test (React Native)
-        working-directory: ./js
-        run: pnpm run test:reactnative
+        run: pnpm --filter "@schematichq/schematic-js" run test:reactnative

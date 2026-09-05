@@ -4,11 +4,7 @@ on:
   workflow_call:
     inputs:
       package:
-        description: 'Package name (schematic-js, schematic-react, schematic-components, schematic-vue)'
-        required: true
-        type: string
-      working_dir:
-        description: 'Working directory (js, react, components, vue)'
+        description: 'Package name (schematic-js, schematic-react, schematic-components, schematic-vue, schematic-angular)'
         required: true
         type: string
 
@@ -24,12 +20,19 @@ jobs:
           node-version: 24.x
       - name: Enable corepack
         run: corepack enable pnpm
+      # Installs from the workspace root. The trailing `...` narrows it to this
+      # package plus its workspace dependencies, so a job never pays for the
+      # other frameworks' trees.
       - name: Install dependencies
-        working-directory: ./${{ inputs.working_dir }}
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/${{ inputs.package }}..."
+      # `<pkg>^...` is the dependencies alone. They have to be built first: a
+      # `workspace:` link resolves to the sibling's `dist/`, which is
+      # gitignored, so tsc and eslint see nothing until it exists. No-ops (exit
+      # 0) for packages with no workspace dependencies.
+      - name: Build workspace dependencies
+        run: pnpm --filter "@schematichq/${{ inputs.package }}^..." run build
       - name: Lint
-        working-directory: ./${{ inputs.working_dir }}
-        run: pnpm run lint
+        run: pnpm --filter "@schematichq/${{ inputs.package }}" run lint
 
   test:
     name: Test
@@ -43,12 +46,11 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
       - name: Install dependencies
-        working-directory: ./${{ inputs.working_dir }}
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@schematichq/${{ inputs.package }}..."
+      - name: Build workspace dependencies
+        run: pnpm --filter "@schematichq/${{ inputs.package }}^..." run build
       - name: Test
-        working-directory: ./${{ inputs.working_dir }}
-        run: pnpm run test
+        run: pnpm --filter "@schematichq/${{ inputs.package }}" run test
       - name: Test (React Native)
         if: inputs.package == 'schematic-js' || inputs.package == 'schematic-react'
-        working-directory: ./${{ inputs.working_dir }}
-        run: pnpm run test:reactnative
+        run: pnpm --filter "@schematichq/${{ inputs.package }}" run test:reactnative

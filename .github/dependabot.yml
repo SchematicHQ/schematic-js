@@ -6,12 +6,9 @@
 version: 2
 updates:
   - package-ecosystem: "npm" # See documentation for possible values
-    directories:
-      - "/angular"
-      - "/components"
-      - "/js"
-      - "/react"
-      - "/vue"
+    # One entry, not one per package: the pnpm workspace root owns the single
+    # lockfile, and Dependabot updates every workspace manifest from there.
+    directory: "/"
     schedule:
       interval: "daily"
     labels:
