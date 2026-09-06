@@ -159,6 +159,9 @@ interface DesignProps {
     isVisible: boolean;
     fontStyle: FontStyle;
   };
+  usageByUser: {
+    isVisible: boolean;
+  };
   visibleFeatures?: string[];
 }
 
@@ -182,6 +185,9 @@ function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
     usage: {
       isVisible: props.usage?.isVisible ?? true,
       fontStyle: props.usage?.fontStyle ?? "heading5",
+    },
+    usageByUser: {
+      isVisible: props.usageByUser?.isVisible ?? true,
     },
     // there is a typescript bug with `DeepPartial` so we must cast to `string[] | undefined`
     visibleFeatures: props.visibleFeatures as string[] | undefined,
@@ -462,21 +468,17 @@ export const MeteredFeatures = forwardRef<
               />
             )}
 
-            {feature.featureType === FeatureType.Event && (
-              <UsageByUser
-                source={{ kind: "feature", id: feature.id ?? "" }}
-                // A credit-burndown feature's usage is denominated in the credit
-                // it consumes (e.g. "tokens"), not the feature name — mirror how
-                // the rest of the element labels it (see `Limit`).
-                unit={getFeatureName(
-                  priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
-                    entitlement.planEntitlement?.valueCredit
-                    ? entitlement.planEntitlement.valueCredit
-                    : feature,
-                  2,
-                )}
-              />
-            )}
+            {props.usageByUser.isVisible &&
+              feature.featureType === FeatureType.Event && (
+                // The per-user amounts come from the feature usage endpoint, so
+                // they are denominated in the feature's own unit — the same one
+                // the usage line above uses. A credit-burndown feature's credit
+                // spend is broken down separately, under its credit.
+                <UsageByUser
+                  source={{ kind: "feature", id: feature.id }}
+                  unit={feature}
+                />
+              )}
           </Element>,
         );
 
@@ -818,10 +820,12 @@ export const MeteredFeatures = forwardRef<
                 />
               )}
 
-              <UsageByUser
-                source={{ kind: "credit", id: credit.id }}
-                unit={getFeatureName(credit, 2)}
-              />
+              {props.usageByUser.isVisible && (
+                <UsageByUser
+                  source={{ kind: "credit", id: credit.id }}
+                  unit={credit}
+                />
+              )}
             </Element>
           );
         })}

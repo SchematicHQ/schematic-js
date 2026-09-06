@@ -259,12 +259,16 @@
 
     "Usage by user": "Usage by user",
     "X used by your team this period": "{{amount}} used by your team this period",
-    "Show all X users": "Show all {{count}} users",
+    "Show all X users_one": "Show all {{count}} user",
+    "Show all X users_other": "Show all {{count}} users",
+    "Show top X users_one": "Show top {{count}} user",
+    "Show top X users_other": "Show top {{count}} users",
     "Show all": "Show all",
     "Show fewer": "Show fewer",
     "Unattributed": "Unattributed",
-    "Unable to load usage by user.": "Unable to load usage by user.",
-    "plus X more": "plus {{count}} more",
+    "There was a problem retrieving usage by user.": "There was a problem retrieving usage by user.",
+    "plus X more_one": "plus {{count}} more",
+    "plus X more_other": "plus {{count}} more",
 
     "usage": {
       "limited": "{{amount}} of {{allocation}} used",
