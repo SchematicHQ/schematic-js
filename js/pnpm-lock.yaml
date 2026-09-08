@@ -28,6 +28,9 @@ importers:
       '@openapitools/openapi-generator-cli':
         specifier: ^2.41.0
         version: 2.41.0
+      '@types/node':
+        specifier: ^26.4.0
+        version: 26.4.0
       '@vitest/browser':
         specifier: ^5.0.0
         version: 5.0.0(vite@8.2.2(@types/node@26.4.1)(esbuild@0.28.2))(vitest@5.0.0)
@@ -46,6 +49,9 @@ importers:
       husky:
         specifier: ^9.1.7
         version: 9.1.7
+      js-yaml:
+        specifier: ^5.4.1
+        version: 5.4.1
       jsdom:
         specifier: ^30.0.1
         version: 30.0.1
@@ -785,6 +791,9 @@ packages:
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
 
+  argparse@2.0.1:
+    resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
+
   assertion-error@2.0.1:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
@@ -1275,6 +1284,10 @@ packages:
 
   jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
+
+  js-yaml@5.4.1:
+    resolution: {integrity: sha512-28R/k+NAjeuf7+CKlTxWZVExJGwVVLwY06DgEnOMz2gEpfNkDcD7QvyiVPT0xy0XXhU8vHsd4Ot42OOPdJG7dQ==}
+    hasBin: true
 
   jsdom@30.0.1:
     resolution: {integrity: sha512-52v7mUVUfNQVYYqE1lcdaymWL0njO7lTLUog6ZvW2U5KsbiLk/GnZlVJ+qx0xfNJZ6Gn+KSpPNE52vurbxZwrA==}
@@ -2654,6 +2667,8 @@ snapshots:
     dependencies:
       sprintf-js: 1.0.3
 
+  argparse@2.0.1: {}
+
   assertion-error@2.0.1: {}
 
   ast-types@0.13.4:
@@ -3172,6 +3187,10 @@ snapshots:
   iterare@1.2.1: {}
 
   jju@1.4.0: {}
+
+  js-yaml@5.4.1:
+    dependencies:
+      argparse: 2.0.1
 
   jsdom@30.0.1:
     dependencies:

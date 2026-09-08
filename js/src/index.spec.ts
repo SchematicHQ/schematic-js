@@ -2426,7 +2426,9 @@ describe("reconnectIfNeeded", () => {
     };
 
     let connectionCount = 0;
-    const serverSockets: WebSocket[] = [];
+    // Only close() is used, and mock-socket's connection socket is not a
+    // DOM WebSocket — the same shape the other reconnect test above takes.
+    const serverSockets: Array<{ close: () => void }> = [];
 
     mockServer.on("connection", (socket) => {
       connectionCount++;
