@@ -3,8 +3,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   BillingCreditGrantReason,
+  EntitlementPriceBehavior,
   type BillingCreditBundleView,
   type CreditCompanyGrantView,
+  type FeatureUsageResponseData,
+  type PlanCreditGrantView,
 } from "../../../api/checkoutexternal";
 import { defaultSettings } from "../../../context";
 import { render } from "../../../test/setup";
@@ -18,6 +21,8 @@ const PLAN_ID = "plan-1";
 const state = vi.hoisted(() => ({
   creditGrants: [] as unknown[],
   creditBundles: [] as unknown[],
+  features: [] as unknown[],
+  includedCreditGrants: [] as unknown[],
   planId: undefined as string | undefined,
   canCheckout: false,
 }));
@@ -28,8 +33,13 @@ vi.mock("../../../hooks", async (importOriginal) => {
     ...actual,
     useEmbed: () => ({
       data: {
-        company: { plan: { id: state.planId, includedCreditGrants: [] } },
-        featureUsage: { features: [] },
+        company: {
+          plan: {
+            id: state.planId,
+            includedCreditGrants: state.includedCreditGrants,
+          },
+        },
+        featureUsage: { features: state.features },
         creditGrants: state.creditGrants,
         creditBundles: state.creditBundles,
         capabilities: { checkout: state.canCheckout },
@@ -79,11 +89,41 @@ const createBundle = (
     quantity: 1000,
   }) as unknown as BillingCreditBundleView;
 
+// A credit-burndown entitlement with no `feature`: the metered-feature loop
+// skips it, so only the credit it consumes is under test.
+const creditBurndownEntitlement = {
+  planEntitlement: {
+    priceBehavior: EntitlementPriceBehavior.CreditBurndown,
+    valueCredit: {
+      id: CREDIT_ID,
+      name: "Tokens",
+      singularName: "credit",
+      pluralName: "credits",
+      description: "",
+      icon: "bolt",
+    },
+  },
+} as unknown as FeatureUsageResponseData;
+
+const planCreditGrant = {
+  id: "plan-grant-1",
+  creditId: CREDIT_ID,
+  creditName: "Tokens",
+  creditDescription: "",
+  creditIcon: "bolt",
+  singularName: "credit",
+  pluralName: "credits",
+  creditAmount: 100,
+  planId: PLAN_ID,
+} as unknown as PlanCreditGrantView;
+
 const grantRows = () => screen.queryAllByText(/bundle purchased/);
 
 beforeEach(() => {
   state.creditGrants = [];
   state.creditBundles = [];
+  state.features = [];
+  state.includedCreditGrants = [];
   state.planId = undefined;
   state.canCheckout = false;
 });
@@ -217,6 +257,59 @@ describe("`MeteredFeatures` credit `Buy More`", () => {
 
     render(<MeteredFeatures />);
 
+    expect(screen.queryByText("Buy More")).not.toBeInTheDocument();
+  });
+});
+
+describe("`MeteredFeatures` plan credits without a balance", () => {
+  beforeEach(() => {
+    state.planId = PLAN_ID;
+    state.canCheckout = true;
+    state.creditBundles = [createBundle(CREDIT_ID)];
+  });
+
+  test("renders a credit the plan consumes before the company holds any grant", () => {
+    state.features = [creditBurndownEntitlement];
+
+    render(<MeteredFeatures />);
+
+    expect(screen.getByText("Tokens")).toBeInTheDocument();
+    expect(screen.getByText("Buy More")).toBeInTheDocument();
+    // Nothing to open: there is no ledger behind an empty balance.
+    expect(screen.queryByText("See balance details")).not.toBeInTheDocument();
+  });
+
+  test("renders a credit the plan grants once every company grant has expired", () => {
+    state.includedCreditGrants = [planCreditGrant];
+    state.creditGrants = [
+      { ...createGrant(0), expiresAt: new Date(2000, 0, 1) },
+    ];
+
+    render(<MeteredFeatures />);
+
+    expect(screen.getByText("Tokens")).toBeInTheDocument();
+    expect(screen.getByText("Buy More")).toBeInTheDocument();
+    expect(screen.queryByText("See balance details")).not.toBeInTheDocument();
+  });
+
+  test("does not add a second row for a credit the company already holds", () => {
+    state.features = [creditBurndownEntitlement];
+    state.includedCreditGrants = [planCreditGrant];
+    state.creditGrants = grantsFor(1);
+
+    render(<MeteredFeatures />);
+
+    expect(screen.getAllByText("Tokens")).toHaveLength(1);
+    expect(screen.getByText("See balance details")).toBeInTheDocument();
+  });
+
+  test("still hides `Buy More` on an empty balance with nothing purchasable", () => {
+    state.features = [creditBurndownEntitlement];
+    state.creditBundles = [];
+
+    render(<MeteredFeatures />);
+
+    expect(screen.getByText("Tokens")).toBeInTheDocument();
     expect(screen.queryByText("Buy More")).not.toBeInTheDocument();
   });
 });

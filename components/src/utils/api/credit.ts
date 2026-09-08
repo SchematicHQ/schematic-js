@@ -3,12 +3,15 @@ import { type TFunction } from "i18next";
 import {
   BillingCreditAutoTopupAvailability,
   BillingCreditExpiryType,
+  BillingCreditGrantReason,
+  EntitlementPriceBehavior,
   BillingCreditExpiryUnit,
   BillingPlanCreditGrantResetCadence,
   PlanCreditGrantScaling,
   type BillingCreditBundleView,
   type CompanyPlanCreditGrantView,
   type CreditCompanyGrantView,
+  type FeatureUsageResponseData,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
 import type { Credit, CreditWithCompanyContext } from "../../types";
@@ -283,6 +286,89 @@ export function aggregateActiveGrantsByBundle(
     (grant) =>
       `${grant.grantReason}:${grant.billingCreditBundleId || grant.id}`,
   ).sort((a, b) => byRecency(a.grants[0], b.grants[0]));
+}
+
+export type CreditDescriptor = Pick<
+  CreditWithCompanyContext,
+  "id" | "name" | "singularName" | "pluralName" | "description" | "icon"
+>;
+
+/**
+ * The credits the company's current plan draws on, whether or not the company
+ * holds a balance in any of them: every credit a credit-burndown entitlement
+ * consumes, plus every credit the plan grants outright. Deduped by credit id.
+ */
+export function listPlanCredits(
+  features: FeatureUsageResponseData[],
+  includedCreditGrants: PlanCreditGrantView[],
+): CreditDescriptor[] {
+  const byId = new Map<string, CreditDescriptor>();
+
+  for (const { planEntitlement } of features) {
+    const credit = planEntitlement?.valueCredit;
+    if (
+      planEntitlement?.priceBehavior ===
+        EntitlementPriceBehavior.CreditBurndown &&
+      credit &&
+      !byId.has(credit.id)
+    ) {
+      byId.set(credit.id, {
+        id: credit.id,
+        name: credit.name,
+        singularName: credit.singularName,
+        pluralName: credit.pluralName,
+        description: credit.description,
+        icon: credit.icon,
+      });
+    }
+  }
+
+  for (const grant of includedCreditGrants) {
+    if (!byId.has(grant.creditId)) {
+      byId.set(grant.creditId, {
+        id: grant.creditId,
+        name: grant.creditName,
+        singularName: grant.singularName,
+        pluralName: grant.pluralName,
+        description: grant.creditDescription,
+        icon: grant.creditIcon,
+      });
+    }
+  }
+
+  return Array.from(byId.values());
+}
+
+/**
+ * Appends an empty balance for each plan credit the company holds no active
+ * grant in, so a plan that consumes a credit surfaces it (and its "Buy More")
+ * before the first purchase and after the last grant expires. Existing
+ * balances are left untouched and keep their order.
+ */
+export function withEmptyPlanCreditBalances(
+  balances: CreditWithCompanyContext[],
+  planCredits: CreditDescriptor[],
+  context: Pick<
+    CreditWithCompanyContext,
+    "companyId" | "companyName" | "planId" | "planName"
+  >,
+): CreditWithCompanyContext[] {
+  const held = new Set(balances.map((balance) => balance.id));
+
+  return [
+    ...balances,
+    ...planCredits
+      .filter((credit) => !held.has(credit.id))
+      .map((credit) => ({
+        ...credit,
+        ...context,
+        grantReason: BillingCreditGrantReason.Plan,
+        quantity: 0,
+        bundleId: undefined,
+        total: { value: 0, remaining: 0, used: 0 },
+        grants: [],
+      })),
+  ];
 }
 
 export function isAutoTopupEnabled(grant?: CompanyPlanCreditGrantView) {
