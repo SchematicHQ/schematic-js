@@ -2,6 +2,7 @@ import {
   INVOICE_MAX_PAGE_SIZE,
   INVOICE_PAGE_SIZE,
   type CompanyClient,
+  type InvoicesResult,
   type SessionStatus,
 } from "@schematichq/schematic-js";
 
@@ -280,19 +281,18 @@ export class CompanyStore {
     };
   }
 
-  private async _fetchInvoices(
+  /**
+   * One request. Returns what the server said and nothing more: whether
+   * there is more to load depends on the whole window, which only the
+   * caller assembling it knows — `_reloadWindow` across its requests, and
+   * `loadMoreInvoices` across the rows already on screen.
+   */
+  private _fetchInvoices(
     query: InvoiceQuery,
     offset: number,
     limit: number,
-  ): Promise<InvoicePage> {
-    const page = await this._client.fetchInvoices({ ...query, limit, offset });
-    return {
-      invoices: page.invoices,
-      count: page.count,
-      // No rows means no more of them, whatever the count reports.
-      hasMore:
-        page.invoices.length > 0 && offset + page.invoices.length < page.count,
-    };
+  ): Promise<InvoicesResult> {
+    return this._client.fetchInvoices({ ...query, limit, offset });
   }
 }
 

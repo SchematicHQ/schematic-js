@@ -16,11 +16,14 @@ SPEC_DIR="$SCHEMATIC_API_DIR/api/docs/api"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-npx js-yaml "$SPEC_DIR/temporaryaccesstoken.yml" > "$TMP_DIR/spec.json"
+# pnpm exec, not npx: js-yaml is a declared devDependency, so this resolves
+# it from the workspace rather than fetching whatever the registry has now —
+# which would sidestep the minimumReleaseAge guard in pnpm-workspace.yaml.
+pnpm exec js-yaml "$SPEC_DIR/temporaryaccesstoken.yml" > "$TMP_DIR/spec.json"
 node scripts/filter-openapi.mjs "$TMP_DIR/spec.json" "$TMP_DIR/spec.filtered.json" \
   /company/invoices
 rm -rf src/company/api/company
-npx openapi-generator-cli generate -c src/company/api/config_company.yml \
+pnpm exec openapi-generator-cli generate -c src/company/api/config_company.yml \
   --input-spec="$TMP_DIR/spec.filtered.json"
-npx prettier --write "src/company/api/company/**/*.ts" > /dev/null
+pnpm exec prettier --write "src/company/api/company/**/*.ts" > /dev/null
 echo "company API client regenerated"

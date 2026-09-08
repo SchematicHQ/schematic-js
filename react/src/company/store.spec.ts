@@ -388,6 +388,21 @@ describe("hashKey", () => {
     expect(hashKey({ a: 1 })).not.toBe(hashKey({ a: 2 }));
     expect(hashKey({})).toBe("{}");
   });
+
+  it("tells two Dates apart", () => {
+    // A Date has no own enumerable keys, so canonicalizing it as an object
+    // would hash every date to `{}` — one resource for every range a keyed
+    // query could ask for.
+    expect(hashKey({ from: new Date("2026-01-01") })).not.toBe(
+      hashKey({ from: new Date("2026-06-01") }),
+    );
+    expect(hashKey({ from: new Date("2026-01-01") })).toBe(
+      hashKey({ from: new Date("2026-01-01") }),
+    );
+    expect(hashKey({ from: new Date("nope") })).toBe(
+      hashKey({ from: new Date("also nope") }),
+    );
+  });
 });
 
 describe("KeyedResource", () => {

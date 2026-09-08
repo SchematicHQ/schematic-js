@@ -32,6 +32,34 @@ describe("deriveInvoiceList", () => {
     });
   });
 
+  test.each([
+    ["javascript:alert(1)", "a script URL"],
+    ["JavaScript:alert(1)", "a script URL in any case"],
+    ["data:text/html,<script>alert(1)</script>", "a data URL"],
+    ["vbscript:msgbox(1)", "a vbscript URL"],
+    ["/invoices/a", "a relative path"],
+    ["not a url", "something that never was a URL"],
+  ])("drops %s from the row: %s is not linkable", (url) => {
+    // The element renders `url` as an href, so anything the browser would
+    // not simply navigate to is dropped rather than rendered. The reader
+    // still gets the row, without a link on it.
+    const list = deriveInvoiceList(invoicePage([invoice({ url })]), {
+      locale: L,
+    });
+    expect(list.rows[0].url).toBeNull();
+  });
+
+  test.each([
+    "https://invoice.example/a",
+    "http://invoice.example/a",
+    "HTTPS://invoice.example/a",
+  ])("keeps %s", (url) => {
+    const list = deriveInvoiceList(invoicePage([invoice({ url })]), {
+      locale: L,
+    });
+    expect(list.rows[0].url).toBe(url);
+  });
+
   test("passes an absent status through as null", () => {
     const list = deriveInvoiceList(invoicePage([invoice({ status: null })]), {
       locale: L,

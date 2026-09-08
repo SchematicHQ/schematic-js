@@ -20,7 +20,7 @@ import { mapValues } from "../runtime";
  */
 export interface GetCompanyInvoicesParams {
   /**
-   *
+   * Include unpaid invoices that are not yet due. The default set is time-varying — an invoice passing its due date enters it and shifts later offsets — so page from the response count and stop on an empty page.
    * @type {boolean}
    * @memberof GetCompanyInvoicesParams
    */

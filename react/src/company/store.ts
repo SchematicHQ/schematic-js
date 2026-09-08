@@ -255,6 +255,14 @@ function canonical(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(canonical);
   }
+  // Before the object branch: a Date has no own enumerable keys, so it would
+  // canonicalize to `{}` there and every date would key the same resource.
+  // Harmless for today's one-boolean query, and not for the date range a
+  // keyed resource eventually carries.
+  if (value instanceof Date) {
+    const time = value.getTime();
+    return Number.isNaN(time) ? "Invalid Date" : value.toISOString();
+  }
   if (value !== null && typeof value === "object") {
     const out: Record<string, unknown> = {};
     for (const key of Object.keys(value as object).sort()) {

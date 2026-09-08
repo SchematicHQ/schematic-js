@@ -42,6 +42,19 @@ function requireContract(ok: boolean, what: string): void {
   );
 }
 
+/**
+ * The raw rows, before decoding: the generated model renames and drops, so
+ * the wire keys are only visible on the body as it was recorded.
+ */
+function invoiceRows(body: unknown): Record<string, unknown>[] {
+  const data = (body as { data?: { invoices?: unknown } } | null)?.data;
+  const invoices = data?.invoices;
+  if (!Array.isArray(invoices)) {
+    throw new Error("company_invoices golden has no data.invoices array");
+  }
+  return invoices as Record<string, unknown>[];
+}
+
 describe("goldens", () => {
   it("company_invoices decodes through the generated models", () => {
     const body = golden("company_invoices");
@@ -70,6 +83,17 @@ describe("goldens", () => {
         `company_invoices data.invoices[${invoice.id}]`,
       );
       expect(invoice.createdAt).toBeInstanceOf(Date);
+    }
+
+    // due_date, status and url are nullable, so the spec does not mark them
+    // required and the generated guard above does not look for them — the
+    // freeze would pass a response that dropped one. The API emits all three
+    // on every row (no omitempty), so their presence is contract, and this is
+    // where the js side holds it.
+    for (const row of invoiceRows(body)) {
+      for (const key of ["due_date", "status", "url"]) {
+        requireContract(key in row, `company_invoices data.invoices[].${key}`);
+      }
     }
   });
 });

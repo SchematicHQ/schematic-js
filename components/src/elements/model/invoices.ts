@@ -3,6 +3,28 @@ import type { InvoicePage, InvoiceStatus } from "@schematichq/schematic-react";
 import { formatCurrency, formatDate, usableDate } from "./format";
 
 /**
+ * The hosted invoice URL, or `null` for anything that is not an http(s) one.
+ *
+ * The element renders this as an href, so a `javascript:` value would run on
+ * the host's page. The API rejects those on the way in, but rows written
+ * before it did are still in the table, and this derivation is public API a
+ * host renders its own markup from. A dropped link costs a reader one click
+ * through to the provider; the alternative costs them the page.
+ */
+function linkableURL(url: string | null | undefined): string | null {
+  if (url === undefined || url === null || url === "") {
+    return null;
+  }
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "http:" || protocol === "https:" ? url : null;
+  } catch {
+    // Not a URL at all — a relative path, or something that never was one.
+    return null;
+  }
+}
+
+/**
  * `deriveInvoiceList`: invoice history rows, each carrying the raw value and
  * the formatted text. (`deriveUpcomingInvoice` ships with UpcomingBill.)
  */
@@ -99,7 +121,7 @@ export function deriveInvoiceList(
           }),
         isCredit: invoice.amountDue < 0,
         status: invoice.status ?? null,
-        url: invoice.url ?? null,
+        url: linkableURL(invoice.url),
       };
     }),
     count: page.count,
