@@ -288,15 +288,18 @@ export function aggregateActiveGrantsByBundle(
   ).sort((a, b) => byRecency(a.grants[0], b.grants[0]));
 }
 
-export type CreditDescriptor = Pick<
-  CreditWithCompanyContext,
-  "id" | "name" | "singularName" | "pluralName" | "description" | "icon"
->;
+type CreditDescriptor = {
+  id: string;
+  name: string;
+  singularName?: string | null;
+  pluralName?: string | null;
+  description: string;
+  icon?: string | null;
+};
 
 /**
- * The credits the company's current plan draws on, whether or not the company
- * holds a balance in any of them: every credit a credit-burndown entitlement
- * consumes, plus every credit the plan grants outright. Deduped by credit id.
+ * The credits the company's plan draws on, held or not: those its
+ * credit-burndown entitlements consume plus those it grants. Deduped by id.
  */
 export function listPlanCredits(
   features: FeatureUsageResponseData[],
@@ -309,17 +312,9 @@ export function listPlanCredits(
     if (
       planEntitlement?.priceBehavior ===
         EntitlementPriceBehavior.CreditBurndown &&
-      credit &&
-      !byId.has(credit.id)
+      credit
     ) {
-      byId.set(credit.id, {
-        id: credit.id,
-        name: credit.name,
-        singularName: credit.singularName,
-        pluralName: credit.pluralName,
-        description: credit.description,
-        icon: credit.icon,
-      });
+      byId.set(credit.id, credit);
     }
   }
 
@@ -339,36 +334,35 @@ export function listPlanCredits(
   return Array.from(byId.values());
 }
 
-/**
- * Appends an empty balance for each plan credit the company holds no active
- * grant in, so a plan that consumes a credit surfaces it (and its "Buy More")
- * before the first purchase and after the last grant expires. Existing
- * balances are left untouched and keep their order.
- */
+/** Appends an empty balance for each plan credit the company holds no grant in. */
 export function withEmptyPlanCreditBalances(
   balances: CreditWithCompanyContext[],
   planCredits: CreditDescriptor[],
-  context: Pick<
-    CreditWithCompanyContext,
-    "companyId" | "companyName" | "planId" | "planName"
-  >,
+  company?: { id: string; name: string; plan?: { id: string; name: string } },
 ): CreditWithCompanyContext[] {
   const held = new Set(balances.map((balance) => balance.id));
 
-  return [
-    ...balances,
-    ...planCredits
+  return balances.concat(
+    planCredits
       .filter((credit) => !held.has(credit.id))
-      .map((credit) => ({
-        ...credit,
-        ...context,
+      .map(({ id, name, singularName, pluralName, description, icon }) => ({
+        id,
+        name,
+        singularName,
+        pluralName,
+        description,
+        icon,
         grantReason: BillingCreditGrantReason.Plan,
         quantity: 0,
+        companyId: company?.id ?? "",
+        companyName: company?.name ?? "",
+        planId: company?.plan?.id,
+        planName: company?.plan?.name,
         bundleId: undefined,
         total: { value: 0, remaining: 0, used: 0 },
         grants: [],
       })),
-  ];
+  );
 }
 
 export function isAutoTopupEnabled(grant?: CompanyPlanCreditGrantView) {

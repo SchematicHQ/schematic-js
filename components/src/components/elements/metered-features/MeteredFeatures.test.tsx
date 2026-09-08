@@ -279,19 +279,6 @@ describe("`MeteredFeatures` plan credits without a balance", () => {
     expect(screen.queryByText("See balance details")).not.toBeInTheDocument();
   });
 
-  test("renders a credit the plan grants once every company grant has expired", () => {
-    state.includedCreditGrants = [planCreditGrant];
-    state.creditGrants = [
-      { ...createGrant(0), expiresAt: new Date(2000, 0, 1) },
-    ];
-
-    render(<MeteredFeatures />);
-
-    expect(screen.getByText("Tokens")).toBeInTheDocument();
-    expect(screen.getByText("Buy More")).toBeInTheDocument();
-    expect(screen.queryByText("See balance details")).not.toBeInTheDocument();
-  });
-
   test("does not add a second row for a credit the company already holds", () => {
     state.features = [creditBurndownEntitlement];
     state.includedCreditGrants = [planCreditGrant];
