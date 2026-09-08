@@ -8,7 +8,11 @@ import {
   FeatureType,
   type FeatureUsageResponseData,
 } from "../../../api/checkoutexternal";
-import { TEXT_BASE_SIZE, VISIBLE_CREDIT_COUNT } from "../../../const";
+import {
+  MAXIMUM_FRACTION_DIGITS,
+  TEXT_BASE_SIZE,
+  VISIBLE_CREDIT_COUNT,
+} from "../../../const";
 import { type FontStyle } from "../../../context";
 import {
   useEmbed,
@@ -39,16 +43,7 @@ import {
 } from "../../../utils";
 import { Element } from "../../layout";
 import { ExpandListToggle, HardLimitTooltip } from "../../shared";
-import {
-  Box,
-  Button,
-  Flex,
-  Icon,
-  ProgressBar,
-  Text,
-  TransitionBox,
-  progressColorMap,
-} from "../../ui";
+import { Box, Button, Flex, Icon, Text, TransitionBox } from "../../ui";
 
 import { Meter } from "./Meter";
 import { PriceDetails } from "./PriceDetails";
@@ -475,10 +470,8 @@ export const MeteredFeatures = forwardRef<
         creditGroups.map((credit, index) => {
           const isExpanded = expandedCreditIds.has(credit.id);
 
-          // An empty balance has no ledger to open and nothing to meter.
+          // An empty balance has no ledger to open.
           const hasGrants = credit.grants.length > 0;
-          const usedRatio =
-            credit.total.value > 0 ? credit.total.used / credit.total.value : 0;
 
           const showAllGrants = fullLedgerCreditIds.has(credit.id);
           const canExpandLedger = credit.grants.length > VISIBLE_CREDIT_COUNT;
@@ -529,17 +522,24 @@ export const MeteredFeatures = forwardRef<
                     </Flex>
                   </Flex>
 
-                  <Flex $gap="1rem">
-                    <ProgressBar
-                      progress={usedRatio * 100}
-                      value={credit.total.used}
-                      total={credit.total.value}
-                      color={
-                        progressColorMap[
-                          Math.floor(usedRatio * (progressColorMap.length - 1))
-                        ]
-                      }
-                    />
+                  <Flex $gap="1rem" $alignItems="center">
+                    {props.usage.isVisible && (
+                      <Box $flexGrow={1} $whiteSpace="nowrap">
+                        <Text display={props.usage.fontStyle}>
+                          {t("X units remaining", {
+                            // Balances burn at rates with up to 10 decimal
+                            // places, so a small remainder must not round to 0.
+                            amount: formatNumber(credit.total.remaining, {
+                              maximumFractionDigits: MAXIMUM_FRACTION_DIGITS,
+                            }),
+                            units: getFeatureName(
+                              credit,
+                              credit.total.remaining,
+                            ),
+                          })}
+                        </Text>
+                      </Box>
+                    )}
 
                     {canCheckout && purchasableCreditIds.has(credit.id) && (
                       <Button
@@ -608,7 +608,7 @@ export const MeteredFeatures = forwardRef<
                     const renewalDate = data?.upcomingInvoice?.dueDate;
 
                     return (
-                      // Pulled up against the balance bar despite the column's 2rem gap
+                      // Pulled up against the balance line despite the column's 2rem gap
                       <Box $marginTop="-1.5rem">
                         <Text
                           style={{ opacity: 0.54 }}
