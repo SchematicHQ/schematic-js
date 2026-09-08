@@ -118,11 +118,7 @@ describe("`MeteredFeatures` grant ledger truncation", () => {
 
     // `createGrant` dates ascend with the index, so grant 18 is the newest.
     const expected = [17, 16, 15].map((index) =>
-      toPrettyDate(new Date(2026, 0, index + 1), {
-        day: "2-digit",
-        month: "2-digit",
-        year: "2-digit",
-      }),
+      toPrettyDate(new Date(2026, 0, index + 1), { month: "short" }),
     );
 
     expect(grantRows().map((node) => node.textContent)).toEqual(

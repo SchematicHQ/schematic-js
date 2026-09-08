@@ -349,9 +349,6 @@ export const PlanManager = forwardRef<
                 plan: currentPlan?.name || "plan",
                 date: toPrettyDate(
                   new Date(billingSubscription.cancelAt * 1000),
-                  {
-                    month: "numeric",
-                  },
                 ),
               })}
             </Text>
@@ -377,24 +374,18 @@ export const PlanManager = forwardRef<
                 })
               : t("Custom plan payment due", {
                   plan: customPlanBilling.planName ?? t("your plan"),
-                  date: toPrettyDate(customPlanBilling.deadline, {
-                    month: "numeric",
-                  }),
+                  date: toPrettyDate(customPlanBilling.deadline),
                 })}
           </Text>
 
           <Text as="p" $size={0.8125 * settings.theme.typography.text.fontSize}>
             {customPlanBilling.isAwaitingActivation
               ? t("Custom plan awaiting payment description", {
-                  date: toPrettyDate(customPlanBilling.deadline, {
-                    month: "numeric",
-                  }),
+                  date: toPrettyDate(customPlanBilling.deadline),
                 })
               : t("Custom plan payment due description", {
                   plan: customPlanBilling.planName ?? t("your plan"),
-                  date: toPrettyDate(customPlanBilling.deadline, {
-                    month: "numeric",
-                  }),
+                  date: toPrettyDate(customPlanBilling.deadline),
                 })}
           </Text>
 
@@ -440,9 +431,6 @@ export const PlanManager = forwardRef<
                   plan: data.company.scheduledDowngrade.fromPlanName,
                   date: toPrettyDate(
                     new Date(billingSubscription.periodEnd * 1000),
-                    {
-                      month: "numeric",
-                    },
                   ),
                 })}
               </Text>

@@ -304,8 +304,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
           {acc.length > 0 && <> • </>}
           {t("Resets", {
             date: toPrettyDate(metricResetAt, {
-              month: "numeric",
-              day: "numeric",
+              month: "short",
               year: undefined,
             }),
           })}

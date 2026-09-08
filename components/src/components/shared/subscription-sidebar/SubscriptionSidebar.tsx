@@ -925,9 +925,7 @@ export const SubscriptionSidebar = forwardRef<
       willScheduleDowngrade && selectedPlan?.name && billingSubscription
         ? t("You will be downgraded at the end of your billing period.", {
             plan: selectedPlan.name,
-            date: toPrettyDate(new Date(billingSubscription.periodEnd * 1000), {
-              month: "numeric",
-            }),
+            date: toPrettyDate(new Date(billingSubscription.periodEnd * 1000)),
           })
         : billingPreviewText;
 
@@ -1190,7 +1188,7 @@ export const SubscriptionSidebar = forwardRef<
               >
                 <Flex>
                   <Text display="heading4">
-                    {t("Ends on", { date: trialEndsOn.toLocaleDateString() })}
+                    {t("Ends on", { date: toPrettyDate(trialEndsOn) })}
                   </Text>
                 </Flex>
                 <Flex>
