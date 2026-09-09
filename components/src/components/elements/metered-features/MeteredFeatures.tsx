@@ -29,10 +29,12 @@ import {
   getSubscriptionPeriod,
   getUsageDetails,
   groupPlanCreditGrants,
+  listPlanCredits,
   modifyDate,
   resolvePlanCreditQuantity,
   shortenPeriod,
   toPrettyDate,
+  withEmptyPlanCreditBalances,
   type UsageDetails,
 } from "../../../utils";
 import { Element } from "../../layout";
@@ -233,9 +235,19 @@ export const MeteredFeatures = forwardRef<
     );
   }, [props.visibleFeatures, data?.featureUsage?.features]);
 
+  // One row per credit the company holds or its plan draws on, so a plan
+  // credit shows (with "Buy More") before the first grant and after the last.
   const creditGroups = useMemo(
-    () => aggregateActiveGrantsByCredit(data?.creditGrants || []),
-    [data?.creditGrants],
+    () =>
+      withEmptyPlanCreditBalances(
+        aggregateActiveGrantsByCredit(data?.creditGrants || []),
+        listPlanCredits(
+          data?.featureUsage?.features ?? [],
+          data?.company?.plan?.includedCreditGrants ?? [],
+        ),
+        data?.company,
+      ),
+    [data?.creditGrants, data?.featureUsage?.features, data?.company],
   );
 
   // Per-license composition of the current plan's grants (credits per license
@@ -463,6 +475,11 @@ export const MeteredFeatures = forwardRef<
         creditGroups.map((credit, index) => {
           const isExpanded = expandedCreditIds.has(credit.id);
 
+          // An empty balance has no ledger to open and nothing to meter.
+          const hasGrants = credit.grants.length > 0;
+          const usedRatio =
+            credit.total.value > 0 ? credit.total.used / credit.total.value : 0;
+
           const showAllGrants = fullLedgerCreditIds.has(credit.id);
           const canExpandLedger = credit.grants.length > VISIBLE_CREDIT_COUNT;
           const visibleGrants = showAllGrants
@@ -514,15 +531,12 @@ export const MeteredFeatures = forwardRef<
 
                   <Flex $gap="1rem">
                     <ProgressBar
-                      progress={(credit.total.used / credit.total.value) * 100}
+                      progress={usedRatio * 100}
                       value={credit.total.used}
                       total={credit.total.value}
                       color={
                         progressColorMap[
-                          Math.floor(
-                            (credit.total.used / credit.total.value) *
-                              (progressColorMap.length - 1),
-                          )
+                          Math.floor(usedRatio * (progressColorMap.length - 1))
                         ]
                       }
                     />
@@ -624,154 +638,168 @@ export const MeteredFeatures = forwardRef<
                 </Flex>
               </Flex>
 
-              <Box
-                $width={`calc(100% + ${(2 * settings.theme.card.padding) / TEXT_BASE_SIZE}rem)`}
-                $margin={`0 0 0 -${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
-              >
-                <TransitionBox
-                  $backgroundColor={
-                    isLightBackground
-                      ? "hsla(0, 0%, 0%, 0.0375)"
-                      : "hsla(0, 0%, 100%, 0.075)"
-                  }
-                  $isExpanded={isExpanded}
+              {hasGrants && (
+                <Box
+                  $width={`calc(100% + ${(2 * settings.theme.card.padding) / TEXT_BASE_SIZE}rem)`}
+                  $margin={`0 0 0 -${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
                 >
-                  {visibleGrants.map((grant, index) => {
-                    const padding = getRowPadding(index);
+                  <TransitionBox
+                    $backgroundColor={
+                      isLightBackground
+                        ? "hsla(0, 0%, 0%, 0.0375)"
+                        : "hsla(0, 0%, 100%, 0.075)"
+                    }
+                    $isExpanded={isExpanded}
+                  >
+                    {visibleGrants.map((grant, index) => {
+                      const padding = getRowPadding(index);
 
-                    return (
-                      <Box key={grant.id} $display="table-row">
-                        {grant.grantReason === BillingCreditGrantReason.Plan ? (
-                          <>
-                            <Box $display="table-cell" $padding={padding}>
-                              <Text>
-                                {t("X items included in plan", {
-                                  amount: grant.quantity,
-                                  item: getFeatureName(credit, grant.quantity),
-                                })}
-                              </Text>
-                            </Box>
-
-                            <Box
-                              $display="table-cell"
-                              $padding={padding}
-                              $textAlign="right"
-                              $whiteSpace="nowrap"
-                            >
-                              {grant.expiresAt && (
+                      return (
+                        <Box key={grant.id} $display="table-row">
+                          {grant.grantReason ===
+                          BillingCreditGrantReason.Plan ? (
+                            <>
+                              <Box $display="table-cell" $padding={padding}>
                                 <Text>
-                                  {t("Resets", {
-                                    date: toPrettyDate(
-                                      modifyDate(grant.expiresAt, 1),
-                                      { month: "short" },
+                                  {t("X items included in plan", {
+                                    amount: grant.quantity,
+                                    item: getFeatureName(
+                                      credit,
+                                      grant.quantity,
                                     ),
                                   })}
                                 </Text>
-                              )}
-                            </Box>
-                          </>
-                        ) : (
-                          <>
-                            <Box $display="table-cell" $padding={padding}>
-                              <Text>
-                                {grant.grantReason ===
-                                BillingCreditGrantReason.Purchased ? (
-                                  <>
-                                    {t("X item bundle", {
-                                      amount: grant.quantity,
-                                      item: getFeatureName(credit, 1),
-                                      createdAt: toPrettyDate(grant.createdAt, {
-                                        month: "short",
-                                      }),
-                                    })}
-                                  </>
-                                ) : grant.grantReason ===
-                                  BillingCreditGrantReason.BillingCreditAutoTopup ? (
-                                  <>
-                                    {t("X item auto-topup", {
-                                      amount: grant.quantity,
-                                      item: getFeatureName(
-                                        credit,
-                                        grant.quantity,
+                              </Box>
+
+                              <Box
+                                $display="table-cell"
+                                $padding={padding}
+                                $textAlign="right"
+                                $whiteSpace="nowrap"
+                              >
+                                {grant.expiresAt && (
+                                  <Text>
+                                    {t("Resets", {
+                                      date: toPrettyDate(
+                                        modifyDate(grant.expiresAt, 1),
+                                        { month: "short" },
                                       ),
-                                      createdAt: toPrettyDate(grant.createdAt, {
-                                        month: "short",
-                                      }),
                                     })}
-                                  </>
-                                ) : (
-                                  <>
-                                    {t("X item grant", {
-                                      amount: grant.quantity,
-                                      item: getFeatureName(
-                                        credit,
-                                        grant.quantity,
-                                      ),
-                                      createdAt: toPrettyDate(grant.createdAt, {
-                                        month: "short",
-                                      }),
-                                    })}
-                                  </>
+                                  </Text>
                                 )}
-                              </Text>
-                            </Box>
-
-                            <Box
-                              $display="table-cell"
-                              $padding={padding}
-                              $textAlign="right"
-                              $whiteSpace="nowrap"
-                            >
-                              {grant.expiresAt && (
+                              </Box>
+                            </>
+                          ) : (
+                            <>
+                              <Box $display="table-cell" $padding={padding}>
                                 <Text>
-                                  {t("Expires", {
-                                    date: toPrettyDate(
-                                      modifyDate(grant.expiresAt, 1),
-                                      { month: "short" },
-                                    ),
-                                  })}
+                                  {grant.grantReason ===
+                                  BillingCreditGrantReason.Purchased ? (
+                                    <>
+                                      {t("X item bundle", {
+                                        amount: grant.quantity,
+                                        item: getFeatureName(credit, 1),
+                                        createdAt: toPrettyDate(
+                                          grant.createdAt,
+                                          { month: "short" },
+                                        ),
+                                      })}
+                                    </>
+                                  ) : grant.grantReason ===
+                                    BillingCreditGrantReason.BillingCreditAutoTopup ? (
+                                    <>
+                                      {t("X item auto-topup", {
+                                        amount: grant.quantity,
+                                        item: getFeatureName(
+                                          credit,
+                                          grant.quantity,
+                                        ),
+                                        createdAt: toPrettyDate(
+                                          grant.createdAt,
+                                          { month: "short" },
+                                        ),
+                                      })}
+                                    </>
+                                  ) : (
+                                    <>
+                                      {t("X item grant", {
+                                        amount: grant.quantity,
+                                        item: getFeatureName(
+                                          credit,
+                                          grant.quantity,
+                                        ),
+                                        createdAt: toPrettyDate(
+                                          grant.createdAt,
+                                          { month: "short" },
+                                        ),
+                                      })}
+                                    </>
+                                  )}
                                 </Text>
-                              )}
-                            </Box>
-                          </>
-                        )}
-                      </Box>
-                    );
-                  })}
+                              </Box>
 
-                  {canExpandLedger && (
-                    <Box $display="table-row">
-                      <Box $display="table-cell" $padding={getRowPadding(1)}>
-                        <ExpandListToggle
-                          isExpanded={showAllGrants}
-                          onToggle={() => toggleFullLedger(credit.id)}
-                          total={credit.grants.length}
-                          iconColor={
-                            isLightBackground
-                              ? "hsla(0, 0%, 0%, 0.8)"
-                              : "hsla(0, 0%, 100%, 0.4)"
-                          }
+                              <Box
+                                $display="table-cell"
+                                $padding={padding}
+                                $textAlign="right"
+                                $whiteSpace="nowrap"
+                              >
+                                {grant.expiresAt && (
+                                  <Text>
+                                    {t("Expires", {
+                                      date: toPrettyDate(
+                                        modifyDate(grant.expiresAt, 1),
+                                        { month: "short" },
+                                      ),
+                                    })}
+                                  </Text>
+                                )}
+                              </Box>
+                            </>
+                          )}
+                        </Box>
+                      );
+                    })}
+
+                    {canExpandLedger && (
+                      <Box $display="table-row">
+                        <Box $display="table-cell" $padding={getRowPadding(1)}>
+                          <ExpandListToggle
+                            isExpanded={showAllGrants}
+                            onToggle={() => toggleFullLedger(credit.id)}
+                            total={credit.grants.length}
+                            iconColor={
+                              isLightBackground
+                                ? "hsla(0, 0%, 0%, 0.8)"
+                                : "hsla(0, 0%, 100%, 0.4)"
+                            }
+                          />
+                        </Box>
+
+                        {/* keeps the two-column anonymous table intact */}
+                        <Box
+                          $display="table-cell"
+                          $padding={getRowPadding(1)}
                         />
                       </Box>
+                    )}
+                  </TransitionBox>
+                </Box>
+              )}
 
-                      {/* keeps the two-column anonymous table intact */}
-                      <Box $display="table-cell" $padding={getRowPadding(1)} />
-                    </Box>
-                  )}
-                </TransitionBox>
-              </Box>
-
-              <ExpandListToggle
-                isExpanded={isExpanded}
-                onToggle={() => toggleBalanceDetails(credit.id)}
-                expandLabel={t("See balance details")}
-                collapseLabel={t("Hide balance details")}
-                iconColor={
-                  isLightBackground
-                    ? "hsla(0, 0%, 0%, 0.8)"
-                    : "hsla(0, 0%, 100%, 0.4)"
-                }
-              />
+              {hasGrants && (
+                <ExpandListToggle
+                  isExpanded={isExpanded}
+                  onToggle={() => toggleBalanceDetails(credit.id)}
+                  expandLabel={t("See balance details")}
+                  collapseLabel={t("Hide balance details")}
+                  iconColor={
+                    isLightBackground
+                      ? "hsla(0, 0%, 0%, 0.8)"
+                      : "hsla(0, 0%, 100%, 0.4)"
+                  }
+                />
+              )}
             </Element>
           );
         })}
