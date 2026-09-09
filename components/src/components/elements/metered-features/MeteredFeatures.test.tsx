@@ -300,3 +300,25 @@ describe("`MeteredFeatures` plan credits without a balance", () => {
     expect(screen.queryByText("Buy More")).not.toBeInTheDocument();
   });
 });
+
+describe("`MeteredFeatures` credit balance", () => {
+  test("shows the remaining balance as a number, not a meter", () => {
+    state.creditGrants = [
+      { ...createGrant(0), quantityRemaining: 62.5, quantityUsed: 37.5 },
+      { ...createGrant(1), quantityRemaining: 100, quantityUsed: 0 },
+    ];
+
+    render(<MeteredFeatures />);
+
+    expect(screen.getByText("162.5 credits remaining")).toBeInTheDocument();
+  });
+
+  test("shows a zero balance for a plan credit with no grants", () => {
+    state.planId = PLAN_ID;
+    state.features = [creditBurndownEntitlement];
+
+    render(<MeteredFeatures />);
+
+    expect(screen.getByText("0 credits remaining")).toBeInTheDocument();
+  });
+});
