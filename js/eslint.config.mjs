@@ -12,7 +12,7 @@ export default defineConfig([
   // --report-unused-disable-directives, so linting src/types/api rewrites the
   // committed client's headers and leaves the working tree dirty.
   {
-    ignores: ["src/company/api/company/**", "src/types/api/**"],
+    ignores: ["src/billing/api/generated/**", "src/types/api/**"],
   },
   {
     files: ["**/*.{js,mjs,cjs,ts}"],

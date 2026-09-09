@@ -3,8 +3,8 @@
  * Filters an OpenAPI spec (JSON) down to a set of paths plus the transitive
  * $ref closure of components they reference. Used to generate narrow API
  * clients from the full publishable-key / temporary-access-token specs, so
- * the company bundle only carries the catalog/company surface instead of
- * every model in the spec.
+ * the billing bundle only carries the surface it ships instead of every
+ * model in the spec.
  *
  * Usage: filter-openapi.mjs <in.json> <out.json> <path> [<path>...]
  */

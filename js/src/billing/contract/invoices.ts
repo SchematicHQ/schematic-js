@@ -1,14 +1,14 @@
 /**
  * `GET /company/invoices`. The wire shape is generated from the API's spec
- * by scripts/generate-company-api.sh and re-exported here under its domain
+ * by scripts/generate-billing-api.sh and re-exported here under its domain
  * name; `InvoicePage` is a client construct built from the response.
  */
 
-import type { CompanyInvoiceResponseData } from "../api/company/models";
+import type { CompanyInvoiceResponseData } from "../api/generated/models";
 
 export type { CompanyInvoiceResponseData };
 export type Invoice = CompanyInvoiceResponseData;
-export { InvoiceStatus } from "../api/company/models";
+export { InvoiceStatus } from "../api/generated/models";
 
 export interface InvoicePage {
   invoices: Invoice[];

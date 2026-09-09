@@ -2473,4 +2473,4 @@ const notifyCreditBalanceListener = (
 };
 
 export * from "./types";
-export * from "./company";
+export * from "./billing";

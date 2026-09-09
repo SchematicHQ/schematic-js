@@ -1,0 +1,8 @@
+# Narrow client for the temporary-access-token surface. The input spec is
+# supplied by scripts/generate-billing-api.sh, which filters the full
+# temporaryaccesstoken spec down to the shipped paths before generating.
+generatorName: typescript-fetch
+enablePostProcessFile: true
+outputDir: ./src/billing/api/generated/
+skipValidateSpec: true
+generateAliasAsModel: true
