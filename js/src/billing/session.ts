@@ -195,9 +195,12 @@ export class SchematicSession {
     }
 
     if (previous !== null && previous !== undefined) {
+      // The fields the key is made of, read the way the key reads them: a
+      // host writing `user: userId ?? null` states no user, the same as
+      // leaving it out, and must not be told its reader changed.
       if (
         previous.company === session.company &&
-        previous.user === session.user
+        (previous.user ?? null) === (session.user ?? null)
       ) {
         // Same pair, new token object. The credential in hand still belongs
         // to this session; what changed is only what the next resolution

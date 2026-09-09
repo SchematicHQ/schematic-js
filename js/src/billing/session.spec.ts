@@ -192,6 +192,21 @@ describe("SchematicSession", () => {
     expect(events).toEqual(["changed"]);
   });
 
+  it("reads a user stated as null the way the session key reads it", async () => {
+    // `sessionKey` collapses an absent user and an explicit null, so a host
+    // writing `user: userId ?? null` — plain JS, past the type — must not
+    // have its own session read as a change and its rows dropped.
+    const session = new SchematicSession({
+      session: { company: "comp_a", user: undefined, token: "t" },
+    });
+    const events: string[] = [];
+    session.onChange((event) => events.push(event.type));
+
+    session.set({ company: "comp_a", user: null, token: "t" } as never);
+    expect(events).toEqual([]);
+    expect(session.key).toBe(sessionKey({ company: "comp_a", token: "t" }));
+  });
+
   it("does not read its own token refresh as a new session", async () => {
     // Comparing token values would make every expiry look like a different
     // company and drop every loaded resource.
