@@ -122,11 +122,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   if (metricResetAt) {
     acc.push(
       t("Resets", {
-        date: toPrettyDate(metricResetAt, {
-          month: "numeric",
-          day: "numeric",
-          year: undefined,
-        }),
+        date: toPrettyDate(metricResetAt, { month: "short", year: undefined }),
       }),
     );
   }
@@ -667,11 +663,7 @@ export const MeteredFeatures = forwardRef<
                                   {t("Resets", {
                                     date: toPrettyDate(
                                       modifyDate(grant.expiresAt, 1),
-                                      {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "2-digit",
-                                      },
+                                      { month: "short" },
                                     ),
                                   })}
                                 </Text>
@@ -689,9 +681,7 @@ export const MeteredFeatures = forwardRef<
                                       amount: grant.quantity,
                                       item: getFeatureName(credit, 1),
                                       createdAt: toPrettyDate(grant.createdAt, {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "2-digit",
+                                        month: "short",
                                       }),
                                     })}
                                   </>
@@ -705,9 +695,7 @@ export const MeteredFeatures = forwardRef<
                                         grant.quantity,
                                       ),
                                       createdAt: toPrettyDate(grant.createdAt, {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "2-digit",
+                                        month: "short",
                                       }),
                                     })}
                                   </>
@@ -720,9 +708,7 @@ export const MeteredFeatures = forwardRef<
                                         grant.quantity,
                                       ),
                                       createdAt: toPrettyDate(grant.createdAt, {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "2-digit",
+                                        month: "short",
                                       }),
                                     })}
                                   </>
@@ -741,11 +727,7 @@ export const MeteredFeatures = forwardRef<
                                   {t("Expires", {
                                     date: toPrettyDate(
                                       modifyDate(grant.expiresAt, 1),
-                                      {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "2-digit",
-                                      },
+                                      { month: "short" },
                                     ),
                                   })}
                                 </Text>
