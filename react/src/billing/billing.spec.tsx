@@ -170,6 +170,92 @@ describe("billing hooks", () => {
     },
   );
 
+  it_(
+    "does not repeat a row when the history grew under the reader",
+    async () => {
+      // Newest first, so an invoice finalized between the two clicks shifts
+      // every row down and the next offset serves rows already on screen.
+      const history = {
+        rows: Array.from({ length: 6 }, (_, i) => invoice(`inv_${6 - i}`)),
+      };
+      const client = fakeClient({
+        fetchInvoices: vi.fn(async ({ limit, offset }) => ({
+          invoices: history.rows.slice(offset, offset + limit),
+          count: history.rows.length,
+        })),
+      });
+      const store = new BillingStore(client, {}, 2);
+      const resource = store.invoices.get({});
+      resource.subscribe(() => {});
+      await flush();
+      expect(resource.snapshot.data?.invoices.map((row) => row.id)).toEqual([
+        "inv_6",
+        "inv_5",
+      ]);
+
+      history.rows = [invoice("inv_7"), ...history.rows];
+      await store.loadMoreInvoices({});
+      await flush();
+      // Without the drop this reads inv_6, inv_5, inv_5, inv_4.
+      expect(resource.snapshot.data?.invoices.map((row) => row.id)).toEqual([
+        "inv_6",
+        "inv_5",
+        "inv_4",
+      ]);
+      expect(resource.snapshot.data).toMatchObject({ count: 7, hasMore: true });
+    },
+  );
+
+  it_("keeps paging when a whole page has already been seen", async () => {
+    // More new invoices than fit a page: every row the next offset serves is
+    // one already on screen. Dropping them and stopping would leave the list
+    // where it was, so "Load more" would click forever without advancing.
+    const history = {
+      rows: Array.from({ length: 6 }, (_, i) => invoice(`old_${6 - i}`)),
+    };
+    const client = fakeClient({
+      fetchInvoices: vi.fn(async ({ limit, offset }) => ({
+        invoices: history.rows.slice(offset, offset + limit),
+        count: history.rows.length,
+      })),
+    });
+    const store = new BillingStore(client, {}, 2);
+    const resource = store.invoices.get({});
+    resource.subscribe(() => {});
+    await flush();
+    expect(resource.snapshot.data?.invoices.map((row) => row.id)).toEqual([
+      "old_6",
+      "old_5",
+    ]);
+
+    // Two arrive, exactly a page: offset 2 now serves old_6 and old_5 again.
+    history.rows = [invoice("new_2"), invoice("new_1"), ...history.rows];
+    await store.loadMoreInvoices({});
+    await flush();
+    const ids = resource.snapshot.data?.invoices.map((row) => row.id) ?? [];
+    expect(ids).toEqual(["old_6", "old_5", "old_4", "old_3"]);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it_("does not collapse rows that arrive without an id", async () => {
+    // `id` is required on the wire but nothing validates it, and dropping
+    // every row after the first would be worse than showing a repeat.
+    const rows = [
+      invoice("inv_2"),
+      invoice("inv_1"),
+      {} as unknown as Invoice,
+      {} as unknown as Invoice,
+    ];
+    const client = fakeClient({ fetchInvoices: vi.fn(serve(rows)) });
+    const store = new BillingStore(client, {}, 2);
+    const resource = store.invoices.get({});
+    resource.subscribe(() => {});
+    await flush();
+    await store.loadMoreInvoices({});
+    await flush();
+    expect(resource.snapshot.data?.invoices).toHaveLength(4);
+  });
+
   it_("report a failed page and keep the rows already fetched", async () => {
     const rows = Array.from({ length: 30 }, (_, i) => invoice(`inv_${i}`));
     let fail = false;

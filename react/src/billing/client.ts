@@ -200,32 +200,60 @@ export class BillingStore {
     // Normalized the way `useInvoices` normalizes: this is public API, and a
     // caller spelling out a default would otherwise address a second, never
     // loaded resource and page nothing while the list on screen stood still.
-    const resource = this.invoices.get(normalizeInvoiceQuery(query));
+    const normalized = normalizeInvoiceQuery(query);
+    const resource = this.invoices.get(normalized);
     if (resource.snapshot.data?.hasMore !== true) {
       return Promise.resolve();
     }
     // Resource.extend owns the in-flight guard and drops a page whose entry
     // was reset or seeded while it was on the wire.
     return resource.extend(async (current) => {
-      const page = await this._fetchInvoices(
-        // Normalized, like the key the resource is stored under: a query
-        // spelling out a default would otherwise fetch a different row set
-        // than the list it appends to.
-        normalizeInvoiceQuery(query),
-        current.invoices.length,
-        this._pageSize,
-      );
-      const invoices = [...current.invoices, ...page.invoices];
+      const invoices = [...current.invoices];
+      const seen = new Set(invoices.map((row) => row.id));
+      // Offsets count rows the server has handed over, which after a dropped
+      // duplicate is more than the rows on screen.
+      let offset = invoices.length;
+      let page: InvoicesResult;
+
+      // One request, all but always. The history reads newest first, so an
+      // invoice finalized since the last page shifts every row down and this
+      // offset serves rows already on screen; dropping them is the whole fix
+      // while fewer than a page arrived. A full page of them would append
+      // nothing and leave the offset where it was, so "Load more" would click
+      // forever without advancing — hence the walk, until a row is new or the
+      // history runs out.
+      for (;;) {
+        page = await this._fetchInvoices(normalized, offset, this._pageSize);
+        if (page.invoices.length === 0) {
+          break;
+        }
+        offset += page.invoices.length;
+        const before = invoices.length;
+        for (const row of page.invoices) {
+          if (row.id !== undefined && seen.has(row.id)) {
+            continue;
+          }
+          seen.add(row.id);
+          invoices.push(row);
+        }
+        if (invoices.length > before || offset >= page.count) {
+          break;
+        }
+      }
+
       return {
         invoices,
-        count: page.count,
         // From the count the page came back with, not the one the list was
         // built on: an invoice finalized between the two requests changes
-        // what is left to load. A page that came back empty ends the list
-        // whatever the count says — the rows and the count are two queries,
-        // and a count that outruns the rows would otherwise leave "Load
-        // more" on screen, fetching nothing, for as long as anyone clicks.
-        hasMore: page.invoices.length > 0 && invoices.length < page.count,
+        // what is left to load.
+        count: page.count,
+        // Measured in rows served rather than rows shown, since a dropped
+        // duplicate is still a row consumed. A page that came back empty ends
+        // the list whatever the count says — the rows and the count are two
+        // queries, and a count that outruns the rows would otherwise leave
+        // "Load more" on screen, fetching nothing, for as long as anyone
+        // clicks.
+        hasMore: page.invoices.length > 0 && offset < page.count,
       };
     });
   }
