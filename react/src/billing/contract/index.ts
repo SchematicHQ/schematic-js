@@ -5,6 +5,7 @@
  */
 export {
   DEFAULT_INVOICE_QUERY,
+  InvoiceStatus,
   normalizeInvoiceQuery,
   type BillingData,
   type BillingResourceName,
@@ -13,6 +14,5 @@ export {
   type Invoice,
   type InvoicePage,
   type InvoiceQuery,
-  type InvoiceStatus,
   type ResourceState,
 } from "@schematichq/schematic-js";
