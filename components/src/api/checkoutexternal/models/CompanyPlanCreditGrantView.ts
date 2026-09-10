@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingArrearsCadence } from "./BillingArrearsCadence";
+import {
+  BillingArrearsCadenceFromJSON,
+  BillingArrearsCadenceFromJSONTyped,
+  BillingArrearsCadenceToJSON,
+  BillingArrearsCadenceToJSONTyped,
+} from "./BillingArrearsCadence";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
@@ -41,6 +48,13 @@ import {
   PlanCreditGrantScalingToJSON,
   PlanCreditGrantScalingToJSONTyped,
 } from "./PlanCreditGrantScaling";
+import type { BillingArrearsAnchor } from "./BillingArrearsAnchor";
+import {
+  BillingArrearsAnchorFromJSON,
+  BillingArrearsAnchorFromJSONTyped,
+  BillingArrearsAnchorToJSON,
+  BillingArrearsAnchorToJSONTyped,
+} from "./BillingArrearsAnchor";
 import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
 import {
   BillingPlanCreditGrantResetTypeFromJSON,
@@ -83,6 +97,18 @@ import {
  * @interface CompanyPlanCreditGrantView
  */
 export interface CompanyPlanCreditGrantView {
+  /**
+   *
+   * @type {BillingArrearsAnchor}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  billingCreditArrearsAnchor?: BillingArrearsAnchor | null;
+  /**
+   *
+   * @type {BillingArrearsCadence}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  billingCreditArrearsCadence?: BillingArrearsCadence | null;
   /**
    *
    * @type {number}
@@ -149,6 +175,30 @@ export interface CompanyPlanCreditGrantView {
    * @memberof CompanyPlanCreditGrantView
    */
   billingCreditCanBuyBundles: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  billingCreditOverdraftLimit?: number | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  billingCreditPostpaidEnabled: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  billingCreditPostpaidRatePerUnit?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CompanyPlanCreditGrantView
+   */
+  billingCreditPostpaidRatePerUnitDecimal?: string | null;
   /**
    *
    * @type {number}
@@ -340,6 +390,11 @@ export function instanceOfCompanyPlanCreditGrantView(
   )
     return false;
   if (
+    !("billingCreditPostpaidEnabled" in value) ||
+    value["billingCreditPostpaidEnabled"] === undefined
+  )
+    return false;
+  if (
     !("companyCreditAmount" in value) ||
     value["companyCreditAmount"] === undefined
   )
@@ -382,6 +437,14 @@ export function CompanyPlanCreditGrantViewFromJSONTyped(
     return json;
   }
   return {
+    billingCreditArrearsAnchor:
+      json["billing_credit_arrears_anchor"] == null
+        ? undefined
+        : BillingArrearsAnchorFromJSON(json["billing_credit_arrears_anchor"]),
+    billingCreditArrearsCadence:
+      json["billing_credit_arrears_cadence"] == null
+        ? undefined
+        : BillingArrearsCadenceFromJSON(json["billing_credit_arrears_cadence"]),
     billingCreditAutoTopupAmount:
       json["billing_credit_auto_topup_amount"] == null
         ? undefined
@@ -424,6 +487,19 @@ export function CompanyPlanCreditGrantViewFromJSONTyped(
         ? undefined
         : json["billing_credit_auto_topup_threshold_percent"],
     billingCreditCanBuyBundles: json["billing_credit_can_buy_bundles"],
+    billingCreditOverdraftLimit:
+      json["billing_credit_overdraft_limit"] == null
+        ? undefined
+        : json["billing_credit_overdraft_limit"],
+    billingCreditPostpaidEnabled: json["billing_credit_postpaid_enabled"],
+    billingCreditPostpaidRatePerUnit:
+      json["billing_credit_postpaid_rate_per_unit"] == null
+        ? undefined
+        : json["billing_credit_postpaid_rate_per_unit"],
+    billingCreditPostpaidRatePerUnitDecimal:
+      json["billing_credit_postpaid_rate_per_unit_decimal"] == null
+        ? undefined
+        : json["billing_credit_postpaid_rate_per_unit_decimal"],
     companyAutoTopupAmount:
       json["company_auto_topup_amount"] == null
         ? undefined
@@ -499,6 +575,12 @@ export function CompanyPlanCreditGrantViewToJSONTyped(
   }
 
   return {
+    billing_credit_arrears_anchor: BillingArrearsAnchorToJSON(
+      value["billingCreditArrearsAnchor"],
+    ),
+    billing_credit_arrears_cadence: BillingArrearsCadenceToJSON(
+      value["billingCreditArrearsCadence"],
+    ),
     billing_credit_auto_topup_amount: value["billingCreditAutoTopupAmount"],
     billing_credit_auto_topup_amount_type:
       value["billingCreditAutoTopupAmountType"],
@@ -522,6 +604,12 @@ export function CompanyPlanCreditGrantViewToJSONTyped(
     billing_credit_auto_topup_threshold_percent:
       value["billingCreditAutoTopupThresholdPercent"],
     billing_credit_can_buy_bundles: value["billingCreditCanBuyBundles"],
+    billing_credit_overdraft_limit: value["billingCreditOverdraftLimit"],
+    billing_credit_postpaid_enabled: value["billingCreditPostpaidEnabled"],
+    billing_credit_postpaid_rate_per_unit:
+      value["billingCreditPostpaidRatePerUnit"],
+    billing_credit_postpaid_rate_per_unit_decimal:
+      value["billingCreditPostpaidRatePerUnitDecimal"],
     company_auto_topup_amount: value["companyAutoTopupAmount"],
     company_auto_topup_enabled: value["companyAutoTopupEnabled"],
     company_auto_topup_threshold_credits:

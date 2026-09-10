@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingArrearsCadence } from "./BillingArrearsCadence";
+import {
+  BillingArrearsCadenceFromJSON,
+  BillingArrearsCadenceFromJSONTyped,
+  BillingArrearsCadenceToJSON,
+  BillingArrearsCadenceToJSONTyped,
+} from "./BillingArrearsCadence";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
@@ -69,6 +76,12 @@ import {
  * @interface CreditCompanyGrantView
  */
 export interface CreditCompanyGrantView {
+  /**
+   *
+   * @type {BillingArrearsCadence}
+   * @memberof CreditCompanyGrantView
+   */
+  arrearsCadence?: BillingArrearsCadence | null;
   /**
    *
    * @type {string}
@@ -195,6 +208,42 @@ export interface CreditCompanyGrantView {
    * @memberof CreditCompanyGrantView
    */
   pluralName?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof CreditCompanyGrantView
+   */
+  postpaidChargeAmount?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
+  postpaidChargeCurrency?: string | null;
+  /**
+   *
+   * @type {number}
+   * @memberof CreditCompanyGrantView
+   */
+  postpaidChargedCredits?: number | null;
+  /**
+   *
+   * @type {Date}
+   * @memberof CreditCompanyGrantView
+   */
+  postpaidPeriodEnd?: Date | null;
+  /**
+   *
+   * @type {number}
+   * @memberof CreditCompanyGrantView
+   */
+  postpaidRate?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CreditCompanyGrantView
+   */
+  postpaidRateDecimal?: string | null;
   /**
    *
    * @type {BillingProductPriceResponseData}
@@ -345,6 +394,10 @@ export function CreditCompanyGrantViewFromJSONTyped(
     return json;
   }
   return {
+    arrearsCadence:
+      json["arrears_cadence"] == null
+        ? undefined
+        : BillingArrearsCadenceFromJSON(json["arrears_cadence"]),
     billingCreditBundleId:
       json["billing_credit_bundle_id"] == null
         ? undefined
@@ -382,6 +435,28 @@ export function CreditCompanyGrantViewFromJSONTyped(
     planId: json["plan_id"] == null ? undefined : json["plan_id"],
     planName: json["plan_name"] == null ? undefined : json["plan_name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
+    postpaidChargeAmount:
+      json["postpaid_charge_amount"] == null
+        ? undefined
+        : json["postpaid_charge_amount"],
+    postpaidChargeCurrency:
+      json["postpaid_charge_currency"] == null
+        ? undefined
+        : json["postpaid_charge_currency"],
+    postpaidChargedCredits:
+      json["postpaid_charged_credits"] == null
+        ? undefined
+        : json["postpaid_charged_credits"],
+    postpaidPeriodEnd:
+      json["postpaid_period_end"] == null
+        ? undefined
+        : new Date(json["postpaid_period_end"]),
+    postpaidRate:
+      json["postpaid_rate"] == null ? undefined : json["postpaid_rate"],
+    postpaidRateDecimal:
+      json["postpaid_rate_decimal"] == null
+        ? undefined
+        : json["postpaid_rate_decimal"],
     price:
       json["price"] == null
         ? undefined
@@ -434,6 +509,7 @@ export function CreditCompanyGrantViewToJSONTyped(
   }
 
   return {
+    arrears_cadence: BillingArrearsCadenceToJSON(value["arrearsCadence"]),
     billing_credit_bundle_id: value["billingCreditBundleId"],
     billing_credit_id: value["billingCreditId"],
     company_id: value["companyId"],
@@ -461,6 +537,15 @@ export function CreditCompanyGrantViewToJSONTyped(
     plan_id: value["planId"],
     plan_name: value["planName"],
     plural_name: value["pluralName"],
+    postpaid_charge_amount: value["postpaidChargeAmount"],
+    postpaid_charge_currency: value["postpaidChargeCurrency"],
+    postpaid_charged_credits: value["postpaidChargedCredits"],
+    postpaid_period_end:
+      value["postpaidPeriodEnd"] == null
+        ? undefined
+        : (value["postpaidPeriodEnd"] as any).toISOString(),
+    postpaid_rate: value["postpaidRate"],
+    postpaid_rate_decimal: value["postpaidRateDecimal"],
     price: BillingProductPriceResponseDataToJSON(value["price"]),
     quantity: value["quantity"],
     quantity_remaining: value["quantityRemaining"],

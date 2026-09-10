@@ -1,6 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from "./ApiError";
+export * from "./BillingArrearsAnchor";
+export * from "./BillingArrearsCadence";
 export * from "./BillingCollectionMethod";
 export * from "./BillingCreditAutoTopupAvailability";
 export * from "./BillingCreditBundleStatus";
