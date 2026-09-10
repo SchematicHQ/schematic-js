@@ -20,6 +20,11 @@ import { hashKey } from "./store";
  */
 
 /** Returns a reference-stable copy of `params`: the same object until its hash changes. */
+/* eslint-disable react-hooks/refs -- The ref is a cache, not state: it holds a
+   value derived from this render's own props, and re-deriving it would produce
+   an equal one. Reading it during render is the point — the caller needs a
+   stable identity *in* this render to key a subscription by, which an effect
+   cannot supply. React documents this shape as adjusting state during render. */
 function useStableParams<P>(params: P): P {
   const key = hashKey(params);
   const ref = useRef({ key, params });
@@ -28,6 +33,7 @@ function useStableParams<P>(params: P): P {
   }
   return ref.current.params;
 }
+/* eslint-enable react-hooks/refs */
 
 function useBillingResource<K extends BillingResourceName>(
   name: K,

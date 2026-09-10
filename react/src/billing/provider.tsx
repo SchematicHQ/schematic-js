@@ -93,6 +93,10 @@ export function BillingProvider({
   const latestToken = useRef<
     { company: string; user?: string; token: AccessToken } | undefined
   >(undefined);
+  // Read for its identity, not its value: the client keeps whichever function it
+  // was handed, so this has to be the same one on every render or a rotating
+  // token restates the session.
+  // eslint-disable-next-line react-hooks/refs
   const stableProvider = useRef<AccessTokenProvider>(async () => {
     const current = latestToken.current;
     if (typeof current?.token !== "function") {
@@ -153,15 +157,24 @@ export function BillingProvider({
   const renderPass = useRef<{ done: boolean; client?: BillingClient }>({
     done: false,
   });
+  /* eslint-disable react-hooks/refs -- Deliberate, and the whole mechanism: a
+     child's subscription effect runs before this component's, so the session
+     has to reach the client during render or the first fetch goes out
+     unauthenticated. The ref is what makes it happen exactly once, while the
+     client is still new to us and nothing is listening. See the note above. */
   if (!renderPass.current.done || renderPass.current.client !== billingClient) {
     renderPass.current = { done: true, client: billingClient };
     install();
   }
+  /* eslint-enable react-hooks/refs */
   // Later changes reach a store that *is* listening, so installing during
   // render would run its reset — and every subscriber's state update — in
   // the middle of rendering this component.
   useEffect(install);
 
+  /* eslint-disable react-hooks/refs -- `initialRef` holds the seed as it was at
+     mount and never changes again; reading it here is how a later `initialData`
+     prop is kept from overwriting live data. A dependency would defeat that. */
   const store = useMemo(
     () =>
       billingClient === undefined
@@ -169,17 +182,21 @@ export function BillingProvider({
         : new BillingStore(billingClient, initialRef.current),
     [billingClient],
   );
+  /* eslint-enable react-hooks/refs */
 
   // Arms the credentials listener and tears it down together, so StrictMode's
   // mount / unmount / remount leaves the store listening rather than deaf.
   useEffect(() => store?.connect(), [store]);
 
   const source = useMemo<BillingDataSource | undefined>(() => {
+    // The mount-time seed; see the note on `store` above.
+    /* eslint-disable react-hooks/refs */
     if (store === undefined) {
       return initialRef.current === undefined
         ? undefined
         : staticSource(initialRef.current);
     }
+    /* eslint-enable react-hooks/refs */
     // Bounded because `KeyedResource` evicts resources but this map would
     // otherwise hold every discarded one alive. The oldest goes, never the
     // whole map: clearing it hands every component on screen a new handle

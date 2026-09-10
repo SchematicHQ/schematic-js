@@ -51,6 +51,13 @@ export const useSchematicContext = (opts?: SchematicHookOpts) => {
 export const useSchematicEvents = (opts?: SchematicHookOpts) => {
   const client = useSchematicClient(opts);
 
+  // The compiler cannot prove a rest-spread forward preserves the memo, so it
+  // declines to optimize the hook rather than change it. The identities still
+  // hold across renders, which is what callers depend on. Rewriting these as
+  // `client.track.bind(client)` — the shape `useSchematicContext` uses — would
+  // satisfy the rule, but that is the events API's call to make, not a lint
+  // sweep's.
+  /* eslint-disable react-hooks/preserve-manual-memoization */
   const track = useCallback(
     (...args: Parameters<typeof client.track>) => client.track(...args),
     [client],
@@ -60,6 +67,7 @@ export const useSchematicEvents = (opts?: SchematicHookOpts) => {
     (...args: Parameters<typeof client.identify>) => client.identify(...args),
     [client],
   );
+  /* eslint-enable react-hooks/preserve-manual-memoization */
 
   return useMemo(() => ({ track, identify }), [track, identify]);
 };
@@ -119,14 +127,16 @@ export const useSchematicPlan = (
   const client = useSchematicClient(opts);
   const fallback = opts?.fallback;
 
+  // Extracted so the dependency list stays statically checkable.
+  const fallbackTrialEnd = fallback?.trialEndDate?.getTime();
+  // Keyed on the fallback's fields rather than the fallback itself: a host
+  // writing `fallback={{ ... }}` inline hands over a new object every render,
+  // and depending on it would hand `useSyncExternalStore` a new server
+  // snapshot each time — which is the loop this memo exists to prevent.
   const fallbackPlan = useMemo(
     () => fallback,
-    [
-      fallback?.id,
-      fallback?.name,
-      fallback?.trialEndDate?.getTime(),
-      fallback?.trialStatus,
-    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fallback?.id, fallback?.name, fallbackTrialEnd, fallback?.trialStatus],
   );
 
   const subscribe = useCallback(

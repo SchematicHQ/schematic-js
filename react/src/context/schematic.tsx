@@ -71,6 +71,10 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
     ...clientOpts,
   });
 
+  /* eslint-disable react-hooks/refs -- `initialOptsRef` freezes the options as
+     they were at mount on purpose: the client is built once and reconfigured
+     through its own API, so a host passing an inline options object does not
+     rebuild it (and drop its websocket) on every render. */
   const client = useMemo(() => {
     if (providedClient) {
       return providedClient;
@@ -80,6 +84,7 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
       ...initialOptsRef.current,
     });
   }, [providedClient]);
+  /* eslint-enable react-hooks/refs */
 
   useEffect(() => {
     // Clean up Schematic client (i.e., close websocket connection) when the
@@ -105,6 +110,10 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   // The billing client is built once per key and reads the access token from
   // its prop (forwarded by BillingProvider), so a token change resets the
   // billing resources without rebuilding the client.
+  // The mount-time options; see the note on `client` above. The billing client
+  // is built once for the same reason, and its session arrives through
+  // BillingProvider rather than here.
+  /* eslint-disable react-hooks/refs */
   const { apiUrl, additionalHeaders } = initialOptsRef.current;
   const resolvedBillingClient = useMemo(
     () =>
@@ -114,10 +123,15 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
         apiUrl,
         additionalHeaders,
       }),
-    // The session is forwarded through BillingProvider's setSession; only
-    // the client identity matters here.
+    // `session` is read here only to seed the client it is constructed with;
+    // every later statement of it reaches the client through BillingProvider's
+    // setSession, which is also what restates it during that provider's first
+    // render. Listing it would rebuild the client — and drop every loaded
+    // resource with it — each time the host's auth handed back a new object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [additionalHeaders, apiUrl, billingClient],
   );
+  /* eslint-enable react-hooks/refs */
 
   return (
     <SchematicContext.Provider value={contextValue}>
