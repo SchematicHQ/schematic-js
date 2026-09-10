@@ -2,6 +2,8 @@
 /* eslint-disable */
 export * from "./ActorType";
 export * from "./ApiError";
+export * from "./BillingArrearsAnchor";
+export * from "./BillingArrearsCadence";
 export * from "./BillingCreditAutoTopupAvailability";
 export * from "./BillingCreditBurnStrategy";
 export * from "./BillingCreditExpiryType";

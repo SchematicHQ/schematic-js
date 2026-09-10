@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { BillingArrearsCadence } from "./BillingArrearsCadence";
+import {
+  BillingArrearsCadenceFromJSON,
+  BillingArrearsCadenceFromJSONTyped,
+  BillingArrearsCadenceToJSON,
+  BillingArrearsCadenceToJSONTyped,
+} from "./BillingArrearsCadence";
 import type { BillingCreditResponseData } from "./BillingCreditResponseData";
 import {
   BillingCreditResponseDataFromJSON,
@@ -48,6 +55,13 @@ import {
   PlanCreditGrantScalingToJSON,
   PlanCreditGrantScalingToJSONTyped,
 } from "./PlanCreditGrantScaling";
+import type { BillingArrearsAnchor } from "./BillingArrearsAnchor";
+import {
+  BillingArrearsAnchorFromJSON,
+  BillingArrearsAnchorFromJSONTyped,
+  BillingArrearsAnchorToJSON,
+  BillingArrearsAnchorToJSONTyped,
+} from "./BillingArrearsAnchor";
 import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
 import {
   BillingPlanCreditGrantResetTypeFromJSON,
@@ -83,6 +97,18 @@ import {
  * @interface BillingPlanCreditGrantResponseData
  */
 export interface BillingPlanCreditGrantResponseData {
+  /**
+   * Which boundary closes a monthly arrears window. Only meaningful when arrears_cadence is monthly.
+   * @type {BillingArrearsAnchor}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  arrearsAnchor?: BillingArrearsAnchor | null;
+  /**
+   * How often postpaid charges are closed and invoiced. Defaults to end_of_billing_period.
+   * @type {BillingArrearsCadence}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  arrearsCadence?: BillingArrearsCadence | null;
   /**
    *
    * @type {number}
@@ -234,6 +260,12 @@ export interface BillingPlanCreditGrantResponseData {
    */
   licenseId?: string | null;
   /**
+   * Optional limit on how far the balance may go below zero, in credits. A floor on the balance, not an allowance per invoice window: consumption is denied once the balance would fall below minus this figure, and stays denied until a new grant lands or the negative balance is settled. Absent means no limit.
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  overdraftLimit?: number | null;
+  /**
    *
    * @type {PreviewObjectResponseData}
    * @memberof BillingPlanCreditGrantResponseData
@@ -258,6 +290,24 @@ export interface BillingPlanCreditGrantResponseData {
    * @memberof BillingPlanCreditGrantResponseData
    */
   planVersionId?: string | null;
+  /**
+   * Whether consumption may continue past a zero balance, accruing at postpaid_rate_per_unit rather than being denied.
+   * @type {boolean}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  postpaidEnabled: boolean;
+  /**
+   * Amount charged per credit consumed past zero, in the currency's minor unit. Defaults to the credit's own cost basis when postpaid is enabled without one.
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  postpaidRatePerUnit?: number | null;
+  /**
+   * Decimal form of postpaid_rate_per_unit, for rates finer than one minor unit.
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  postpaidRatePerUnitDecimal?: string | null;
   /**
    *
    * @type {BillingPlanCreditGrantResetCadence}
@@ -330,6 +380,8 @@ export function instanceOfBillingPlanCreditGrantResponseData(
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
   if (!("planName" in value) || value["planName"] === undefined) return false;
+  if (!("postpaidEnabled" in value) || value["postpaidEnabled"] === undefined)
+    return false;
   if (
     !("rolloverPercentage" in value) ||
     value["rolloverPercentage"] === undefined
@@ -354,6 +406,14 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
     return json;
   }
   return {
+    arrearsAnchor:
+      json["arrears_anchor"] == null
+        ? undefined
+        : BillingArrearsAnchorFromJSON(json["arrears_anchor"]),
+    arrearsCadence:
+      json["arrears_cadence"] == null
+        ? undefined
+        : BillingArrearsCadenceFromJSON(json["arrears_cadence"]),
     autoTopupAmount:
       json["auto_topup_amount"] == null ? undefined : json["auto_topup_amount"],
     autoTopupAmountType:
@@ -415,6 +475,8 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
       json["expiry_unit_count"] == null ? undefined : json["expiry_unit_count"],
     id: json["id"],
     licenseId: json["license_id"] == null ? undefined : json["license_id"],
+    overdraftLimit:
+      json["overdraft_limit"] == null ? undefined : json["overdraft_limit"],
     plan:
       json["plan"] == null
         ? undefined
@@ -423,6 +485,15 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
     planName: json["plan_name"],
     planVersionId:
       json["plan_version_id"] == null ? undefined : json["plan_version_id"],
+    postpaidEnabled: json["postpaid_enabled"],
+    postpaidRatePerUnit:
+      json["postpaid_rate_per_unit"] == null
+        ? undefined
+        : json["postpaid_rate_per_unit"],
+    postpaidRatePerUnitDecimal:
+      json["postpaid_rate_per_unit_decimal"] == null
+        ? undefined
+        : json["postpaid_rate_per_unit_decimal"],
     resetCadence:
       json["reset_cadence"] == null
         ? undefined
@@ -456,6 +527,8 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
   }
 
   return {
+    arrears_anchor: BillingArrearsAnchorToJSON(value["arrearsAnchor"]),
+    arrears_cadence: BillingArrearsCadenceToJSON(value["arrearsCadence"]),
     auto_topup_amount: value["autoTopupAmount"],
     auto_topup_amount_type: value["autoTopupAmountType"],
     auto_topup_availability: BillingCreditAutoTopupAvailabilityToJSON(
@@ -486,10 +559,14 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     expiry_unit_count: value["expiryUnitCount"],
     id: value["id"],
     license_id: value["licenseId"],
+    overdraft_limit: value["overdraftLimit"],
     plan: PreviewObjectResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
     plan_name: value["planName"],
     plan_version_id: value["planVersionId"],
+    postpaid_enabled: value["postpaidEnabled"],
+    postpaid_rate_per_unit: value["postpaidRatePerUnit"],
+    postpaid_rate_per_unit_decimal: value["postpaidRatePerUnitDecimal"],
     reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
       value["resetCadence"],
     ),

@@ -3,6 +3,8 @@ apis/CheckoutexternalApi.ts
 apis/index.ts
 index.ts
 models/ApiError.ts
+models/BillingArrearsAnchor.ts
+models/BillingArrearsCadence.ts
 models/BillingCollectionMethod.ts
 models/BillingCreditAutoTopupAvailability.ts
 models/BillingCreditBundleStatus.ts
