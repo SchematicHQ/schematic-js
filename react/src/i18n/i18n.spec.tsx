@@ -80,6 +80,35 @@ describe("the i18n context", () => {
     expect(result.current.translate).toBe(translate);
   });
 
+  it_("carries onMissingString, and inherits it when nested", () => {
+    // Nothing here calls it — the element package owns the key list and
+    // reports its own misses. This context's job is to carry the reporter
+    // down, including to a subtree that only restates the locale.
+    const onMissingString = vi.fn();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <SchematicI18nProvider onMissingString={onMissingString} locale="en-US">
+        <SchematicI18nProvider locale="pt-BR">{children}</SchematicI18nProvider>
+      </SchematicI18nProvider>
+    );
+    const { result } = renderHook(() => useSchematicI18n(), { wrapper });
+    expect(result.current.onMissingString).toBe(onMissingString);
+    expect(result.current.locale).toBe("pt-BR");
+  });
+
+  it_("lets a subtree replace the reporter", () => {
+    const outer = vi.fn();
+    const inner = vi.fn();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <SchematicI18nProvider onMissingString={outer}>
+        <SchematicI18nProvider onMissingString={inner}>
+          {children}
+        </SchematicI18nProvider>
+      </SchematicI18nProvider>
+    );
+    const { result } = renderHook(() => useSchematicI18n(), { wrapper });
+    expect(result.current.onMissingString).toBe(inner);
+  });
+
   it_("works with no data provider above it", () => {
     function Copy() {
       return <span>{useSchematicStrings()?.retry}</span>;
@@ -145,5 +174,17 @@ describe("i18n and the data seam", () => {
     const { result } = renderHook(() => useSchematicI18n(), { wrapper });
     expect(result.current.locale).toBe("ja-JP");
     expect(result.current.strings).toEqual({ retry: "再試行" });
+  });
+
+  it_("forwards onMissingString through the data providers too", () => {
+    const onMissingString = vi.fn();
+    const { result } = renderHook(() => useSchematicI18n(), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <BillingDataProvider data={data} onMissingString={onMissingString}>
+          {children}
+        </BillingDataProvider>
+      ),
+    });
+    expect(result.current.onMissingString).toBe(onMissingString);
   });
 });

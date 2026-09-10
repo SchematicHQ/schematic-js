@@ -4,11 +4,12 @@ import React, { StrictMode } from "react";
 import { vi } from "vitest";
 
 import { SchematicProvider } from "../context";
+import { useSchematicI18n } from "../i18n";
 
 import { BillingStore, type BillingClient, type SessionEvent } from "./client";
 import { BillingDataProvider, MISSING_BILLING_SOURCE_MESSAGE } from "./context";
 import type { BillingData, Invoice } from "./contract";
-import { useInvoices } from "./hooks";
+import { useInvalidateBillingData, useInvoices } from "./hooks";
 import { BillingProvider } from "./provider";
 
 const isDOMEnvironment = typeof document !== "undefined";
@@ -668,6 +669,88 @@ describe("billing hooks", () => {
   });
 
   it_(
+    "does not page a seeded list while the session is still resolving",
+    async () => {
+      // The reader clicks Load more before the host's auth has resolved. The
+      // real client has no credential to send, and rendering its refusal
+      // would be a complaint about the reader's own page — one that stays,
+      // since a resource holding rows is not something `resumeAll` reloads.
+      let status: "pending" | "active" | "ended" = "pending";
+      const client = fakeClient({
+        fetchInvoices: vi.fn(async () => rowsOf("inv_2")),
+      });
+      Object.defineProperty(client, "sessionStatus", { get: () => status });
+      const { result } = renderHook(() => useInvoices(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingProvider
+            billingClient={client}
+            initialData={{
+              invoices: {
+                invoices: [invoice("inv_1")],
+                count: 9,
+                hasMore: true,
+              },
+            }}
+          >
+            {children}
+          </BillingProvider>
+        ),
+      });
+      await flush();
+
+      await act(() => result.current.loadMore());
+      await flush();
+      expect(client.fetchInvoices).not.toHaveBeenCalled();
+      expect(result.current).toMatchObject({ error: undefined });
+      expect(result.current.data?.invoices).toHaveLength(1);
+
+      // The session lands; the next click pages as it always would.
+      status = "active";
+      act(() => {
+        client.listeners.forEach((listener) => listener({ type: "started" }));
+      });
+      await act(() => result.current.loadMore());
+      await flush();
+      expect(client.fetchInvoices).toHaveBeenCalledTimes(1);
+      expect(result.current.error).toBeUndefined();
+      expect(result.current.data?.invoices.map((row) => row.id)).toEqual([
+        "inv_1",
+        "inv_2",
+      ]);
+    },
+  );
+
+  it_("invalidateBillingData reloads every loaded resource", async () => {
+    const client = fakeClient({
+      fetchInvoices: vi.fn(async () => rowsOf("inv_1")),
+    });
+    const { result } = renderHook(
+      () => ({ list: useInvoices(), invalidate: useInvalidateBillingData() }),
+      {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingProvider billingClient={client}>{children}</BillingProvider>
+        ),
+      },
+    );
+    await flush();
+    expect(client.fetchInvoices).toHaveBeenCalledTimes(1);
+
+    act(() => result.current.invalidate());
+    await flush();
+    expect(client.fetchInvoices).toHaveBeenCalledTimes(2);
+    // Reloaded in place: the rows never left the screen.
+    expect(result.current.list.data?.invoices).toHaveLength(1);
+    expect(result.current.list.error).toBeUndefined();
+  });
+
+  it_("reports the missing-source error from invalidate too", () => {
+    // Outside a provider it is a no-op rather than a throw, so an element
+    // wiring a "refresh" button does not crash the host tree.
+    const { result } = renderHook(() => useInvalidateBillingData());
+    expect(() => result.current()).not.toThrow();
+  });
+
+  it_(
     "refuses a prefetch that names another company at first render",
     async () => {
       // The host knew its session before the store existed — SSR hydration —
@@ -928,6 +1011,36 @@ describe("billing hooks", () => {
     },
   );
 
+  it_("SchematicProvider forwards the i18n props to the elements", () => {
+    // The whole host path: SchematicProvider hands them to BillingProvider,
+    // which renders the i18n provider the elements read.
+    const onMissingString = vi.fn();
+    const translate = vi.fn();
+    function Probe() {
+      const i18n = useSchematicI18n();
+      return (
+        <span>
+          {`${i18n.locale} ${i18n.strings?.retry} ${
+            i18n.translate === translate
+          } ${i18n.onMissingString === onMissingString}`}
+        </span>
+      );
+    }
+    render(
+      <SchematicProvider
+        publishableKey="pk"
+        billingClient={fakeClient()}
+        locale="es-ES"
+        strings={{ retry: "Reintentar" }}
+        translate={translate}
+        onMissingString={onMissingString}
+      >
+        <Probe />
+      </SchematicProvider>,
+    );
+    expect(screen.getByText("es-ES Reintentar true true")).toBeTruthy();
+  });
+
   it_(
     "BillingDataProvider feeds the hooks from plain data with status overrides",
     () => {
@@ -947,6 +1060,49 @@ describe("billing hooks", () => {
       expect(result.current.data?.invoices).toHaveLength(1);
       result.current.refetch();
       expect(onRefetch).toHaveBeenCalledWith("invoices");
+    },
+  );
+
+  it_(
+    "BillingDataProvider reports loadMore to onLoadMoreInvoices",
+    async () => {
+      // A fixture serves one value per resource and never pages, so the host
+      // drives the story itself: the callback is how it hears the click.
+      const onLoadMoreInvoices = vi.fn();
+      const { result } = renderHook(
+        () => useInvoices({ includePending: true }),
+        {
+          wrapper: ({ children }) => (
+            <BillingDataProvider
+              data={{ invoices: page("inv_1") }}
+              onLoadMoreInvoices={onLoadMoreInvoices}
+            >
+              {children}
+            </BillingDataProvider>
+          ),
+        },
+      );
+      await act(() => result.current.loadMore());
+      // Normalized, the way the store keys it — a fixture matching on the query
+      // sees the same shape a real resource would be stored under.
+      expect(onLoadMoreInvoices).toHaveBeenCalledWith({ includePending: true });
+    },
+  );
+
+  it_(
+    "BillingDataProvider settles loadMore with no callback at all",
+    async () => {
+      const { result } = renderHook(() => useInvoices(), {
+        wrapper: ({ children }) => (
+          <BillingDataProvider data={{ invoices: page("inv_1") }}>
+            {children}
+          </BillingDataProvider>
+        ),
+      });
+      await expect(
+        act(() => result.current.loadMore()),
+      ).resolves.toBeUndefined();
+      expect(result.current.error).toBeUndefined();
     },
   );
 });
