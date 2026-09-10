@@ -53,6 +53,8 @@ models/CompanyBillingProfileResponseData.ts
 models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts
 models/CompanyEventPeriodMetricsResponseData.ts
+models/CompanyInvoiceResponseData.ts
+models/CompanyInvoicesResponseData.ts
 models/CompanyOverrideNoteResponseData.ts
 models/CompanyOverrideResponseData.ts
 models/CompanyPlanCreditGrantView.ts
@@ -118,6 +120,8 @@ models/FlagResponseData.ts
 models/FlagType.ts
 models/GenericPreviewObject.ts
 models/GetCheckoutTaxIDResponse.ts
+models/GetCompanyInvoicesParams.ts
+models/GetCompanyInvoicesResponse.ts
 models/GetCreditUsageByUserParams.ts
 models/GetCreditUsageByUserResponse.ts
 models/GetFeatureUsageByUserParams.ts
