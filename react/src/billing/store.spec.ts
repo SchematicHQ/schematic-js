@@ -298,6 +298,50 @@ describe("a resource that cannot load yet", () => {
     expect(resource.getSnapshot().data).toBe("data");
   });
 
+  it("does not page while it waits, and pages once it can", async () => {
+    // Paging is a read like any other. A seeded list paged while the session
+    // is still resolving would otherwise ask for a credential nobody has yet
+    // and land the refusal on the card, where it stays: a resource holding
+    // data is not something `resumeAll` comes back for.
+    const extender = vi.fn(async () => "extended");
+    let readiness: "ready" | "waiting" | "never" = "waiting";
+    const resource = new Resource(
+      async () => "data",
+      "seed",
+      () => readiness,
+    );
+    resource.subscribe(() => {});
+
+    await resource.extend(extender);
+    expect(extender).not.toHaveBeenCalled();
+    expect(resource.getSnapshot()).toEqual({
+      data: "seed",
+      error: undefined,
+      isPending: false,
+    });
+
+    readiness = "ready";
+    await resource.extend(extender);
+    expect(extender).toHaveBeenCalledTimes(1);
+    expect(resource.getSnapshot().data).toBe("extended");
+    expect(resource.getSnapshot().error).toBeUndefined();
+  });
+
+  it("does not page when nothing is coming either", async () => {
+    const extender = vi.fn(async () => "extended");
+    const resource = new Resource(
+      async () => "data",
+      "seed",
+      () => "never",
+    );
+    resource.subscribe(() => {});
+
+    await resource.extend(extender);
+    expect(extender).not.toHaveBeenCalled();
+    expect(resource.getSnapshot().data).toBe("seed");
+    expect(resource.getSnapshot().error).toBeUndefined();
+  });
+
   it("settles empty when nothing is coming", async () => {
     // `never` is a session that has ended: an empty card, not a skeleton
     // for a load that will not happen and not an error about signing out.

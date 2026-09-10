@@ -109,9 +109,9 @@ export class Resource<T> {
    * Never rejects — a caller that wants the failure reads `snapshot.error`,
    * and the rows already fetched stay on screen.
    *
-   * A no-op until the resource has data. Concurrent calls share the request,
-   * and a load already in flight wins: it is about to refresh the window
-   * this would have appended to.
+   * A no-op until the resource has data, and until it can load at all.
+   * Concurrent calls share the request, and a load already in flight wins:
+   * it is about to refresh the window this would have appended to.
    */
   extend(fetcher: (data: T) => Promise<T>): Promise<void> {
     const current = this._snapshot.data;
@@ -123,6 +123,15 @@ export class Resource<T> {
     }
     if (this._inflight !== undefined) {
       return this._inflight;
+    }
+    // A resource that cannot load cannot page either. Without this, a seeded
+    // list paged while the session is still resolving asks the client for a
+    // credential it does not have yet and renders the refusal as an error —
+    // a complaint about the reader's own page, and one that stays on screen,
+    // because a resource holding data is not something `resumeAll` reloads.
+    // Nothing is claimed instead, and the click works once the session lands.
+    if (this._readiness() !== "ready") {
+      return Promise.resolve();
     }
     const generation = ++this._generation;
     this._set({ ...this._snapshot, error: undefined, isPending: true });
