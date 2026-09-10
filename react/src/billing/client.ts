@@ -67,6 +67,15 @@ export type {
 export { INVOICE_PAGE_SIZE };
 
 /**
+ * Requests one `loadMore` may make. Usually one; a second only when every
+ * row a page served is already on screen. Three is well past what a real
+ * history does, and the cap is what keeps a server that keeps serving rows
+ * we already hold — a non-total ORDER BY can, and a broken one would — from
+ * turning one click into a request per page of the whole history.
+ */
+const MAX_LOAD_MORE_REQUESTS = 3;
+
+/**
  * The store for one session: a `KeyedResource` per billing resource, built
  * over a `BillingClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
@@ -213,17 +222,16 @@ export class BillingStore {
       // Offsets count rows the server has handed over, which after a dropped
       // duplicate is more than the rows on screen.
       let offset = invoices.length;
-      let page: InvoicesResult;
 
       // One request, all but always. The history reads newest first, so an
       // invoice finalized since the last page shifts every row down and this
       // offset serves rows already on screen; dropping them is the whole fix
       // while fewer than a page arrived. A full page of them would append
       // nothing and leave the offset where it was, so "Load more" would click
-      // forever without advancing — hence the walk, until a row is new or the
-      // history runs out.
-      for (;;) {
-        page = await this._fetchInvoices(normalized, offset, this._pageSize);
+      // without advancing — hence the second and third tries, bounded because
+      // a click is not allowed to become a walk of the entire history.
+      let page = await this._fetchInvoices(normalized, offset, this._pageSize);
+      for (let attempt = 1; ; attempt += 1) {
         if (page.invoices.length === 0) {
           break;
         }
@@ -236,9 +244,16 @@ export class BillingStore {
           seen.add(row.id);
           invoices.push(row);
         }
-        if (invoices.length > before || offset >= page.count) {
+        // Somewhere new, nothing left to reach, or out of tries — the last
+        // leaves `hasMore` set, so the click is the reader's to make again.
+        if (
+          invoices.length > before ||
+          offset >= page.count ||
+          attempt >= MAX_LOAD_MORE_REQUESTS
+        ) {
           break;
         }
+        page = await this._fetchInvoices(normalized, offset, this._pageSize);
       }
 
       return {

@@ -237,6 +237,34 @@ describe("billing hooks", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it_("bounds the requests one loadMore can make", async () => {
+    // The ORDER BY behind this endpoint has no unique tiebreaker, so pages
+    // can overlap; a broken one could overlap forever. Skipping duplicates
+    // must not turn a click into a walk of the whole history.
+    const client = fakeClient({
+      fetchInvoices: vi.fn(async () => ({
+        invoices: [invoice("a"), invoice("b")],
+        count: 5000,
+      })),
+    });
+    const store = new BillingStore(client, {}, 2);
+    const resource = store.invoices.get({});
+    resource.subscribe(() => {});
+    await flush();
+    const afterLoad = (client.fetchInvoices as ReturnType<typeof vi.fn>).mock
+      .calls.length;
+
+    await store.loadMoreInvoices({});
+    await flush();
+    const requests =
+      (client.fetchInvoices as ReturnType<typeof vi.fn>).mock.calls.length -
+      afterLoad;
+    expect(requests).toBeLessThanOrEqual(3);
+    // Still offered, so the reader decides whether to ask again.
+    expect(resource.snapshot.data).toMatchObject({ hasMore: true });
+    expect(resource.snapshot.error).toBeUndefined();
+  });
+
   it_("does not collapse rows that arrive without an id", async () => {
     // `id` is required on the wire but nothing validates it, and dropping
     // every row after the first would be worse than showing a repeat.
