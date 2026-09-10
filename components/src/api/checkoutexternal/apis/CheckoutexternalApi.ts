@@ -22,6 +22,7 @@ import type {
   DeletePaymentMethodResponse,
   FetchCustomerBalanceResponse,
   GetCheckoutTaxIDResponse,
+  GetCompanyInvoicesResponse,
   GetCreditUsageByUserResponse,
   GetFeatureUsageByUserResponse,
   GetSetupIntentResponse,
@@ -54,6 +55,8 @@ import {
   FetchCustomerBalanceResponseToJSON,
   GetCheckoutTaxIDResponseFromJSON,
   GetCheckoutTaxIDResponseToJSON,
+  GetCompanyInvoicesResponseFromJSON,
+  GetCompanyInvoicesResponseToJSON,
   GetCreditUsageByUserResponseFromJSON,
   GetCreditUsageByUserResponseToJSON,
   GetFeatureUsageByUserResponseFromJSON,
@@ -90,6 +93,12 @@ export interface CheckoutRequest {
 
 export interface DeletePaymentMethodRequest {
   checkoutId: string;
+}
+
+export interface GetCompanyInvoicesRequest {
+  includePending?: boolean;
+  limit?: number;
+  offset?: number;
 }
 
 export interface GetCreditUsageByUserRequest {
@@ -418,6 +427,64 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<GetCheckoutTaxIDResponse> {
     const response = await this.getCheckoutTaxIDRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get company invoices
+   */
+  async getCompanyInvoicesRaw(
+    requestParameters: GetCompanyInvoicesRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyInvoicesResponse>> {
+    const queryParameters: any = {};
+
+    if (requestParameters["includePending"] != null) {
+      queryParameters["include_pending"] = requestParameters["includePending"];
+    }
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
+    }
+
+    if (requestParameters["offset"] != null) {
+      queryParameters["offset"] = requestParameters["offset"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/invoices`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyInvoicesResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get company invoices
+   */
+  async getCompanyInvoices(
+    requestParameters: GetCompanyInvoicesRequest = {},
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyInvoicesResponse> {
+    const response = await this.getCompanyInvoicesRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 
