@@ -47,7 +47,7 @@ export const BillingDataContext = createContext<BillingDataSource | undefined>(
 );
 
 export const MISSING_BILLING_SOURCE_MESSAGE =
-  "Schematic billing hooks need a SchematicProvider with an accessToken, billingClient, or initialData, or a BillingDataProvider.";
+  "Schematic billing hooks need a SchematicProvider with a session, billingClient, or initialData, or a BillingDataProvider.";
 
 const missingSourceError = new Error(MISSING_BILLING_SOURCE_MESSAGE);
 
