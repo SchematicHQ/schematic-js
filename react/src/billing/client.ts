@@ -230,10 +230,6 @@ export class BillingStore {
     });
   }
 
-  dispose(): void {
-    this._unsubscribe?.();
-  }
-
   /**
    * Re-reads the rows already on screen, in as many requests as the API's
    * page cap needs. A reader who has paged past that cap still gets their
