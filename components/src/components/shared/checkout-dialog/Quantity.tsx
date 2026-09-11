@@ -7,7 +7,7 @@ import { useEmbed, useIsLightBackground } from "../../../hooks";
 import type { SelectedPlan, UsageBasedEntitlement } from "../../../types";
 import {
   adjectify,
-  calculateTieredCost,
+  calculateQuantityCost,
   formatCurrency,
   formatOrdinal,
   getEntitlementPrice,
@@ -179,13 +179,10 @@ export const Quantity = ({
                   <Box $whiteSpace="nowrap">
                     <Text>
                       {formatCurrency(
-                        tiered && priceTiers
-                          ? calculateTieredCost(
-                              entitlement.quantity,
-                              priceTiers,
-                              tiersMode,
-                            )
-                          : (price ?? 0) * entitlement.quantity,
+                        calculateQuantityCost(
+                          entitlementBillingPrice,
+                          entitlement.quantity,
+                        ),
                         currency,
                       )}
                       <sub>/{shortenPeriod(period)}</sub>

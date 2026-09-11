@@ -10,6 +10,7 @@ import {
   type UsageBasedEntitlement,
 } from "../../../types";
 import {
+  calculateQuantityCost,
   formatCurrency,
   getEntitlementPrice,
   getFeatureName,
@@ -17,7 +18,7 @@ import {
   shortenPeriod,
 } from "../../../utils";
 import { PricingTiersTooltip } from "../../shared";
-import { Box, Text } from "../../ui";
+import { Box, Flex, Text } from "../../ui";
 
 export const EntitlementRow = (
   props: (UsageBasedEntitlement | CurrentUsageBasedEntitlement) & {
@@ -52,6 +53,25 @@ export const EntitlementRow = (
       priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
       isTieredPrice(entitlementPrice);
 
+    const tierLabel = (
+      <Text
+        style={{ opacity: 0.54 }}
+        $size={0.875 * settings.theme.typography.text.fontSize}
+        $color={settings.theme.typography.text.color}
+      >
+        {t("Tier-based")}
+        <PricingTiersTooltip
+          portal={portal}
+          feature={feature}
+          period={planPeriod}
+          currency={currency}
+          priceTiers={priceTiers}
+          tiersMode={tiersMode ?? undefined}
+          position="left"
+        />
+      </Text>
+    );
+
     return (
       <>
         <Box>
@@ -72,12 +92,21 @@ export const EntitlementRow = (
         </Box>
 
         <Box $whiteSpace="nowrap" $lineHeight={1}>
-          {priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
-          !tiered ? (
-            <Text>
-              {formatCurrency((price ?? 0) * quantity, currency)}
-              <sub>/{shortenPeriod(planPeriod)}</sub>
-            </Text>
+          {priceBehavior === EntitlementPriceBehavior.PayInAdvance ? (
+            // A tiered scheme still resolves to a fixed amount at the chosen
+            // quantity, so the row shows it alongside the tier breakdown
+            // rather than leaving the charge unpriced.
+            <Flex $flexDirection="column" $gap="0.25rem" $alignItems="end">
+              <Text>
+                {formatCurrency(
+                  calculateQuantityCost(entitlementPrice, quantity),
+                  currency,
+                )}
+                <sub>/{shortenPeriod(planPeriod)}</sub>
+              </Text>
+
+              {tiered && tierLabel}
+            </Flex>
           ) : priceBehavior === EntitlementPriceBehavior.PayAsYouGo ||
             priceBehavior === EntitlementPriceBehavior.Overage ? (
             <Text>
@@ -94,24 +123,7 @@ export const EntitlementRow = (
               </sub>
             </Text>
           ) : (
-            (priceBehavior === EntitlementPriceBehavior.Tier || tiered) && (
-              <Text
-                style={{ opacity: 0.54 }}
-                $size={0.875 * settings.theme.typography.text.fontSize}
-                $color={settings.theme.typography.text.color}
-              >
-                {t("Tier-based")}
-                <PricingTiersTooltip
-                  portal={portal}
-                  feature={feature}
-                  period={planPeriod}
-                  currency={currency}
-                  priceTiers={priceTiers}
-                  tiersMode={tiersMode ?? undefined}
-                  position="left"
-                />
-              </Text>
-            )
+            priceBehavior === EntitlementPriceBehavior.Tier && tierLabel
           )}
         </Box>
       </>
