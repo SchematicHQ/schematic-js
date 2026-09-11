@@ -17,7 +17,6 @@
  * @export
  */
 export const BillingArrearsCadence = {
-  Daily: "daily",
   EndOfBillingPeriod: "end_of_billing_period",
   Monthly: "monthly",
 } as const;
