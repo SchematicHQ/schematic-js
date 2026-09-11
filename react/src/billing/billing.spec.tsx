@@ -1,4 +1,4 @@
-import { SchematicBillingClient } from "@schematichq/schematic-js";
+import { Schematic, SchematicBillingClient } from "@schematichq/schematic-js";
 import { act, render, renderHook, screen } from "@testing-library/react";
 import React, { StrictMode } from "react";
 import { vi } from "vitest";
@@ -1006,6 +1006,51 @@ describe("billing hooks", () => {
       expect(screen.getByText("inv_1")).toBeTruthy();
     },
   );
+
+  it_("reads billing from the API a host's own client points at", async () => {
+    // The case worth catching: flags from staging, billing from production.
+    // The provider builds the billing client, so it has to take the API from
+    // the client it was handed — defaulting would send this session's access
+    // token to api.schematichq.com.
+    const requests: Array<{ url: string; headers: Record<string, string> }> =
+      [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async (url: string, init: RequestInit) => {
+      requests.push({
+        url: String(url),
+        headers: (init.headers ?? {}) as Record<string, string>,
+      });
+      return new Response(
+        JSON.stringify({ data: { count: 0, invoices: [] }, params: {} }),
+        { status: 200 },
+      );
+    }) as unknown as typeof fetch;
+
+    try {
+      function Probe() {
+        useInvoices();
+        return null;
+      }
+      render(
+        <SchematicProvider
+          client={new Schematic("pk", { apiUrl: "https://api.staging.test" })}
+          session={{ company: "co_1", token: "tok" }}
+        >
+          <Probe />
+        </SchematicProvider>,
+      );
+      await flush();
+
+      expect(requests).toHaveLength(1);
+      expect(requests[0].url).toMatch(/^https:\/\/api\.staging\.test\//);
+      // Stamped as the React SDK, not as the client it was built beside.
+      expect(requests[0].headers["X-Schematic-Client-Version"]).toMatch(
+        /^schematic-react@/,
+      );
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  });
 
   it_(
     "BillingDataProvider feeds the hooks from plain data with status overrides",
