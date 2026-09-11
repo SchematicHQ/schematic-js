@@ -1,6 +1,6 @@
 import {
-  CompanyDataProvider,
-  type CompanyData,
+  BillingDataProvider,
+  type BillingData,
 } from "@schematichq/schematic-react";
 import { fireEvent, render, screen } from "@testing-library/react";
 
@@ -25,13 +25,13 @@ function classNames(root: HTMLElement): string[] {
 }
 
 function renderInvoices(
-  data: CompanyData,
-  status?: React.ComponentProps<typeof CompanyDataProvider>["status"],
+  data: BillingData,
+  status?: React.ComponentProps<typeof BillingDataProvider>["status"],
 ) {
   const { container } = render(
-    <CompanyDataProvider data={data} status={status}>
+    <BillingDataProvider data={data} status={status}>
       <Invoices collapsible limit={1} locale="en-US" showStatus />
-    </CompanyDataProvider>,
+    </BillingDataProvider>,
   );
   return container.firstElementChild as HTMLElement;
 }
@@ -119,9 +119,9 @@ describe("Invoices markup contract", () => {
 
   test("a hidden column is absent from the skeleton too", () => {
     render(
-      <CompanyDataProvider data={{}} status={{ invoices: { isPending: true } }}>
+      <BillingDataProvider data={{}} status={{ invoices: { isPending: true } }}>
         <Invoices showAmount={false} showHeader={false} />
-      </CompanyDataProvider>,
+      </BillingDataProvider>,
     );
     const pending = screen
       .getByText("Loading invoices")

@@ -1,11 +1,11 @@
 /**
- * Scenario fixtures: complete `CompanyData` bags for the situations the
+ * Scenario fixtures: complete `BillingData` bags for the situations the
  * elements must handle. Each scenario is a function so IDs are deterministic
  * per build and fixtures never share mutable objects. This release carries
  * the invoices resource; scenarios regain the rest with their elements.
  */
 
-import type { CompanyData } from "@schematichq/schematic-react";
+import type { BillingData } from "@schematichq/schematic-react";
 
 import { daysFromNow, invoice, invoicePage } from "./builders";
 
@@ -13,7 +13,7 @@ import { daysFromNow, invoice, invoicePage } from "./builders";
  * A paying company with history: two charges and a credit note on screen,
  * and a year of invoices behind them.
  */
-export function proCompany(): CompanyData {
+export function proCompany(): BillingData {
   return {
     invoices: invoicePage(
       [
@@ -44,13 +44,13 @@ export function proCompany(): CompanyData {
 }
 
 /** A company still trialing: nothing invoiced yet. */
-export function trialingCompany(): CompanyData {
+export function trialingCompany(): BillingData {
   return { invoices: invoicePage([]) };
 }
 
 export const SCENARIOS = {
   pro: proCompany,
   trialing: trialingCompany,
-} satisfies Record<string, () => CompanyData>;
+} satisfies Record<string, () => BillingData>;
 
 export type ScenarioName = keyof typeof SCENARIOS;

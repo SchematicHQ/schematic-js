@@ -1,16 +1,18 @@
 # Elements
 
 `@schematichq/schematic-components/elements` — code-first React elements on
-the company API. Each element reads one or two resources through hooks from
+the billing API. Each element reads one or two resources through hooks from
 `@schematichq/schematic-react`, reduces them to a domain model with a pure
 derivation, and renders with CSS-variable styling.
 
 This release carries the first element; the rest land with the endpoints
 that feed them.
 
-Naming: `company` is the end-customer API tier that the elements read from
-(`SchematicCompanyClient`, `CompanyProvider`, `fetchCompanyData`); `catalog`
-is reserved for the offerings resource.
+Naming: `billing` is the end-customer API tier that the elements read from
+(`SchematicBillingClient`, `BillingProvider`, `fetchBillingData`); `catalog`
+is reserved for the offerings resource. The routes those clients call are
+still `/company/*`, and the generated wire models keep their `Company…`
+names — the tier is what `billing` names, not the resource.
 
 | Element  | Hooks         | Derivation          | Recipe                       |
 | -------- | ------------- | ------------------- | ---------------------------- |
@@ -37,7 +39,7 @@ import {
 
 <SchematicProvider
   publishableKey="pk_…"
-  session={{ key: company.id, token: fetchAccessToken }}
+  session={{ company: company.id, token: fetchAccessToken }}
 >
   <SchematicStyles />
   <Invoices />
@@ -52,21 +54,28 @@ renaming one string is one prop.
 
 ## The session
 
-`session` says which company is being read and how. It has three states, and
+`session` says whose billing is being read and how. It has three states, and
 they mean different things:
 
 ```tsx
-session={{ key: company.id, token: fetchAccessToken }}  // signed in
-session={null}                                          // signed out
-session={undefined}                                     // still finding out
+session={{ company: company.id, token: fetchAccessToken }}  // signed in
+session={null}                                              // signed out
+session={undefined}                                         // still finding out
 ```
 
-The `key` is the identity — your id for the company, whatever names it in
-your own system. A different key drops every loaded resource and reads the
-new company's; the same key with a different token is the same session with a
-fresh credential, which is what a token endpoint hands back on every call. So
-an inline `token: async () => …` costs nothing: rebuilding that closure every
-render is not a change.
+The identity is the `(company, user)` pair, because that is what a token is
+minted for: the same person reads one company's billing and then another's,
+and the same company is read by several people. `company` is your id for the
+company, whatever names it in your own system. `user` is optional — leave it
+out where your tokens are company-wide, and every reader of that company
+shares one session; state it where you mint per person, and omitting it
+later is a different session, not the same one.
+
+A different pair drops every loaded resource and reads the new one's; the
+same pair with a different token is the same session with a fresh credential,
+which is what a token endpoint hands back on every call. So an inline
+`token: async () => …` costs nothing: rebuilding that closure every render is
+not a change.
 
 `null` is signing out. Every card empties, and nothing is read until a
 session returns — which matters because your token endpoint may still mint
@@ -82,13 +91,13 @@ signed in, so read `isLoaded` before deciding which you mean.
 `token` is a string or a provider called (and re-called after a 401) for one.
 Without a session the element reports the missing token in its status frame.
 
-For server rendering, `fetchCompanyData(client)` in schematic-js returns an
+For server rendering, `fetchBillingData(client)` in schematic-js returns an
 `initialData` bag the provider seeds from. Pass the query your element asks —
-`fetchCompanyData(client, { invoices: { includePending: true } })` — or the
+`fetchBillingData(client, { invoices: { includePending: true } })` — or the
 seed answers a question nothing asked and the element fetches it again.
 
 Those rows show on the first render even though your auth usually resolves a
-render later, and they are checked against it: `fetchCompanyData` records
+render later, and they are checked against it: `fetchBillingData` records
 which company it fetched for, and rows stamped with a different company than
 the session names are refetched rather than shown. Rows outlive the render
 that fetched them — a cached page, a tab that switched company — which is
