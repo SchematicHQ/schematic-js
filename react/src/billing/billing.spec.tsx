@@ -740,6 +740,84 @@ describe("billing hooks", () => {
     expect(client.fetchInvoices).not.toHaveBeenCalled();
   });
 
+  it_("refuses a page while the session is still pending", async () => {
+    // A prefetch puts rows on screen before auth has answered, so "load
+    // more" is clickable with no session behind it. The page cannot be
+    // fetched, and recording the refusal would leave an error sitting on
+    // rows that are perfectly good — nothing clears it when the session
+    // arrives, because the resource already has data.
+    let status: "pending" | "active" | "ended" = "pending";
+    const client = fakeClient({
+      fetchInvoices: vi.fn(async () => rowsOf("fetched")),
+    });
+    Object.defineProperty(client, "sessionStatus", { get: () => status });
+    const store = new BillingStore(client, {
+      invoices: { invoices: [invoice("seeded")], count: 2, hasMore: true },
+    });
+    store.connect();
+    store.invoices.get({}).subscribe(() => {});
+    await flush();
+
+    await store.loadMoreInvoices();
+    expect(store.invoices.get({}).snapshot).toMatchObject({
+      error: undefined,
+      isPending: false,
+    });
+    expect(client.fetchInvoices).not.toHaveBeenCalled();
+
+    // Once the session is real, the same click pages.
+    status = "active";
+    act(() => {
+      client.listeners.forEach((listener) => listener({ type: "started" }));
+    });
+    await store.loadMoreInvoices();
+    await flush();
+    expect(
+      store.invoices.get({}).snapshot.data?.invoices.map(({ id }) => id),
+    ).toEqual(["seeded", "fetched"]);
+  });
+
+  it_(
+    "retries a resource that failed holding rows, once a session arrives",
+    async () => {
+      // A resource that failed with rows still on screen keeps both, and
+      // `resumeAll` used to pass over anything holding data — so the failure
+      // sat there until someone refetched by hand. A failure is not a reason
+      // to try again on its own, but a session arriving is: it is the thing a
+      // request that failed for want of one was waiting for.
+      const client = fakeClient({
+        fetchInvoices: vi.fn(async () => rowsOf("inv_1")),
+      });
+      const { result } = renderHook(() => useInvoices(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingProvider billingClient={client}>{children}</BillingProvider>
+        ),
+      });
+      await flush();
+      expect(result.current.data?.invoices[0].id).toBe("inv_1");
+
+      client.fetchInvoices = vi.fn(async () => {
+        throw new Error("A session is required to read data.");
+      });
+      await act(() => {
+        result.current.refetch();
+        return flush();
+      });
+      expect(result.current.error?.message).toBe(
+        "A session is required to read data.",
+      );
+      expect(result.current.data?.invoices[0].id).toBe("inv_1");
+
+      client.fetchInvoices = vi.fn(async () => rowsOf("recovered"));
+      act(() => {
+        client.listeners.forEach((listener) => listener({ type: "started" }));
+      });
+      await flush();
+      expect(result.current.error).toBeUndefined();
+      expect(result.current.data?.invoices[0].id).toBe("recovered");
+    },
+  );
+
   it_("drops a prefetch that belongs to another session", async () => {
     // A cached page, or a tab that switched company while this one sat
     // there: the rows are somebody else's.

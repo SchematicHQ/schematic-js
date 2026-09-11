@@ -115,6 +115,9 @@ export class Resource<T> {
     if (current === undefined) {
       return Promise.resolve();
     }
+    if (this._readiness() !== "ready") {
+      return Promise.resolve();
+    }
     if (this._extending !== undefined) {
       return this._extending;
     }
@@ -351,10 +354,11 @@ export class KeyedResource<T, P> {
 
   resumeAll(): void {
     for (const { resource } of this._entries.values()) {
-      if (
-        resource.snapshot.data === undefined &&
-        resource.subscriberCount > 0
-      ) {
+      if (resource.subscriberCount === 0) {
+        continue;
+      }
+      const { data, error } = resource.snapshot;
+      if (data === undefined || error !== undefined) {
         void resource.load();
       }
     }
