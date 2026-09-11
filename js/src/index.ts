@@ -62,9 +62,9 @@ const emptyCreditBalances: CreditBalances = Object.freeze({});
 
 /* @preserve */
 export class Schematic {
-  private additionalHeaders: Record<string, string> = {};
+  private _additionalHeaders: Record<string, string> = {};
   private apiKey: string;
-  private apiUrl = "https://api.schematichq.com";
+  private _apiUrl = "https://api.schematichq.com";
   private conn: Promise<WebSocket> | null = null;
   private context: SchematicContext = {};
   private debugEnabled: boolean = false;
@@ -169,7 +169,7 @@ export class Schematic {
       this.setIsPending(false);
     }
 
-    this.additionalHeaders = {
+    this._additionalHeaders = {
       "X-Schematic-Client-Version": `schematic-js@${version}`,
       ...(options?.additionalHeaders ?? {}),
     };
@@ -191,7 +191,7 @@ export class Schematic {
     this.hydrateFlagStateFromCache();
 
     if (options?.apiUrl !== undefined) {
-      this.apiUrl = options.apiUrl;
+      this._apiUrl = options.apiUrl;
     }
 
     if (options?.eventUrl !== undefined) {
@@ -275,6 +275,14 @@ export class Schematic {
     } else if (this.debugEnabled) {
       this.debug("Initialized with debug mode enabled");
     }
+  }
+
+  get apiUrl(): string {
+    return this._apiUrl;
+  }
+
+  get additionalHeaders(): Record<string, string> {
+    return { ...this._additionalHeaders };
   }
 
   /**
@@ -392,11 +400,11 @@ export class Schematic {
     }
 
     if (!this.useWebSocket) {
-      const requestUrl = `${this.apiUrl}/flags/${key}/check`;
+      const requestUrl = `${this._apiUrl}/flags/${key}/check`;
       return fetch(requestUrl, {
         method: "POST",
         headers: {
-          ...(this.additionalHeaders ?? {}),
+          ...(this._additionalHeaders ?? {}),
           "Content-Type": "application/json;charset=UTF-8",
           "X-Schematic-Api-Key": this.apiKey,
         },
@@ -700,12 +708,12 @@ export class Schematic {
       return {};
     }
 
-    const requestUrl = `${this.apiUrl}/flags/check`;
+    const requestUrl = `${this._apiUrl}/flags/check`;
     const requestBody = JSON.stringify(context);
     return fetch(requestUrl, {
       method: "POST",
       headers: {
-        ...(this.additionalHeaders ?? {}),
+        ...(this._additionalHeaders ?? {}),
         "Content-Type": "application/json;charset=UTF-8",
         "X-Schematic-Api-Key": this.apiKey,
       },
@@ -1453,7 +1461,7 @@ export class Schematic {
       const response = await fetch(captureUrl, {
         method: "POST",
         headers: {
-          ...(this.additionalHeaders ?? {}),
+          ...(this._additionalHeaders ?? {}),
           "Content-Type": "application/json;charset=UTF-8",
         },
         body: payload,
@@ -2152,7 +2160,7 @@ export class Schematic {
         this.currentWebSocket = socket;
 
         const clientVersion =
-          this.additionalHeaders["X-Schematic-Client-Version"] ??
+          this._additionalHeaders["X-Schematic-Client-Version"] ??
           `schematic-js@${version}`;
 
         const messagePayload = {

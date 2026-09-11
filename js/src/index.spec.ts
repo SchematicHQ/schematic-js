@@ -249,6 +249,34 @@ describe("Schematic", () => {
     );
   });
 
+  describe("apiUrl and additionalHeaders", () => {
+    // Read by wrappers building a second client beside this one — the React
+    // SDK's billing client, given a pre-built `Schematic`. Without these it
+    // would assume production and send an access token to the wrong API.
+    it("reports the API it was configured with, or the default", () => {
+      expect(new Schematic("API_KEY").apiUrl).toBe(
+        "https://api.schematichq.com",
+      );
+      expect(
+        new Schematic("API_KEY", { apiUrl: "https://api.staging.example.com" })
+          .apiUrl,
+      ).toBe("https://api.staging.example.com");
+    });
+
+    it("reports its headers, stamp included, as a copy", () => {
+      const client = new Schematic("API_KEY", {
+        additionalHeaders: { "X-Tenant": "acme" },
+      });
+      expect(client.additionalHeaders).toEqual({
+        "X-Schematic-Client-Version": `schematic-js@${version}`,
+        "X-Tenant": "acme",
+      });
+
+      client.additionalHeaders["X-Tenant"] = "someone-else";
+      expect(client.additionalHeaders["X-Tenant"]).toBe("acme");
+    });
+  });
+
   describe("checkFlag", () => {
     it("should check flag and return the value", async () => {
       const context = {
