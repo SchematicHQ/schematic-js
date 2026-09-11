@@ -21,7 +21,7 @@ import {
 } from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
-import { ERROR_UNKNOWN, isError } from "../utils";
+import { ERROR_UNKNOWN, debounceByKey, isError } from "../utils";
 
 import { EmbedContext } from "./EmbedContext";
 import { reducer } from "./embedReducer";
@@ -537,6 +537,44 @@ export const EmbedProvider = ({
     [listInvoices],
   );
 
+  const getCreditUsageByUser = useCallback(
+    async (billingCreditId: string, limit?: number) => {
+      return checkoutApi?.getCreditUsageByUser({ billingCreditId, limit });
+    },
+    [checkoutApi],
+  );
+
+  // Keyed by credit id: one `MeteredFeatures` renders a section per credit and
+  // they all fetch in the same tick, so a shared debounce would hand every
+  // section the first credit's response.
+  const debouncedGetCreditUsageByUser = useMemo(
+    () =>
+      debounceByKey(
+        getCreditUsageByUser,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [getCreditUsageByUser],
+  );
+
+  const getFeatureUsageByUser = useCallback(
+    async (featureId: string, limit?: number) => {
+      return checkoutApi?.getFeatureUsageByUser({ featureId, limit });
+    },
+    [checkoutApi],
+  );
+
+  // Keyed by feature id, for the same reason as credits above.
+  const debouncedGetFeatureUsageByUser = useMemo(
+    () =>
+      debounceByKey(
+        getFeatureUsageByUser,
+        FETCH_DEBOUNCE_TIMEOUT,
+        LEADING_DEBOUNCE_SETTINGS,
+      ),
+    [getFeatureUsageByUser],
+  );
+
   // components
   const setError = useCallback(
     (error: Error) => {
@@ -738,6 +776,8 @@ export const EmbedProvider = ({
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
+        getCreditUsageByUser: debouncedGetCreditUsageByUser,
+        getFeatureUsageByUser: debouncedGetFeatureUsageByUser,
         finishCheckout,
         setError,
         setAccessToken,

@@ -47,6 +47,7 @@ import { Box, Button, Flex, Icon, Text, TransitionBox } from "../../ui";
 
 import { Meter } from "./Meter";
 import { PriceDetails } from "./PriceDetails";
+import { UsageByUser } from "./UsageByUser";
 import * as styles from "./styles";
 
 interface LimitProps {
@@ -158,6 +159,9 @@ interface DesignProps {
     isVisible: boolean;
     fontStyle: FontStyle;
   };
+  usageByUser: {
+    isVisible: boolean;
+  };
   visibleFeatures?: string[];
 }
 
@@ -181,6 +185,9 @@ function resolveDesignProps(props: DeepPartial<DesignProps>): DesignProps {
     usage: {
       isVisible: props.usage?.isVisible ?? true,
       fontStyle: props.usage?.fontStyle ?? "heading5",
+    },
+    usageByUser: {
+      isVisible: props.usageByUser?.isVisible ?? true,
     },
     // there is a typescript bug with `DeepPartial` so we must cast to `string[] | undefined`
     visibleFeatures: props.visibleFeatures as string[] | undefined,
@@ -460,6 +467,18 @@ export const MeteredFeatures = forwardRef<
                 period={period}
               />
             )}
+
+            {props.usageByUser.isVisible &&
+              feature.featureType === FeatureType.Event && (
+                // The per-user amounts come from the feature usage endpoint, so
+                // they are denominated in the feature's own unit — the same one
+                // the usage line above uses. A credit-burndown feature's credit
+                // spend is broken down separately, under its credit.
+                <UsageByUser
+                  source={{ kind: "feature", id: feature.id }}
+                  unit={feature}
+                />
+              )}
           </Element>,
         );
 
@@ -798,6 +817,13 @@ export const MeteredFeatures = forwardRef<
                       ? "hsla(0, 0%, 0%, 0.8)"
                       : "hsla(0, 0%, 100%, 0.4)"
                   }
+                />
+              )}
+
+              {props.usageByUser.isVisible && (
+                <UsageByUser
+                  source={{ kind: "credit", id: credit.id }}
+                  unit={credit}
                 />
               )}
             </Element>
