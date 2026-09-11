@@ -108,13 +108,16 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
       billingClient ??
       new SchematicJS.SchematicBillingClient({
         session,
-        apiUrl,
-        additionalHeaders,
+        apiUrl: apiUrl ?? providedClient?.apiUrl,
+        additionalHeaders: {
+          ...providedClient?.additionalHeaders,
+          ...additionalHeaders,
+        },
       }),
     // `session` is deliberately absent: `BillingProvider` forwards it through
     // `setSession`, so a token change resets the billing resources without
     // rebuilding the client.
-    [additionalHeaders, apiUrl, billingClient],
+    [additionalHeaders, apiUrl, billingClient, providedClient],
   );
 
   return (
