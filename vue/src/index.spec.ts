@@ -1,9 +1,14 @@
 import { mount } from "@vue/test-utils";
 import { defineComponent, h, nextTick } from "vue";
-import { Schematic, type CreditBalances } from "@schematichq/schematic-js";
+import {
+  Schematic,
+  type CheckFlagReturn,
+  type CreditBalances,
+} from "@schematichq/schematic-js";
 import {
   SchematicPlugin,
   useSchematicCreditBalance,
+  useSchematicEntitlement,
   useSchematicFlag,
 } from "./index";
 
@@ -189,5 +194,100 @@ describe("useSchematicCreditBalance", () => {
     await nextTick();
 
     expect(result).toEqual({ balance: 0, isLoading: false });
+  });
+});
+
+// A minimal client that satisfies the methods the entitlement composable reads.
+const createFakeFlagClient = (check: CheckFlagReturn) => {
+  const listeners = new Set<(check: CheckFlagReturn) => void>();
+
+  return {
+    getFlagCheck: () => check,
+    addFlagCheckListener: (
+      _key: string,
+      cb: (check: CheckFlagReturn) => void,
+    ) => {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    },
+  };
+};
+
+describe("useSchematicEntitlement", () => {
+  it("surfaces the credit fields of a credit-metered entitlement", () => {
+    const client = createFakeFlagClient({
+      flag: "my-flag-key",
+      reason: "Matched plan entitlement",
+      value: true,
+      creditId: "credit-abc",
+      creditSettled: 3442,
+      creditRemaining: 0,
+      creditReserved: 3442,
+    });
+
+    const result: Record<string, unknown> = {};
+
+    const TestComponent = defineComponent({
+      setup() {
+        const { creditId, creditSettled, creditRemaining, creditReserved } =
+          useSchematicEntitlement("my-flag-key");
+        return () => {
+          result.creditId = creditId.value;
+          result.creditSettled = creditSettled.value;
+          result.creditRemaining = creditRemaining.value;
+          result.creditReserved = creditReserved.value;
+          return h("div");
+        };
+      },
+    });
+
+    mount(TestComponent, {
+      global: {
+        plugins: [
+          [SchematicPlugin, { client: client as unknown as Schematic }],
+        ],
+      },
+    });
+
+    expect(result).toEqual({
+      creditId: "credit-abc",
+      creditSettled: 3442,
+      creditRemaining: 0,
+      creditReserved: 3442,
+    });
+  });
+
+  it("leaves the credit fields undefined for a non-credit entitlement", () => {
+    const client = createFakeFlagClient({
+      flag: "my-flag-key",
+      reason: "Matched plan entitlement",
+      value: true,
+      featureAllocation: 100,
+      featureUsage: 10,
+    });
+
+    const result: Record<string, unknown> = {};
+
+    const TestComponent = defineComponent({
+      setup() {
+        const { creditId, creditSettled } =
+          useSchematicEntitlement("my-flag-key");
+        return () => {
+          result.creditId = creditId.value;
+          result.creditSettled = creditSettled.value;
+          return h("div");
+        };
+      },
+    });
+
+    mount(TestComponent, {
+      global: {
+        plugins: [
+          [SchematicPlugin, { client: client as unknown as Schematic }],
+        ],
+      },
+    });
+
+    expect(result).toEqual({ creditId: undefined, creditSettled: undefined });
   });
 });

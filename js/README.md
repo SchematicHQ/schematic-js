@@ -103,6 +103,18 @@ const unsubscribe = schematic.addCreditBalanceListener((balances) => {
 
 `settled` is the spendable balance and the number to display to end users.
 
+A feature's entitlement carries the same numbers. `getFlagCheck` returns `creditId`, `creditSettled`, `creditRemaining`, and `creditReserved` for features metered by credit burndown, and `undefined` for each when the feature is not credit-based:
+
+```typescript
+const check = schematic.getFlagCheck("some-flag-key");
+
+if (check?.creditId) {
+    console.log(`${check.creditSettled} credits remaining`);
+}
+```
+
+The entitlement refreshes with each flag check. `getCreditBalance` also updates on the credit partials that arrive between checks, so prefer it for a balance you render.
+
 ## Fallback Behavior
 
 The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).

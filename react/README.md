@@ -136,6 +136,35 @@ const MyComponent = () => {
 
 *Note: `useSchematicIsPending` is checking if entitlement data has been loaded, typically via `identify`. It should, therefore, be used to wrap flag and entitlement checks, but never the initial call to `identify`.*
 
+For features metered by credit burndown, the same entitlement object carries the company's credit position:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `creditId` | `string \| undefined` | The ID of the credit funding this feature |
+| `creditSettled` | `number \| undefined` | The spendable balance, including any amount held by an open lease. This is the number to show end users |
+| `creditRemaining` | `number \| undefined` | The balance available to fund new consumption, excluding any open lease hold |
+| `creditReserved` | `number \| undefined` | The unspent amount held by an open credit lease, `0` when none is open |
+
+All four are `undefined` when the feature is not credit-based.
+
+```tsx
+import { useSchematicEntitlement } from "@schematichq/schematic-react";
+import { Feature, OutOfCredits } from "./components";
+
+const MyComponent = () => {
+    const { creditSettled, value: isFeatureEnabled } =
+        useSchematicEntitlement("my-flag-key");
+
+    if (!isFeatureEnabled) {
+        return <OutOfCredits />;
+    }
+
+    return <Feature creditsRemaining={creditSettled} />;
+};
+```
+
+These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, read it with [`useSchematicCreditBalance`](#credit-balances) instead.
+
 ### Company plan information
 
 To access the current company's plan and trial status, you can use the `useSchematicPlan` hook:

@@ -203,6 +203,11 @@ export const useSchematicEntitlement = (
     ruleId: computed(() => flagCheck.value.ruleId),
     companyId: computed(() => flagCheck.value.companyId),
     userId: computed(() => flagCheck.value.userId),
+    // Credit fields, populated for features metered by credit burndown
+    creditId: computed(() => flagCheck.value.creditId),
+    creditSettled: computed(() => flagCheck.value.creditSettled),
+    creditRemaining: computed(() => flagCheck.value.creditRemaining),
+    creditReserved: computed(() => flagCheck.value.creditReserved),
   };
 };
 
