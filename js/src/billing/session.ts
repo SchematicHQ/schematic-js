@@ -365,8 +365,8 @@ export class SchematicSession {
         return;
       }
       // For the reason the 401 path drains: a body nobody reads holds the
-      // connection until it is collected, and a reader clicking through
-      // companies abandons one per switch.
+      // connection until it is collected, and a session switched repeatedly
+      // abandons one per switch.
       if (response !== undefined) {
         await discardBody(response);
       }
@@ -427,8 +427,7 @@ export class SchematicSession {
 
 /**
  * `expiresAt` arrives as a string from a parsed response body, and `.json()`
- * being `any` means the declared `Date` catches nothing — left as-is it
- * throws a request later, inside `getTime`.
+ * being `any` means the declared `Date` type catches nothing.
  */
 function asResolvedToken(
   result: string | AccessTokenResult,

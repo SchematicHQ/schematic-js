@@ -28,7 +28,7 @@ export const DEFAULT_INVOICE_QUERY: InvoiceQuery = {};
 /**
  * The store keys a resource by the query's shape, so without this
  * `{ includePending: false }` is a different row set from `{}` — it would
- * miss the seed and refetch rows identical to those already on screen.
+ * miss the seed and refetch rows identical to those already loaded.
  */
 export function normalizeInvoiceQuery(query: InvoiceQuery): InvoiceQuery {
   const { includePending, ...rest } = query;

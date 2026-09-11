@@ -19,7 +19,6 @@ const wireInvoices = {
   },
 };
 
-/** An empty page in the shape the API sends one. */
 const wireEmpty = { data: { count: 0, invoices: [] } };
 
 describe("SchematicBillingClient", () => {
@@ -149,7 +148,7 @@ describe("SchematicBillingClient", () => {
 describe("fetchBillingData", () => {
   it("prefetches the query it is asked for, and says which it was", async () => {
     // Seeded under the defaults, a prefetch for another query is read by
-    // nobody: the element asking that query fetches the same page again.
+    // nobody: the consumer asking that query fetches the same page again.
     const { calls, fetchImpl } = fakeFetch(() => ({ body: wireEmpty }));
     const client = new SchematicBillingClient({
       session: { company: "comp_a", token: "t" },
@@ -166,7 +165,7 @@ describe("fetchBillingData", () => {
   it("seeds the query under the key an element asks it by", async () => {
     // `{ includePending: false }` and `{}` are the same query, and the store
     // keys the second. Seeded verbatim, the rows are read by nobody and the
-    // element fetches the page again.
+    // consumer fetches the page again.
     const { calls, fetchImpl } = fakeFetch(() => ({ body: wireEmpty }));
     const client = new SchematicBillingClient({
       session: { company: "comp_a", token: "t" },

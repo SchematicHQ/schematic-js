@@ -306,7 +306,7 @@ describe("SchematicSession", () => {
     });
 
     // The 401 is what this request gets: its retry belonged to a session
-    // that is no longer being read. Not a TypeError from a body read twice.
+    // that is no longer being read.
     const error = await session
       .request("/probe")
       .catch((cause: unknown) => cause);
@@ -477,7 +477,7 @@ describe("SchematicSession", () => {
 
   it("releases the connection under a response it abandons", async () => {
     // A body nobody reads holds the socket until it is collected, and a
-    // reader clicking through companies abandons one per switch.
+    // session switched repeatedly abandons one per switch.
     const cancel = vi.fn(async () => undefined);
     let session: SchematicSession | undefined;
     const fetchImpl = (async () => {
@@ -557,9 +557,8 @@ describe("SchematicSession", () => {
   });
 
   it("takes a token body the way a host actually returns one", async () => {
-    // The documented usage is `(await fetch("/api/access-token")).json()`, so
-    // `expiresAt` arrives as a JSON string. Adopted verbatim it survives the
-    // first request and throws on the second.
+    // The documented usage is `(await fetch("/api/access-token")).json()`,
+    // so `expiresAt` arrives as a JSON string rather than a `Date`.
     const { calls, fetchImpl } = fakeFetch();
     const session = new SchematicSession({
       session: {
@@ -806,7 +805,6 @@ describe("SchematicSession credential cache", () => {
     }
     session.set({ company: "comp_0", token: mint("comp_0") });
     await session.request("/probe");
-    // The most recent one is still held.
     session.set({
       company: `comp_${TOKEN_CACHE_SIZE}`,
       token: mint(`comp_${TOKEN_CACHE_SIZE}`),

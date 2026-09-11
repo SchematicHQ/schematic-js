@@ -31,7 +31,7 @@ export type BillingResourceName = keyof BillingResources;
 /**
  * A prefetch or fixture. An omitted key reports as pending; a keyed resource
  * seeds under `params`, or its defaults when absent, so a prefetch for a
- * non-default query is claimed rather than refetched by the element.
+ * non-default query is claimed rather than refetched by the consumer.
  */
 export type BillingData = {
   [K in BillingResourceName]?: BillingResources[K];

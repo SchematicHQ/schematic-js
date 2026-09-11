@@ -34,9 +34,9 @@ export interface InvoicesRequest extends InvoiceQuery {
 export type InvoicesResult = Omit<InvoicePage, "hasMore">;
 
 /**
- * What a reader of billing data can ask for. Subscription and usage — the
- * rest of what `hydrate` serves — and the checkout calls that change them
- * join this interface as their endpoints ship.
+ * What a reader of billing data can ask for. Subscription and usage, and the
+ * checkout calls that change them, join this interface as their endpoints
+ * ship.
  */
 export interface BillingClient {
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult>;
@@ -115,7 +115,7 @@ export class SchematicBillingClient implements BillingClient {
 
 export interface BillingPrefetchOptions {
   names?: BillingResourceName[];
-  /** The invoice query to prefetch for; the element must ask the same one. */
+  /** The invoice query to prefetch for; the consumer must ask the same one. */
   invoices?: InvoiceQuery;
 }
 
@@ -129,7 +129,7 @@ export async function fetchBillingData(
 ): Promise<BillingData> {
   const wanted = options.names ?? ["invoices"];
   const data: BillingData = {};
-  // Normalized as the store normalizes what an element asks, so that a
+  // Normalized as the store normalizes what a caller asks, so that a
   // prefetch for a non-default query is claimed rather than fetched again.
   const invoices =
     options.invoices === undefined
