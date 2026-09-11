@@ -137,6 +137,33 @@ const {
 
 _Note: `useSchematicIsPending` is checking if entitlement data has been loaded, typically via `identify`. It should, therefore, be used to wrap flag and entitlement checks, but never the initial call to `identify`._
 
+For features metered by credit burndown, the same composable exposes the company's credit position:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `creditId` | `ComputedRef<string \| undefined>` | The ID of the credit funding this feature |
+| `creditSettled` | `ComputedRef<number \| undefined>` | The spendable balance, including any amount held by an open lease. This is the number to show end users |
+| `creditRemaining` | `ComputedRef<number \| undefined>` | The balance available to fund new consumption, excluding any open lease hold |
+| `creditReserved` | `ComputedRef<number \| undefined>` | The unspent amount held by an open credit lease, `0` when none is open |
+
+All four unwrap to `undefined` when the feature is not credit-based.
+
+```vue
+<script setup lang="ts">
+import { useSchematicEntitlement } from "@schematichq/schematic-vue";
+
+const { creditSettled, value: isFeatureEnabled } =
+  useSchematicEntitlement("my-flag-key");
+</script>
+
+<template>
+  <OutOfCredits v-if="!isFeatureEnabled" />
+  <Feature v-else :credits-remaining="creditSettled" />
+</template>
+```
+
+These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, read it with [`useSchematicCreditBalance`](#credit-balances) instead.
+
 ### Company plan information
 
 To access the current company's plan and trial status, you can use the `useSchematicPlan` composable:

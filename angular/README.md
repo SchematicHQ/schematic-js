@@ -202,6 +202,40 @@ export class EntitlementComponent {
 
 *Note: `isPending$` checks if entitlement data has been loaded, typically via `identify`. It should be used to wrap flag and entitlement checks, but never the initial call to `identify`.*
 
+For features metered by credit burndown, the emitted entitlement also carries the company's credit position:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `creditId` | `string \| undefined` | The ID of the credit funding this feature |
+| `creditSettled` | `number \| undefined` | The spendable balance, including any amount held by an open lease. This is the number to show end users |
+| `creditRemaining` | `number \| undefined` | The balance available to fund new consumption, excluding any open lease hold |
+| `creditReserved` | `number \| undefined` | The unspent amount held by an open credit lease, `0` when none is open |
+
+All four are `undefined` when the feature is not credit-based.
+
+```typescript
+@Component({
+  selector: "app-credit-feature",
+  standalone: true,
+  imports: [AsyncPipe],
+  template: `
+    @if (entitlement$ | async; as entitlement) {
+      @if (entitlement.value) {
+        <app-feature [creditsRemaining]="entitlement.creditSettled" />
+      } @else {
+        <app-out-of-credits />
+      }
+    }
+  `,
+})
+export class CreditFeatureComponent {
+  private schematic = inject(SchematicService);
+  entitlement$ = this.schematic.entitlement$("my-flag-key");
+}
+```
+
+These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, read it with [`creditBalance$`](#credit-balances) instead.
+
 ### Checking plans
 
 Use `plan$` to get an Observable of the current plan information:
