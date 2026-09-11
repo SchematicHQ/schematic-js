@@ -9,10 +9,11 @@ export default defineConfig({
   // explode with "Cannot read properties of null (reading 'useContext')".
   resolve: {
     dedupe: ["react", "react-dom", "styled-components"],
-    // The SDKs are workspace-linked, so they would otherwise resolve to the
-    // sibling's built dist. Point them at their sources: these packages ship
-    // together, and a suite run against last build's copy proves nothing about
-    // the change under review.
+    // Resolve the sibling SDKs from source rather than from whatever
+    // node_modules holds — a published version one release behind, or the
+    // dist a local symlink points at. These three packages ship together, and
+    // a suite run against last build's copy proves nothing about the change
+    // under review.
     alias: {
       "@schematichq/schematic-react": path.resolve(
         __dirname,

@@ -1,22 +1,22 @@
 /**
  * `@schematichq/schematic-components/elements` — code-first elements on the
- * company API, with the contract, derivations, and data seam they use.
+ * billing API, with the contract, derivations, and data seam they use.
  * This release carries the Invoices element; the other elements land with
  * the endpoints that feed them.
  */
 
 export {
-  CompanyDataProvider,
+  BillingDataProvider,
   SchematicI18nProvider,
-  useInvalidateCompanyData,
+  useInvalidateBillingData,
   useInvoices,
   useSchematicI18n,
   useSchematicLocale,
   useSchematicStrings,
   useSchematicTranslate,
-  type CompanyData,
-  type CompanyDataProviderProps,
-  type CompanyDataStatus,
+  type BillingData,
+  type BillingDataProviderProps,
+  type BillingDataStatus,
   type Invoice,
   type InvoicePage,
   type InvoiceQuery,

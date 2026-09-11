@@ -1,6 +1,6 @@
 import {
-  CompanyDataProvider,
-  type CompanyData,
+  BillingDataProvider,
+  type BillingData,
   type Invoice,
   type InvoiceQuery,
 } from "@schematichq/schematic-react";
@@ -16,17 +16,17 @@ const L = "en-US";
 const longDate = (days: number) => formatDate(daysFromNow(days), L);
 
 function renderInvoices(
-  data: CompanyData = SCENARIOS.pro(),
+  data: BillingData = SCENARIOS.pro(),
   props: InvoicesProps = {},
   handlers: {
     onLoadMoreInvoices?: (query: InvoiceQuery) => void;
-    status?: React.ComponentProps<typeof CompanyDataProvider>["status"];
+    status?: React.ComponentProps<typeof BillingDataProvider>["status"];
     locale?: string;
-    translate?: React.ComponentProps<typeof CompanyDataProvider>["translate"];
+    translate?: React.ComponentProps<typeof BillingDataProvider>["translate"];
   } = {},
 ) {
   return render(
-    <CompanyDataProvider
+    <BillingDataProvider
       data={data}
       locale={handlers.locale}
       status={handlers.status}
@@ -34,7 +34,7 @@ function renderInvoices(
       onLoadMoreInvoices={handlers.onLoadMoreInvoices}
     >
       <Invoices locale={L} {...props} />
-    </CompanyDataProvider>,
+    </BillingDataProvider>,
   );
 }
 
@@ -54,13 +54,13 @@ describe("Invoices", () => {
   test("renders an error with retry, and the retry reaches the provider", () => {
     const onRefetch = vi.fn();
     render(
-      <CompanyDataProvider
+      <BillingDataProvider
         data={{}}
         status={{ invoices: { error: new Error("Boom") } }}
         onRefetch={onRefetch}
       >
         <Invoices />
-      </CompanyDataProvider>,
+      </BillingDataProvider>,
     );
     expect(screen.getByRole("alert")).toHaveTextContent("Boom");
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -314,23 +314,23 @@ describe("Invoices", () => {
       hasMore,
     });
     const view = render(
-      <CompanyDataProvider
+      <BillingDataProvider
         data={{ invoices: page(12, true) }}
         onLoadMoreInvoices={onLoadMoreInvoices}
       >
         <Invoices limit={20} locale={L} />
-      </CompanyDataProvider>,
+      </BillingDataProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: "Load more" }));
     expect(onLoadMoreInvoices).toHaveBeenCalled();
 
     view.rerender(
-      <CompanyDataProvider
+      <BillingDataProvider
         data={{ invoices: page(24, false) }}
         onLoadMoreInvoices={onLoadMoreInvoices}
       >
         <Invoices limit={20} locale={L} />
-      </CompanyDataProvider>,
+      </BillingDataProvider>,
     );
     expect(screen.getAllByTestId("schematic-invoice")).toHaveLength(24);
     expect(screen.queryByRole("button", { name: "See more" })).toBeNull();

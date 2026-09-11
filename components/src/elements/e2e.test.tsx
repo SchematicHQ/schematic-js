@@ -1,4 +1,4 @@
-import { SchematicCompanyClient, companyApi } from "@schematichq/schematic-js";
+import { SchematicBillingClient, billingApi } from "@schematichq/schematic-js";
 import { SchematicProvider } from "@schematichq/schematic-react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
@@ -25,7 +25,7 @@ function serve(scenario: ReturnType<(typeof SCENARIOS)["pro"]>) {
       const offset = Number(url.searchParams.get("offset"));
       const rows = all
         .slice(offset, offset + limit)
-        .map((row) => companyApi.CompanyInvoiceResponseDataToJSON(row));
+        .map((row) => billingApi.CompanyInvoiceResponseDataToJSON(row));
       return new Response(
         JSON.stringify({
           data: { count, invoices: rows },
@@ -46,13 +46,13 @@ function renderStack(
   token?: string,
   scenario = SCENARIOS.pro(),
 ) {
-  const client = new SchematicCompanyClient({
-    session: token === undefined ? undefined : { key: "company", token },
+  const client = new SchematicBillingClient({
+    session: token === undefined ? undefined : { company: "co_test", token },
     apiUrl: "https://api.test",
     fetch: serve(scenario),
   });
   return render(
-    <SchematicProvider publishableKey="pk_test" companyClient={client}>
+    <SchematicProvider publishableKey="pk_test" billingClient={client}>
       {ui}
     </SchematicProvider>,
   );

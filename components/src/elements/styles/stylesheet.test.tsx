@@ -1,6 +1,6 @@
 import {
-  CompanyDataProvider,
-  type CompanyData,
+  BillingDataProvider,
+  type BillingData,
 } from "@schematichq/schematic-react";
 import { render } from "@testing-library/react";
 
@@ -67,11 +67,11 @@ function compounds(selector: string): string[] {
     .filter((part) => part !== "");
 }
 
-function tree(node: React.ReactNode, data: CompanyData, status?: never) {
+function tree(node: React.ReactNode, data: BillingData, status?: never) {
   const { container } = render(
-    <CompanyDataProvider data={data} status={status}>
+    <BillingDataProvider data={data} status={status}>
       {node}
-    </CompanyDataProvider>,
+    </BillingDataProvider>,
   );
   return container.firstElementChild as HTMLElement;
 }

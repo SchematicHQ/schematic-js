@@ -1,4 +1,4 @@
-import { companyApi } from "@schematichq/schematic-js";
+import { billingApi } from "@schematichq/schematic-js";
 
 import { SCENARIOS, type ScenarioName } from "./scenarios";
 
@@ -11,11 +11,11 @@ describe("wire round trip", () => {
   test.each(Object.keys(SCENARIOS) as ScenarioName[])("%s", (name) => {
     const rows = SCENARIOS[name]().invoices?.invoices ?? [];
     const wire = rows.map((row) =>
-      companyApi.CompanyInvoiceResponseDataToJSON(row),
+      billingApi.CompanyInvoiceResponseDataToJSON(row),
     );
     expect(JSON.stringify(wire)).not.toMatch(/"[a-z]+[A-Z]/); // no camelCase on the wire
     const decoded = JSON.parse(JSON.stringify(wire)).map(
-      companyApi.CompanyInvoiceResponseDataFromJSON,
+      billingApi.CompanyInvoiceResponseDataFromJSON,
     );
     expect(decoded).toEqual(rows);
   });
