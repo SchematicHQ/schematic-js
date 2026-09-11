@@ -103,12 +103,20 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   );
 
   const { apiUrl, additionalHeaders } = initialOptsRef.current;
+  // The API the host's client reads from, not the client itself. Keying on
+  // the object would rebuild this — and with it the store, which holds every
+  // loaded row — each time a host wrote `client={new Schematic(...)}` inline,
+  // where a new object every render says nothing new. Where the requests go
+  // is what a rebuild is for.
+  const providedApiUrl = providedClient?.apiUrl;
   const resolvedBillingClient = useMemo(
     () =>
       billingClient ??
       new SchematicJS.SchematicBillingClient({
         session,
-        apiUrl: apiUrl ?? providedClient?.apiUrl,
+        apiUrl: apiUrl ?? providedApiUrl,
+        // Read as they stand when a client is built: headers do not change
+        // where the token goes, so they are no reason to build one.
         additionalHeaders: {
           ...providedClient?.additionalHeaders,
           ...additionalHeaders,
@@ -117,7 +125,7 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
     // `session` is deliberately absent: `BillingProvider` forwards it through
     // `setSession`, so a token change resets the billing resources without
     // rebuilding the client.
-    [additionalHeaders, apiUrl, billingClient, providedClient],
+    [additionalHeaders, apiUrl, billingClient, providedApiUrl],
   );
 
   return (

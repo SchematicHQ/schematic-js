@@ -1052,6 +1052,58 @@ describe("billing hooks", () => {
     }
   });
 
+  it_("keeps what it loaded when only the client object changes", async () => {
+    // `client={new Schematic(...)}` inline is a new object every render, and
+    // says nothing new. The billing client owns the store, so rebuilding it
+    // on that would drop every loaded row and start the token cache over: a
+    // list snapping back to its skeleton and re-paging from one, and a mint
+    // against the host's auth endpoint, on every render of an ancestor.
+    let fetches = 0;
+    const token = vi.fn(async () => "tok");
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async () => {
+      fetches += 1;
+      return new Response(
+        JSON.stringify({
+          data: { count: 1, invoices: [{ id: "inv_1" }] },
+          params: {},
+        }),
+        { status: 200 },
+      );
+    }) as unknown as typeof fetch;
+
+    try {
+      function Probe() {
+        const { data } = useInvoices();
+        return <span>{data?.invoices[0]?.id ?? "pending"}</span>;
+      }
+      const at = () => (
+        <SchematicProvider
+          client={new Schematic("pk", { apiUrl: "https://api.staging.test" })}
+          session={{ company: "co_1", token }}
+        >
+          <Probe />
+        </SchematicProvider>
+      );
+
+      const view = render(at());
+      await flush();
+      expect(view.container.textContent).toBe("inv_1");
+      expect(fetches).toBe(1);
+
+      view.rerender(at());
+      await flush();
+      view.rerender(at());
+      await flush();
+
+      expect(view.container.textContent).toBe("inv_1");
+      expect(fetches).toBe(1);
+      expect(token).toHaveBeenCalledTimes(1);
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  });
+
   it_(
     "BillingDataProvider feeds the hooks from plain data with status overrides",
     () => {
