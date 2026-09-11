@@ -16,6 +16,7 @@ import { CheckoutDialog } from "./CheckoutDialog";
 type Json = Record<string, unknown>;
 
 const FREE_PLAN_ID = "plan_free";
+const LEGACY_PLAN_ID = "plan_legacy";
 
 /**
  * A company with no billing subscription on a free (price-less) plan: the
@@ -48,6 +49,36 @@ function buildCreditOnlyData(
     plan_price: 0,
   };
   raw.subscription = null;
+
+  raw.checkout_settings = {
+    ...(raw.checkout_settings as Json),
+    bundle_purchase_behavior: behavior,
+  };
+
+  return ComponentHydrateResponseDataFromJSON(raw);
+}
+
+/**
+ * A company with an active subscription on a plan that is no longer live: the
+ * plan is gone from `active_plans`, so the dialog can select no plan, and the
+ * bundles are again the entire order.
+ */
+function buildLegacyPlanData(
+  behavior: CheckoutBundlePurchaseBehavior,
+): HydrateDataWithCompanyContext {
+  const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+
+  raw.active_plans = (raw.active_plans as Json[]).map((plan) => ({
+    ...plan,
+    current: false,
+  }));
+
+  const company = raw.company as Json;
+  company.plan = {
+    ...(company.plan as Json),
+    id: LEGACY_PLAN_ID,
+    name: "Legacy Pro",
+  };
 
   raw.checkout_settings = {
     ...(raw.checkout_settings as Json),
@@ -96,16 +127,18 @@ function buildPreviewResponse(): PreviewCheckoutResponse {
 
 function renderCheckoutDialog({
   behavior = CheckoutBundlePurchaseBehavior.Individual,
+  data,
   previewCheckout,
 }: {
   behavior?: CheckoutBundlePurchaseBehavior;
+  data?: HydrateDataWithCompanyContext;
   previewCheckout: () => Promise<PreviewCheckoutResponse | undefined>;
 }) {
   return render(
     <EmbedContext.Provider
       value={{
         ...initialContext,
-        data: buildCreditOnlyData(behavior),
+        data: data ?? buildCreditOnlyData(behavior),
         layout: "checkout",
         checkoutState: { credits: true },
         previewCheckout,
@@ -166,6 +199,34 @@ describe("`CheckoutDialog` credit-only purchases", () => {
 
   afterAll(() => {
     vi.unstubAllGlobals();
+  });
+
+  it("buys credits for a company whose plan is no longer live", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildLegacyPlanData(CheckoutBundlePurchaseBehavior.Individual),
+      previewCheckout,
+    });
+
+    fireEvent.click(await screen.findByText("Choose bundle"));
+
+    await waitFor(() => {
+      expect(dueToday()).toBeInTheDocument();
+    });
+
+    // Having a subscription is not a reason to withhold the credit-only path:
+    // no plan is sent, so the backend charges for the bundles standalone and
+    // leaves the subscription alone.
+    expect(previewCheckout).toHaveBeenCalledWith(
+      expect.objectContaining({
+        newPlanId: "",
+        newPriceId: "",
+        addOnIds: [],
+        creditBundles: [{ bundleId: "bilcrb_d4T2hNmJLyB", quantity: 1 }],
+      }),
+    );
+
+    expect(screen.getByText("Buy credits").closest("button")).toBeEnabled();
   });
 
   it("clears the running total when the last chosen bundle is deselected", async () => {

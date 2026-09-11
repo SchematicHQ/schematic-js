@@ -49,10 +49,10 @@ import {
   deriveCreditBundles,
   emptyTaxIdValues,
   filterCreditBundles,
-  getAddOnPrice,
   getPlanPrice,
   getSubscriptionPeriod,
   isAddOnCompatibleWithLookup,
+  isCreditOnlyCheckout,
   isError,
   isScheduledCheckoutConflictMessage,
   isSelfServiceAutoTopupAvailable,
@@ -481,28 +481,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     );
   }, [bundleGatingPlanId, data?.creditBundles, bundleCounts]);
 
-  const selectedPlanPriceId = useMemo(() => {
-    if (!selectedPlan) {
-      return undefined;
-    }
-
-    const currencyPrice = getPlanPrice(
-      selectedPlan,
-      planPeriod,
-      { useSelectedPeriod: true },
-      hasCurrency ? effectiveCurrency : undefined,
-    );
-
-    return (
-      currencyPrice?.id ??
-      (planPeriod === "year"
-        ? selectedPlan.yearlyPrice?.id
-        : planPeriod === "quarter"
-          ? selectedPlan.quarterlyPrice?.id
-          : selectedPlan.monthlyPrice?.id)
-    );
-  }, [selectedPlan, planPeriod, hasCurrency, effectiveCurrency]);
-
   // Whether the company already had a payment method when the dialog opened.
   // Captured once at mount (lazy useState init) so entering a card mid-flow
   // doesn't retroactively drop the checkout stage the user is standing on.
@@ -514,44 +492,28 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       ),
   );
 
-  // A credit-bundle-only purchase on a free/non-billing subscription: there is
-  // no subscription to create or change, so the backend charges for the credits
-  // standalone. Mirrors the API's isCreditBundleOnlyCheckout (bundles present,
-  // no add-ons / pay-in-advance, empty or non-billing plan), gated on the
-  // company having no active billing subscription.
-  const isCreditOnlyPurchase = useMemo(() => {
-    if (data?.company?.billingSubscription) {
-      return false;
-    }
-
-    if (selectedPlanPriceId) {
-      return false;
-    }
-
-    if (!creditBundles.some((bundle) => bundle.count > 0)) {
-      return false;
-    }
-
-    const hasPaidAddOn = addOns.some(
-      (addOn) =>
-        addOn.isSelected &&
-        !!getAddOnPrice(
-          addOn,
-          planPeriod,
-          hasCurrency ? effectiveCurrency : undefined,
-        )?.id,
-    );
-
-    return !hasPaidAddOn;
-  }, [
-    data?.company?.billingSubscription,
-    selectedPlanPriceId,
-    creditBundles,
-    addOns,
-    planPeriod,
-    hasCurrency,
-    effectiveCurrency,
-  ]);
+  // A purchase of credit bundles and nothing else: there is no subscription to
+  // create or change, so the backend charges for the credits standalone. This
+  // covers a company on a free plan and a company whose plan is no longer live,
+  // which has a subscription but no plan the dialog can select.
+  const isCreditOnlyPurchase = useMemo(
+    () =>
+      isCreditOnlyCheckout({
+        plan: selectedPlan,
+        creditBundles,
+        addOns,
+        period: planPeriod,
+        currency: hasCurrency ? effectiveCurrency : undefined,
+      }),
+    [
+      selectedPlan,
+      creditBundles,
+      addOns,
+      planPeriod,
+      hasCurrency,
+      effectiveCurrency,
+    ],
+  );
 
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     applyPrefilledQuantities(
@@ -1035,17 +997,15 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         plan?.id ?? data?.company?.plan?.id,
       );
 
-      // A credit-bundle-only purchase on a non-billing subscription has no plan
-      // or price to send; the backend charges for the credits standalone.
-      const isCreditOnly =
-        !data?.company?.billingSubscription &&
-        !planPriceId &&
-        resolvedCreditBundles.some((bundle) => bundle.count > 0) &&
-        !(updates.addOns || addOns).some(
-          (addOn) =>
-            addOn.isSelected &&
-            !!getAddOnPrice(addOn, period, resolvedCurrency)?.id,
-        );
+      // A credit-bundle-only purchase has no plan or price to send; the backend
+      // charges for the credits standalone.
+      const isCreditOnly = isCreditOnlyCheckout({
+        plan,
+        creditBundles: resolvedCreditBundles,
+        addOns: updates.addOns || addOns,
+        period,
+        currency: resolvedCurrency,
+      });
 
       // do not preview if user updates do not result in a valid plan,
       // unless this is a credit-only purchase that needs no plan
@@ -1229,7 +1189,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       addOnCompatibilityLookup,
       data?.company?.plan?.id,
       data?.company?.plan?.includedCreditGrants,
-      data?.company?.billingSubscription,
       previewCheckout,
       planPeriod,
       selectedPlan,

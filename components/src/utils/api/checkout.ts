@@ -150,3 +150,40 @@ export function buildCreditBundlesRequestBody(
     [],
   );
 }
+
+/**
+ * Whether a checkout request buys credit bundles and nothing else, so the
+ * backend can charge for them standalone instead of creating or changing a
+ * subscription.
+ *
+ * Mirrors the API's `isCreditBundleOnlyCheckout`: bundles present, no add-ons,
+ * no pay-in-advance, and no plan to send. A resolved `plan` stands in for the
+ * API's "requested plan has a billing product", since the active plan list is
+ * already filtered to plans that have one.
+ *
+ * Deliberately says nothing about whether the company has a subscription. The
+ * API does not care, and a company sitting on a plan that is no longer live has
+ * an active subscription but no plan the dialog can select — it can still buy
+ * credits, and the purchase leaves its subscription untouched.
+ */
+export function isCreditOnlyCheckout(options: {
+  plan?: SelectedPlan;
+  creditBundles: CreditBundle[];
+  addOns: SelectedPlan[];
+  period: string;
+  currency?: string;
+}): boolean {
+  const { plan, creditBundles, addOns, period, currency } = options;
+
+  if (plan) {
+    return false;
+  }
+
+  if (!creditBundles.some((bundle) => bundle.count > 0)) {
+    return false;
+  }
+
+  return !addOns.some(
+    (addOn) => addOn.isSelected && !!getAddOnPrice(addOn, period, currency)?.id,
+  );
+}
