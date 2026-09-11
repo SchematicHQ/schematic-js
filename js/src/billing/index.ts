@@ -25,6 +25,9 @@ export {
   type SessionOptions,
   type SessionStatus,
 } from "./session";
-// The generated wire models (FromJSON/ToJSON and friends), namespaced so
-// consumers reference them as billingApi.* without polluting the root.
-export * as billingApi from "./api/generated/models";
+// The generated wire models are deliberately not re-exported. A namespace
+// object holds every member, so bundlers cannot drop any of it: exporting
+// them put every invoice codec in the bundle of an app that only reads
+// flags. The decoded types reach consumers through ./contract, which is
+// what they actually want; anything needing a raw codec can reach into
+// ./api/generated/models directly.
