@@ -3,7 +3,11 @@ import React from "react";
 import { act, render, renderHook } from "@testing-library/react";
 import { Schematic, type CreditBalances } from "@schematichq/schematic-js";
 import {
+  DEFAULT_INVOICE_QUERY,
+  INVOICE_PAGE_SIZE,
+  InvoiceStatus,
   SchematicProvider,
+  normalizeInvoiceQuery,
   useSchematicCreditBalance,
   useSchematicFlag,
 } from "./index";
@@ -25,6 +29,17 @@ describe("schematic-react", () => {
 
   it("should export useSchematicFlag hook", () => {
     expect(useSchematicFlag).toBeDefined();
+  });
+
+  // Re-exporting a value as `type X` type-checks, and api-extractor still
+  // rolls its declaration into the .d.ts — so the types would promise a
+  // runtime export the bundle does not carry. tsc cannot see that; this can.
+  it("exports the billing contract's values, not just their types", () => {
+    expect(InvoiceStatus).toBeDefined();
+    expect(InvoiceStatus.Paid).toBe("paid");
+    expect(DEFAULT_INVOICE_QUERY).toBeDefined();
+    expect(normalizeInvoiceQuery).toBeInstanceOf(Function);
+    expect(INVOICE_PAGE_SIZE).toBeGreaterThan(0);
   });
 
   (isDOMEnvironment ? it : it.skip)(
