@@ -354,6 +354,33 @@ export function calculateTieredCost(
   return cost;
 }
 
+/**
+ * Cost of a pay-in-advance entitlement at the quantity chosen at checkout.
+ *
+ * A tiered scheme carries its amounts on `priceTier` and leaves the parent
+ * price at 0, so `quantity * price` silently drops the entire charge. The
+ * amount is still deterministic — the quantity is picked up front — so it
+ * belongs in any forward-looking total.
+ */
+export function calculateQuantityCost(
+  billingPrice: BillingPriceView | undefined,
+  quantity: number,
+): number {
+  if (!billingPrice) {
+    return 0;
+  }
+
+  if (isTieredPrice(billingPrice)) {
+    return calculateTieredCost(
+      quantity,
+      billingPrice.priceTier,
+      billingPrice.tiersMode,
+    );
+  }
+
+  return quantity * billingPrice.price;
+}
+
 export function getEntitlementCost(
   entitlement: FeatureUsageResponseData,
   period: string | null = "month",

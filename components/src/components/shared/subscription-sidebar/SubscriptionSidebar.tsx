@@ -30,6 +30,7 @@ import {
   buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  calculateQuantityCost,
   entitlementHasCost,
   extractCurrentUsageBasedEntitlements,
   formatBundleExpiry,
@@ -278,9 +279,10 @@ export const SubscriptionSidebar = forwardRef<
         const payInAdvanceCost = payInAdvanceEntitlements.reduce(
           (sum, entitlement) =>
             sum +
-            entitlement.quantity *
-              (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
-                0),
+            calculateQuantityCost(
+              getEntitlementPrice(entitlement, planPeriod, currency),
+              entitlement.quantity,
+            ),
           0,
         );
         total += payInAdvanceCost;
@@ -288,9 +290,10 @@ export const SubscriptionSidebar = forwardRef<
         const addOnPayInAdvanceCost = addOnPayInAdvanceEntitlements.reduce(
           (sum, entitlement) =>
             sum +
-            entitlement.quantity *
-              (getEntitlementPrice(entitlement, planPeriod, currency)?.price ??
-                0),
+            calculateQuantityCost(
+              getEntitlementPrice(entitlement, planPeriod, currency),
+              entitlement.quantity,
+            ),
           0,
         );
         total += addOnPayInAdvanceCost;
