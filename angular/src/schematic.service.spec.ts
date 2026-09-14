@@ -1,7 +1,7 @@
 import "@angular/compiler";
 import { Injector } from "@angular/core";
 import { vi } from "vitest";
-import { firstValueFrom, take, toArray } from "rxjs";
+import { BehaviorSubject, firstValueFrom, map, take, toArray } from "rxjs";
 import { SchematicService } from "./schematic.service";
 import { SCHEMATIC_CLIENT } from "./token";
 import type {
@@ -357,6 +357,74 @@ describe("SchematicService", () => {
       const obs1 = service.creditBalance$("credit-abc");
       const obs2 = service.creditBalance$("credit-xyz");
       expect(obs1).not.toBe(obs2);
+    });
+
+    it("should emit the loading state while the credit id is undefined", async () => {
+      // An entitlement's creditId is undefined until the check arrives.
+      mockClient.getIsPending.mockReturnValue(true);
+      const result = await firstValueFrom(service.creditBalance$(undefined));
+      expect(result).toEqual({ balance: 0, isLoading: true });
+    });
+
+    it("should emit 0 (not loading) when the feature is not credit-based", async () => {
+      mockClient.getIsPending.mockReturnValue(false);
+      const result = await firstValueFrom(service.creditBalance$(undefined));
+      expect(result).toEqual({ balance: 0, isLoading: false });
+    });
+
+    it("should accept an observable of credit ids and switch between them", async () => {
+      mockClient.getIsPending.mockReturnValue(false);
+      mockClient.getCreditBalance.mockImplementation((id: string) =>
+        id === "credit-abc"
+          ? { remaining: 0, reserved: 3442, settled: 3442 }
+          : { remaining: 10, reserved: 0, settled: 10 },
+      );
+
+      const creditId$ = new BehaviorSubject<string | undefined>(undefined);
+      const valuesPromise = firstValueFrom(
+        service.creditBalance$(creditId$).pipe(take(3), toArray()),
+      );
+
+      creditId$.next("credit-abc");
+      creditId$.next("credit-xyz");
+
+      const values = await valuesPromise;
+      expect(values).toEqual([
+        { balance: 0, isLoading: false },
+        { balance: 3442, isLoading: false },
+        { balance: 10, isLoading: false },
+      ]);
+    });
+
+    it("should read the balance when fed an entitlement's creditId stream", async () => {
+      mockClient.getIsPending.mockReturnValue(false);
+      mockClient.getFlagCheck.mockReturnValue(undefined);
+      mockClient.getCreditBalance.mockReturnValue({
+        remaining: 0,
+        reserved: 3442,
+        settled: 3442,
+      });
+
+      const creditId$ = service
+        .entitlement$("my-flag-key")
+        .pipe(map((entitlement) => entitlement.creditId));
+      const valuesPromise = firstValueFrom(
+        service.creditBalance$(creditId$).pipe(take(2), toArray()),
+      );
+
+      mockClient.getFlagCheck.mockReturnValue({
+        flag: "my-flag-key",
+        reason: "Matched plan entitlement",
+        value: true,
+        creditId: "credit-abc",
+      } as CheckFlagReturn);
+      mockClient._notify("flagCheck");
+
+      const values = await valuesPromise;
+      expect(values).toEqual([
+        { balance: 0, isLoading: false },
+        { balance: 3442, isLoading: false },
+      ]);
     });
   });
 

@@ -103,7 +103,7 @@ const createFakeClient = () => {
   "useSchematicCreditBalance",
   () => {
     const renderBalance = (
-      creditId: string,
+      creditId: string | undefined,
       client: ReturnType<typeof createFakeClient>,
     ) =>
       renderHook(() => useSchematicCreditBalance(creditId), {
@@ -172,6 +172,54 @@ const createFakeClient = () => {
       });
 
       expect(result.current).toEqual({ balance: 0, isLoading: false });
+    });
+
+    it("reports isLoading while the credit ID is still undefined", () => {
+      // An entitlement's creditId is undefined until the check arrives.
+      const client = createFakeClient();
+      const { result } = renderBalance(undefined, client);
+
+      expect(result.current).toEqual({ balance: 0, isLoading: true });
+    });
+
+    it("returns 0 (not loading) when the feature is not credit-based", () => {
+      const client = createFakeClient();
+      const { result } = renderBalance(undefined, client);
+
+      act(() => {
+        client.__setPending(false);
+      });
+
+      expect(result.current).toEqual({ balance: 0, isLoading: false });
+    });
+
+    it("reads the balance once the credit ID arrives", () => {
+      const client = createFakeClient();
+      const { result, rerender } = renderHook(
+        ({ creditId }: { creditId: string | undefined }) =>
+          useSchematicCreditBalance(creditId),
+        {
+          initialProps: { creditId: undefined as string | undefined },
+          wrapper: ({ children }: { children: React.ReactNode }) => (
+            <SchematicProvider client={client as unknown as Schematic}>
+              {children}
+            </SchematicProvider>
+          ),
+        },
+      );
+
+      act(() => {
+        client.__setPending(false);
+        client.__emitBalances({
+          "credit-abc": { remaining: 3442, reserved: 0, settled: 3442 },
+        });
+      });
+      expect(result.current.balance).toBe(0);
+
+      // The entitlement resolves and hands the hook its credit ID.
+      rerender({ creditId: "credit-abc" });
+
+      expect(result.current).toEqual({ balance: 3442, isLoading: false });
     });
   },
 );

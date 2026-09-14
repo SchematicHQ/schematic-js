@@ -234,7 +234,7 @@ export class CreditFeatureComponent {
 }
 ```
 
-These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, read it with [`creditBalance$`](#credit-balances) instead.
+These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, pipe `creditId` into [`creditBalance$`](#credit-balances) instead.
 
 ### Checking plans
 
@@ -299,7 +299,36 @@ export class CreditMeterComponent {
 | `balance` | `number` | The spendable balance, or `0` while loading or when the company holds no balance in this credit |
 | `isLoading` | `boolean` | `true` while the balance is still loading and no value has arrived yet |
 
-It surfaces the `settled` (spendable) balance. The credit ID is available on a feature's entitlement: `entitlement$(key)` emits `creditId` for credit-based features.
+It surfaces the `settled` (spendable) balance. The credit ID is available on a feature's entitlement, and `creditBalance$` accepts an Observable of credit IDs as well as a plain one, so you can pipe the entitlement straight in:
+
+```typescript
+import { map } from "rxjs";
+
+@Component({
+  selector: "app-credit-meter",
+  standalone: true,
+  imports: [AsyncPipe],
+  template: `
+    @if (creditBalance$ | async; as credit) {
+      @if (credit.isLoading) {
+        <div>Loading…</div>
+      } @else {
+        <div>{{ credit.balance }} credits remaining</div>
+      }
+    }
+  `,
+})
+export class CreditMeterComponent {
+  private schematic = inject(SchematicService);
+  creditBalance$ = this.schematic.creditBalance$(
+    this.schematic
+      .entitlement$("my-flag-key")
+      .pipe(map((entitlement) => entitlement.creditId)),
+  );
+}
+```
+
+It switches to the new credit as the source emits. While the ID is `undefined`, it emits the client's loading state and a balance of `0`.
 
 ## API Reference
 
@@ -320,7 +349,7 @@ Injectable service providing all Schematic functionality:
 | `flagValue$(key, fallback?)` | `Observable<boolean>` | Observe a feature flag's boolean value |
 | `entitlement$(key, fallback?)` | `Observable<CheckFlagReturn>` | Observe detailed entitlement data |
 | `plan$()` | `Observable<CheckPlanReturn \| undefined>` | Observe plan information |
-| `creditBalance$(creditId)` | `Observable<SchematicCreditBalance>` | Observe a company's lease-aware credit balance |
+| `creditBalance$(creditId)` | `Observable<SchematicCreditBalance>` | Observe a company's lease-aware credit balance. Takes a credit ID or an Observable of credit IDs |
 | `isPending$()` | `Observable<boolean>` | Observe loading state |
 
 ### `SCHEMATIC_CLIENT`

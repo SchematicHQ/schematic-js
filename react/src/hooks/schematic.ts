@@ -149,9 +149,14 @@ export const useSchematicPlan = (
  * `credit_balances` map (keyed by credit ID). It re-renders as partials arrive
  * over the DataStream, so it stays accurate during an open lease — when the raw
  * `remaining` would otherwise read stale / falsely "exhausted".
+ *
+ * `creditId` accepts `undefined` so it can be fed straight from an
+ * entitlement's `creditId`, which is undefined until the check arrives and for
+ * features that are not credit-based. While the ID is undefined the hook
+ * reports the client's loading state and a balance of 0.
  */
 export const useSchematicCreditBalance = (
-  creditId: string,
+  creditId: string | undefined,
   opts?: SchematicHookOpts,
 ): SchematicCreditBalance => {
   const client = useSchematicClient(opts);
@@ -162,7 +167,8 @@ export const useSchematicCreditBalance = (
   );
 
   const getSnapshot = useCallback(
-    () => client.getCreditBalance(creditId),
+    () =>
+      creditId === undefined ? undefined : client.getCreditBalance(creditId),
     [client, creditId],
   );
 

@@ -162,7 +162,7 @@ const { creditSettled, value: isFeatureEnabled } =
 </template>
 ```
 
-These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, read it with [`useSchematicCreditBalance`](#credit-balances) instead.
+These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, pass `creditId` to [`useSchematicCreditBalance`](#credit-balances) instead.
 
 ### Company plan information
 
@@ -224,7 +224,26 @@ The composable returns an object with the following reactive properties:
 | `balance` | `ComputedRef<number>` | The spendable balance, or `0` while loading or when the company holds no balance in this credit |
 | `isLoading` | `ComputedRef<boolean>` | `true` while the balance is still loading and no value has arrived yet |
 
-The credit ID is available on a feature's entitlement: `useSchematicEntitlement(key)` returns `creditId` for credit-based features.
+The credit ID is available on a feature's entitlement, and the composable accepts a ref or a getter as well as a plain string, so you can feed one straight through:
+
+```vue
+<script setup lang="ts">
+import {
+  useSchematicCreditBalance,
+  useSchematicEntitlement,
+} from "@schematichq/schematic-vue";
+
+const { creditId } = useSchematicEntitlement("my-flag-key");
+const { balance, isLoading } = useSchematicCreditBalance(creditId);
+</script>
+
+<template>
+  <div v-if="isLoading">Loading…</div>
+  <div v-else>{{ balance }} credits remaining</div>
+</template>
+```
+
+The composable re-keys to the new credit whenever the source resolves to a different ID. While it resolves to `undefined`, it reports the client's loading state and a balance of `0`.
 
 ## Fallback Behavior
 

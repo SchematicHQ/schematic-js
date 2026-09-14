@@ -163,7 +163,7 @@ const MyComponent = () => {
 };
 ```
 
-These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, read it with [`useSchematicCreditBalance`](#credit-balances) instead.
+These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, pass `creditId` to [`useSchematicCreditBalance`](#credit-balances) instead.
 
 ### Company plan information
 
@@ -229,7 +229,22 @@ The hook returns an object with the following properties:
 | `balance` | `number` | The spendable balance, or `0` while loading or when the company holds no balance in this credit |
 | `isLoading` | `boolean` | `true` while the balance is still loading and no value has arrived yet |
 
-The credit ID is available on a feature's entitlement: `useSchematicEntitlement(key)` returns `creditId` for credit-based features.
+The credit ID is available on a feature's entitlement, and the hook accepts `string | undefined`, so you can feed it straight through without waiting for the check to arrive:
+
+```tsx
+const CreditMeter = () => {
+    const { creditId } = useSchematicEntitlement("my-flag-key");
+    const { balance, isLoading } = useSchematicCreditBalance(creditId);
+
+    if (isLoading) {
+        return <div>Loading…</div>;
+    }
+
+    return <div>{balance} credits remaining</div>;
+};
+```
+
+While `creditId` is `undefined`, the hook reports the client's loading state and a balance of `0`.
 
 ## Fallback Behavior
 
