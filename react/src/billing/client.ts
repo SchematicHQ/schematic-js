@@ -1,8 +1,10 @@
 import {
   INVOICE_MAX_PAGE_SIZE,
   INVOICE_PAGE_SIZE,
+  sessionKey,
   type BillingClient,
   type InvoicesResult,
+  type SessionInput,
   type SessionStatus,
 } from "@schematichq/schematic-js";
 
@@ -19,6 +21,29 @@ import { DEFAULT_INVOICE_QUERY, normalizeInvoiceQuery } from "./contract";
 import { KeyedResource, type Readiness } from "./store";
 
 /**
+ * What a session says about itself, from whichever side knows: the client
+ * once a session is installed on it, or the provider's own statement before
+ * that. Only the pair is compared, never the token.
+ */
+interface SessionClaim {
+  status: SessionStatus;
+  key: string | undefined;
+}
+
+function claimOf(client: BillingClient): SessionClaim {
+  return { status: client.sessionStatus, key: client.sessionKey };
+}
+
+function claimFrom(session: SessionInput): SessionClaim | undefined {
+  if (session === undefined) {
+    return undefined;
+  }
+  return session === null
+    ? { status: "ended", key: undefined }
+    : { status: "active", key: sessionKey(session) };
+}
+
+/**
  * Whether a prefetch belongs to the session in hand.
  *
  * A stamp that names another session is the case worth catching: rows
@@ -27,19 +52,27 @@ import { KeyedResource, type Readiness } from "./store";
  * unstamped prefetch is taken at face value, because a host handing one over
  * beside a session is saying it belongs to that session, and refusing it
  * would make `initialData` useless to anyone who fetched their own rows.
+ *
+ * A stamp that cannot be checked yet is neither: while the session is
+ * pending, the rows are held rather than shown, and judged again when it
+ * starts. Adopting them on trust would paint one company's invoices for
+ * whoever the auth turns out to name.
  */
-function seedBelongs(
+function judgeSeed(
   seedKey: string | undefined,
-  client: BillingClient,
-): boolean {
-  if (client.sessionStatus === "ended") {
-    return false;
+  claim: SessionClaim,
+): "adopt" | "hold" | "drop" {
+  if (claim.status === "ended") {
+    return "drop";
   }
-  if (client.sessionStatus === "pending") {
-    return true;
+  if (seedKey === undefined) {
+    return "adopt";
+  }
+  if (claim.status === "pending") {
+    return "hold";
   }
 
-  return seedKey === undefined || seedKey === client.sessionKey;
+  return seedKey === claim.key ? "adopt" : "drop";
 }
 
 const READINESS: Record<SessionStatus, Readiness> = {
@@ -64,25 +97,54 @@ export type {
  */
 export { INVOICE_PAGE_SIZE };
 
+export interface BillingStoreOptions {
+  pageSize?: number;
+  /**
+   * What the provider is about to install on the client, where it already
+   * knows: the constructor reads the client's session, and a provider that
+   * installs from an effect has not written it yet. Stated, it judges the
+   * prefetch so a page whose session was known at render paints its rows at
+   * render. `undefined` states nothing, and the client's own session stands.
+   */
+  session?: SessionInput;
+}
+
+interface HeldSeed {
+  params: InvoiceQuery;
+  data: InvoicePage;
+  key: string | undefined;
+}
+
 /**
  * The store for one session: a `KeyedResource` per billing resource, built
  * over a `BillingClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
  * resource. This release carries the invoices resource; the others join it
  * with their elements.
+ *
+ * Nothing loads before `connect()`: a store that is not listening for the
+ * session would fetch under whatever the client held when a subscriber
+ * arrived, and serve it across a switch it never heard about. The provider
+ * connects after it has installed the session, so the first request goes
+ * out under the right one.
  */
 export class BillingStore {
   readonly invoices: KeyedResource<InvoicePage, InvoiceQuery>;
+  private readonly _pageSize: number;
   private _unsubscribe: (() => void) | undefined;
+  private _connected = false;
   private _seeded = false;
   /** The session that prefetch was for, where it said. */
   private _seedKey: string | undefined;
+  /** A stamped prefetch waiting for a session to check it against. */
+  private _held: HeldSeed | undefined;
 
   constructor(
     private readonly _client: BillingClient,
     initialData: BillingData = {},
-    private readonly _pageSize = INVOICE_PAGE_SIZE,
+    options: BillingStoreOptions = {},
   ) {
+    this._pageSize = options.pageSize ?? INVOICE_PAGE_SIZE;
     // A refetch re-requests the loaded window, so a user who has paged
     // three deep does not collapse back to one page on invalidation.
     this.invoices = new KeyedResource(
@@ -91,24 +153,25 @@ export class BillingStore {
           query,
           Math.max(this._pageSize, current?.invoices.length ?? 0),
         ),
-      // A session still pending stays pending; one that has ended settles
-      // empty rather than recording the client's refusal as an error.
-      { readiness: () => READINESS[this._client.sessionStatus] },
+      // Waiting until connected; then a session still pending stays
+      // pending, and one that has ended settles empty rather than recording
+      // the client's refusal as an error.
+      {
+        readiness: () =>
+          this._connected ? READINESS[this._client.sessionStatus] : "waiting",
+      },
     );
-    if (
-      initialData.invoices !== undefined &&
-      seedBelongs(initialData.sessionKey, this._client)
-    ) {
-      // Normalized the way the hook normalizes, or the caller asking for
-      // it fetches the same page again.
-      this.invoices.seed(
-        normalizeInvoiceQuery(
+    if (initialData.invoices !== undefined) {
+      this._held = {
+        // Normalized the way the hook normalizes, or the caller asking for
+        // it fetches the same page again.
+        params: normalizeInvoiceQuery(
           initialData.params?.invoices ?? DEFAULT_INVOICE_QUERY,
         ),
-        initialData.invoices,
-      );
-      this._seedKey = initialData.sessionKey;
-      this._seeded = true;
+        data: initialData.invoices,
+        key: initialData.sessionKey,
+      };
+      this._settleSeed(claimFrom(options.session) ?? claimOf(this._client));
     }
   }
 
@@ -118,31 +181,70 @@ export class BillingStore {
    * StrictMode. A subscription made once at construction is torn down by
    * that cleanup and never comes back, leaving the store deaf to every
    * session change for the rest of the page.
+   *
+   * Also what opens the store: subscribers who arrived first have been
+   * waiting, and this is the moment the session is known to be installed.
    */
   connect(): () => void {
     this._unsubscribe?.();
     const unsubscribe = this._client.onSessionChange?.((event) => {
       if (event.type === "ended") {
+        this._held = undefined;
+        this._seeded = false;
         this.clearAll();
       } else if (event.type === "changed") {
-        this.resetAll();
-      } else if (this._seeded && !seedBelongs(this._seedKey, this._client)) {
-        // The rows already loaded name another session — a cached page, or
-        // a second tab that switched. They are not this one's to serve.
+        this._held = undefined;
         this._seeded = false;
         this.resetAll();
       } else {
-        this._seeded = false;
-        this.resumeAll();
+        this._onStarted();
       }
     });
     this._unsubscribe = unsubscribe;
+    if (!this._connected) {
+      this._connected = true;
+      this._settleSeed(claimOf(this._client));
+      this.resumeAll();
+    }
     return () => {
       unsubscribe?.();
       if (this._unsubscribe === unsubscribe) {
         this._unsubscribe = undefined;
       }
     };
+  }
+
+  private _onStarted(): void {
+    const claim = claimOf(this._client);
+    // A prefetch held for want of a session to check it against.
+    this._settleSeed(claim);
+    if (this._seeded && judgeSeed(this._seedKey, claim) !== "adopt") {
+      // The rows already loaded name another session — a cached page, or
+      // a second tab that switched. They are not this one's to serve.
+      this._seeded = false;
+      this.resetAll();
+      return;
+    }
+    this._seeded = false;
+    this.resumeAll();
+  }
+
+  /** Adopts, keeps holding, or drops the prefetch, by what `claim` says. */
+  private _settleSeed(claim: SessionClaim): void {
+    const held = this._held;
+    if (held === undefined) {
+      return;
+    }
+    const verdict = judgeSeed(held.key, claim);
+    if (verdict === "hold") {
+      return;
+    }
+    this._held = undefined;
+    if (verdict === "adopt") {
+      this.invoices.seed(held.params, held.data);
+      this._seedKey = held.key;
+      this._seeded = true;
+    }
   }
 
   resource<K extends BillingResourceName>(

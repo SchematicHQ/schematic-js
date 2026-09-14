@@ -1,4 +1,8 @@
-import { Schematic, SchematicBillingClient } from "@schematichq/schematic-js";
+import {
+  Schematic,
+  SchematicBillingClient,
+  sessionKey,
+} from "@schematichq/schematic-js";
 import { act, render, renderHook, screen } from "@testing-library/react";
 import React, { StrictMode } from "react";
 import { vi } from "vitest";
@@ -9,7 +13,7 @@ import { BillingStore, type BillingClient, type SessionEvent } from "./client";
 import { BillingDataProvider, MISSING_BILLING_SOURCE_MESSAGE } from "./context";
 import type { BillingData, Invoice } from "./contract";
 import { useInvoices } from "./hooks";
-import { BillingProvider } from "./provider";
+import { BillingProvider, SHARED_CLIENT_MESSAGE } from "./provider";
 
 const isDOMEnvironment = typeof document !== "undefined";
 const it_ = isDOMEnvironment ? it : it.skip;
@@ -711,9 +715,11 @@ describe("billing hooks", () => {
     },
   );
 
-  it_("keeps a prefetch that names the session it arrives in", async () => {
-    // The point of prefetching: rows on the first render, even though the
-    // host's auth resolves a render later.
+  it_("holds a stamped prefetch until the session can be checked", async () => {
+    // The stamp names a session; while auth is still pending there is
+    // nothing to check it against. Showing the rows on trust would paint one
+    // company's invoices for whoever the auth turns out to name, so they
+    // wait — and go up without a request once the session says they are its.
     let status: "pending" | "active" | "ended" = "pending";
     let key: string | undefined = undefined;
     const client = fakeClient({
@@ -728,7 +734,10 @@ describe("billing hooks", () => {
     store.connect();
     store.invoices.get({}).subscribe(() => {});
     await flush();
-    expect(store.invoices.get({}).snapshot.data?.invoices[0].id).toBe("seeded");
+    expect(store.invoices.get({}).snapshot).toMatchObject({
+      data: undefined,
+      isPending: true,
+    });
 
     status = "active";
     key = "company_a";
@@ -739,6 +748,57 @@ describe("billing hooks", () => {
     expect(store.invoices.get({}).snapshot.data?.invoices[0].id).toBe("seeded");
     expect(client.fetchInvoices).not.toHaveBeenCalled();
   });
+
+  it_(
+    "paints a stamped prefetch at render when the provider states the session",
+    async () => {
+      // SSR hydration under a provider that installs from an effect: the
+      // client has not heard the session yet, but the provider knows it, and
+      // says so — the rows need not wait for an effect the server never ran.
+      const client = fakeClient({
+        fetchInvoices: vi.fn(async () => rowsOf("fetched")),
+      });
+      Object.defineProperty(client, "sessionStatus", { get: () => "pending" });
+      Object.defineProperty(client, "sessionKey", { get: () => undefined });
+      const store = new BillingStore(
+        client,
+        {
+          invoices: page("seeded"),
+          sessionKey: sessionKey({ company: "co_a", token: "t" }),
+        },
+        { session: { company: "co_a", token: "t" } },
+      );
+      expect(store.invoices.get({}).snapshot.data?.invoices[0].id).toBe(
+        "seeded",
+      );
+
+      const other = new BillingStore(
+        client,
+        {
+          invoices: page("seeded"),
+          sessionKey: sessionKey({ company: "co_a", token: "t" }),
+        },
+        { session: { company: "co_b", token: "t" } },
+      );
+      expect(other.invoices.get({}).snapshot.data).toBeUndefined();
+    },
+  );
+
+  it_(
+    "takes an unstamped prefetch at face value while the session is pending",
+    async () => {
+      // A host that fetched its own rows and hands them over is vouching for
+      // them; nothing names another session, so there is nothing to hold for.
+      const client = fakeClient({
+        fetchInvoices: vi.fn(async () => rowsOf("fetched")),
+      });
+      Object.defineProperty(client, "sessionStatus", { get: () => "pending" });
+      const store = new BillingStore(client, { invoices: page("seeded") });
+      expect(store.invoices.get({}).snapshot.data?.invoices[0].id).toBe(
+        "seeded",
+      );
+    },
+  );
 
   it_("refuses a page while the session is still pending", async () => {
     // A prefetch puts rows on screen before auth has answered, so "load
@@ -847,6 +907,106 @@ describe("billing hooks", () => {
     );
   });
 
+  it_("installs the session before the first request goes out", async () => {
+    // Children subscribe before the provider's effects run. Left to
+    // themselves they would fetch under whatever the client held — another
+    // session's token, or none — so the store holds them until the
+    // provider has said whose data this is.
+    const order: string[] = [];
+    const client = fakeClient({
+      fetchInvoices: vi.fn(async () => {
+        order.push("fetch");
+        return rowsOf("inv_1");
+      }),
+      setSession: vi.fn(() => {
+        order.push("session");
+      }),
+    });
+    const { result } = renderHook(() => useInvoices(), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <BillingProvider
+          billingClient={client}
+          session={{ company: "co_a", token: "t" }}
+        >
+          {children}
+        </BillingProvider>
+      ),
+    });
+    await flush();
+    expect(order[0]).toBe("session");
+    expect(order).toContain("fetch");
+    expect(result.current.data?.invoices[0].id).toBe("inv_1");
+  });
+
+  it_("does not fetch before it is connected", async () => {
+    const client = fakeClient({
+      fetchInvoices: vi.fn(async () => rowsOf("inv_1")),
+    });
+    const store = new BillingStore(client);
+    store.invoices.get({}).subscribe(() => {});
+    await flush();
+    expect(client.fetchInvoices).not.toHaveBeenCalled();
+    expect(store.invoices.get({}).snapshot.isPending).toBe(true);
+
+    store.connect();
+    await flush();
+    expect(client.fetchInvoices).toHaveBeenCalledTimes(1);
+    expect(store.invoices.get({}).snapshot.data?.invoices[0].id).toBe("inv_1");
+  });
+
+  it_(
+    "reports a client already reading another session, from an effect",
+    async () => {
+      // Two providers over one client: a client holds one session, so they
+      // overwrite each other's. Worth saying once. And said, and installed,
+      // from an effect — the first provider's store is listening, and a
+      // reset fired from inside the second's render would update its
+      // subscribers mid-render.
+      const errors: string[] = [];
+      const spy = vi
+        .spyOn(console, "error")
+        .mockImplementation((...args: unknown[]) => {
+          errors.push(args.map(String).join(" "));
+        });
+      const client = new SchematicBillingClient({
+        apiUrl: "https://api.test",
+        fetch: (async () =>
+          new Response(
+            JSON.stringify({ data: { count: 0, invoices: [] }, params: {} }),
+            { status: 200 },
+          )) as typeof fetch,
+      });
+      function Probe() {
+        const { isPending } = useInvoices();
+        return <span>{isPending ? "pending" : "ok"}</span>;
+      }
+      const a = { company: "co_a", token: "t" };
+      const b = { company: "co_b", token: "t" };
+      const view = render(
+        <BillingProvider billingClient={client} session={a}>
+          <Probe />
+        </BillingProvider>,
+      );
+      await flush();
+      view.rerender(
+        <>
+          <BillingProvider billingClient={client} session={a}>
+            <Probe />
+          </BillingProvider>
+          <BillingProvider billingClient={client} session={b}>
+            <Probe />
+          </BillingProvider>
+        </>,
+      );
+      await flush();
+      spy.mockRestore();
+      expect(
+        errors.filter((e) => e.includes("Cannot update a component")),
+      ).toHaveLength(0);
+      expect(errors.filter((e) => e === SHARED_CLIENT_MESSAGE)).toHaveLength(1);
+    },
+  );
+
   it_("stays pending while the session is still pending", async () => {
     // Pending is not empty: something is coming, so the resource waits
     // rather than settling on an empty history.
@@ -947,7 +1107,8 @@ describe("billing hooks", () => {
     // request would be a 400, and only the first page would drop the rest.
     const rows = Array.from({ length: 400 }, (_, i) => invoice(`inv_${i}`));
     const client = fakeClient({ fetchInvoices: vi.fn(serve(rows)) });
-    const store = new BillingStore(client, {}, 260);
+    const store = new BillingStore(client, {}, { pageSize: 260 });
+    store.connect();
     store.invoices.get({}).subscribe(() => {});
     await flush();
 
@@ -977,7 +1138,8 @@ describe("billing hooks", () => {
         count: 400,
       })),
     });
-    const store = new BillingStore(client, {}, 260);
+    const store = new BillingStore(client, {}, { pageSize: 260 });
+    store.connect();
     store.invoices.get({}).subscribe(() => {});
     await flush();
     expect(store.invoices.get({}).snapshot.data?.invoices).toHaveLength(12);
@@ -1131,6 +1293,7 @@ describe("BillingStore", () => {
   it("invalidateAll refetches only loaded resources", async () => {
     const client = fakeClient();
     const store = new BillingStore(client);
+    store.connect();
     store.invalidateAll();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(client.fetchInvoices).not.toHaveBeenCalled();

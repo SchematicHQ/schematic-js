@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
 
+import { sessionKey } from "@schematichq/schematic-js";
+
 import { SchematicI18nProvider, type SchematicI18nConfig } from "../i18n";
 
 import {
@@ -60,6 +62,14 @@ export type BillingProviderProps = BillingProviderDataProps &
  */
 const MISSING_ACCESS_TOKEN_MESSAGE =
   "An access token is required to read billing data.";
+
+/**
+ * Reported once, at mount, when the client handed in is already reading
+ * another session: a client holds one, so this provider and whoever set the
+ * other will each keep installing theirs.
+ */
+export const SHARED_CLIENT_MESSAGE =
+  "BillingProvider was given a billingClient that is already reading a different session. A client holds one session, so providers sharing it overwrite each other's; give each provider its own client.";
 
 /**
  * Provides the billing hooks from a `BillingStore` over a `BillingClient`.
@@ -127,8 +137,9 @@ export function BillingProvider({
               : session.token,
         };
 
-  // The client ignores a statement that changes nothing, so this forwards on
-  // every pass rather than keeping its own record of what it last said.
+  // The client ignores a statement that changes nothing, so this forwards
+  // after every render rather than keeping its own record of what it last
+  // said.
   const install = () => {
     if (session === null) {
       latestToken.current = undefined;
@@ -142,35 +153,50 @@ export function BillingProvider({
     billingClient?.setSession?.(forwarded);
   };
 
-  // During render, because a child's subscription effect runs before this
-  // component's and would otherwise fetch before the token arrives. Safe
-  // only because the client is new to us: nothing is listening yet.
-  //
-  // Marked whether or not the statement changed anything: leaving the branch
-  // armed would let a session arriving after the children have subscribed
-  // reset the store from inside a render.
-  const renderPass = useRef<{ done: boolean; client?: BillingClient }>({
-    done: false,
-  });
-  if (!renderPass.current.done || renderPass.current.client !== billingClient) {
-    renderPass.current = { done: true, client: billingClient };
-    install();
-  }
-  // Later changes reach a store that *is* listening, so installing during
-  // render would run its reset — and every subscriber's state update — in
-  // the middle of rendering this component.
+  // A client holds one session, so two providers over one client with
+  // different sessions take turns installing theirs: the last to render
+  // wins, the other shows its data, and each render of either resets both.
+  // Said once, at mount, before this provider writes anything.
+  useEffect(() => {
+    const claim = billingClient?.sessionKey;
+    if (
+      claim !== undefined &&
+      session !== null &&
+      session !== undefined &&
+      claim !== sessionKey(session)
+    ) {
+      console.error(SHARED_CLIENT_MESSAGE);
+    }
+    // Only the state at mount is in question: a later change is this
+    // provider's own session moving on.
+  }, []);
+
+  // From an effect, never during render: a session landing on a client that
+  // another store is already listening to runs that store's reset — and
+  // every subscriber's state update — in the middle of rendering this
+  // component. Children subscribe before this runs, but the store holds
+  // them until `connect()` below, which comes after.
   useEffect(install);
 
   const store = useMemo(
     () =>
       billingClient === undefined
         ? undefined
-        : new BillingStore(billingClient, initialRef.current),
+        : new BillingStore(billingClient, initialRef.current, {
+            // What `install` is about to say, so a prefetch whose session
+            // was known at render is judged at render and paints at once.
+            session,
+          }),
+    // `session` is read only when the store is built: the client learns
+    // later sessions through `install`, and the store through the client.
     [billingClient],
   );
 
-  // Arms the credentials listener and tears it down together, so StrictMode's
-  // mount / unmount / remount leaves the store listening rather than deaf.
+  // After `install`, in declaration order: connecting opens the store, and
+  // it opens under the session this provider stated rather than whatever
+  // the client held when the children subscribed. Arms the listener and
+  // tears it down together, so StrictMode's mount / unmount / remount
+  // leaves the store listening rather than deaf.
   useEffect(() => store?.connect(), [store]);
 
   const source = useMemo<BillingDataSource | undefined>(() => {
