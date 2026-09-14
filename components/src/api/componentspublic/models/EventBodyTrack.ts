@@ -44,6 +44,12 @@ export interface EventBodyTrack {
    */
   quantity?: number;
   /**
+   * Credit reservation ID this track event settles. lease_id takes precedence when both are set
+   * @type {string}
+   * @memberof EventBodyTrack
+   */
+  reservationId?: string;
+  /**
    * A map of trait names to trait values
    * @type {object}
    * @memberof EventBodyTrack
@@ -83,6 +89,8 @@ export function EventBodyTrackFromJSONTyped(
     event: json["event"],
     leaseId: json["lease_id"] == null ? undefined : json["lease_id"],
     quantity: json["quantity"] == null ? undefined : json["quantity"],
+    reservationId:
+      json["reservation_id"] == null ? undefined : json["reservation_id"],
     traits: json["traits"] == null ? undefined : json["traits"],
     user: json["user"] == null ? undefined : json["user"],
   };
@@ -105,6 +113,7 @@ export function EventBodyTrackToJSONTyped(
     event: value["event"],
     lease_id: value["leaseId"],
     quantity: value["quantity"],
+    reservation_id: value["reservationId"],
     traits: value["traits"],
     user: value["user"],
   };
