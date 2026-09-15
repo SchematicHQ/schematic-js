@@ -58,7 +58,7 @@
     "@stripe/stripe-js": "^9.15.0",
     "i18next": "^26.4.1",
     "lodash": "^4.18.1",
-    "pako": "^3.0.1",
+    "pako": "^3.0.2",
     "react-i18next": "16.1.6",
     "styled-components": "^6.5.3",
     "uuid": "^14.0.2"

@@ -26,8 +26,8 @@ importers:
         specifier: ^4.18.1
         version: 4.18.1
       pako:
-        specifier: ^3.0.1
-        version: 3.0.1
+        specifier: ^3.0.2
+        version: 3.0.2
       react-i18next:
         specifier: 16.1.6
         version: 16.1.6(i18next@26.4.1(typescript@6.0.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3)
@@ -2652,8 +2652,8 @@ packages:
     peerDependencies:
       quickjs-wasi: ^2.2.0
 
-  pako@3.0.1:
-    resolution: {integrity: sha512-GupotUUI0mlhugKjUs4bjOwLt3nrehy9Ys2dxC0GtgVef5cnKggkDMmf2bq2poCCuVXopWPmqsc9VDT2iJUy+w==}
+  pako@3.0.2:
+    resolution: {integrity: sha512-uBv6IT2aT1A78iU6dpNEbf6+CyhlV/6g9JlJs9kpgjFGFhruIICVRysF/W0SLzXg5+hCl+KroH7e4YUyfEmgLg==}
 
   parse5@8.0.1:
     resolution: {integrity: sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==}
@@ -4253,7 +4253,7 @@ snapshots:
 
   '@types/pako@3.0.0':
     dependencies:
-      pako: 3.0.1
+      pako: 3.0.2
 
   '@types/react-dom@19.2.7(@types/react@19.2.18)':
     dependencies:
@@ -6240,7 +6240,7 @@ snapshots:
       netmask: 2.1.1
       quickjs-wasi: 2.2.0
 
-  pako@3.0.1: {}
+  pako@3.0.2: {}
 
   parse5@8.0.1:
     dependencies:
