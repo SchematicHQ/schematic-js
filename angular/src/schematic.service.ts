@@ -1,6 +1,14 @@
 import { Injectable, inject } from "@angular/core";
 import * as SchematicJS from "@schematichq/schematic-js";
-import { Observable, distinctUntilChanged, finalize, shareReplay } from "rxjs";
+import {
+  Observable,
+  distinctUntilChanged,
+  finalize,
+  isObservable,
+  map,
+  shareReplay,
+  switchMap,
+} from "rxjs";
 import { SCHEMATIC_CLIENT } from "./token";
 
 /** A company's credit balance for a single credit type, plus a loading flag */
@@ -154,9 +162,42 @@ export class SchematicService {
    * `remaining` would otherwise read stale / falsely "exhausted".
    *
    * The credit ID is available on a feature's entitlement: `entitlement$(key)`
-   * emits `creditId` for credit-based features.
+   * emits `creditId` for credit-based features. Pass that stream straight in:
+   * this accepts an Observable of credit IDs as well as a plain one, switching
+   * to the new credit as the source emits. While the ID is undefined it emits
+   * the client's loading state and a balance of 0.
    */
-  creditBalance$(creditId: string): Observable<SchematicCreditBalance> {
+  creditBalance$(
+    creditId: string | undefined | Observable<string | undefined>,
+  ): Observable<SchematicCreditBalance> {
+    if (isObservable(creditId)) {
+      return creditId.pipe(
+        distinctUntilChanged(),
+        switchMap((id) => this.creditBalanceFor(id)),
+        distinctUntilChanged(shallowEqual),
+        shareReplay({ bufferSize: 1, refCount: true }),
+      );
+    }
+
+    return this.creditBalanceFor(creditId);
+  }
+
+  /**
+   * Emits a zeroed balance that still tracks the client's loading state, for
+   * when there is no credit ID to read (a check that has not arrived yet, or a
+   * feature that is not credit-based).
+   */
+  private noCreditBalance$(): Observable<SchematicCreditBalance> {
+    return this.isPending$().pipe(
+      map((isLoading) => ({ balance: 0, isLoading })),
+    );
+  }
+
+  private creditBalanceFor(
+    creditId: string | undefined,
+  ): Observable<SchematicCreditBalance> {
+    if (creditId === undefined) return this.noCreditBalance$();
+
     let cached = this.creditBalanceCache.get(creditId);
     if (cached) return cached;
 

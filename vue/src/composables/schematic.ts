@@ -1,5 +1,14 @@
 import * as SchematicJS from "@schematichq/schematic-js";
-import { computed, onMounted, onScopeDispose, ref, Ref } from "vue";
+import {
+  computed,
+  onMounted,
+  onScopeDispose,
+  ref,
+  toValue,
+  watch,
+  type MaybeRefOrGetter,
+  type Ref,
+} from "vue";
 import { useSchematic } from "../context";
 
 export interface SchematicComposableOpts {
@@ -265,9 +274,12 @@ export const useSchematicPlan = (
  * `remaining` would otherwise read stale / falsely "exhausted".
  *
  * The credit ID is available on a feature's entitlement: `useSchematicEntitlement(key)`
- * returns `creditId` for credit-based features.
+ * returns `creditId` for credit-based features. Pass that computed ref straight
+ * in; the composable unwraps a ref, a getter, or a plain string, and re-keys to
+ * the new credit when the source changes. While the ID is undefined it reports
+ * the client's loading state and a balance of 0.
  *
- * @param creditId - The credit ID to read the balance for
+ * @param creditId - The credit ID to read the balance for, as a ref, a getter, or a plain string
  * @param opts - Optional configuration including a client override
  * @returns Object with `balance` and `isLoading` computed refs
  *
@@ -275,28 +287,49 @@ export const useSchematicPlan = (
  * ```typescript
  * const { balance, isLoading } = useSchematicCreditBalance('credit-id')
  *
+ * // Or keyed off an entitlement, without unwrapping it yourself
+ * const { creditId } = useSchematicEntitlement('my-flag-key')
+ * const { balance } = useSchematicCreditBalance(creditId)
+ *
  * // In template
  * <div v-if="isLoading">Loading…</div>
  * <div v-else>{{ balance }} credits remaining</div>
  * ```
  */
 export const useSchematicCreditBalance = (
-  creditId: string,
+  creditId: MaybeRefOrGetter<string | undefined>,
   opts?: SchematicComposableOpts,
 ) => {
   const client = useSchematicClient(opts);
 
+  const resolvedCreditId = computed(() => toValue(creditId));
+
+  const readBalance = (): SchematicJS.CreditBalance | undefined => {
+    const id = resolvedCreditId.value;
+    return id === undefined ? undefined : client.getCreditBalance(id);
+  };
+
+  // Read synchronously so the first render (and SSR) sees any balance the
+  // client already holds.
   const creditBalance = ref<SchematicJS.CreditBalance | undefined>(
-    client.getCreditBalance(creditId),
+    readBalance(),
   );
   const isPending = ref<boolean>(client.getIsPending());
+
+  // Re-key when the source ref or getter resolves to a different credit.
+  watch(resolvedCreditId, () => {
+    creditBalance.value = readBalance();
+  });
 
   let unsubscribeBalance: (() => void) | null = null;
   let unsubscribePending: (() => void) | null = null;
 
   onMounted(() => {
+    // A partial may have landed between setup and mount.
+    creditBalance.value = readBalance();
+
     unsubscribeBalance = client.addCreditBalanceListener(() => {
-      creditBalance.value = client.getCreditBalance(creditId);
+      creditBalance.value = readBalance();
     });
     unsubscribePending = client.addIsPendingListener(() => {
       isPending.value = client.getIsPending();
