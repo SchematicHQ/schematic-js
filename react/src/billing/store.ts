@@ -11,6 +11,8 @@ export class Resource<T> {
   private _listeners = new Set<() => void>();
   private _inflight: Promise<void> | undefined;
   private _extending: Promise<void> | undefined;
+  /** A refetch asked for mid-load; runs once that load lands. */
+  private _queued: Promise<void> | undefined;
   private _generation = 0;
   private _loaded = false;
 
@@ -97,9 +99,30 @@ export class Resource<T> {
     return run;
   }
 
-  /** Reloads; `data` holds its current value until the response lands. */
+  /**
+   * Reloads; `data` holds its current value until the response lands. Asked
+   * for mid-load, it runs again after: that request was built before
+   * whatever prompted this one. Refetches queued on one load share the
+   * re-run; a reset, seed, or clear in the meantime supersedes it.
+   */
   refetch(): Promise<void> {
-    return this.load();
+    if (this._inflight === undefined) {
+      return this.load();
+    }
+    if (this._queued === undefined) {
+      const generation = this._generation;
+      const queued = this._inflight.then(() => {
+        if (this._queued === queued) {
+          this._queued = undefined;
+        }
+        if (generation !== this._generation) {
+          return;
+        }
+        return this.load();
+      });
+      this._queued = queued;
+    }
+    return this._queued;
   }
 
   /**
@@ -154,6 +177,7 @@ export class Resource<T> {
     this._generation++;
     this._inflight = undefined;
     this._extending = undefined;
+    this._queued = undefined;
     this._loaded = true;
     this._set({ data, error: undefined, isPending: false });
   }
@@ -164,6 +188,7 @@ export class Resource<T> {
     this._generation++;
     this._inflight = undefined;
     this._extending = undefined;
+    this._queued = undefined;
     this._set({ ...this._snapshot, data: fn(this._snapshot.data) });
   }
 
@@ -176,6 +201,7 @@ export class Resource<T> {
     this._generation++;
     this._inflight = undefined;
     this._extending = undefined;
+    this._queued = undefined;
     this._loaded = false;
     this._set({ data: undefined, error: undefined, isPending: false });
   }
@@ -185,6 +211,7 @@ export class Resource<T> {
     this._generation++;
     this._inflight = undefined;
     this._extending = undefined;
+    this._queued = undefined;
     this._loaded = false;
     // Only a resource with nothing coming settles empty; where a load is
     // still possible, pending is the honest state.
@@ -240,8 +267,9 @@ function canonical(value: unknown): unknown {
 }
 
 export interface EvictionPolicy {
-  /** Idle entries kept before the least recently used are dropped;
-   * subscribed entries are never evicted. `Infinity` disables eviction. */
+  /** Idle entries kept when a subscription ends; beyond it the least
+   * recently used are dropped. Subscribed entries are never evicted.
+   * `Infinity` disables eviction. */
   maxIdle: number;
 }
 
@@ -252,13 +280,9 @@ export interface KeyedResourceOptions<P> {
 }
 
 /**
- * A resource is idle from creation until its subscription effect runs, which
- * is after the whole render pass — so `maxIdle` has to exceed the number of
- * distinct parameter sets one pass can read, or the first component's entry
- * is evicted by a later sibling's read and re-created (and refetched) when
- * its effect finally arrives. Four is comfortable for a query of one
- * boolean; a keyed resource with a richer query wants this raised, or
- * eviction moved to the moment a subscription ends.
+ * A resource is idle from creation until its subscription effect runs,
+ * which is after the whole render pass — so eviction waits for a
+ * subscription to end rather than running on every `get`.
  */
 export const DEFAULT_EVICTION: EvictionPolicy = { maxIdle: 4 };
 
@@ -317,7 +341,6 @@ export class KeyedResource<T, P> {
       this._readiness,
     );
     this._entries.set(key, { params, resource });
-    this._evict(key);
     return resource;
   }
 
@@ -382,23 +405,13 @@ export class KeyedResource<T, P> {
     }
   }
 
-  /**
-   * `keep` is the entry a caller is about to be handed. It has no subscribers
-   * yet, so it counts against the budget like any other idle entry, but it is
-   * never the one dropped — evicting it would return a `Resource` the family
-   * no longer holds, and every later `get` for those params would hand back a
-   * different one.
-   */
-  private _evict(keep?: string): void {
+  private _evict(): void {
     const idle = Array.from(this._entries).filter(
       ([, e]) => e.resource.subscriberCount === 0,
     );
     let excess = idle.length - this._eviction.maxIdle;
     for (const [key] of idle) {
       if (excess <= 0) break;
-      if (key === keep) {
-        continue;
-      }
       this._entries.delete(key);
       excess -= 1;
     }

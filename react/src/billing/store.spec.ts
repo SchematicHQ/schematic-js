@@ -39,8 +39,56 @@ describe("Resource", () => {
     const resource = new Resource(fetcher);
     void resource.load();
     void resource.load();
-    await resource.refetch();
+    await resource.load();
     expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("runs a refetch again after the load it interrupted", async () => {
+    // The request on the wire was built before whatever prompted the
+    // refetch, so its answer is not the last word. Every refetch queued
+    // behind it shares one re-run, and awaiting one waits for that.
+    const answers = ["stale", "fresh"];
+    const fetcher = vi.fn(async () => answers.shift());
+    const resource = new Resource(fetcher);
+    const first = resource.load();
+    const second = resource.refetch();
+    const third = resource.refetch();
+    expect(second).toBe(third);
+    await first;
+    expect(resource.getSnapshot().data).toBe("stale");
+    await second;
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(resource.getSnapshot().data).toBe("fresh");
+  });
+
+  it("queues on the load a reset started, not the one it overtook", async () => {
+    // A refetch queued on load A; a reset replaces A with B; a refetch
+    // during B must queue on B, not be handed A's queue — which would
+    // resolve when A lands and load nothing, the state having moved on.
+    const answers = ["a", "b", "c"];
+    const fetcher = vi.fn(async () => answers.shift());
+    const resource = new Resource(fetcher);
+    resource.subscribe(() => {});
+    const first = resource.refetch();
+    resource.reset();
+    const second = resource.refetch();
+    expect(second).not.toBe(first);
+    await first;
+    await second;
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(resource.getSnapshot().data).toBe("c");
+  });
+
+  it("drops a queued refetch that a reset overtook", async () => {
+    const fetcher = vi.fn(async () => "data");
+    const resource = new Resource(fetcher);
+    const first = resource.load();
+    const queued = resource.refetch();
+    resource.clear();
+    await first;
+    await queued;
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(resource.getSnapshot().data).toBeUndefined();
   });
 
   it("keeps the last good data across a failed refetch", async () => {
@@ -431,22 +479,23 @@ describe("KeyedResource", () => {
     expect(fetcher).toHaveBeenLastCalledWith({ q: "a" }, "data:a");
   });
 
-  it("evicts least recently used idle entries beyond maxIdle", () => {
+  it("evicts least recently used idle entries when a subscription ends", () => {
     const { keyed: k } = keyed(2);
     k.get({ q: "a" });
     k.get({ q: "b" });
     k.get({ q: "c" });
-    expect(k.entries().map((e) => e.params.q)).toEqual(["b", "c"]);
-    k.get({ q: "b" }); // touch b: c is now the oldest
-    k.get({ q: "d" });
-    expect(k.entries().map((e) => e.params.q)).toEqual(["b", "d"]);
+    // A render pass may still be reading any of them: nothing goes on get.
+    expect(k.size).toBe(3);
+    k.get({ q: "a" }); // touch a: b is now the oldest
+    k.subscribe({ q: "c" }, () => {})();
+    expect(k.entries().map((e) => e.params.q)).toEqual(["a", "c"]);
   });
 
-  it("never evicts a subscribed entry, and evicts on unsubscribe", () => {
+  it("never evicts a subscribed entry", () => {
     const { keyed: k } = keyed(1);
     const unsubscribe = k.subscribe({ q: "a" }, () => {});
     k.get({ q: "b" });
-    k.get({ q: "c" });
+    k.subscribe({ q: "c" }, () => {})();
     expect(k.has({ q: "a" })).toBe(true);
     expect(k.has({ q: "b" })).toBe(false);
     expect(k.has({ q: "c" })).toBe(true);

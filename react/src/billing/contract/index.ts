@@ -3,10 +3,13 @@
  * and components share one set of types. This release carries the invoices
  * slice; the rest of the contract ships with its elements.
  */
+import { normalizeInvoiceQuery as normalize } from "@schematichq/schematic-js";
+
+import type { InvoiceQuery } from "@schematichq/schematic-js";
+
 export {
   DEFAULT_INVOICE_QUERY,
   InvoiceStatus,
-  normalizeInvoiceQuery,
   type BillingData,
   type BillingResourceName,
   type BillingResourceParams,
@@ -16,3 +19,15 @@ export {
   type InvoiceQuery,
   type ResourceState,
 } from "@schematichq/schematic-js";
+
+/**
+ * Keeps only the fields the request reads. The store keys a row set by the
+ * query's shape, so a field the API never sees would key a row set of its
+ * own, and a varying one a row set per render. schematic-js's normalizer
+ * passes unknown fields through; this export shadows it on purpose.
+ */
+export function normalizeInvoiceQuery(query: InvoiceQuery): InvoiceQuery {
+  return normalize(query).includePending === true
+    ? { includePending: true }
+    : {};
+}

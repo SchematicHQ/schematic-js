@@ -4,16 +4,29 @@ import {
   sessionKey,
 } from "@schematichq/schematic-js";
 import { act, render, renderHook, screen } from "@testing-library/react";
-import React, { StrictMode } from "react";
+import React, {
+  StrictMode,
+  useCallback,
+  useMemo,
+  useSyncExternalStore,
+} from "react";
 import { vi } from "vitest";
 
 import { SchematicProvider } from "../context";
 
 import { BillingStore, type BillingClient, type SessionEvent } from "./client";
-import { BillingDataProvider, MISSING_BILLING_SOURCE_MESSAGE } from "./context";
-import type { BillingData, Invoice } from "./contract";
+import {
+  BillingDataProvider,
+  MISSING_BILLING_SOURCE_MESSAGE,
+  useBillingDataSource,
+} from "./context";
+import {
+  normalizeInvoiceQuery,
+  type BillingData,
+  type Invoice,
+} from "./contract";
 import { useInvoices } from "./hooks";
-import { BillingProvider, SHARED_CLIENT_MESSAGE } from "./provider";
+import { BillingProvider, SESSION_REPLACED_MESSAGE } from "./provider";
 
 const isDOMEnvironment = typeof document !== "undefined";
 const it_ = isDOMEnvironment ? it : it.skip;
@@ -510,134 +523,122 @@ describe("billing hooks", () => {
     },
   );
 
-  it_(
-    "hands the client one provider that reads the latest token prop",
-    async () => {
-      // A host writing `token: async () => …` inline hands over a new function
-      // every render. The client sees one, so the churn is not a session
-      // change, and it still calls whatever the newest prop points at.
-      const client = fakeClient();
-      const forwarded = () =>
-        (client.setSession as ReturnType<typeof vi.fn>).mock.calls
-          .map((call) => call[0])
-          .filter((value): value is { company: string; token: () => unknown } =>
-            Boolean(value),
-          );
-
-      const view = render(
-        <BillingProvider
-          billingClient={client}
-          session={{ company: "company_a", token: async () => "t1" }}
-        >
-          <span />
-        </BillingProvider>,
-      );
-      await flush();
-      view.rerender(
-        <BillingProvider
-          billingClient={client}
-          session={{ company: "company_a", token: async () => "t2" }}
-        >
-          <span />
-        </BillingProvider>,
-      );
-      await flush();
-
-      const tokens = forwarded().map((session) => session.token);
-      expect(tokens.length).toBeGreaterThan(1);
-      // One function, however many renders — and it resolves the latest prop,
-      // stamped with the company it was minted for so the client can decline
-      // one that names another.
-      expect(new Set(tokens).size).toBe(1);
-      await expect(tokens[0]()).resolves.toEqual({
-        token: "t2",
-        company: "company_a",
-        user: undefined,
-      });
-    },
-  );
-
-  it_(
-    "stamps every session it announces with that session's pair",
-    async () => {
-      // `install` writes the token and states the session together, so what
-      // the provider answers is always stamped with the company being
-      // announced. That is what lets the client decline a token minted for
-      // another company, closing the window between a host rendering a new
-      // session and the effect that states it.
-      const announced: { company: string; stamped: unknown }[] = [];
-      const client = fakeClient({
-        setSession: vi.fn((input) => {
-          if (input === null || input === undefined) return;
-          const token = input.token;
-          if (typeof token !== "function") return;
-          announced.push({ company: input.company, stamped: token() });
-        }),
-      });
-
-      const view = render(
-        <BillingProvider
-          billingClient={client}
-          session={{ company: "company_a", token: async () => "t_a" }}
-        >
-          <span />
-        </BillingProvider>,
-      );
-      await flush();
-      view.rerender(
-        <BillingProvider
-          billingClient={client}
-          session={{ company: "company_b", token: async () => "t_b" }}
-        >
-          <span />
-        </BillingProvider>,
-      );
-      await flush();
-
-      expect(announced.length).toBeGreaterThan(1);
-      for (const { company, stamped } of announced) {
-        await expect(stamped).resolves.toEqual({
-          token: company === "company_a" ? "t_a" : "t_b",
-          company,
-          user: undefined,
-        });
-      }
-    },
-  );
-
-  it_("keeps a stamp the host's own provider supplied", async () => {
-    // A host whose company id and token come from different places — a route
-    // param and an auth SDK — can have the token move first. Relabelled with
-    // the session prop's key, the client would compare that key against
-    // itself and send the next company's token for this company's request.
-    const announced: unknown[] = [];
-    const client = fakeClient({
-      setSession: vi.fn((input) => {
-        if (input === null || input === undefined) return;
-        const token = input.token;
-        if (typeof token === "function") announced.push(token());
-      }),
-    });
-
+  it_("hands the client the session as stated, token and all", async () => {
+    // A stamp on a token is the host's to write: one added here could only
+    // guess which company the host minted for.
+    const client = fakeClient();
+    const token = async () => ({ token: "t_b", company: "company_b" });
     render(
       <BillingProvider
         billingClient={client}
-        session={{
-          company: "company_a",
-          token: async () => ({ token: "t_b", company: "company_b" }),
-        }}
+        session={{ company: "company_a", user: "u", token }}
       >
         <span />
       </BillingProvider>,
     );
     await flush();
-
-    expect(announced.length).toBeGreaterThan(0);
-    await expect(announced[0]).resolves.toEqual({
-      token: "t_b",
-      company: "company_b",
-      user: undefined,
+    expect(client.setSession).toHaveBeenCalledWith({
+      company: "company_a",
+      user: "u",
+      token,
     });
+  });
+
+  it_("does not refetch when only the token closure changes", async () => {
+    // Inline `token: async () => …` is a new function every render. The
+    // client keeps the newest and treats the pair, not the closure, as the
+    // session — so nothing resets, and a later mint calls the newest one.
+    const sent: string[] = [];
+    const client = new SchematicBillingClient({
+      apiUrl: "https://api.test",
+      fetch: (async (_url: unknown, init?: RequestInit) => {
+        sent.push(
+          String(
+            (init?.headers as Record<string, string>)["X-Schematic-Api-Key"],
+          ),
+        );
+        return new Response(
+          JSON.stringify({ data: { count: 0, invoices: [] }, params: {} }),
+          { status: 200 },
+        );
+      }) as typeof fetch,
+    });
+    function Probe() {
+      const { isPending } = useInvoices();
+      return <span>{isPending ? "pending" : "ok"}</span>;
+    }
+    const at = (token: string) => (
+      <BillingProvider
+        billingClient={client}
+        session={{ company: "company_a", token: async () => token }}
+      >
+        <Probe />
+      </BillingProvider>
+    );
+    const view = render(at("t1"));
+    await flush();
+    view.rerender(at("t2"));
+    await flush();
+    expect(sent).toEqual(["t1"]);
+  });
+
+  it_("never caches a token the host minted for another company", async () => {
+    // A's mint is slow and the user switches to B before it lands, so it
+    // answers with B's token. Kept as A's, switching back would read B's
+    // invoices under A.
+    const sent: string[] = [];
+    const client = new SchematicBillingClient({
+      apiUrl: "https://api.test",
+      fetch: (async (_url: unknown, init?: RequestInit) => {
+        const auth = String(
+          (init?.headers as Record<string, string>)["X-Schematic-Api-Key"],
+        );
+        sent.push(auth);
+        return new Response(
+          JSON.stringify({
+            data: { count: 1, invoices: [{ id: `rows_for_${auth}` }] },
+            params: {},
+          }),
+          { status: 200 },
+        );
+      }) as typeof fetch,
+    });
+    let current = "a";
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let mints = 0;
+    const token = async () => {
+      mints += 1;
+      if (mints === 1) await gate;
+      return `tok_${current}`;
+    };
+    function Probe() {
+      const { data, isPending } = useInvoices();
+      return <span>{isPending ? "pending" : data?.invoices[0]?.id}</span>;
+    }
+    const at = (company: string) => (
+      <BillingProvider billingClient={client} session={{ company, token }}>
+        <Probe />
+      </BillingProvider>
+    );
+    const view = render(at("a"));
+    await flush();
+    current = "b";
+    view.rerender(at("b"));
+    await flush();
+    release();
+    await flush();
+    await flush();
+    expect(view.container.textContent).toBe("rows_for_tok_b");
+
+    current = "a";
+    view.rerender(at("a"));
+    await flush();
+    await flush();
+    expect(view.container.textContent).toBe("rows_for_tok_a");
+    expect(sent).toEqual(["tok_b", "tok_a"]);
   });
 
   it_(
@@ -840,11 +841,9 @@ describe("billing hooks", () => {
   it_(
     "retries a resource that failed holding rows, once a session arrives",
     async () => {
-      // A resource that failed with rows still on screen keeps both, and
-      // `resumeAll` used to pass over anything holding data — so the failure
-      // sat there until someone refetched by hand. A failure is not a reason
-      // to try again on its own, but a session arriving is: it is the thing a
-      // request that failed for want of one was waiting for.
+      // A failure is not a reason to retry on its own, but a session
+      // arriving is: it is what a request that failed for want of one was
+      // waiting for, rows on screen or not.
       const client = fakeClient({
         fetchInvoices: vi.fn(async () => rowsOf("inv_1")),
       });
@@ -963,10 +962,16 @@ describe("billing hooks", () => {
       // reset fired from inside the second's render would update its
       // subscribers mid-render.
       const errors: string[] = [];
-      const spy = vi
+      const warnings: string[] = [];
+      const errorSpy = vi
         .spyOn(console, "error")
         .mockImplementation((...args: unknown[]) => {
           errors.push(args.map(String).join(" "));
+        });
+      const warnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation((...args: unknown[]) => {
+          warnings.push(args.map(String).join(" "));
         });
       const client = new SchematicBillingClient({
         apiUrl: "https://api.test",
@@ -999,13 +1004,106 @@ describe("billing hooks", () => {
         </>,
       );
       await flush();
-      spy.mockRestore();
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
       expect(
         errors.filter((e) => e.includes("Cannot update a component")),
       ).toHaveLength(0);
-      expect(errors.filter((e) => e === SHARED_CLIENT_MESSAGE)).toHaveLength(1);
+      expect(
+        warnings.filter((w) => w === SESSION_REPLACED_MESSAGE),
+      ).toHaveLength(1);
     },
   );
+
+  it_(
+    "seeds the first store only, not one rebuilt for another client",
+    async () => {
+      // Rows prefetched at mount belong to the first store; a store rebuilt
+      // for a swapped client would otherwise adopt them over whatever the
+      // first one had refetched since — and, unstamped, under whatever
+      // session is current by then.
+      const first = fakeClient({
+        fetchInvoices: vi.fn(async () => rowsOf("first")),
+      });
+      const second = fakeClient({
+        fetchInvoices: vi.fn(async () => rowsOf("second")),
+      });
+      const tree = (client: BillingClient) => (
+        <StrictMode>
+          <BillingProvider
+            billingClient={client}
+            session={{ company: "co_a", token: "t" }}
+            initialData={{ invoices: page("seeded") }}
+          >
+            <Probe />
+          </BillingProvider>
+        </StrictMode>
+      );
+      function Probe() {
+        const { data } = useInvoices();
+        return <span>{data?.invoices[0]?.id ?? "pending"}</span>;
+      }
+      const view = render(tree(first));
+      expect(view.container.textContent).toBe("seeded");
+      await flush();
+      expect(view.container.textContent).toBe("seeded");
+      expect(first.fetchInvoices).not.toHaveBeenCalled();
+
+      view.rerender(tree(second));
+      await flush();
+      expect(view.container.textContent).toBe("second");
+      expect(second.fetchInvoices).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it_("serves any number of distinct row sets without looping", async () => {
+    // A handle cache that evicts hands `useSyncExternalStore` a new handle
+    // on every read once keys outnumber its slots, and it re-renders until
+    // React gives up.
+    const client = fakeClient({
+      fetchInvoices: vi.fn(async () => rowsOf("inv_1")),
+    });
+    function Raw({ k }: { k: number }) {
+      // Stable, the way `useInvoices` builds them: a subscribe function
+      // that changes identity makes `useSyncExternalStore` resubscribe.
+      const source = useBillingDataSource();
+      const params = useMemo(() => ({ k }) as never, [k]);
+      const subscribe = useCallback(
+        (listener: () => void) =>
+          source.subscribe("invoices", params, listener),
+        [source, params],
+      );
+      const getSnapshot = useCallback(
+        () => source.handle("invoices", params),
+        [source, params],
+      );
+      const handle = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+      return <i>{handle.isPending ? "p" : "d"}</i>;
+    }
+    const view = render(
+      <BillingProvider billingClient={client}>
+        {Array.from({ length: 40 }, (_, i) => (
+          <Raw key={i} k={i} />
+        ))}
+      </BillingProvider>,
+    );
+    await flush();
+    expect(view.container.querySelectorAll("i")).toHaveLength(40);
+    expect(view.container.textContent).toBe("d".repeat(40));
+    expect(client.fetchInvoices).toHaveBeenCalledTimes(40);
+  });
+
+  it("keys a row set only by the fields the request reads", () => {
+    expect(
+      normalizeInvoiceQuery({
+        includePending: false,
+        extra: Date.now(),
+      } as never),
+    ).toEqual({});
+    expect(
+      normalizeInvoiceQuery({ includePending: true, extra: 1 } as never),
+    ).toEqual({ includePending: true });
+  });
 
   it_("stays pending while the session is still pending", async () => {
     // Pending is not empty: something is coming, so the resource waits

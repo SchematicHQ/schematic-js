@@ -24,7 +24,13 @@ type BaseSchematicProviderProps = Omit<
   session?: SessionInput;
   /** A billing client; schematic-js supplies one when omitted. */
   billingClient?: BillingClient;
-  /** Prefetched billing data, so the first render is complete (SSR). */
+  /**
+   * Prefetched billing data, so the first render is complete (SSR). Rows
+   * stamped with their session paint on the first render only if `session`
+   * is stated on that render; under `undefined` they are held until it
+   * starts. State the pair on the first client render — `token` may be an
+   * async provider — or hydration will not match.
+   */
   initialData?: BillingData;
 } & SchematicI18nConfig;
 

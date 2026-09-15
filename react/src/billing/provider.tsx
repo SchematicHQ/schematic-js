@@ -4,13 +4,7 @@ import { sessionKey } from "@schematichq/schematic-js";
 
 import { SchematicI18nProvider, type SchematicI18nConfig } from "../i18n";
 
-import {
-  BillingStore,
-  type AccessToken,
-  type AccessTokenProvider,
-  type BillingClient,
-  type SessionInput,
-} from "./client";
+import { BillingStore, type BillingClient, type SessionInput } from "./client";
 import {
   BillingDataContext,
   type BillingDataSource,
@@ -21,6 +15,7 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  ResourceState,
 } from "./contract";
 import type { Resource } from "./store";
 
@@ -32,6 +27,13 @@ interface BillingProviderDataProps {
    * this underneath, which is the usual path.
    */
   billingClient?: BillingClient;
+  /**
+   * Read once, at mount. A prefetch stamped with its session paints on the
+   * first render only if `session` is stated on that render; under
+   * `undefined` it is held until the session starts. On a server-rendered
+   * page, state the pair on the first client render — `token` may be an
+   * async provider — or hydration will not match.
+   */
   initialData?: BillingData;
   /**
    * Who is being read, and the credential for it: `{ company, user?, token }`
@@ -56,20 +58,11 @@ export type BillingProviderProps = BillingProviderDataProps &
   SchematicI18nConfig;
 
 /**
- * Reported when the stable provider is called after the session's token has
- * stopped being a provider — the client asking for a token the host no
- * longer supplies.
+ * A client left over from an earlier mount and one another live provider is
+ * reading look the same from here, so this names only what is observable.
  */
-const MISSING_ACCESS_TOKEN_MESSAGE =
-  "An access token is required to read billing data.";
-
-/**
- * Reported once, at mount, when the client handed in is already reading
- * another session: a client holds one, so this provider and whoever set the
- * other will each keep installing theirs.
- */
-export const SHARED_CLIENT_MESSAGE =
-  "BillingProvider was given a billingClient that is already reading a different session. A client holds one session, so providers sharing it overwrite each other's; give each provider its own client.";
+export const SESSION_REPLACED_MESSAGE =
+  "BillingProvider is moving its billingClient from one session to another. A client holds one session: if another provider shares this client, each will keep installing its own and show the other's data. Give each provider its own client.";
 
 /**
  * Provides the billing hooks from a `BillingStore` over a `BillingClient`.
@@ -88,75 +81,14 @@ export function BillingProvider({
   // The seed is read once: later prop changes never overwrite live data.
   const initialRef = useRef(initialData);
 
-  // One provider handed to the client, so a host writing
-  // `token: async () => …` inline does not restate the session every render.
-  //
-  // Written by `install`, never on its own during render: updated in render
-  // while the statement waited for an effect, this would hand the next
-  // company's token to a refresh made for the one the client still believes
-  // it is on. The pair rides along so the client can decline it anyway.
-  //
-  // Only an active session sets it and only an ended one clears it: a host
-  // saying `undefined` states nothing, so the token behind the session in
-  // hand stays callable for a refresh landing in that window.
-  const latestToken = useRef<
-    { company: string; user?: string; token: AccessToken } | undefined
-  >(undefined);
-  const stableProvider = useRef<AccessTokenProvider>(async () => {
-    const current = latestToken.current;
-    if (typeof current?.token !== "function") {
-      throw new Error(MISSING_ACCESS_TOKEN_MESSAGE);
-    }
-    const resolved = await current.token();
-    // Stamped with the pair this token function was installed for: in
-    // flight, nothing else says whose a token is, and the client needs that
-    // to judge one that settled after the session moved on.
-    if (typeof resolved === "string") {
-      return { token: resolved, company: current.company, user: current.user };
-    }
-    // Per field, and only where the host stated nothing: overwriting a host's
-    // own stamp would make the client's check compare the session prop
-    // against itself and pass by construction — which is the case worth
-    // catching, a pair and a token that move at different times.
-    return {
-      ...resolved,
-      company: resolved.company ?? current.company,
-      user: resolved.user ?? current.user,
-    };
-  }).current;
-
-  const forwarded: SessionInput =
-    session === null || session === undefined
-      ? session
-      : {
-          company: session.company,
-          user: session.user,
-          token:
-            typeof session.token === "function"
-              ? stableProvider
-              : session.token,
-        };
-
-  // The client ignores a statement that changes nothing, so this forwards
-  // after every render rather than keeping its own record of what it last
-  // said.
+  // As stated, token included: the client absorbs a same-pair restatement,
+  // and a stamp added here could only guess whose token the host minted.
   const install = () => {
-    if (session === null) {
-      latestToken.current = undefined;
-    } else if (session !== undefined) {
-      latestToken.current = {
-        company: session.company,
-        user: session.user,
-        token: session.token,
-      };
-    }
-    billingClient?.setSession?.(forwarded);
+    billingClient?.setSession?.(session);
   };
 
-  // A client holds one session, so two providers over one client with
-  // different sessions take turns installing theirs: the last to render
-  // wins, the other shows its data, and each render of either resets both.
-  // Said once, at mount, before this provider writes anything.
+  // Two providers over one client overwrite each other's session. A warning,
+  // not an error: a client kept across mounts trips the same check.
   useEffect(() => {
     const claim = billingClient?.sessionKey;
     if (
@@ -165,38 +97,47 @@ export function BillingProvider({
       session !== undefined &&
       claim !== sessionKey(session)
     ) {
-      console.error(SHARED_CLIENT_MESSAGE);
+      console.warn(SESSION_REPLACED_MESSAGE);
     }
     // Only the state at mount is in question: a later change is this
     // provider's own session moving on.
   }, []);
 
-  // From an effect, never during render: a session landing on a client that
-  // another store is already listening to runs that store's reset — and
-  // every subscriber's state update — in the middle of rendering this
-  // component. Children subscribe before this runs, but the store holds
-  // them until `connect()` below, which comes after.
+  // Never during render: a client another store is listening to would reset
+  // that store, and every subscriber, mid-render. Children subscribe before
+  // this runs; the store holds them until `connect()` below.
   useEffect(install);
 
+  // Only the first store that commits is seeded: one rebuilt for another
+  // client would adopt rows the first has refetched past. Marked from an
+  // effect because StrictMode runs the memo twice and keeps the second.
+  const seedSpent = useRef(false);
   const store = useMemo(
     () =>
       billingClient === undefined
         ? undefined
-        : new BillingStore(billingClient, initialRef.current, {
-            // What `install` is about to say, so a prefetch whose session
-            // was known at render is judged at render and paints at once.
-            session,
-          }),
+        : new BillingStore(
+            billingClient,
+            seedSpent.current ? undefined : initialRef.current,
+            {
+              // What `install` is about to say, so a stamped prefetch is
+              // judged now rather than after the effect.
+              session,
+            },
+          ),
     // `session` is read only when the store is built: the client learns
     // later sessions through `install`, and the store through the client.
     [billingClient],
   );
+  useEffect(() => {
+    if (store !== undefined) {
+      seedSpent.current = true;
+    }
+  }, [store]);
 
-  // After `install`, in declaration order: connecting opens the store, and
-  // it opens under the session this provider stated rather than whatever
-  // the client held when the children subscribed. Arms the listener and
-  // tears it down together, so StrictMode's mount / unmount / remount
-  // leaves the store listening rather than deaf.
+  // After `install`, so the store opens under the session this provider
+  // stated. Armed and torn down together so StrictMode's remount leaves it
+  // listening.
   useEffect(() => store?.connect(), [store]);
 
   const source = useMemo<BillingDataSource | undefined>(() => {
@@ -205,57 +146,30 @@ export function BillingProvider({
         ? undefined
         : staticSource(initialRef.current);
     }
-    // Bounded because `KeyedResource` evicts resources but this map would
-    // otherwise hold every discarded one alive. The oldest goes, never the
-    // whole map: clearing it hands every subscriber a new handle each
-    // render, and `useSyncExternalStore` loops on an uncached snapshot.
-    const handles = new Map<
-      string,
-      { resource: Resource<unknown>; handle: ResourceHandle<unknown> }
+    // `useSyncExternalStore` needs the same handle while nothing changed, and
+    // a `Resource` replaces its snapshot object on every change, so snapshot
+    // identity is the comparison. Weak, so an evicted resource takes its
+    // handle with it; a bounded cache thrashes once keys outnumber its slots.
+    const handles = new WeakMap<
+      Resource<unknown>,
+      { snapshot: ResourceState<unknown>; handle: ResourceHandle<unknown> }
     >();
-    const maxHandles = 32;
     const handle = <K extends BillingResourceName>(
       name: K,
       params: BillingResourceParams[K],
     ): ResourceHandle<BillingResources[K]> => {
-      const keyed = store.resource(name);
-      const resource = keyed.get(params);
+      const resource = store.resource(name).get(params) as Resource<unknown>;
       const snapshot = resource.getSnapshot();
-      const cacheKey = `${name}:${keyed.hash(params)}`;
-      const cached = handles.get(cacheKey);
-      // The resource is part of the match: an evicted key returns as a fresh
-      // Resource whose empty snapshot is indistinguishable from its
-      // predecessor's.
-      if (
-        cached !== undefined &&
-        cached.resource === resource &&
-        cached.handle.data === snapshot.data &&
-        cached.handle.error === snapshot.error &&
-        cached.handle.isPending === snapshot.isPending
-      ) {
-        // Re-insert to move it to most-recently-read.
-        handles.delete(cacheKey);
-        handles.set(cacheKey, cached);
+      const cached = handles.get(resource);
+      if (cached !== undefined && cached.snapshot === snapshot) {
         return cached.handle as ResourceHandle<BillingResources[K]>;
       }
-      const next: ResourceHandle<BillingResources[K]> = {
+      const next: ResourceHandle<unknown> = {
         ...snapshot,
         refetch: () => void resource.refetch(),
       };
-      if (handles.size >= maxHandles && !handles.has(cacheKey)) {
-        const oldest = handles.keys().next().value;
-        if (oldest !== undefined) {
-          handles.delete(oldest);
-        }
-      }
-      // Deleted first so the write lands at the end: `set` on an existing
-      // key keeps its position, leaving the most-read entry next to evict.
-      handles.delete(cacheKey);
-      handles.set(cacheKey, {
-        resource: resource as Resource<unknown>,
-        handle: next,
-      });
-      return next;
+      handles.set(resource, { snapshot, handle: next });
+      return next as ResourceHandle<BillingResources[K]>;
     };
     return {
       subscribe: (name, params, listener) =>
