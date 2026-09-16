@@ -19,6 +19,7 @@
 export const BillingArrearsCadence = {
   EndOfBillingPeriod: "end_of_billing_period",
   Monthly: "monthly",
+  Quarterly: "quarterly",
 } as const;
 export type BillingArrearsCadence =
   (typeof BillingArrearsCadence)[keyof typeof BillingArrearsCadence];
