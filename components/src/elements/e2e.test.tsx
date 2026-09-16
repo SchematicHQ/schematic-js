@@ -8,13 +8,12 @@ import { invoice } from "./fixtures/builders";
 import { SCENARIOS } from "./fixtures/scenarios";
 
 /**
- * The whole stack: wire JSON → schematic-js client → schematic-react store
- * and hooks → derivations → DOM, with fetch faked at the network edge.
+ * Exercises the whole stack, wire JSON through the schematic-js client and
+ * schematic-react hooks to the DOM, with fetch faked at the network edge.
  */
-/**
- * Answers /company/invoices the way the API does: the window `limit` and
- * `offset` ask for, and the count of the whole history beside it.
- */
+
+/** Answers /company/invoices the way the API does: a `limit`/`offset` window
+ * plus the total count. */
 function serve(scenario: ReturnType<(typeof SCENARIOS)["pro"]>) {
   const all = scenario.invoices?.invoices ?? [];
   const count = scenario.invoices?.count ?? all.length;
@@ -67,14 +66,10 @@ describe("end to end", () => {
   });
 
   test("Invoices pages the history and stops at the end of it", async () => {
-    // A history longer than one page, served through the real client: the
-    // count is what says there is more, and the rows that arrive are what
-    // says there is not.
+    // Paging stops once the rows loaded reach `count`.
     const history = Array.from({ length: 30 }, (_, i) =>
       invoice({ id: `inv_${i}`, amountDue: 100 * (i + 1) }),
     );
-    // The whole history is what the server holds; the client asks for it a
-    // page at a time.
     renderStack(<Invoices limit={30} />, "tok", {
       invoices: { invoices: history, count: history.length, hasMore: true },
     });
@@ -90,14 +85,12 @@ describe("end to end", () => {
     await waitFor(() =>
       expect(screen.getAllByTestId("schematic-invoice")).toHaveLength(30),
     );
-    // Everything is loaded, so the control goes.
     expect(screen.queryByRole("button", { name: "Load more" })).toBeNull();
   });
 
   test("Invoices waits rather than failing while the session is pending", async () => {
-    // No session yet is what a host renders before its auth resolves: the
-    // card holds its loading state instead of reporting an error at a
-    // reader whose page is still working.
+    // A host renders without a session until its auth resolves; that is
+    // loading, not an error.
     renderStack(<Invoices />);
     expect(await screen.findByText("Loading invoices")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).toBeNull();

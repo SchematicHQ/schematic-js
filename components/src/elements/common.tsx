@@ -21,7 +21,8 @@ export const cx = (...names: (string | undefined | false | null)[]): string =>
 /** Props every element accepts on its root. */
 export interface ElementProps {
   className?: string;
-  /** BCP 47 tag for number, currency, and date formatting. Defaults to the viewer's language. */
+  /** BCP 47 tag for number, currency, and date formatting. Overrides the
+   * provider's `locale`; without either, the viewer's language, else `en-US`. */
   locale?: string;
   /** Overrides the provider's `strings` and its `translate`. */
   strings?: StringOverrides;
@@ -33,10 +34,9 @@ export type HeadingLevel = 2 | 3 | 4 | 5 | 6;
 /**
  * The element's `locale` prop, else the provider's, else the viewer's.
  *
- * The viewer's language arrives after hydration, never during the first
- * render: a server has no `navigator`, so reading it while rendering would
- * make every date and amount report a hydration mismatch. Configure `locale`
- * on the provider to have a server-rendered page match on first paint.
+ * The viewer's language is left out of a server render and its hydration,
+ * or every formatted date and amount would mismatch. Set `locale` on the
+ * provider for a server-rendered page to match on first paint.
  */
 export function useResolvedLocale(locale?: string): string {
   const configured = useSchematicLocale();
@@ -48,20 +48,20 @@ export function useResolvedLocale(locale?: string): string {
   return resolveLocale(locale ?? configured ?? viewer);
 }
 
-/** Never changes under us, so there is nothing to watch. */
+/** The viewer's language is treated as fixed, so there is nothing to subscribe to. */
 const subscribeToNothing = () => () => {};
-/** What a server, and a hydrating client, know about the viewer's language. */
+/** Server snapshot: the viewer's language is unknown until after hydration. */
 const noViewerLocale = (): undefined => undefined;
 
 /**
- * Copy resolved in order: the element's `strings`, the provider's `strings`,
+ * Resolves copy in order: the element's `strings`, the provider's `strings`,
  * the provider's `translate`, then the English default.
  *
- * The request to `translate` carries a sentinel `defaultValue`, so a stack
- * that answers every key with *something* still reports a real miss —
- * `undefined`, the sentinel back, or i18next's bare key echo.
+ * `translate` is called with a sentinel `defaultValue` so a miss is
+ * detectable even from an i18next stack that answers every key: `undefined`,
+ * the sentinel, or the bare key echoed back all count as misses.
  *
- * `onMissingString` fires during render, so it belongs on a logger.
+ * `onMissingString` fires during render, so keep it to logging.
  */
 export function useTranslator(
   overrides?: StringOverrides,
@@ -72,8 +72,8 @@ export function useTranslator(
 
   return useCallback(
     (key, vars) => {
-      // A host's overrides are written in the host's language, so their
-      // plural forms are selected under the resolved locale's rules.
+      // Host overrides are in the host's language, so their plural forms
+      // follow the resolved locale rather than English.
       const override =
         lookup(overrides, key, vars, resolved) ??
         lookup(strings, key, vars, resolved);
@@ -104,21 +104,17 @@ export function useTranslator(
   );
 }
 
-/** A call to action handed off to the host: callback, link, or both. */
+/** Where a call to action rendered as a link goes. */
 export interface CtaProps {
-  /** Destination for the CTA when rendered as a link. */
   url?: string;
-  /** `target` for the link; defaults to same tab. */
+  /** `target` for the link. */
   target?: string;
 }
 
 /**
- * Whether this is a development build. Bundlers replace the literal
- * `process.env.NODE_ENV` at build time, and the elements build keeps it
- * as written for them to. Anywhere that leaves it unreplaced — no bundler,
- * or a bare `process` shim with no `env` — the read throws, and that is
- * taken as production: the log is a development aid, and silence is the
- * safe default.
+ * The host's bundler replaces `process.env.NODE_ENV`. Where nothing does,
+ * the read can throw, and that counts as production: silence is the safe
+ * default for a dev-only log.
  */
 const isDevelopment = ((): boolean => {
   try {
@@ -129,11 +125,10 @@ const isDevelopment = ((): boolean => {
 })();
 
 /**
- * A card that reads a fixed message hides the error's own, which is the one
- * that says what went wrong: a missing provider, a 404, a CORS refusal. In
- * development that goes to the console beside the copy the reader sees, so
- * a mis-wired page is diagnosable from the page alone. Production stays
- * quiet; the host reads the error from the hook.
+ * A fixed message hides the error that says what actually went wrong (a
+ * missing provider, a 404, a CORS refusal). Log it in development so a
+ * mis-wired page is diagnosable from the console. Production stays quiet;
+ * the host can read the error from the hook.
  */
 function useReportHiddenError(
   error: Error | undefined,
@@ -147,10 +142,9 @@ function useReportHiddenError(
 }
 
 /**
- * An error only replaces content while there is nothing to show: a failed
- * refetch keeps the last good data and reports the failure underneath it.
- * The root's class list never changes — which state it is in reads from
- * `data-state`.
+ * An error only replaces content when there is nothing to show; a failed
+ * refetch keeps the last good data and reports the failure beneath it. The
+ * root's class list is stable across states, and `data-state` says which.
  */
 export const StatusFrame: React.FC<{
   children: React.ReactNode;
@@ -161,15 +155,15 @@ export const StatusFrame: React.FC<{
   isPending: boolean;
   /** Re-runs the failed request. */
   onRetry?: () => void;
-  /** What the failure reads as. Default: the error's own message. When
-   * set, the error's own message is logged in development instead. */
+  /** Shown instead of the error's own message, which is then logged in
+   * development. */
   errorMessage?: string;
-  /** The pending state's accessible name, e.g. "Loading invoices". */
+  /** Visually hidden text for the pending state, e.g. "Loading invoices". */
   loadingLabel: string;
   /** The retry action's label. */
   retryText: string;
-  /** The shape the card is about to become, so a load does not resolve
-   * from a blank block into a table. */
+  /** Placeholder shaped like the loaded content, so the load does not
+   * reflow the page. */
   skeleton?: React.ReactNode;
 }> = ({
   children,
@@ -208,14 +202,10 @@ export const StatusFrame: React.FC<{
   if (isPending && !hasData) {
     return (
       <div aria-busy="true" className={className} data-state="pending">
-        {/* Stated, not announced. A `role="status"` here would promise an
-            announcement that never comes: the region is unmounted the moment
-            the rows arrive, and removing a live region says nothing — so a
-            reader heard "Loading invoices" and then silence. Announcing the
-            arrival is worth doing and is not this: it needs a live region
-            that outlives the load, and a decision about what every element
-            should say when it finishes. Until then the label is here to be
-            read by anyone who navigates to it. */}
+        {/* Not a live region: this node unmounts when the rows arrive, and
+            removing a live region announces nothing, so `role="status"` would
+            promise a completion announcement that never comes. Announcing
+            arrival needs a region that outlives the load. */}
         <span className="schematic-hidden">{loadingLabel}</span>
         {skeleton}
       </div>

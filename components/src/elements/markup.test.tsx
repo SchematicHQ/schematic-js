@@ -9,10 +9,10 @@ import { invoice, invoicePage } from "./fixtures/builders";
 import { SCENARIOS } from "./fixtures/scenarios";
 
 /**
- * The markup contract. A host that skips <SchematicStyles /> writes CSS
- * against these class names and data attributes, so they are API: this test
- * fails when one is renamed, added, or dropped, which is the moment to
- * decide whether the docs and a major version should change with it.
+ * A host that skips <SchematicStyles /> writes CSS against these class names
+ * and data attributes, so they are API. A rename, addition, or removal fails
+ * here first, which is the moment to decide whether docs and a major version
+ * change with it.
  */
 function classNames(root: HTMLElement): string[] {
   const names = new Set<string>();
@@ -83,8 +83,7 @@ describe("Invoices markup contract", () => {
     expect(root.className).toBe("schematic-card schematic-invoices");
     expect(root).toHaveAttribute("data-state", "pending");
     expect(root).toHaveAttribute("aria-busy", "true");
-    // No live region: the card says what it is doing in text rather than
-    // promising an announcement it never makes.
+    // No live region; see StatusFrame.
     expect(root).not.toHaveAttribute("role");
     expect(classNames(root)).toEqual([
       "schematic-hidden",
@@ -97,7 +96,7 @@ describe("Invoices markup contract", () => {
 
   test("the pending card promises the columns the list will render", () => {
     const root = renderInvoices({}, { invoices: { isPending: true } });
-    // `limit` is 1 here, so one row stands in for the collapsed card.
+    // `limit` is 1 here.
     expect(root.querySelectorAll(".schematic-skeleton__row")).toHaveLength(1);
     expect(
       Array.from(
@@ -116,7 +115,7 @@ describe("Invoices markup contract", () => {
     const pending = screen
       .getByText("Loading invoices")
       .closest("[data-state='pending']") as HTMLElement;
-    // The default `limit` of 10 is capped at four rows.
+    // The default `limit` of 10 is capped at SKELETON_ROWS.
     const rows = pending.querySelectorAll(".schematic-skeleton__row");
     expect(rows).toHaveLength(4);
     expect(
@@ -151,10 +150,8 @@ describe("Invoices markup contract", () => {
 });
 
 /**
- * The rule behind the lists above: nothing an element renders is reachable
- * only by tag or by position. A host writing its own CSS gets a class for
- * every node, so a rule never has to say `.schematic-invoices__table td`
- * and never breaks when a node moves.
+ * Every node an element renders carries a class, so a host's CSS never has
+ * to reach by tag or position and never breaks when a node moves.
  */
 function unclassed(root: HTMLElement): string[] {
   const nodes = [root, ...root.querySelectorAll<HTMLElement>("*")];

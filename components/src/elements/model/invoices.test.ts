@@ -40,9 +40,8 @@ describe("deriveInvoiceList", () => {
     ["/invoices/a", "a relative path"],
     ["not a url", "something that never was a URL"],
   ])("drops %s from the row: %s is not linkable", (url) => {
-    // The element renders `url` as an href, so anything the browser would
-    // not simply navigate to is dropped rather than rendered. The reader
-    // still gets the row, without a link on it.
+    // Rendered as an href, so anything that is not http(s) is dropped; the
+    // row stays.
     const list = deriveInvoiceList(invoicePage([invoice({ url })]), {
       locale: L,
     });
@@ -92,8 +91,6 @@ describe("deriveInvoiceList", () => {
     );
   });
 
-  // A host rendering its own markup gets the value beside the text, so it
-  // never has to abandon the derivation to format differently.
   test("carries the raw amount and currency beside the formatted text", () => {
     const list = deriveInvoiceList(
       invoicePage([invoice({ amountDue: -1500, currency: "eur" })]),

@@ -3,9 +3,9 @@ import { billingApi } from "@schematichq/schematic-js";
 import { SCENARIOS, type ScenarioName } from "./scenarios";
 
 /**
- * Every fixture invoice survives a trip through the generated wire models
- * and back, so the TS fixtures double as wire examples and the fixtures are
- * proven against the shapes the API's spec declares.
+ * Every fixture survives a round trip through the generated wire models, so
+ * the fixtures are proven against the API's declared shapes and double as
+ * wire examples.
  */
 describe("wire round trip", () => {
   test.each(Object.keys(SCENARIOS) as ScenarioName[])("%s", (name) => {

@@ -1,8 +1,6 @@
 /**
- * Scenario fixtures: complete `BillingData` bags for the situations the
- * elements must handle. Each scenario is a function so IDs are deterministic
- * per build and fixtures never share mutable objects. This release carries
- * the invoices resource; scenarios regain the rest with their elements.
+ * Complete `BillingData` bags for the situations the elements must handle.
+ * Each is a function so fixtures never share mutable objects across tests.
  */
 
 import type { BillingData } from "@schematichq/schematic-react";
@@ -11,7 +9,7 @@ import { daysFromNow, invoice, invoicePage } from "./builders";
 
 /**
  * A paying company with history: two charges and a credit note on screen,
- * and a year of invoices behind them.
+ * and eleven more behind them.
  */
 export function proCompany(): BillingData {
   return {

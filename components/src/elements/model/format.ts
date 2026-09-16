@@ -1,14 +1,10 @@
-// `pluralize` inflects English and nothing else, so it stays internal to
-// `featureName` below rather than becoming public API on a package whose
-// whole point is that the host owns the words. It is a leaf module with no
-// imports of its own, so taking it from `utils` pulls in nothing else.
+// English-only, so it stays internal to `featureName` rather than becoming
+// public API. A leaf module, so importing it pulls in nothing else.
 import { pluralize } from "../../utils/pluralize";
-
-/** Every function takes the locale explicitly so derivations stay pure. */
 
 export const DEFAULT_LOCALE = "en-US";
 
-/** Capped because the keys are caller-supplied. */
+/** Bounded, since the keys are caller-supplied. */
 const usableLocales = new Map<string, boolean>();
 const MAX_CACHED_LOCALES = 64;
 
@@ -31,19 +27,14 @@ function isUsableLocale(locale: string): boolean {
   return usable;
 }
 
-/** A bad tag is a typo in one prop; it must not throw inside a render. */
+/** A bad tag must not throw inside a render. */
 function usableLocale(locale: string): string {
   return isUsableLocale(locale) ? locale : DEFAULT_LOCALE;
 }
 
 /**
- * The tag to format in: the one given, or the default when it is absent or
- * `Intl` cannot take it.
- *
- * Pure, and deliberately blind to the viewer: reading `navigator` here would
- * make a server render and its hydration disagree on every formatted date.
- * `viewerLocale()` is that reading, and `useResolvedLocale` folds it in after
- * mount, where the two renders have already matched.
+ * The given tag, or the default when it is absent or `Intl` rejects it.
+ * Deliberately ignores `navigator`; `viewerLocale` does that reading.
  */
 export function resolveLocale(locale?: string): string {
   return locale !== undefined && locale !== "" && isUsableLocale(locale)
@@ -51,7 +42,8 @@ export function resolveLocale(locale?: string): string {
     : DEFAULT_LOCALE;
 }
 
-/** Read this in an effect, never in a render the server also performs. */
+/** Not for a server render or its hydration; `useResolvedLocale` reads it
+ * through `useSyncExternalStore`, which keeps it out of both. */
 export function viewerLocale(): string | undefined {
   if (typeof navigator === "undefined" || navigator.language === "") {
     return undefined;
@@ -130,8 +122,8 @@ export function formatCurrency(
       }),
     }).format(major);
   } catch {
-    // An unknown currency code throws; fall back to a plain number with the
-    // code beside it rather than rendering nothing.
+    // Only a malformed code (not three letters) throws; an unknown well-formed
+    // one formats with the code as its symbol.
     return `${formatNumber(major, resolvedLocale, { minimumFractionDigits: 2 })} ${resolvedCurrency}`;
   }
 }
@@ -152,10 +144,9 @@ export function formatConsumptionRate(rate: number, locale: string): string {
 }
 
 /**
- * A date `Intl` can format, or `undefined`. A row whose timestamp the API
- * sent malformed decodes to an Invalid Date, and `format()` throws a
- * RangeError on one — from inside a render, where it escapes the element's
- * status frame and takes the host's tree with it.
+ * A malformed timestamp decodes to an Invalid Date, and `Intl` throws a
+ * RangeError on formatting one. Thrown inside a render, that takes down the
+ * host's tree.
  */
 export function usableDate(date: Date | null | undefined): Date | undefined {
   if (date === null || date === undefined) {
@@ -165,7 +156,7 @@ export function usableDate(date: Date | null | undefined): Date | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
-/** "August 21, 2026". Renders in the viewer's time zone. Empty for a date that is not one. */
+/** "August 21, 2026", in the viewer's time zone. Empty for an Invalid Date. */
 export function formatDate(
   date: Date,
   locale: string,
@@ -183,7 +174,7 @@ export function formatDate(
   }).format(date);
 }
 
-/** "8/21" — the compact form used beside meters. Empty for a date that is not one. */
+/** "8/21". Empty for an Invalid Date. */
 export function formatShortDate(date: Date, locale: string): string {
   if (usableDate(date) === undefined) {
     return "";
@@ -198,15 +189,10 @@ export function formatShortDate(date: Date, locale: string): string {
 /**
  * The singular or plural name of a feature or credit for a count.
  *
- * Feature names are the company's own words, so the forms it configured win:
- * `singularName` for the locale's "one" category, `pluralName` otherwise.
- * With no `pluralName` the name has to be inflected, and English suffix
- * rules are the only ones we have — so they apply to English locales and
- * every other language keeps the name the company gave us rather than
- * getting "Sitzplatzs".
- *
- * The category comes from `Intl.PluralRules`, so 0 reads as plural in
- * English ("0 seats") and as "one" in the languages where it is.
+ * Configured forms win. Without a `pluralName`, English locales inflect the
+ * name with English suffix rules; other languages keep it as given rather
+ * than getting "Sitzplatzs". The category comes from `Intl.PluralRules`, so
+ * 0 is plural in English and "one" where a language says so.
  */
 export function featureName(
   named: {
@@ -231,9 +217,9 @@ export function featureName(
 }
 
 /**
- * `other` is required because every language has it; supply the categories
- * the language uses — Polish needs `one`, `few` and `many`, Japanese none.
- * For hosts rendering their own copy, the elements ship English.
+ * `other` is required because every language has it. Supply whichever other
+ * categories the language uses: Polish needs `one`, `few`, and `many`;
+ * Japanese needs none.
  */
 export function plural(
   locale: string,
@@ -251,7 +237,7 @@ function isEnglish(locale: string): boolean {
   return new Intl.Locale(usableLocale(locale)).language === "en";
 }
 
-/** The API sends an absent name as an empty string. */
+/** A missing name arrives as null, undefined, or an empty string. */
 function orNull(value: string | null | undefined): string | null {
   return value === undefined || value === null || value === "" ? null : value;
 }

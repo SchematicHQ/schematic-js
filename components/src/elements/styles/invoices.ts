@@ -36,8 +36,7 @@ export const invoicesCss = `
 .schematic-invoices__amount {
   cursor: help;
   font-variant-numeric: tabular-nums;
-  /* Keeps a lone amount at the end when the date is hidden: with one child,
-     space-between has nothing to space. */
+  /* Keeps a lone amount at the end when the date is hidden. */
   margin-inline-start: auto;
   text-align: end;
 }
@@ -59,9 +58,8 @@ export const invoicesCss = `
   gap: 0.375rem;
 }
 
-/* A chevron drawn from two borders, pointing down; up once expanded. The
-   vertical nudge rides in the transform with the rotation, so one
-   transitioned property carries both and the icon does not hop. */
+/* A chevron drawn from two borders. The vertical nudge lives in the
+   transform with the rotation so one transition carries both. */
 .schematic-invoices__chevron {
   border-block-end: 2px solid var(--schematic-muted);
   border-inline-end: 2px solid var(--schematic-muted);

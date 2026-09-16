@@ -6,9 +6,9 @@ import { withTokenDefaults } from "./tokens";
 export { SCHEMATIC_TOKENS, schematicTokensCss } from "./tokens";
 
 /**
- * The rules as authored: every colour goes through a token, and no token
- * carries its default here. `withTokenDefaults` supplies those below, so a
- * host's own value wins from wherever it is declared. See ./tokens.ts.
+ * Every colour goes through a token with no default written here;
+ * `withTokenDefaults` injects those so a host's value wins from wherever it
+ * is declared. See ./tokens.ts.
  */
 const rulesCss = `
 :where([class^="schematic-"]) {
@@ -51,8 +51,7 @@ const rulesCss = `
   gap: var(--schematic-space);
 }
 
-/* Read by assistive technology, never seen: the loading label sits in the
-   card so someone navigating it learns why there is nothing here yet. */
+/* Visually hidden, still read by assistive technology. */
 .schematic-hidden {
   border: 0;
   clip-path: inset(50%);
@@ -513,8 +512,8 @@ ${invoicesCss}
 export const schematicStylesCss = withTokenDefaults(rulesCss);
 
 /**
- * Injects the default v3 stylesheet. Render once, anywhere above the
- * elements; omit it to style the class names yourself.
+ * Injects the default stylesheet. Render once, anywhere in the tree; omit
+ * it to style the class names yourself.
  */
 export const SchematicStyles: React.FC = () => (
   <style data-schematic-styles="">{schematicStylesCss}</style>

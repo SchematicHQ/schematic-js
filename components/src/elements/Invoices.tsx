@@ -26,24 +26,21 @@ export interface InvoicesProps extends ElementProps {
   /** Collapse to `limit` rows behind "See more". Default true. */
   collapsible?: boolean;
   /**
-   * Which rows the server returns — `{ includePending: true }` to include
-   * invoices that are not yet due. Each distinct query is its own list with
-   * its own paging, and the hook keys by value, so an inline object is fine.
+   * Server-side filter, e.g. `{ includePending: true }` for invoices not yet
+   * due. The hook keys by value, so an inline object is fine.
    */
   query?: InvoiceQuery;
 }
 
 type InvoiceColumn = "date" | "amount";
 
-/** Capped by `limit` below, so the skeleton never promises more than the
- * collapsed card can render. */
+/** Skeleton rows, further capped by `limit` at the call site. */
 const SKELETON_ROWS = 4;
 
 /**
- * The company's invoice history: a heading, a row per invoice with its date
- * linking to the hosted invoice and its amount beside it, and a "See more"
- * toggle past `limit` rows. The same shape and copy as the embed's Invoices
- * component; only the default limit differs.
+ * The company's invoice history. Each row links its date to the hosted
+ * invoice and shows the amount beside it; rows past `limit` sit behind
+ * "See more".
  */
 export function Invoices({
   className,
@@ -74,8 +71,8 @@ export function Invoices({
     [locale, page],
   );
 
-  // The heading is a sibling, so nothing associates the two on its own and
-  // a card without a header would announce as a list of no stated subject.
+  // A list has no name of its own, so it is labelled by the heading, or by
+  // the same text when the header is hidden.
   const headingId = useId();
   const rows = list?.rows ?? [];
   const canCollapse = collapsible && rows.length > limit;
@@ -88,15 +85,12 @@ export function Invoices({
     showAmount ? "amount" : [],
   );
 
-  // A 404 with nothing on screen is the account not being on the flag that
-  // serves company reads, and the card says so. Under rows already loaded
-  // it reads as any other failed page: "not available" beneath a list of
-  // invoices would contradict itself. Retry stays either way — the same
-  // status also answers a company the token cannot resolve, which a fresh
-  // token fixes, and a card with no way back is worse than a repeat.
+  // A 404 means the account is not enabled for company reads, but "not
+  // available" under rows already loaded would contradict itself. Retry stays:
+  // the same status answers a token whose company cannot be resolved yet.
   const unavailable = list === undefined && httpStatus(error) === 404;
-  // Resolved only for a failure: the translator reports a key it cannot
-  // answer, and a healthy card has no business asking for error copy.
+  // Only resolve error copy on failure, or a host's translator would report
+  // a missing key on every healthy render.
   const errorMessage =
     error === undefined
       ? undefined
@@ -158,8 +152,6 @@ export function Invoices({
                         "schematic-invoices__amount",
                         row.isCredit && "schematic-invoices__credit",
                       )}
-                      // What the embed's tooltip says on hover: whether this
-                      // row charged the company or returned money to it.
                       title={
                         row.isCredit
                           ? t("invoicesCreditTooltip")
@@ -194,8 +186,8 @@ export function Invoices({
                   className="schematic-link-button schematic-invoices__load-more"
                   disabled={isPending}
                   type="button"
-                  // The next page can take the list past `limit`, and a list
-                  // that collapsed would remove the control just used.
+                  // Expand first: the next page can push the list past
+                  // `limit`, and collapsing would hide the button just clicked.
                   onClick={() => {
                     setExpanded(true);
                     void loadMore();
@@ -213,12 +205,8 @@ export function Invoices({
 }
 
 /**
- * The pending card, shaped like the loaded one: a bar where the heading goes
- * and a bar per column on each row, so the placeholder and the list it
- * becomes occupy the same space rather than the load reflowing the page.
- *
- * The bars carry no text. The frame around them carries the "Loading
- * invoices" label, as text rather than as a live region.
+ * Mirrors the loaded card's shape so the page does not reflow when the rows
+ * arrive. The surrounding frame carries the loading label.
  */
 function InvoicesSkeleton({
   columns,
@@ -253,10 +241,8 @@ function InvoiceDate({ row, t }: { row: InvoiceRow; t: Translator }) {
       <span className="schematic-invoices__date-text">{row.dateText}</span>
     );
   }
-  // A link needs a name. A row with no date text has none — its dates were
-  // unusable, or a host's own formatter returned nothing for them — and
-  // dropping the link would put the hosted invoice out of reach over a
-  // formatting problem, so the link says what it leads to instead.
+  // A row with no usable date still needs a link name, and dropping the
+  // link would make the hosted invoice unreachable over a formatting problem.
   const label = row.dateText === "" ? t("invoicesUndated") : row.dateText;
   return (
     <a

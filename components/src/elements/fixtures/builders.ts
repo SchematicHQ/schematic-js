@@ -1,8 +1,6 @@
 /**
- * Fixture builders: every contract type with sensible defaults, overridable
- * per call. Typed against the contract, so a contract change breaks the
- * fixtures at compile time — the fixtures are the first consumer of every
- * field. This release carries the invoices slice.
+ * Fixture builders with sensible defaults, overridable per call. Typed
+ * against the contract so a contract change breaks them at compile time.
  */
 
 import type { Invoice, InvoicePage } from "@schematichq/schematic-react";
@@ -32,11 +30,7 @@ export function invoice(overrides: Partial<Invoice> = {}): Invoice {
   };
 }
 
-/**
- * A page of invoices. `count` defaults to the rows given — pass a larger one
- * for a company whose history runs past what is loaded, which is what
- * `hasMore` means.
- */
+/** `count` is the size of the whole history, not of the rows given. */
 export function invoicePage(
   invoices: Invoice[],
   hasMore = false,

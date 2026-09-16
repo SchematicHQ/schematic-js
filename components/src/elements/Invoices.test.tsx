@@ -39,11 +39,9 @@ function renderInvoices(
 }
 
 describe("Invoices", () => {
-  test("renders a skeleton while the invoices load, and says so", () => {
+  test("says the invoices are loading, without a live region", () => {
     renderInvoices({});
-    // The label is text in the card rather than a live region: it is read by
-    // anyone who navigates there, and promises no announcement, because
-    // nothing announces the rows arriving.
+    // Plain text, not a live region: nothing announces the rows arriving either.
     const label = screen.getByText("Loading invoices");
     const pending = label.closest("[data-state]");
     expect(pending).toHaveAttribute("data-state", "pending");
@@ -62,8 +60,7 @@ describe("Invoices", () => {
         <Invoices />
       </BillingDataProvider>,
     );
-    // The embed's copy, not the error's own message: a reader is told what
-    // went wrong in their terms, not the network's.
+    // The element's own copy, not the error message.
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent(
       "There was a problem retrieving your invoices.",
@@ -74,9 +71,9 @@ describe("Invoices", () => {
   });
 
   test("reads a 404 as the feature being unavailable", () => {
-    // The account is not on the flag that serves company reads, so the card
-    // says something truer than "a problem". Retry stays: the same status
-    // answers a company the token cannot resolve, which a fresh token fixes.
+    // A 404 means the account is not enabled for company reads. Retry stays
+    // because the same status answers a token whose company cannot be
+    // resolved yet.
     render(
       <BillingDataProvider
         data={{}}
@@ -98,8 +95,7 @@ describe("Invoices", () => {
   });
 
   test("a 404 under rows still on screen reads as an ordinary failure", () => {
-    // "Not available for this account" beneath a list of the account's
-    // invoices would contradict itself.
+    // "Not available" beneath a list of invoices would contradict itself.
     renderInvoices(
       SCENARIOS.pro(),
       { limit: 1 },
@@ -117,9 +113,8 @@ describe("Invoices", () => {
     );
   });
 
-  test("asks the translator for error copy only when there is an error", () => {
-    // A host's `translate` that lacks the key would otherwise report a miss
-    // on every render of a healthy card, for a string never displayed.
+  test("does not ask the translator for error copy on a healthy render", () => {
+    // Otherwise a host's translator would report a miss on every healthy render.
     const onMissingString = vi.fn();
     render(
       <BillingDataProvider
@@ -156,8 +151,8 @@ describe("Invoices", () => {
   });
 
   test("logs the error it does not show, so a mis-wired page is diagnosable", () => {
-    // The copy on screen is fixed; the message that says *why* — a missing
-    // provider, a 404 — reaches the console in development.
+    // The on-screen copy is fixed, so the underlying error goes to the
+    // console in development.
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("Boom");
     render(
@@ -257,9 +252,7 @@ describe("Invoices", () => {
   });
 
   test("falls back to the created date when the due date is malformed", () => {
-    // An Invalid Date is not absent, so `??` keeps it: the row would lose
-    // both its date and its link with a good created date sitting right
-    // there.
+    // An Invalid Date is not nullish, so a plain `??` would keep it.
     const broken = invoice({
       id: "inv_broken",
       url: "https://invoice/x",
@@ -271,8 +264,7 @@ describe("Invoices", () => {
   });
 
   test("a row with no usable date carries null rather than an Invalid Date", () => {
-    // `date` is public API for hosts formatting their own markup, and
-    // Intl.format throws on an Invalid Date — from inside their render.
+    // `date` is public API, and `Intl` throws on formatting an Invalid Date.
     const broken = invoice({ id: "inv_broken" });
     (broken as { createdAt: Date }).createdAt = new Date("not a date");
     (broken as { dueDate?: Date }).dueDate = new Date("also not a date");
@@ -282,8 +274,8 @@ describe("Invoices", () => {
   });
 
   test("keeps the invoice reachable when its dates are unusable", () => {
-    // The URL is fine; only the dates are not. Dropping the link would put
-    // the hosted invoice out of reach over a formatting problem.
+    // Dropping the link would make the hosted invoice unreachable over a
+    // formatting problem.
     const broken = invoice({ id: "inv_broken", url: "https://invoice/x" });
     (broken as { createdAt: Date }).createdAt = new Date("not a date");
     (broken as { dueDate?: Date }).dueDate = undefined;
@@ -294,7 +286,7 @@ describe("Invoices", () => {
     );
   });
 
-  test("renders a row with unusable dates and no URL as plain text", () => {
+  test("renders a row with unusable dates and no URL without a link", () => {
     const broken = invoice({ id: "inv_broken", url: null });
     (broken as { createdAt: Date }).createdAt = new Date("not a date");
     (broken as { dueDate?: Date }).dueDate = undefined;
@@ -325,7 +317,7 @@ describe("Invoices", () => {
     expect(screen.queryByText("$68.00")).toBeNull();
   });
 
-  test("passes its query to the hook and to paging", () => {
+  test("passes its query on to paging", () => {
     const onLoadMoreInvoices = vi.fn();
     renderInvoices(
       SCENARIOS.pro(),
@@ -359,8 +351,6 @@ describe("Invoices", () => {
     expect(screen.getByRole("button", { name: "Load more" })).toBeDisabled();
   });
 
-  // The copy pipeline — overrides, translate, misses, locale — is
-  // elements/localization.test.tsx.
   test("renders the heading at the level the host asks for", () => {
     renderInvoices(SCENARIOS.pro(), { headingLevel: 3 });
     expect(
@@ -369,8 +359,8 @@ describe("Invoices", () => {
   });
 
   test("names the list, with or without a visible header", () => {
-    // The heading is a sibling of the list, so nothing associates them on
-    // its own — and a card asked to hide its header has no heading at all.
+    // A list has no name of its own, and a hidden header leaves no heading
+    // to label it by.
     renderInvoices(SCENARIOS.pro());
     expect(screen.getByRole("list", { name: "Invoices" })).toBeInTheDocument();
 
@@ -379,9 +369,9 @@ describe("Invoices", () => {
   });
 
   test("stays expanded when Load more takes the list past the limit", () => {
-    // The first page can be under `limit`, so "Load more" shows while the
-    // list is nominally collapsed. Appending must not fold it back up and
-    // replace the button that was just clicked with "See more".
+    // The first page can be under `limit`, so "Load more" shows before the
+    // toggle exists. Appending past `limit` must not fold the list up and
+    // swap the button just clicked for "See more".
     const onLoadMoreInvoices = vi.fn();
     const page = (loaded: number, hasMore: boolean) => ({
       invoices: Array.from({ length: loaded }, () => invoice()),

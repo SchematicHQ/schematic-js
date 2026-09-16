@@ -1,8 +1,6 @@
 /**
- * `@schematichq/schematic-components/elements` — code-first elements on the
+ * `@schematichq/schematic-components/elements`: code-first elements on the
  * billing API, with the contract, derivations, and data seam they use.
- * This release carries the Invoices element; the other elements land with
- * the endpoints that feed them.
  */
 
 export {

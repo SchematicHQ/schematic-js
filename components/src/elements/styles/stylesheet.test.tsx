@@ -13,16 +13,12 @@ import { withTokenDefaults } from "./tokens";
 import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
 
 /**
- * The sheet and the markup are one contract, written in two files. Every
- * node an element renders carries a class (elements/markup.test.tsx holds
- * that line), so the sheet has no reason to reach for a tag or a position —
- * and a rule that no longer matches anything is a rename that only got
- * halfway. This renders the element in every state and checks that each
- * rule aimed at it still lands.
+ * The sheet and the markup are one contract in two files. A rule that no
+ * longer matches anything is a rename that only got halfway, so every rule
+ * aimed at a shipped element is checked against the element in every state.
  *
- * Only rules naming a shipped element or a class it uses are checked: the
- * sheet also carries styling for elements that land with the endpoints
- * feeding them, and those match nothing yet by definition.
+ * Rules for elements not yet shipped match nothing by definition and are
+ * skipped.
  */
 const SHIPPED =
   /schematic-(invoices|card|header|status|skeleton|muted|error|link-button)/;
@@ -54,11 +50,8 @@ function shippedSelectors(): string[] {
 }
 
 /**
- * The parts of a selector a combinator separates, with attribute values
- * masked so a space inside one is not read as a descendant step. Every part
- * has to name a class of its own: a bare `a` or `h2` names a node by what it
- * is, and a bare `:last-child` names it by where it sits, and both go stale
- * the moment the markup moves.
+ * Splits a selector on combinators, masking attribute values so a space
+ * inside one is not read as a descendant step.
  */
 function compounds(selector: string): string[] {
   return selector
@@ -76,7 +69,7 @@ function tree(node: React.ReactNode, data: BillingData, status?: never) {
   return container.firstElementChild as HTMLElement;
 }
 
-/** Every state and branch the element can render. */
+/** Every render that reaches a selector in the sheet. */
 function everyCard() {
   const noUrl = SCENARIOS.pro();
   noUrl.invoices = invoicePage([invoice({ url: null })]);
@@ -103,8 +96,8 @@ describe("the packaged stylesheet", () => {
   test("every rule aimed at a shipped element still matches its markup", () => {
     const cards = everyCard();
     const unmatched = shippedSelectors().filter((selector) => {
-      // The states a rule reacts to cannot be staged in a render, and the
-      // expanded toggle is the collapsed one with its attribute flipped.
+      // Interaction states cannot be staged in a render, and the expanded
+      // toggle is the collapsed one with its attribute flipped.
       const probe = selector
         .replace(/:(hover|focus-visible|disabled)/g, "")
         .replace('[aria-expanded="true"]', '[aria-expanded="false"]');
@@ -127,9 +120,8 @@ describe("the packaged stylesheet", () => {
 const COLOUR_LITERAL = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/;
 
 /**
- * The sheet with every `var()` fallback removed — what is left is what the
- * rules say on their own. Walks the parens rather than matching them, since
- * a fallback nests: `var(--x, light-dark(#fff, #000))`.
+ * The sheet with every `var()` fallback removed. Walks the parens rather
+ * than matching them, since fallbacks nest: `var(--x, light-dark(#fff, #000))`.
  */
 function withoutFallbacks(css: string): string {
   let out = "";
@@ -157,9 +149,7 @@ function withoutFallbacks(css: string): string {
 
 describe("the palette", () => {
   test("reaches the rules as fallbacks, never as a declaration", () => {
-    // A `:root` rule would have to win a cascade; a host's own tokens do not
-    // reliably beat one, because a declaration inside `@layer base` loses to
-    // an unlayered rule whatever its specificity.
+    // See tokens.ts: a `:root` rule would beat a host's layered declarations.
     expect(schematicStylesCss).not.toMatch(/:root/);
     expect(schematicStylesCss.match(/var\(--schematic-[a-z-]+\)/g)).toBeNull();
   });

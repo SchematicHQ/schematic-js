@@ -42,7 +42,7 @@ describe("formatCurrency", () => {
     );
   });
 
-  test("falls back for an unknown currency code", () => {
+  test("formats an unknown but well-formed code rather than throwing", () => {
     expect(formatCurrency(1000, "zzz", L)).toMatch(/10\.00/);
   });
 });
@@ -110,7 +110,7 @@ describe("featureName across locales", () => {
   test("inflects only where English rules apply", () => {
     const f = { name: "Seat" };
     expect(featureName(f, 2, "en-GB")).toBe("Seats");
-    // No plural form configured and not English: the company's name stands.
+    // No plural form configured and not English: the configured name stands.
     expect(featureName(f, 2, "de-DE")).toBe("Seat");
     expect(
       featureName({ name: "Platz", pluralName: "Plätze" }, 2, "de-DE"),
@@ -126,10 +126,8 @@ describe("featureName across locales", () => {
 });
 
 describe("an unusable locale tag", () => {
-  // `en_US` — an underscore where BCP 47 wants a hyphen — is the common
-  // typo, and every Intl constructor answers it with a RangeError. Thrown
-  // from a derivation it takes down the host's tree instead of showing up
-  // in the element's status frame.
+  // An underscore instead of a hyphen is the common typo, and every Intl
+  // constructor throws a RangeError on it.
   const BAD = "en_US";
 
   test("resolveLocale drops it", () => {
@@ -137,8 +135,7 @@ describe("an unusable locale tag", () => {
   });
 
   test("a date that is not one formats as nothing rather than throwing", () => {
-    // What a malformed timestamp on the wire decodes to. Intl throws a
-    // RangeError on it, from inside a render.
+    // What a malformed timestamp decodes to.
     const invalid = new Date("not a date");
     expect(formatDate(invalid, L)).toBe("");
     expect(formatShortDate(invalid, L)).toBe("");
@@ -149,8 +146,8 @@ describe("an unusable locale tag", () => {
     expect(() => formatShortDate(new Date(), BAD)).not.toThrow();
     expect(() => formatNumber(1234.5, BAD)).not.toThrow();
     expect(() => formatCurrency(1000, "usd", BAD)).not.toThrow();
-    // The currency fallback formats a number too, so a bad tag used to
-    // throw again from inside the catch.
+    // The malformed-code fallback formats a number too, so it must guard the
+    // tag as well.
     expect(() => formatCurrency(1000, "not-a-currency", BAD)).not.toThrow();
     expect(() => plural(BAD, 1, { one: "a", other: "b" })).not.toThrow();
     expect(() => featureName({ name: "Seat" }, 2, BAD)).not.toThrow();
@@ -162,10 +159,9 @@ describe("resolveLocale", () => {
     expect(resolveLocale("fr-FR")).toBe("fr-FR");
   });
 
-  test("is blind to the viewer, so a server render and its hydration agree", () => {
+  test("defaults to en-US without a tag; viewerLocale reads the viewer", () => {
     expect(resolveLocale("")).toBe("en-US");
     expect(resolveLocale(undefined)).toBe("en-US");
-    // The reading itself, for an effect to fold in after mount.
     expect(viewerLocale()).toBe(navigator.language);
   });
 });

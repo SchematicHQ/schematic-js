@@ -10,9 +10,8 @@ import {
 } from "./strings";
 
 /**
- * The keys are API: a host's catalogue and its `translate` are written
- * against these names, and a rename silently falls back to English in
- * production. It fails here first.
+ * The keys are API: a host's catalogue is written against them, and a rename
+ * silently falls back to English in production. It fails here first.
  */
 const bareKeys = [
   ...new Set(
@@ -56,8 +55,7 @@ describe("the string contract", () => {
   });
 
   test("i18next's t satisfies Translate, so translate={t} is the integration", () => {
-    // Type-level: this is the whole advertised wiring, so it should fail the
-    // build if i18next's signature and ours ever drift apart.
+    // Type-level check: fails the build if i18next's signature drifts from ours.
     const t = ((key: string) => key) as unknown as TFunction;
     const translate: Translate = t;
     expect(translate("invoicesLoadMore")).toBe("invoicesLoadMore");
@@ -85,7 +83,7 @@ describe("interpolate", () => {
 });
 
 describe("lookup", () => {
-  // The convention a host's catalogue and ours share: i18next's suffixes.
+  // i18next's plural suffixes.
   const catalog: StringCatalog = {
     plain: "Retry",
     rows_one: "{{count}} row",
@@ -135,9 +133,9 @@ describe("defaultString", () => {
     expect(defaultString("invoicesHeader")).toBe("Invoices");
   });
 
-  test("interpolates vars a host passed through", () => {
-    // No default carries a placeholder today; the machinery is what a future
-    // count-bearing string relies on, so it is proven rather than assumed.
+  test("accepts vars even though no default has a placeholder yet", () => {
+    // Vars, `count` included, must be harmless on a default with neither
+    // plural forms nor placeholders.
     expect(defaultString("retry", { count: 2 })).toBe("Try again");
   });
 });
