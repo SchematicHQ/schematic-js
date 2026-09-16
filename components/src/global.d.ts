@@ -2,6 +2,7 @@
 declare namespace NodeJS {
   interface ProcessEnv {
     readonly SCHEMATIC_COMPONENTS_VERSION?: string;
+    readonly NODE_ENV?: string;
   }
 }
 
