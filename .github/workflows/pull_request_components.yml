@@ -58,6 +58,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Enable corepack
         run: corepack enable pnpm
+      # vitest resolves @schematichq/schematic-js and schematic-react from
+      # ../js/src and ../react/src, so their own dependencies must be present.
+      - name: Install schematic-js dependencies
+        working-directory: ./js
+        run: pnpm install --frozen-lockfile
+      - name: Install schematic-react dependencies
+        working-directory: ./react
+        run: pnpm install --frozen-lockfile
       - name: Install dependencies
         working-directory: ./components
         run: pnpm install --frozen-lockfile

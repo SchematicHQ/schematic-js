@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -7,6 +9,19 @@ export default defineConfig({
   // explode with "Cannot read properties of null (reading 'useContext')".
   resolve: {
     dedupe: ["react", "react-dom", "styled-components"],
+    // Resolve the sibling SDKs from source. They live in this repo, and a
+    // suite run against a stale published or symlinked build proves nothing
+    // about the change under review.
+    alias: {
+      "@schematichq/schematic-react": path.resolve(
+        __dirname,
+        "../react/src/index.ts",
+      ),
+      "@schematichq/schematic-js": path.resolve(
+        __dirname,
+        "../js/src/index.ts",
+      ),
+    },
   },
   test: {
     environment: "jsdom",

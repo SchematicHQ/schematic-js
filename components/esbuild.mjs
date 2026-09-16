@@ -22,11 +22,14 @@ const { version } = require("./package.json");
 const args = process.argv.slice(2);
 const format = args.includes("--format=cjs") ? "cjs" : "esm";
 const variant = args.includes("--variant=browser") ? "browser" : "server";
+// The elements entry has no styled-components, so it needs no browser/server split.
+const isElements = args.includes("--entry=elements");
 const watch = args.includes("--watch");
 
 const ext = format === "cjs" ? "cjs.js" : "esm.js";
-const outfile =
-  variant === "browser"
+const outfile = isElements
+  ? `dist/schematic-components-elements.${ext}`
+  : variant === "browser"
     ? `dist/schematic-components.browser.${ext}`
     : `dist/schematic-components.${ext}`;
 
@@ -65,13 +68,26 @@ const ssrSafeStyledComponents = {
 };
 
 const options = {
-  entryPoints: ["src/index.ts"],
+  entryPoints: [isElements ? "src/elements/index.ts" : "src/index.ts"],
   bundle: true,
   format,
   outfile,
-  external: ["react", "react-dom", "@stripe/react-stripe-js"],
+  // The elements must share the host's copies of these: React and
+  // schematic-react each hold module-level context, and a second schematic-js
+  // is a second set of classes.
+  external: isElements
+    ? [
+        "react",
+        "react-dom",
+        "@schematichq/schematic-js",
+        "@schematichq/schematic-react",
+      ]
+    : ["react", "react-dom", "@stripe/react-stripe-js"],
   define: {
     "process.env.SCHEMATIC_COMPONENTS_VERSION": JSON.stringify(version),
+    // Leave NODE_ENV for the host's bundler to replace. esbuild would otherwise
+    // inline "development" and make the dev-only logging unconditional.
+    ...(isElements ? { "process.env.NODE_ENV": "process.env.NODE_ENV" } : {}),
   },
   plugins: variant === "server" ? [ssrSafeStyledComponents] : [],
 };

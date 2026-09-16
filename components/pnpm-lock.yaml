@@ -53,6 +53,12 @@ importers:
       '@openapitools/openapi-generator-cli':
         specifier: ^2.41.0
         version: 2.41.0
+      '@schematichq/schematic-js':
+        specifier: ^1.7.0
+        version: 1.7.0
+      '@schematichq/schematic-react':
+        specifier: ^1.6.0
+        version: 1.6.0(react@19.3.0)
       '@stripe/react-stripe-js':
         specifier: ^6.10.0
         version: 6.10.0(@stripe/stripe-js@9.16.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -71,9 +77,6 @@ importers:
       '@types/lodash':
         specifier: ^4.17.25
         version: 4.17.25
-      '@types/pako':
-        specifier: ^3.0.0
-        version: 3.0.0
       '@types/react':
         specifier: ^19.3.0
         version: 19.3.0
@@ -832,6 +835,14 @@ packages:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
+  '@schematichq/schematic-js@1.7.0':
+    resolution: {integrity: sha512-9fs14yP3FR8A4CgA5Nvn21SwmPppVgSixlT5ddBeH/0Z6vNrY7xDl4LOuh+6/JGcJKK7apPWr1XIGMqZXSOdbQ==}
+
+  '@schematichq/schematic-react@1.6.0':
+    resolution: {integrity: sha512-AXiY4ghVxM0zV2azy5xw5O3eqSl5Yq75BIPvMkyOwfNlH+aneYu2a2zKlAAgvCXzmBRCw2MyOcfkMQfoy1ovkA==}
+    peerDependencies:
+      react: '>=18'
+
   '@stripe/react-stripe-js@6.10.0':
     resolution: {integrity: sha512-9+jIJWClsih6RMNwnL0Ylsu6KIgFSufFmkIo3ww3vBw6SXQVC+ajsHqr8FSemT1NNJps9r7tEXEklAM2na/P/w==}
     peerDependencies:
@@ -1022,10 +1033,6 @@ packages:
 
   '@types/node@26.5.1':
     resolution: {integrity: sha512-CzNm2FezW4VR/LjG6yUdiEgLE/rAQ9Slj5gCu/C2VrdcW7I0ahNZ8DRbHT7zOZ6r3ONgd/bsQIeSaoDGrd1C6g==}
-
-  '@types/pako@3.0.0':
-    resolution: {integrity: sha512-MtIzg1Ul1GxhHZLq6oSKvWQENKqmfK1fdaW+SDcPJe7+YcJVo6AbmkW0BvGFH6+559+hEuCwdXZZe8F85lBPkA==}
-    deprecated: This is a stub types definition. pako provides its own type definitions, so you do not need this installed.
 
   '@types/react-dom@19.3.0':
     resolution: {integrity: sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==}
@@ -1518,6 +1525,9 @@ packages:
   cookie@1.1.1:
     resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
     engines: {node: '>=18'}
+
+  cross-fetch@4.1.0:
+    resolution: {integrity: sha512-uKm5PU+MHTootlWEY+mZ4vvXoCn4fLQxT9dSc1sXVMSFkINTJVN8cAQROpwcKm8bJ/c7rgZVIBWzH5T78sNZZw==}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -4088,6 +4098,17 @@ snapshots:
       - css-to-react-native
       - react-native
 
+  '@schematichq/schematic-js@1.7.0':
+    dependencies:
+      cross-fetch: 4.1.0
+      uuid: 14.0.2
+    transitivePeerDependencies:
+      - encoding
+
+  '@schematichq/schematic-react@1.6.0(react@19.3.0)':
+    dependencies:
+      react: 19.3.0
+
   '@stripe/react-stripe-js@6.10.0(@stripe/stripe-js@9.16.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
       '@stripe/stripe-js': 9.16.0
@@ -4250,10 +4271,6 @@ snapshots:
   '@types/node@26.5.1':
     dependencies:
       undici-types: 8.9.0
-
-  '@types/pako@3.0.0':
-    dependencies:
-      pako: 3.0.2
 
   '@types/react-dom@19.3.0(@types/react@19.3.0)':
     dependencies:
@@ -4761,6 +4778,12 @@ snapshots:
   convert-source-map@2.0.0: {}
 
   cookie@1.1.1: {}
+
+  cross-fetch@4.1.0:
+    dependencies:
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
 
   cross-spawn@7.0.6:
     dependencies:
