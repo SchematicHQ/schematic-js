@@ -42,6 +42,17 @@ jobs:
           node-version: 24.x
       - name: Enable corepack
         run: corepack enable pnpm
+      # The components vitest config resolves @schematichq/schematic-js and
+      # schematic-react from ../js/src and ../react/src, so their own
+      # dependencies must be present.
+      - name: Install schematic-js dependencies
+        if: inputs.package == 'schematic-components'
+        working-directory: ./js
+        run: pnpm install --frozen-lockfile
+      - name: Install schematic-react dependencies
+        if: inputs.package == 'schematic-components'
+        working-directory: ./react
+        run: pnpm install --frozen-lockfile
       - name: Install dependencies
         working-directory: ./${{ inputs.working_dir }}
         run: pnpm install --frozen-lockfile
