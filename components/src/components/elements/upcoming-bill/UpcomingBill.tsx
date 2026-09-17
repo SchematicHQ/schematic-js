@@ -1,6 +1,9 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 
-import { type UpcomingInvoiceResponseData } from "../../../api/checkoutexternal";
+import {
+  BillingCollectionMethod,
+  type UpcomingInvoiceResponseData,
+} from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
 import {
@@ -154,6 +157,35 @@ export const UpcomingBill = forwardRef<
     upcomingInvoice?.subtotal,
   ]);
 
+  const { billDate, paymentDueDate } = useMemo(() => {
+    // `dueDate` is the deadline for *paying* the invoice. On a `send_invoice`
+    // subscription that is the bill date plus the net terms, so leading with it
+    // headlines a date weeks after the customer is actually billed. Prefer the
+    // subscription's period end, which is when the invoice is raised, and keep
+    // `dueDate` as the fallback for the automatic-collection case where the two
+    // coincide.
+    const periodEnd = data?.company?.billingSubscription?.periodEnd;
+    const dueDate = upcomingInvoice?.dueDate ?? undefined;
+    const billDate =
+      typeof periodEnd === "number" ? new Date(periodEnd * 1000) : dueDate;
+
+    const hasSeparateDeadline =
+      upcomingInvoice?.collectionMethod ===
+        BillingCollectionMethod.SendInvoice &&
+      dueDate &&
+      billDate &&
+      new Date(dueDate).toDateString() !== new Date(billDate).toDateString();
+
+    return {
+      billDate,
+      paymentDueDate: hasSeparateDeadline ? dueDate : undefined,
+    };
+  }, [
+    data?.company?.billingSubscription?.periodEnd,
+    upcomingInvoice?.collectionMethod,
+    upcomingInvoice?.dueDate,
+  ]);
+
   const hasApplied = applied > 0;
   const hasBalance = remaining > 0 || applied > 0;
 
@@ -194,11 +226,23 @@ export const UpcomingBill = forwardRef<
           <TransitionBox>
             {upcomingInvoice ? (
               <Flex $flexDirection="column" $gap="1rem">
-                {props.header.isVisible && upcomingInvoice.dueDate && (
-                  <Text display={props.header.fontStyle}>
-                    {t(props.header.prefix as SchematicTranslationKey)}{" "}
-                    {toPrettyDate(upcomingInvoice.dueDate, { locale })}
-                  </Text>
+                {props.header.isVisible && billDate && (
+                  <Flex $flexDirection="column" $gap="0.25rem">
+                    <Text display={props.header.fontStyle}>
+                      {t(props.header.prefix as SchematicTranslationKey)}{" "}
+                      {toPrettyDate(billDate, { locale })}
+                    </Text>
+
+                    {paymentDueDate && (
+                      <Text
+                        $size={0.8125 * settings.theme.typography.text.fontSize}
+                      >
+                        {t("Payment due", {
+                          date: toPrettyDate(paymentDueDate, { locale }),
+                        })}
+                      </Text>
+                    )}
+                  </Flex>
                 )}
 
                 <Flex
