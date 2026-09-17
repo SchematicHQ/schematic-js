@@ -22,9 +22,18 @@ names — the tier is what `billing` names, not the resource.
 
 The company endpoints are gated on the `company-context-api` flag, per
 account. An account without it gets a 404 from every `/company/*` read, and
-because a 404 is not an answer — an empty history is a 200 with no rows, and
-nothing to bill is a 204 — the elements report it as "not available" rather
-than showing a company with invoices, or a subscription, an empty card. If a correctly configured page shows
+because a 404 is not an answer the elements report it as "not available"
+rather than showing a company with invoices, or a subscription, an empty
+card.
+
+The endpoints follow one rule the elements rely on. A collection with
+nothing in it is a 200 with an empty list (`/company/invoices`). A single
+resource that can legitimately be absent is a 204 (`/company/upcoming-invoice`
+for a company with nothing to bill), which the client reads as `null` — a
+loaded value, so the element renders its empty state. A 404 means the caller
+cannot read the route at all: the account is off the flag, or the token
+does not resolve. Nothing else answers 404, so a 404 is always "not
+available", never "nothing here". If a correctly configured page shows
 `… failed with status 404`, the flag is what to check first. Ask Schematic
 to turn it on for the account.
 
@@ -91,10 +100,14 @@ signed in, so read `isLoaded` before deciding which you mean.
 `token` is a string or a provider called (and re-called after a 401) for one.
 Without a session the element reports the missing token in its status frame.
 
-For server rendering, `fetchBillingData(client)` in schematic-js returns an
-`initialData` bag the provider seeds from. Pass the query your element asks —
-`fetchBillingData(client, { invoices: { includePending: true } })` — or the
-seed answers a question nothing asked and the element fetches it again.
+For server rendering, `fetchBillingData` in schematic-js returns an
+`initialData` bag the provider seeds from. Name the resources the page
+renders — `fetchBillingData(client, { names: ["invoices", "upcomingInvoice"] })`
+— since each is a request on the server (the upcoming invoice is a live
+billing-provider preview) and there is no default set. Pass the query your
+element asks — `{ names: ["invoices"], invoices: { includePending: true } }`
+— or the seed answers a question nothing asked and the element fetches it
+again.
 
 Those rows show on the first render even though your auth usually resolves a
 render later, and they are checked against it: `fetchBillingData` records
