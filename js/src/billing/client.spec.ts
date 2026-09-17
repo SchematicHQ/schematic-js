@@ -267,6 +267,7 @@ describe("fetchBillingData", () => {
       fetch: fetchImpl,
     });
     const data = await fetchBillingData(client, {
+      names: ["invoices"],
       invoices: { includePending: true },
     });
     expect(calls[0].url).toContain("include_pending=true");
@@ -284,6 +285,7 @@ describe("fetchBillingData", () => {
       fetch: fetchImpl,
     });
     const data = await fetchBillingData(client, {
+      names: ["invoices"],
       invoices: { includePending: false },
     });
     expect(data.params).toEqual({ invoices: {} });
@@ -303,7 +305,7 @@ describe("fetchBillingData", () => {
       session: { company: "comp_a", token: "t" },
       fetch: fetchImpl,
     });
-    const data = await fetchBillingData(client);
+    const data = await fetchBillingData(client, { names: ["invoices"] });
     expect(data.invoices).toMatchObject({ count: 84, hasMore: true });
     expect(data.invoices?.invoices).toHaveLength(12);
 
@@ -316,11 +318,12 @@ describe("fetchBillingData", () => {
         session: { company: "comp_a", token: "t" },
         fetch: failing,
       }),
+      { names: ["invoices"] },
     );
     expect(empty.invoices).toBeUndefined();
   });
 
-  it("prefetches the next bill beside the invoices by default", async () => {
+  it("prefetches each resource a page names, and only those", async () => {
     const { calls, fetchImpl } = fakeFetch(
       byPath({
         "/company/invoices": { body: wireEmpty },
@@ -331,13 +334,30 @@ describe("fetchBillingData", () => {
       session: { company: "comp_a", token: "t" },
       fetch: fetchImpl,
     });
-    const data = await fetchBillingData(client);
+    const data = await fetchBillingData(client, {
+      names: ["invoices", "upcomingInvoice"],
+    });
     expect(calls.map((call) => new URL(call.url).pathname).sort()).toEqual([
       "/company/invoices",
       "/company/upcoming-invoice",
     ]);
     expect(data.invoices).toMatchObject({ count: 0, hasMore: false });
     expect(data.upcomingInvoice).toMatchObject({ amountDue: 6800 });
+
+    // A page that renders only the invoices does not pay for the preview.
+    const { calls: fewer, fetchImpl: only } = fakeFetch(
+      byPath({ "/company/invoices": { body: wireEmpty } }),
+    );
+    await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: only,
+      }),
+      { names: ["invoices"] },
+    );
+    expect(fewer.map((call) => new URL(call.url).pathname)).toEqual([
+      "/company/invoices",
+    ]);
   });
 
   it("seeds no next bill as null, and a failure as nothing", async () => {

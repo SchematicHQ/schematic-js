@@ -138,7 +138,13 @@ export class SchematicBillingClient implements BillingClient {
 }
 
 export interface BillingPrefetchOptions {
-  names?: BillingResourceName[];
+  /**
+   * The resources the page renders, and no default: each one is a request
+   * on the server — the upcoming invoice is a live provider preview — and
+   * the list grows with every element, so a page names what it needs rather
+   * than paying for everything.
+   */
+  names: BillingResourceName[];
   /** The invoice query to prefetch for; the element must ask the same one. */
   invoices?: InvoiceQuery;
 }
@@ -149,9 +155,9 @@ export interface BillingPrefetchOptions {
  */
 export async function fetchBillingData(
   client: BillingClient,
-  options: BillingPrefetchOptions = {},
+  options: BillingPrefetchOptions,
 ): Promise<BillingData> {
-  const wanted = options.names ?? ["invoices", "upcomingInvoice"];
+  const wanted = options.names;
   const data: BillingData = {};
   // Normalized as the store normalizes what an element asks, so that a
   // prefetch for a non-default query is claimed rather than fetched again.
