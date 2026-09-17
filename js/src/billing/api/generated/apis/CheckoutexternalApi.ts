@@ -131,8 +131,15 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
    */
   async getCompanyUpcomingInvoice(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<GetCompanyUpcomingInvoiceResponse> {
+  ): Promise<GetCompanyUpcomingInvoiceResponse | null | undefined> {
     const response = await this.getCompanyUpcomingInvoiceRaw(initOverrides);
-    return await response.value();
+    switch (response.raw.status) {
+      case 200:
+        return await response.value();
+      case 204:
+        return null;
+      default:
+        return await response.value();
+    }
   }
 }
