@@ -7,10 +7,12 @@ export {
   normalizeInvoiceQuery,
   type BillingData,
   type BillingProviderClient,
+  type Discount,
   type Invoice,
   type InvoicePage,
   type InvoiceQuery,
   type ResourceState,
+  type UpcomingInvoice,
 } from "./contract";
 export {
   INVOICE_PAGE_SIZE,
@@ -32,6 +34,7 @@ export {
 export {
   useInvalidateBillingData,
   useInvoices,
+  useUpcomingInvoice,
   type InvoicesHandle,
 } from "./hooks";
 export { BillingProvider, type BillingProviderProps } from "./provider";

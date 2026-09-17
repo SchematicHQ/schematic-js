@@ -20,13 +20,14 @@ import {
   type BillingData,
   type BillingProviderClient,
   type Invoice,
+  type UpcomingInvoice,
 } from "./contract";
 import {
   BillingDataProvider,
   MISSING_BILLING_SOURCE_MESSAGE,
   useBillingDataSource,
 } from "./context";
-import { useInvoices } from "./hooks";
+import { useInvoices, useUpcomingInvoice } from "./hooks";
 import { BillingProvider, SESSION_REPLACED_MESSAGE } from "./provider";
 
 const isDOMEnvironment = typeof document !== "undefined";
@@ -54,6 +55,15 @@ const serve =
     count: rows.length,
   });
 
+const bill = (amountDue: number): UpcomingInvoice => ({
+  amountDue,
+  currency: "usd",
+  customerBalanceApplied: 0,
+  customerBalanceRemaining: 0,
+  discounts: [],
+  subtotal: amountDue,
+});
+
 type SessionListener = (event: SessionEvent) => void;
 
 function fakeClient(
@@ -67,6 +77,7 @@ function fakeClient(
     sessionStatus: "active",
     sessionKey: undefined,
     fetchInvoices: vi.fn(async () => rowsOf()),
+    fetchUpcomingInvoice: vi.fn(async () => null),
     onSessionChange: (listener) => {
       listeners.push(listener);
       return () => {};
@@ -1390,7 +1401,216 @@ describe("billing hooks", () => {
   );
 });
 
+describe("useUpcomingInvoice", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_("reports the missing-source error outside any provider", () => {
+    const { result } = renderHook(() => useUpcomingInvoice());
+    expect(result.current.error?.message).toBe(MISSING_BILLING_SOURCE_MESSAGE);
+  });
+
+  it_("loads the next bill once for every reader", async () => {
+    const client = fakeClient({
+      fetchUpcomingInvoice: vi.fn(async () => bill(6800)),
+    });
+    const { result } = renderHook(
+      () => [useUpcomingInvoice(), useUpcomingInvoice()] as const,
+      { wrapper: wrap(client) },
+    );
+    expect(result.current[0].isPending).toBe(true);
+    await flush();
+    expect(result.current[0].data?.amountDue).toBe(6800);
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(client.fetchUpcomingInvoice).toHaveBeenCalledTimes(1);
+    act(() => result.current[0].refetch());
+    await flush();
+    expect(client.fetchUpcomingInvoice).toHaveBeenCalledTimes(2);
+  });
+
+  it_("reads no next bill as loaded, not as pending", async () => {
+    // `null` is the server's answer — no subscription — and an element
+    // renders an empty state on it. Only `undefined` means not loaded.
+    const client = fakeClient();
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current).toMatchObject({
+      data: null,
+      error: undefined,
+      isPending: false,
+    });
+  });
+
+  it_("serves a prefetched bill without a request", async () => {
+    const client = fakeClient({
+      fetchUpcomingInvoice: vi.fn(async () => bill(1)),
+    });
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: wrap(client, { upcomingInvoice: bill(6800) }),
+    });
+    expect(result.current.data?.amountDue).toBe(6800);
+    await flush();
+    expect(client.fetchUpcomingInvoice).not.toHaveBeenCalled();
+  });
+
+  it_("serves a prefetched null without asking again", async () => {
+    // The prefetch already made the request whose answer is "nothing";
+    // a truthiness check on the seed would make the page ask once more.
+    const client = fakeClient({
+      fetchUpcomingInvoice: vi.fn(async () => bill(1)),
+    });
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: wrap(client, { upcomingInvoice: null }),
+    });
+    expect(result.current).toMatchObject({ data: null, isPending: false });
+    await flush();
+    expect(client.fetchUpcomingInvoice).not.toHaveBeenCalled();
+  });
+
+  it_("seeds each resource the prefetch carried, and only those", async () => {
+    const client = fakeClient({
+      fetchInvoices: vi.fn(async () => rowsOf("fetched")),
+      fetchUpcomingInvoice: vi.fn(async () => bill(1)),
+    });
+    const { result } = renderHook(
+      () => [useInvoices(), useUpcomingInvoice()] as const,
+      { wrapper: wrap(client, { upcomingInvoice: bill(6800) }) },
+    );
+    expect(result.current[1].data?.amountDue).toBe(6800);
+    expect(result.current[0].isPending).toBe(true);
+    await flush();
+    expect(result.current[0].data?.invoices[0].id).toBe("fetched");
+    expect(client.fetchUpcomingInvoice).not.toHaveBeenCalled();
+  });
+
+  it_(
+    "holds a stamped bill with the rows until the session is checked",
+    async () => {
+      let status: "pending" | "active" | "ended" = "pending";
+      let key: string | undefined = undefined;
+      const client = fakeClient({
+        fetchUpcomingInvoice: vi.fn(async () => bill(1)),
+      });
+      Object.defineProperty(client, "sessionStatus", { get: () => status });
+      Object.defineProperty(client, "sessionKey", { get: () => key });
+      const store = new BillingStore(client, {
+        invoices: page("seeded"),
+        upcomingInvoice: bill(6800),
+        sessionKey: "company_a",
+      });
+      store.connect();
+      const resource = store.upcomingInvoice.get({});
+      resource.subscribe(() => {});
+      await flush();
+      expect(resource.snapshot).toMatchObject({
+        data: undefined,
+        isPending: true,
+      });
+
+      status = "active";
+      key = "company_a";
+      act(() => {
+        client.listeners.forEach((listener) => listener({ type: "started" }));
+      });
+      await flush();
+      expect(resource.snapshot.data?.amountDue).toBe(6800);
+      expect(store.invoices.get({}).snapshot.data?.invoices[0].id).toBe(
+        "seeded",
+      );
+      expect(client.fetchUpcomingInvoice).not.toHaveBeenCalled();
+    },
+  );
+
+  it_("drops a bill prefetched for another session", async () => {
+    const client = fakeClient({
+      fetchUpcomingInvoice: vi.fn(async () => bill(1)),
+    });
+    Object.defineProperty(client, "sessionStatus", { get: () => "active" });
+    Object.defineProperty(client, "sessionKey", { get: () => "company_a" });
+    const store = new BillingStore(client, {
+      upcomingInvoice: bill(6800),
+      sessionKey: "company_b",
+    });
+    store.connect();
+    const resource = store.upcomingInvoice.get({});
+    resource.subscribe(() => {});
+    await flush();
+    expect(resource.snapshot.data?.amountDue).toBe(1);
+  });
+
+  it_("drops the bill when the session changes, and reloads it", async () => {
+    const client = fakeClient({
+      fetchUpcomingInvoice: vi.fn(async () => bill(6800)),
+    });
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(client.fetchUpcomingInvoice).toHaveBeenCalledTimes(1);
+    act(() => {
+      client.listeners.forEach((listener) => listener({ type: "changed" }));
+    });
+    await flush();
+    expect(client.fetchUpcomingInvoice).toHaveBeenCalledTimes(2);
+    expect(result.current.data?.amountDue).toBe(6800);
+  });
+
+  it_("waits rather than failing while the session is pending", async () => {
+    const client = fakeClient({
+      fetchUpcomingInvoice: vi.fn(async () => bill(6800)),
+    });
+    Object.defineProperty(client, "sessionStatus", { get: () => "pending" });
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current).toMatchObject({
+      data: undefined,
+      error: undefined,
+      isPending: true,
+    });
+    expect(client.fetchUpcomingInvoice).not.toHaveBeenCalled();
+  });
+
+  it_("serves it from plain data with no client at all", () => {
+    const { result } = renderHook(() => useUpcomingInvoice(), {
+      wrapper: ({ children }) => (
+        <BillingProvider initialData={{ upcomingInvoice: null }}>
+          {children}
+        </BillingProvider>
+      ),
+    });
+    expect(result.current).toMatchObject({ data: null, isPending: false });
+  });
+});
+
 describe("BillingStore", () => {
+  it("invalidateAll refetches a loaded null, not an unloaded resource", async () => {
+    // A company with no next bill today may have one after a checkout; the
+    // null it holds is loaded data, and reloads with everything else.
+    const client = fakeClient();
+    const store = new BillingStore(client);
+    store.connect();
+    store.invalidateAll();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(client.fetchUpcomingInvoice).not.toHaveBeenCalled();
+    await store.upcomingInvoice.get({}).load();
+    expect(store.upcomingInvoice.get({}).snapshot.data).toBeNull();
+    store.invalidateAll();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(client.fetchUpcomingInvoice).toHaveBeenCalledTimes(2);
+  });
+
   it("invalidateAll refetches only loaded resources", async () => {
     const client = fakeClient();
     const store = new BillingStore(client);
