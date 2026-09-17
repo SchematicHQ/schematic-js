@@ -17,6 +17,7 @@ import { type FontStyle } from "../../../context";
 import {
   useEmbed,
   useIsLightBackground,
+  useNextBillDate,
   useWrapChildren,
 } from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -213,6 +214,8 @@ export const MeteredFeatures = forwardRef<
     warningThresholdConfig?.showAsLimit ?? false;
 
   const isLightBackground = useIsLightBackground();
+
+  const { billDate: renewalDate } = useNextBillDate();
 
   const meteredFeatures = useMemo(() => {
     const orderedFeatureUsage = props.visibleFeatures?.reduce(
@@ -623,8 +626,6 @@ export const MeteredFeatures = forwardRef<
                         }),
                       );
                     }
-
-                    const renewalDate = data?.upcomingInvoice?.dueDate;
 
                     return (
                       // Pulled up against the balance line despite the column's 2rem gap

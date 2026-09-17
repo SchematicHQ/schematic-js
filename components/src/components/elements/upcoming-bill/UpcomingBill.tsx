@@ -1,12 +1,13 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  BillingCollectionMethod,
-  type UpcomingInvoiceResponseData,
-} from "../../../api/checkoutexternal";
+import { type UpcomingInvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  useNextBillDate,
+} from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
@@ -154,34 +155,7 @@ export const UpcomingBill = forwardRef<
     upcomingInvoice?.subtotal,
   ]);
 
-  const { billDate, paymentDueDate } = useMemo(() => {
-    // `dueDate` is the deadline for *paying* the invoice. On a `send_invoice`
-    // subscription that is the bill date plus the net terms, so leading with it
-    // headlines a date weeks after the customer is actually billed. Prefer the
-    // subscription's period end, which is when the invoice is raised, and keep
-    // `dueDate` as the fallback for the automatic-collection case where the two
-    // coincide.
-    const periodEnd = data?.company?.billingSubscription?.periodEnd;
-    const dueDate = upcomingInvoice?.dueDate ?? undefined;
-    const billDate =
-      typeof periodEnd === "number" ? new Date(periodEnd * 1000) : dueDate;
-
-    const hasSeparateDeadline =
-      upcomingInvoice?.collectionMethod ===
-        BillingCollectionMethod.SendInvoice &&
-      dueDate &&
-      billDate &&
-      toPrettyDate(dueDate) !== toPrettyDate(billDate);
-
-    return {
-      billDate,
-      paymentDueDate: hasSeparateDeadline ? dueDate : undefined,
-    };
-  }, [
-    data?.company?.billingSubscription?.periodEnd,
-    upcomingInvoice?.collectionMethod,
-    upcomingInvoice?.dueDate,
-  ]);
+  const { billDate, paymentDueDate } = useNextBillDate(upcomingInvoice ?? null);
 
   const hasApplied = applied > 0;
   const hasBalance = remaining > 0 || applied > 0;

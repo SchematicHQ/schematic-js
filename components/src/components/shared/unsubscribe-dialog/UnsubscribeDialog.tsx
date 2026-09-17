@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useAvailablePlans, useEmbed } from "../../../hooks";
+import { useAvailablePlans, useEmbed, useNextBillDate } from "../../../hooks";
 import { getSubscriptionPeriod, toPrettyDate } from "../../../utils";
 import {
   Button,
@@ -39,10 +39,11 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isModal, setIsModal] = useState(true);
 
+  const { billDate } = useNextBillDate();
+
   const { planPeriod, currentPlan, currentAddOns, featureUsage, cancelDate } =
     useMemo(() => {
-      const cancelDate =
-        data?.subscription?.cancelAt || data?.upcomingInvoice?.dueDate;
+      const cancelDate = data?.subscription?.cancelAt || billDate;
 
       return {
         planPeriod:
@@ -60,7 +61,7 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
       data?.company?.plan,
       data?.featureUsage,
       data?.subscription?.cancelAt,
-      data?.upcomingInvoice?.dueDate,
+      billDate,
     ]);
 
   const { plans: availablePlans, addOns: availableAddOns } =
