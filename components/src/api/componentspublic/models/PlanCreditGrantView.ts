@@ -20,6 +20,48 @@ import {
   BillingArrearsCadenceToJSON,
   BillingArrearsCadenceToJSONTyped,
 } from "./BillingArrearsCadence";
+import type { PlanCreditGrantScaling } from "./PlanCreditGrantScaling";
+import {
+  PlanCreditGrantScalingFromJSON,
+  PlanCreditGrantScalingFromJSONTyped,
+  PlanCreditGrantScalingToJSON,
+  PlanCreditGrantScalingToJSONTyped,
+} from "./PlanCreditGrantScaling";
+import type { BillingPlanCreditGrantBillingMode } from "./BillingPlanCreditGrantBillingMode";
+import {
+  BillingPlanCreditGrantBillingModeFromJSON,
+  BillingPlanCreditGrantBillingModeFromJSONTyped,
+  BillingPlanCreditGrantBillingModeToJSON,
+  BillingPlanCreditGrantBillingModeToJSONTyped,
+} from "./BillingPlanCreditGrantBillingMode";
+import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
+import {
+  BillingPlanCreditGrantResetTypeFromJSON,
+  BillingPlanCreditGrantResetTypeFromJSONTyped,
+  BillingPlanCreditGrantResetTypeToJSON,
+  BillingPlanCreditGrantResetTypeToJSONTyped,
+} from "./BillingPlanCreditGrantResetType";
+import type { GenericPreviewObject } from "./GenericPreviewObject";
+import {
+  GenericPreviewObjectFromJSON,
+  GenericPreviewObjectFromJSONTyped,
+  GenericPreviewObjectToJSON,
+  GenericPreviewObjectToJSONTyped,
+} from "./GenericPreviewObject";
+import type { BillingPriceView } from "./BillingPriceView";
+import {
+  BillingPriceViewFromJSON,
+  BillingPriceViewFromJSONTyped,
+  BillingPriceViewToJSON,
+  BillingPriceViewToJSONTyped,
+} from "./BillingPriceView";
+import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
+import {
+  BillingPlanCreditGrantResetCadenceFromJSON,
+  BillingPlanCreditGrantResetCadenceFromJSONTyped,
+  BillingPlanCreditGrantResetCadenceToJSON,
+  BillingPlanCreditGrantResetCadenceToJSONTyped,
+} from "./BillingPlanCreditGrantResetCadence";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
@@ -41,13 +83,6 @@ import {
   BillingPlanCreditGrantResetStartToJSON,
   BillingPlanCreditGrantResetStartToJSONTyped,
 } from "./BillingPlanCreditGrantResetStart";
-import type { PlanCreditGrantScaling } from "./PlanCreditGrantScaling";
-import {
-  PlanCreditGrantScalingFromJSON,
-  PlanCreditGrantScalingFromJSONTyped,
-  PlanCreditGrantScalingToJSON,
-  PlanCreditGrantScalingToJSONTyped,
-} from "./PlanCreditGrantScaling";
 import type { BillingArrearsAnchor } from "./BillingArrearsAnchor";
 import {
   BillingArrearsAnchorFromJSON,
@@ -55,20 +90,6 @@ import {
   BillingArrearsAnchorToJSON,
   BillingArrearsAnchorToJSONTyped,
 } from "./BillingArrearsAnchor";
-import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
-import {
-  BillingPlanCreditGrantResetTypeFromJSON,
-  BillingPlanCreditGrantResetTypeFromJSONTyped,
-  BillingPlanCreditGrantResetTypeToJSON,
-  BillingPlanCreditGrantResetTypeToJSONTyped,
-} from "./BillingPlanCreditGrantResetType";
-import type { GenericPreviewObject } from "./GenericPreviewObject";
-import {
-  GenericPreviewObjectFromJSON,
-  GenericPreviewObjectFromJSONTyped,
-  GenericPreviewObjectToJSON,
-  GenericPreviewObjectToJSONTyped,
-} from "./GenericPreviewObject";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
@@ -83,13 +104,6 @@ import {
   BillingCreditViewToJSON,
   BillingCreditViewToJSONTyped,
 } from "./BillingCreditView";
-import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
-import {
-  BillingPlanCreditGrantResetCadenceFromJSON,
-  BillingPlanCreditGrantResetCadenceFromJSONTyped,
-  BillingPlanCreditGrantResetCadenceToJSON,
-  BillingPlanCreditGrantResetCadenceToJSONTyped,
-} from "./BillingPlanCreditGrantResetCadence";
 
 /**
  *
@@ -201,6 +215,18 @@ export interface PlanCreditGrantView {
   billingCreditPostpaidRatePerUnitDecimal?: string | null;
   /**
    *
+   * @type {BillingPlanCreditGrantBillingMode}
+   * @memberof PlanCreditGrantView
+   */
+  billingMode: BillingPlanCreditGrantBillingMode;
+  /**
+   *
+   * @type {string}
+   * @memberof PlanCreditGrantView
+   */
+  billingProductPriceId?: string | null;
+  /**
+   *
    * @type {number}
    * @memberof PlanCreditGrantView
    */
@@ -307,6 +333,12 @@ export interface PlanCreditGrantView {
   pluralName?: string | null;
   /**
    *
+   * @type {BillingPriceView}
+   * @memberof PlanCreditGrantView
+   */
+  price?: BillingPriceView;
+  /**
+   *
    * @type {BillingPlanCreditGrantResetCadence}
    * @memberof PlanCreditGrantView
    */
@@ -375,6 +407,8 @@ export function instanceOfPlanCreditGrantView(
     !("billingCreditPostpaidEnabled" in value) ||
     value["billingCreditPostpaidEnabled"] === undefined
   )
+    return false;
+  if (!("billingMode" in value) || value["billingMode"] === undefined)
     return false;
   if (
     !("companyCreditAmount" in value) ||
@@ -480,6 +514,13 @@ export function PlanCreditGrantViewFromJSONTyped(
       json["billing_credit_postpaid_rate_per_unit_decimal"] == null
         ? undefined
         : json["billing_credit_postpaid_rate_per_unit_decimal"],
+    billingMode: BillingPlanCreditGrantBillingModeFromJSON(
+      json["billing_mode"],
+    ),
+    billingProductPriceId:
+      json["billing_product_price_id"] == null
+        ? undefined
+        : json["billing_product_price_id"],
     companyCreditAmount: json["company_credit_amount"],
     createdAt: new Date(json["created_at"]),
     credit:
@@ -511,6 +552,10 @@ export function PlanCreditGrantViewFromJSONTyped(
     planVersionId:
       json["plan_version_id"] == null ? undefined : json["plan_version_id"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
+    price:
+      json["price"] == null
+        ? undefined
+        : BillingPriceViewFromJSON(json["price"]),
     resetCadence:
       json["reset_cadence"] == null
         ? undefined
@@ -576,6 +621,8 @@ export function PlanCreditGrantViewToJSONTyped(
       value["billingCreditPostpaidRatePerUnit"],
     billing_credit_postpaid_rate_per_unit_decimal:
       value["billingCreditPostpaidRatePerUnitDecimal"],
+    billing_mode: BillingPlanCreditGrantBillingModeToJSON(value["billingMode"]),
+    billing_product_price_id: value["billingProductPriceId"],
     company_credit_amount: value["companyCreditAmount"],
     created_at: value["createdAt"].toISOString(),
     credit: BillingCreditViewToJSON(value["credit"]),
@@ -593,6 +640,7 @@ export function PlanCreditGrantViewToJSONTyped(
     plan_id: value["planId"],
     plan_version_id: value["planVersionId"],
     plural_name: value["pluralName"],
+    price: BillingPriceViewToJSON(value["price"]),
     reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
       value["resetCadence"],
     ),

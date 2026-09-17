@@ -20,6 +20,8 @@ models/BillingCreditResponseData.ts
 models/BillingCreditRolloverPolicy.ts
 models/BillingCreditView.ts
 models/BillingLinkedResourceResponseData.ts
+models/BillingPlanCreditGrantBillingMode.ts
+models/BillingPlanCreditGrantPriceTierResponseData.ts
 models/BillingPlanCreditGrantResetCadence.ts
 models/BillingPlanCreditGrantResetStart.ts
 models/BillingPlanCreditGrantResetType.ts

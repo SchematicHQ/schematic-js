@@ -27,6 +27,48 @@ import {
   BillingCreditResponseDataToJSON,
   BillingCreditResponseDataToJSONTyped,
 } from "./BillingCreditResponseData";
+import type { PlanCreditGrantScaling } from "./PlanCreditGrantScaling";
+import {
+  PlanCreditGrantScalingFromJSON,
+  PlanCreditGrantScalingFromJSONTyped,
+  PlanCreditGrantScalingToJSON,
+  PlanCreditGrantScalingToJSONTyped,
+} from "./PlanCreditGrantScaling";
+import type { BillingPlanCreditGrantPriceTierResponseData } from "./BillingPlanCreditGrantPriceTierResponseData";
+import {
+  BillingPlanCreditGrantPriceTierResponseDataFromJSON,
+  BillingPlanCreditGrantPriceTierResponseDataFromJSONTyped,
+  BillingPlanCreditGrantPriceTierResponseDataToJSON,
+  BillingPlanCreditGrantPriceTierResponseDataToJSONTyped,
+} from "./BillingPlanCreditGrantPriceTierResponseData";
+import type { BillingPlanCreditGrantBillingMode } from "./BillingPlanCreditGrantBillingMode";
+import {
+  BillingPlanCreditGrantBillingModeFromJSON,
+  BillingPlanCreditGrantBillingModeFromJSONTyped,
+  BillingPlanCreditGrantBillingModeToJSON,
+  BillingPlanCreditGrantBillingModeToJSONTyped,
+} from "./BillingPlanCreditGrantBillingMode";
+import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
+import {
+  BillingPlanCreditGrantResetTypeFromJSON,
+  BillingPlanCreditGrantResetTypeFromJSONTyped,
+  BillingPlanCreditGrantResetTypeToJSON,
+  BillingPlanCreditGrantResetTypeToJSONTyped,
+} from "./BillingPlanCreditGrantResetType";
+import type { PreviewObjectResponseData } from "./PreviewObjectResponseData";
+import {
+  PreviewObjectResponseDataFromJSON,
+  PreviewObjectResponseDataFromJSONTyped,
+  PreviewObjectResponseDataToJSON,
+  PreviewObjectResponseDataToJSONTyped,
+} from "./PreviewObjectResponseData";
+import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
+import {
+  BillingPlanCreditGrantResetCadenceFromJSON,
+  BillingPlanCreditGrantResetCadenceFromJSONTyped,
+  BillingPlanCreditGrantResetCadenceToJSON,
+  BillingPlanCreditGrantResetCadenceToJSONTyped,
+} from "./BillingPlanCreditGrantResetCadence";
 import type { BillingCreditExpiryType } from "./BillingCreditExpiryType";
 import {
   BillingCreditExpiryTypeFromJSON,
@@ -48,13 +90,6 @@ import {
   BillingPlanCreditGrantResetStartToJSON,
   BillingPlanCreditGrantResetStartToJSONTyped,
 } from "./BillingPlanCreditGrantResetStart";
-import type { PlanCreditGrantScaling } from "./PlanCreditGrantScaling";
-import {
-  PlanCreditGrantScalingFromJSON,
-  PlanCreditGrantScalingFromJSONTyped,
-  PlanCreditGrantScalingToJSON,
-  PlanCreditGrantScalingToJSONTyped,
-} from "./PlanCreditGrantScaling";
 import type { BillingArrearsAnchor } from "./BillingArrearsAnchor";
 import {
   BillingArrearsAnchorFromJSON,
@@ -62,13 +97,13 @@ import {
   BillingArrearsAnchorToJSON,
   BillingArrearsAnchorToJSONTyped,
 } from "./BillingArrearsAnchor";
-import type { BillingPlanCreditGrantResetType } from "./BillingPlanCreditGrantResetType";
+import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
-  BillingPlanCreditGrantResetTypeFromJSON,
-  BillingPlanCreditGrantResetTypeFromJSONTyped,
-  BillingPlanCreditGrantResetTypeToJSON,
-  BillingPlanCreditGrantResetTypeToJSONTyped,
-} from "./BillingPlanCreditGrantResetType";
+  BillingPriceResponseDataFromJSON,
+  BillingPriceResponseDataFromJSONTyped,
+  BillingPriceResponseDataToJSON,
+  BillingPriceResponseDataToJSONTyped,
+} from "./BillingPriceResponseData";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
@@ -76,20 +111,13 @@ import {
   BillingCreditExpiryUnitToJSON,
   BillingCreditExpiryUnitToJSONTyped,
 } from "./BillingCreditExpiryUnit";
-import type { PreviewObjectResponseData } from "./PreviewObjectResponseData";
+import type { BillingTiersMode } from "./BillingTiersMode";
 import {
-  PreviewObjectResponseDataFromJSON,
-  PreviewObjectResponseDataFromJSONTyped,
-  PreviewObjectResponseDataToJSON,
-  PreviewObjectResponseDataToJSONTyped,
-} from "./PreviewObjectResponseData";
-import type { BillingPlanCreditGrantResetCadence } from "./BillingPlanCreditGrantResetCadence";
-import {
-  BillingPlanCreditGrantResetCadenceFromJSON,
-  BillingPlanCreditGrantResetCadenceFromJSONTyped,
-  BillingPlanCreditGrantResetCadenceToJSON,
-  BillingPlanCreditGrantResetCadenceToJSONTyped,
-} from "./BillingPlanCreditGrantResetCadence";
+  BillingTiersModeFromJSON,
+  BillingTiersModeFromJSONTyped,
+  BillingTiersModeToJSON,
+  BillingTiersModeToJSONTyped,
+} from "./BillingTiersMode";
 
 /**
  *
@@ -171,6 +199,12 @@ export interface BillingPlanCreditGrantResponseData {
    * @memberof BillingPlanCreditGrantResponseData
    */
   autoTopupThresholdPercent?: number | null;
+  /**
+   * Whether the credits are included in the plan price (granted) or billed as their own subscription line at a price per credit (billed).
+   * @type {BillingPlanCreditGrantBillingMode}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  billingMode: BillingPlanCreditGrantBillingMode;
   /**
    * Deprecated: bundle availability is a per-bundle plan compatibility set now; use compatible_plan_ids on credit bundles instead.
    * @type {boolean}
@@ -309,6 +343,18 @@ export interface BillingPlanCreditGrantResponseData {
    */
   postpaidRatePerUnitDecimal?: string | null;
   /**
+   * The Stripe price a billed grant bills through. Minted when the plan version is published.
+   * @type {BillingPriceResponseData}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  price?: BillingPriceResponseData;
+  /**
+   * Tier table pricing the credits, cheapest bound first. Empty unless billing_mode is billed and the credits are priced on tiers.
+   * @type {Array<BillingPlanCreditGrantPriceTierResponseData>}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  priceTiers: Array<BillingPlanCreditGrantPriceTierResponseData>;
+  /**
    *
    * @type {BillingPlanCreditGrantResetCadence}
    * @memberof BillingPlanCreditGrantResponseData
@@ -339,6 +385,24 @@ export interface BillingPlanCreditGrantResponseData {
    */
   scaling: PlanCreditGrantScaling;
   /**
+   * How price_tiers apply: volume prices every credit at the rate of the tier the total lands in, graduated prices each tier's own credits at its own rate. Set only when price_tiers is non-empty.
+   * @type {BillingTiersMode}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  tierMode?: BillingTiersMode | null;
+  /**
+   * Price per credit in the plan currency's smallest unit. Set only when billing_mode is billed and the credits are priced at one rate.
+   * @type {number}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  unitPrice?: number | null;
+  /**
+   * Price per credit as a decimal in the plan currency's smallest unit. Set only when billing_mode is billed and the rate is below one cent.
+   * @type {string}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  unitPriceDecimal?: string | null;
+  /**
    *
    * @type {Date}
    * @memberof BillingPlanCreditGrantResponseData
@@ -364,6 +428,8 @@ export function instanceOfBillingPlanCreditGrantResponseData(
     value["autoTopupSelfService"] === undefined
   )
     return false;
+  if (!("billingMode" in value) || value["billingMode"] === undefined)
+    return false;
   if (!("canBuyBundles" in value) || value["canBuyBundles"] === undefined)
     return false;
   if (
@@ -381,6 +447,8 @@ export function instanceOfBillingPlanCreditGrantResponseData(
   if (!("planId" in value) || value["planId"] === undefined) return false;
   if (!("planName" in value) || value["planName"] === undefined) return false;
   if (!("postpaidEnabled" in value) || value["postpaidEnabled"] === undefined)
+    return false;
+  if (!("priceTiers" in value) || value["priceTiers"] === undefined)
     return false;
   if (
     !("rolloverPercentage" in value) ||
@@ -445,6 +513,9 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
       json["auto_topup_threshold_percent"] == null
         ? undefined
         : json["auto_topup_threshold_percent"],
+    billingMode: BillingPlanCreditGrantBillingModeFromJSON(
+      json["billing_mode"],
+    ),
     canBuyBundles: json["can_buy_bundles"],
     companyCreditAmount: json["company_credit_amount"],
     createdAt: new Date(json["created_at"]),
@@ -494,6 +565,13 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
       json["postpaid_rate_per_unit_decimal"] == null
         ? undefined
         : json["postpaid_rate_per_unit_decimal"],
+    price:
+      json["price"] == null
+        ? undefined
+        : BillingPriceResponseDataFromJSON(json["price"]),
+    priceTiers: (json["price_tiers"] as Array<any>).map(
+      BillingPlanCreditGrantPriceTierResponseDataFromJSON,
+    ),
     resetCadence:
       json["reset_cadence"] == null
         ? undefined
@@ -508,6 +586,15 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
         : BillingPlanCreditGrantResetTypeFromJSON(json["reset_type"]),
     rolloverPercentage: json["rollover_percentage"],
     scaling: PlanCreditGrantScalingFromJSON(json["scaling"]),
+    tierMode:
+      json["tier_mode"] == null
+        ? undefined
+        : BillingTiersModeFromJSON(json["tier_mode"]),
+    unitPrice: json["unit_price"] == null ? undefined : json["unit_price"],
+    unitPriceDecimal:
+      json["unit_price_decimal"] == null
+        ? undefined
+        : json["unit_price_decimal"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -545,6 +632,7 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     auto_topup_self_service: value["autoTopupSelfService"],
     auto_topup_threshold_credits: value["autoTopupThresholdCredits"],
     auto_topup_threshold_percent: value["autoTopupThresholdPercent"],
+    billing_mode: BillingPlanCreditGrantBillingModeToJSON(value["billingMode"]),
     can_buy_bundles: value["canBuyBundles"],
     company_credit_amount: value["companyCreditAmount"],
     created_at: value["createdAt"].toISOString(),
@@ -567,6 +655,10 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     postpaid_enabled: value["postpaidEnabled"],
     postpaid_rate_per_unit: value["postpaidRatePerUnit"],
     postpaid_rate_per_unit_decimal: value["postpaidRatePerUnitDecimal"],
+    price: BillingPriceResponseDataToJSON(value["price"]),
+    price_tiers: (value["priceTiers"] as Array<any>).map(
+      BillingPlanCreditGrantPriceTierResponseDataToJSON,
+    ),
     reset_cadence: BillingPlanCreditGrantResetCadenceToJSON(
       value["resetCadence"],
     ),
@@ -574,6 +666,9 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     reset_type: BillingPlanCreditGrantResetTypeToJSON(value["resetType"]),
     rollover_percentage: value["rolloverPercentage"],
     scaling: PlanCreditGrantScalingToJSON(value["scaling"]),
+    tier_mode: BillingTiersModeToJSON(value["tierMode"]),
+    unit_price: value["unitPrice"],
+    unit_price_decimal: value["unitPriceDecimal"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }
