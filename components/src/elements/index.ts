@@ -67,8 +67,10 @@ export * from "./styles";
 export { Invoices, type InvoicesProps } from "./Invoices";
 export { UpcomingBill, type UpcomingBillProps } from "./UpcomingBill";
 export {
+  billingResources,
   useResolvedLocale,
   useTranslator,
   type ElementProps,
   type HeadingLevel,
+  type ReadsBillingResources,
 } from "./common";

@@ -13,10 +13,10 @@ is reserved for the offerings resource. The routes those clients call are
 still `/company/*`, and the generated wire models keep their `Company…`
 names — the tier is what `billing` names, not the resource.
 
-| Element      | Hooks                | Derivation              | Recipe                                 |
-| ------------ | -------------------- | ----------------------- | -------------------------------------- |
-| Invoices     | `useInvoices`        | `deriveInvoiceList`     | [invoices.md](./invoices.md)           |
-| UpcomingBill | `useUpcomingInvoice` | `deriveUpcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md) |
+| Element      | Hooks                | Derivation              | Reads             | Recipe                                 |
+| ------------ | -------------------- | ----------------------- | ----------------- | -------------------------------------- |
+| Invoices     | `useInvoices`        | `deriveInvoiceList`     | `invoices`        | [invoices.md](./invoices.md)           |
+| UpcomingBill | `useUpcomingInvoice` | `deriveUpcomingInvoice` | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md) |
 
 ## Before it can load
 
@@ -102,12 +102,19 @@ Without a session the element reports the missing token in its status frame.
 
 For server rendering, `fetchBillingData` in schematic-js returns an
 `initialData` bag the provider seeds from. Name the resources the page
-renders — `fetchBillingData(client, { names: ["invoices", "upcomingInvoice"] })`
-— since each is a request on the server (the upcoming invoice is a live
-billing-provider preview) and there is no default set. Pass the query your
-element asks — `{ names: ["invoices"], invoices: { includePending: true } }`
-— or the seed answers a question nothing asked and the element fetches it
-again.
+renders, since each is a request on the server (the upcoming invoice is a
+live billing-provider preview) and there is no default set. Every element
+declares what it reads as `resources`, and `billingResources` collects them:
+
+```ts
+fetchBillingData(client, {
+  names: billingResources(UpcomingBill, Invoices),
+  invoices: { includePending: true },
+});
+```
+
+Pass the query your element asks, as above, or the seed answers a question
+nothing asked and the element fetches it again.
 
 Those rows show on the first render even though your auth usually resolves a
 render later, and they are checked against it: `fetchBillingData` records

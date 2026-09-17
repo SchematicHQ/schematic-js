@@ -216,4 +216,7 @@ function discountText(discount: DiscountLine, t: Translator): string {
   });
 }
 
+/** What the element reads, for `fetchBillingData` on a server-rendered page. */
+UpcomingBill.resources = ["upcomingInvoice"] as const;
+
 export default UpcomingBill;

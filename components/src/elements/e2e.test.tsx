@@ -1,10 +1,15 @@
-import { SchematicBillingClient, billingApi } from "@schematichq/schematic-js";
+import {
+  SchematicBillingClient,
+  billingApi,
+  fetchBillingData,
+} from "@schematichq/schematic-js";
 import { SchematicProvider } from "@schematichq/schematic-react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { Invoices } from "./Invoices";
 import { UpcomingBill } from "./UpcomingBill";
+import { billingResources } from "./common";
 import { invoice } from "./fixtures/builders";
 import { SCENARIOS } from "./fixtures/scenarios";
 
@@ -150,6 +155,45 @@ describe("end to end", () => {
       await screen.findByText("Loading your next bill"),
     ).toBeInTheDocument();
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("a page prefetched by what its elements read makes no request of its own", async () => {
+    // What `fetchBillingData` is for on a server-rendered page: the elements
+    // declare what they read, the page prefetches exactly that, and the
+    // provider seeds it, so nothing is fetched again after hydration.
+    const fetchImpl = serve(SCENARIOS.pro());
+    const client = new SchematicBillingClient({
+      session: { company: "co_test", token: "tok" },
+      apiUrl: "https://api.test",
+      fetch: fetchImpl,
+    });
+    const names = billingResources(UpcomingBill, Invoices, Invoices);
+    expect(names).toEqual(["upcomingInvoice", "invoices"]);
+    const initialData = await fetchBillingData(client, { names });
+    const requests = (fetchImpl as unknown as { mock: { calls: unknown[] } })
+      .mock.calls.length;
+    expect(requests).toBe(2);
+
+    render(
+      <SchematicProvider
+        publishableKey="pk_test"
+        billingClient={client}
+        initialData={initialData}
+        session={{ company: "co_test", token: "tok" }}
+      >
+        <UpcomingBill />
+        <Invoices limit={2} />
+      </SchematicProvider>,
+    );
+    expect(screen.getByTestId("schematic-upcoming-total")).toHaveTextContent(
+      "$68.00",
+    );
+    expect(screen.getAllByTestId("schematic-invoice")).toHaveLength(2);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(
+      (fetchImpl as unknown as { mock: { calls: unknown[] } }).mock.calls
+        .length,
+    ).toBe(requests);
   });
 
   test("Invoices waits rather than failing while the session is pending", async () => {
