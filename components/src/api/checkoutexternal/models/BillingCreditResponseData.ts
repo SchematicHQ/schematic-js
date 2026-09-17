@@ -55,6 +55,13 @@ import {
   BillingCreditRolloverPolicyToJSON,
   BillingCreditRolloverPolicyToJSONTyped,
 } from "./BillingCreditRolloverPolicy";
+import type { BillingCreditLedgerAuthority } from "./BillingCreditLedgerAuthority";
+import {
+  BillingCreditLedgerAuthorityFromJSON,
+  BillingCreditLedgerAuthorityFromJSONTyped,
+  BillingCreditLedgerAuthorityToJSON,
+  BillingCreditLedgerAuthorityToJSONTyped,
+} from "./BillingCreditLedgerAuthority";
 
 /**
  *
@@ -124,6 +131,12 @@ export interface BillingCreditResponseData {
   id: string;
   /**
    *
+   * @type {BillingCreditLedgerAuthority}
+   * @memberof BillingCreditResponseData
+   */
+  ledgerAuthority: BillingCreditLedgerAuthority;
+  /**
+   *
    * @type {string}
    * @memberof BillingCreditResponseData
    */
@@ -186,6 +199,8 @@ export function instanceOfBillingCreditResponseData(
   if (!("description" in value) || value["description"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
+  if (!("ledgerAuthority" in value) || value["ledgerAuthority"] === undefined)
+    return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
@@ -224,6 +239,9 @@ export function BillingCreditResponseDataFromJSONTyped(
     description: json["description"],
     icon: json["icon"] == null ? undefined : json["icon"],
     id: json["id"],
+    ledgerAuthority: BillingCreditLedgerAuthorityFromJSON(
+      json["ledger_authority"],
+    ),
     name: json["name"],
     pluralName: json["plural_name"] == null ? undefined : json["plural_name"],
     price:
@@ -271,6 +289,9 @@ export function BillingCreditResponseDataToJSONTyped(
     description: value["description"],
     icon: value["icon"],
     id: value["id"],
+    ledger_authority: BillingCreditLedgerAuthorityToJSON(
+      value["ledgerAuthority"],
+    ),
     name: value["name"],
     plural_name: value["pluralName"],
     price: BillingPriceResponseDataToJSON(value["price"]),
