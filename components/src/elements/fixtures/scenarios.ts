@@ -5,11 +5,18 @@
 
 import type { BillingData } from "@schematichq/schematic-react";
 
-import { daysFromNow, invoice, invoicePage } from "./builders";
+import {
+  daysFromNow,
+  discount,
+  invoice,
+  invoicePage,
+  upcomingInvoice,
+} from "./builders";
 
 /**
  * A paying company with history: two charges and a credit note on screen,
- * and eleven more behind them.
+ * and eleven more behind them. Its next bill spends the last of a stored
+ * balance and carries a launch discount.
  */
 export function proCompany(): BillingData {
   return {
@@ -38,17 +45,37 @@ export function proCompany(): BillingData {
       true,
       14,
     ),
+    upcomingInvoice: upcomingInvoice({
+      amountDue: 6800,
+      subtotal: 8300,
+      customerBalanceApplied: 1500,
+      customerBalanceRemaining: 0,
+      discounts: [discount()],
+    }),
   };
 }
 
-/** A company still trialing: nothing invoiced yet. */
+/** A company still trialing: nothing invoiced yet, first bill in a week. */
 export function trialingCompany(): BillingData {
-  return { invoices: invoicePage([]) };
+  return {
+    invoices: invoicePage([]),
+    upcomingInvoice: upcomingInvoice({ dueDate: daysFromNow(7) }),
+  };
+}
+
+/**
+ * A company with no subscription. `null` is the server's answer, not a
+ * missing key, which is what the elements have to tell apart from a
+ * resource that has not loaded.
+ */
+export function unbilledCompany(): BillingData {
+  return { invoices: invoicePage([]), upcomingInvoice: null };
 }
 
 export const SCENARIOS = {
   pro: proCompany,
   trialing: trialingCompany,
+  unbilled: unbilledCompany,
 } satisfies Record<string, () => BillingData>;
 
 export type ScenarioName = keyof typeof SCENARIOS;

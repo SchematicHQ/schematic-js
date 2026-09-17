@@ -51,11 +51,11 @@ importers:
         specifier: ^2.41.0
         version: 2.41.0
       '@schematichq/schematic-js':
-        specifier: ^1.7.0
-        version: 1.7.0
+        specifier: ^1.8.0
+        version: 1.8.0
       '@schematichq/schematic-react':
-        specifier: ^1.6.0
-        version: 1.6.0(react@19.3.0)
+        specifier: ^1.8.0
+        version: 1.8.0(react@19.3.0)
       '@stripe/react-stripe-js':
         specifier: ^6.10.0
         version: 6.10.0(@stripe/stripe-js@9.16.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -832,11 +832,11 @@ packages:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  '@schematichq/schematic-js@1.7.0':
-    resolution: {integrity: sha512-9fs14yP3FR8A4CgA5Nvn21SwmPppVgSixlT5ddBeH/0Z6vNrY7xDl4LOuh+6/JGcJKK7apPWr1XIGMqZXSOdbQ==}
+  '@schematichq/schematic-js@1.8.0':
+    resolution: {integrity: sha512-tkWlZfyRMw6OGa8F+VGBQolVK/OABNAboe9dvAcF0WrGWXP+JB2wuFd4qcTqFDMN+MmuKpXWgMvE8Un2p6Q69g==}
 
-  '@schematichq/schematic-react@1.6.0':
-    resolution: {integrity: sha512-AXiY4ghVxM0zV2azy5xw5O3eqSl5Yq75BIPvMkyOwfNlH+aneYu2a2zKlAAgvCXzmBRCw2MyOcfkMQfoy1ovkA==}
+  '@schematichq/schematic-react@1.8.0':
+    resolution: {integrity: sha512-oiw3UbhjhnxJ2o/v2ihsBpUvGiWFpVmzxHTTqXmoMhbN9yYrlWZa2eqmPAY89WIAoN51KOzRILic9B7D9cSRGA==}
     peerDependencies:
       react: '>=18'
 
@@ -4069,14 +4069,14 @@ snapshots:
       - css-to-react-native
       - react-native
 
-  '@schematichq/schematic-js@1.7.0':
+  '@schematichq/schematic-js@1.8.0':
     dependencies:
       cross-fetch: 4.1.0
       uuid: 14.0.2
     transitivePeerDependencies:
       - encoding
 
-  '@schematichq/schematic-react@1.6.0(react@19.3.0)':
+  '@schematichq/schematic-react@1.8.0(react@19.3.0)':
     dependencies:
       react: 19.3.0
 
