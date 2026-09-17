@@ -73,10 +73,51 @@ describe("UpcomingBill", () => {
     );
     expect(onMissingString).toHaveBeenCalledWith("upcomingBillHeader");
     expect(onMissingString).not.toHaveBeenCalledWith("upcomingBillError");
+    expect(onMissingString).not.toHaveBeenCalledWith("upcomingBillUnavailable");
+  });
+
+  test("says the bill is not available on a 404 with nothing to show", () => {
+    // The account is not on the flag: never "no upcoming invoice", which a
+    // subscribed customer would read as "I will not be charged".
+    renderBill(
+      {},
+      {},
+      {
+        status: {
+          upcomingInvoice: {
+            error: new SchematicApiError(404, "/company/upcoming-invoice", {}),
+          },
+        },
+      },
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Your upcoming invoice is not available for this account.",
+    );
+    expect(screen.queryByText("No upcoming invoice")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Try again" }),
+    ).toBeInTheDocument();
+  });
+
+  test("keeps the generic copy for a 404 under a bill already on screen", () => {
+    renderBill(
+      SCENARIOS.pro(),
+      {},
+      {
+        status: {
+          upcomingInvoice: {
+            error: new SchematicApiError(404, "/company/upcoming-invoice", {}),
+          },
+        },
+      },
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "There was a problem retrieving your upcoming invoice.",
+    );
+    expect(screen.getByTestId("schematic-upcoming-total")).toBeInTheDocument();
   });
 
   test("reports a refused request the same way as any other failure", () => {
-    // A 404 never reaches here: the client reads it as no next bill.
     renderBill(
       {},
       {},

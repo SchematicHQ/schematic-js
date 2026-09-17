@@ -34,6 +34,7 @@ export type ElementStrings = {
   upcomingBillLoading: string;
   upcomingBillHeader: string;
   upcomingBillError: string;
+  upcomingBillUnavailable: string;
   upcomingBillEmpty: string;
   upcomingBillEstimate: string;
   upcomingBillBalanceApplied: string;
@@ -97,6 +98,8 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   upcomingBillLoading: "Loading your next bill",
   upcomingBillHeader: "Next bill due {{date}}",
   upcomingBillError: "There was a problem retrieving your upcoming invoice.",
+  upcomingBillUnavailable:
+    "Your upcoming invoice is not available for this account.",
   upcomingBillEmpty: "No upcoming invoice",
   upcomingBillEstimate: "Estimated bill",
   upcomingBillBalanceApplied: "Applied balance towards next invoice",

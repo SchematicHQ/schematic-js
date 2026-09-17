@@ -44,6 +44,7 @@ const KEYS = [
   "upcomingBillEstimate",
   "upcomingBillHeader",
   "upcomingBillLoading",
+  "upcomingBillUnavailable",
 ];
 
 describe("the string contract", () => {

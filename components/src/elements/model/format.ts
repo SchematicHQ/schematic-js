@@ -148,11 +148,15 @@ export function formatConsumptionRate(rate: number, locale: string): string {
  * RangeError on formatting one. Thrown inside a render, that takes down the
  * host's tree.
  */
-/** "50%" with no fraction digits unless needed. */
+/**
+ * "50%", or "12.5%" for a coupon written with a fraction. Two places is
+ * what a provider allows a percentage, and Intl drops trailing zeros, so
+ * a whole number stays whole.
+ */
 export function formatPercent(fraction: number, locale: string): string {
   return new Intl.NumberFormat(usableLocale(locale), {
     style: "percent",
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(fraction);
 }
 
