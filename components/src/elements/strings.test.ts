@@ -34,6 +34,16 @@ const KEYS = [
   "invoicesUnavailable",
   "invoicesUndated",
   "retry",
+  "upcomingBillBalanceApplied",
+  "upcomingBillBalanceRemaining",
+  "upcomingBillDiscount",
+  "upcomingBillDiscountRepeating",
+  "upcomingBillDiscountValue",
+  "upcomingBillEmpty",
+  "upcomingBillError",
+  "upcomingBillEstimate",
+  "upcomingBillHeader",
+  "upcomingBillLoading",
 ];
 
 describe("the string contract", () => {

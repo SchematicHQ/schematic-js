@@ -12,9 +12,11 @@ export {
   useSchematicLocale,
   useSchematicStrings,
   useSchematicTranslate,
+  useUpcomingInvoice,
   type BillingData,
   type BillingDataProviderProps,
   type BillingDataStatus,
+  type Discount,
   type Invoice,
   type InvoicePage,
   type InvoiceQuery,
@@ -22,24 +24,32 @@ export {
   type ResourceState,
   type SchematicI18nConfig,
   type SchematicI18nProviderProps,
+  type UpcomingInvoice,
 } from "@schematichq/schematic-react";
 export {
   deriveInvoiceList,
+  deriveUpcomingInvoice,
   featureName,
   formatConsumptionRate,
   formatCurrency,
   formatDate,
   formatNumber,
+  formatPercent,
   formatShortDate,
   httpStatus,
   plural,
   resolveLocale,
   viewerLocale,
+  type BillLine,
   type DeriveInvoiceListOptions,
+  type DeriveUpcomingInvoiceOptions,
+  type DiscountLine,
   type FormatCurrencyOptions,
   type InvoiceFormatters,
   type InvoiceList,
   type InvoiceRow,
+  type UpcomingBillSummary,
+  type UpcomingInvoiceFormatters,
 } from "./model";
 export {
   DEFAULT_STRINGS,
@@ -55,6 +65,7 @@ export {
 } from "./strings";
 export * from "./styles";
 export { Invoices, type InvoicesProps } from "./Invoices";
+export { UpcomingBill, type UpcomingBillProps } from "./UpcomingBill";
 export {
   useResolvedLocale,
   useTranslator,

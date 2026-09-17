@@ -5,8 +5,7 @@ the billing API. Each element reads one or two resources through hooks from
 `@schematichq/schematic-react`, reduces them to a domain model with a pure
 derivation, and renders with CSS-variable styling.
 
-This release carries the first element; the rest land with the endpoints
-that feed them.
+The rest of the elements land with the endpoints that feed them.
 
 Naming: `billing` is the end-customer API tier that the elements read from
 (`SchematicBillingClient`, `BillingProvider`, `fetchBillingData`); `catalog`
@@ -14,9 +13,10 @@ is reserved for the offerings resource. The routes those clients call are
 still `/company/*`, and the generated wire models keep their `Company…`
 names — the tier is what `billing` names, not the resource.
 
-| Element  | Hooks         | Derivation          | Recipe                       |
-| -------- | ------------- | ------------------- | ---------------------------- |
-| Invoices | `useInvoices` | `deriveInvoiceList` | [invoices.md](./invoices.md) |
+| Element      | Hooks                | Derivation              | Recipe                                 |
+| ------------ | -------------------- | ----------------------- | -------------------------------------- |
+| Invoices     | `useInvoices`        | `deriveInvoiceList`     | [invoices.md](./invoices.md)           |
+| UpcomingBill | `useUpcomingInvoice` | `deriveUpcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md) |
 
 ## Before it can load
 

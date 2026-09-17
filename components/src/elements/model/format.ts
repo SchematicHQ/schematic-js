@@ -148,6 +148,14 @@ export function formatConsumptionRate(rate: number, locale: string): string {
  * RangeError on formatting one. Thrown inside a render, that takes down the
  * host's tree.
  */
+/** "50%" with no fraction digits unless needed. */
+export function formatPercent(fraction: number, locale: string): string {
+  return new Intl.NumberFormat(usableLocale(locale), {
+    style: "percent",
+    maximumFractionDigits: 0,
+  }).format(fraction);
+}
+
 export function usableDate(date: Date | null | undefined): Date | undefined {
   if (date === null || date === undefined) {
     return undefined;

@@ -30,6 +30,17 @@ export type ElementStrings = {
   invoicesChargeTooltip: string;
   invoicesCreditTooltip: string;
   invoicesUndated: string;
+
+  upcomingBillLoading: string;
+  upcomingBillHeader: string;
+  upcomingBillError: string;
+  upcomingBillEmpty: string;
+  upcomingBillEstimate: string;
+  upcomingBillBalanceApplied: string;
+  upcomingBillBalanceRemaining: string;
+  upcomingBillDiscount: string;
+  upcomingBillDiscountValue: string;
+  upcomingBillDiscountRepeating: string;
 };
 
 export type StringKey = keyof ElementStrings;
@@ -82,6 +93,21 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   invoicesCreditTooltip:
     "Credit — this amount was returned to your account, typically due to a plan change or proration",
   invoicesUndated: "View invoice",
+
+  upcomingBillLoading: "Loading your next bill",
+  upcomingBillHeader: "Next bill due {{date}}",
+  upcomingBillError: "There was a problem retrieving your upcoming invoice.",
+  upcomingBillEmpty: "No upcoming invoice",
+  upcomingBillEstimate: "Estimated bill",
+  upcomingBillBalanceApplied: "Applied balance towards next invoice",
+  upcomingBillBalanceRemaining: "Remaining balance after next invoice",
+  upcomingBillDiscount: "Discount",
+  upcomingBillDiscountValue: "{{value}} off",
+  // Looked up by the bare key with `{ count }`; English has two forms.
+  upcomingBillDiscountRepeating: "{{value}} off for next {{count}} months",
+  upcomingBillDiscountRepeating_one: "{{value}} off for next month",
+  upcomingBillDiscountRepeating_other:
+    "{{value}} off for next {{count}} months",
 };
 
 /**

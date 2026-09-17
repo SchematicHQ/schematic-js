@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { Invoices } from "./Invoices";
+import { UpcomingBill } from "./UpcomingBill";
 import { invoice } from "./fixtures/builders";
 import { SCENARIOS } from "./fixtures/scenarios";
 
@@ -12,13 +13,26 @@ import { SCENARIOS } from "./fixtures/scenarios";
  * schematic-react hooks to the DOM, with fetch faked at the network edge.
  */
 
-/** Answers /company/invoices the way the API does: a `limit`/`offset` window
- * plus the total count. */
+/**
+ * Answers /company/invoices the way the API does — a `limit`/`offset` window
+ * plus the total count — and /company/upcoming-invoice with the bill, or a
+ * 404 when there is nothing to bill.
+ */
 function serve(scenario: ReturnType<(typeof SCENARIOS)["pro"]>) {
   const all = scenario.invoices?.invoices ?? [];
   const count = scenario.invoices?.count ?? all.length;
+  const upcoming = scenario.upcomingInvoice;
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
+    if (url.pathname === "/company/upcoming-invoice" && upcoming != null) {
+      return new Response(
+        JSON.stringify({
+          data: billingApi.CompanyUpcomingInvoiceResponseDataToJSON(upcoming),
+          params: {},
+        }),
+        { status: 200 },
+      );
+    }
     if (url.pathname === "/company/invoices") {
       const limit = Number(url.searchParams.get("limit"));
       const offset = Number(url.searchParams.get("offset"));
@@ -86,6 +100,35 @@ describe("end to end", () => {
       expect(screen.getAllByTestId("schematic-invoice")).toHaveLength(30),
     );
     expect(screen.queryByRole("button", { name: "Load more" })).toBeNull();
+  });
+
+  test("UpcomingBill", async () => {
+    renderStack(<UpcomingBill />, "tok");
+    expect(
+      await screen.findByTestId("schematic-upcoming-total"),
+    ).toHaveTextContent("$68.00");
+    expect(screen.getByTestId("schematic-balance-applied")).toHaveTextContent(
+      "-$15.00",
+    );
+    expect(screen.getByTestId("schematic-discount")).toHaveTextContent(
+      "20% off for next 3 months",
+    );
+  });
+
+  test("UpcomingBill renders the empty state for a 404", async () => {
+    // No subscription is a 404 from the endpoint; the client reads it as no
+    // next bill, and the element as content rather than a failure.
+    renderStack(<UpcomingBill />, "tok", SCENARIOS.unbilled());
+    expect(await screen.findByText("No upcoming invoice")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("UpcomingBill waits rather than failing while the session is pending", async () => {
+    renderStack(<UpcomingBill />);
+    expect(
+      await screen.findByText("Loading your next bill"),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   test("Invoices waits rather than failing while the session is pending", async () => {
