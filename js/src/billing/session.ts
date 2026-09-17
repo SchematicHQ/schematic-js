@@ -73,6 +73,12 @@ export interface SessionOptions {
 export interface RequestOptions {
   method?: string;
   body?: unknown;
+  /**
+   * Statuses that resolve to `null` rather than throwing: an endpoint whose
+   * "nothing here" is a 404. A 401 is never one of them — the refresh and
+   * retry run first, and only what comes back from that is judged.
+   */
+  nullOn?: number[];
 }
 
 export class SchematicApiError extends Error {
@@ -411,6 +417,13 @@ export class SchematicSession {
       if (!retried) {
         throw new SchematicApiError(status, path, rejected);
       }
+    }
+
+    if (options.nullOn?.includes(response.status) === true) {
+      // Drained to release the connection; the body is not the answer.
+      await discardBody(response);
+      await stillOurs();
+      return null;
     }
 
     const parsed = await readBody(response);

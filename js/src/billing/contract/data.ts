@@ -1,4 +1,5 @@
 import type { InvoicePage, InvoiceQuery } from "./invoices";
+import type { UpcomingInvoice } from "./upcoming";
 
 export interface ResourceState<T> {
   /** `undefined` until the first successful load; retained across later errors. */
@@ -19,12 +20,22 @@ export interface ResourceState<T> {
 export interface BillingResources {
   /** `GET /company/invoices?limit&offset&include_pending`. */
   invoices: InvoicePage;
+  /**
+   * `GET /company/upcoming-invoice`. `null` is a loaded value — the company
+   * has no next bill, which the endpoint reports as a 404 — so only
+   * `undefined` means the resource has not loaded.
+   */
+  upcomingInvoice: UpcomingInvoice | null;
 }
 
 /** `Record<string, never>` marks a singleton; anything else is keyed. */
 export interface BillingResourceParams {
   invoices: InvoiceQuery;
+  upcomingInvoice: Record<string, never>;
 }
+
+/** The params of every singleton resource. */
+export const SINGLETON: Record<string, never> = {};
 
 export type BillingResourceName = keyof BillingResources;
 

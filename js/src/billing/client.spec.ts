@@ -22,6 +22,37 @@ const wireInvoices = {
 /** An empty page in the shape the API sends one. */
 const wireEmpty = { data: { count: 0, invoices: [] } };
 
+const wireUpcoming = {
+  data: {
+    amount_due: 6800,
+    currency: "usd",
+    customer_balance_applied: 1500,
+    customer_balance_remaining: 0,
+    discounts: [
+      {
+        amount_off: null,
+        coupon_name: "Launch",
+        currency: null,
+        customer_facing_code: "LAUNCH20",
+        duration: "repeating",
+        duration_in_months: 3,
+        percent_off: 20,
+      },
+    ],
+    due_date: "2026-09-30T00:00:00Z",
+    subtotal: 8300,
+  },
+  params: {},
+};
+
+/** What each path answers, so one fake can serve a whole prefetch. */
+const byPath =
+  (routes: Record<string, { status?: number; body?: unknown }>) =>
+  (url: string) => {
+    const path = new URL(url).pathname;
+    return routes[path] ?? { status: 404, body: { error: "not found" } };
+  };
+
 describe("SchematicBillingClient", () => {
   it("passes paging params and decodes invoice rows", async () => {
     const { calls, fetchImpl } = fakeFetch(() => ({ body: wireInvoices }));
@@ -106,6 +137,71 @@ describe("SchematicBillingClient", () => {
       status: 500,
       body: "oops",
       path: "/company/invoices?limit=1&offset=0",
+    });
+  });
+
+  it("decodes the next bill", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireUpcoming }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const bill = await client.fetchUpcomingInvoice();
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/upcoming-invoice",
+    );
+    expect(bill).toMatchObject({
+      amountDue: 6800,
+      customerBalanceApplied: 1500,
+      subtotal: 8300,
+    });
+    expect(bill?.dueDate).toBeInstanceOf(Date);
+    expect(bill?.discounts[0]).toMatchObject({
+      couponName: "Launch",
+      customerFacingCode: "LAUNCH20",
+      percentOff: 20,
+      durationInMonths: 3,
+    });
+    // The generated FromJSON maps wire nulls to undefined optionals.
+    expect(bill?.discounts[0].amountOff).toBeUndefined();
+  });
+
+  it("reads a 404 as no next bill rather than a failure", async () => {
+    // No subscription is a 404 from the endpoint, and so is an account not
+    // yet on the flag: both are "nothing to bill" to a page.
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "billing subscription upcoming invoice not found" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(client.fetchUpcomingInvoice()).resolves.toBeNull();
+  });
+
+  it("reports a malformed next bill rather than throwing a TypeError", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ body: "yes" }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(client.fetchUpcomingInvoice()).rejects.toThrow(
+      /Malformed response/,
+    );
+  });
+
+  it("throws SchematicApiError when the next bill cannot be read", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ status: 500, body: "oops" }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client.fetchUpcomingInvoice().catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({
+      status: 500,
+      path: "/company/upcoming-invoice",
     });
   });
 
@@ -207,5 +303,54 @@ describe("fetchBillingData", () => {
       }),
     );
     expect(empty.invoices).toBeUndefined();
+  });
+
+  it("prefetches the next bill beside the invoices by default", async () => {
+    const { calls, fetchImpl } = fakeFetch(
+      byPath({
+        "/company/invoices": { body: wireEmpty },
+        "/company/upcoming-invoice": { body: wireUpcoming },
+      }),
+    );
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const data = await fetchBillingData(client);
+    expect(calls.map((call) => new URL(call.url).pathname).sort()).toEqual([
+      "/company/invoices",
+      "/company/upcoming-invoice",
+    ]);
+    expect(data.invoices).toMatchObject({ count: 0, hasMore: false });
+    expect(data.upcomingInvoice).toMatchObject({ amountDue: 6800 });
+  });
+
+  it("seeds no next bill as null, and a failure as nothing", async () => {
+    // `null` is the server's answer and the store must be spared asking
+    // again; a failure is left out so the element asks for itself.
+    const { fetchImpl } = fakeFetch(
+      byPath({ "/company/invoices": { body: wireEmpty } }),
+    );
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const data = await fetchBillingData(client, { names: ["upcomingInvoice"] });
+    expect(data.upcomingInvoice).toBeNull();
+    expect(data.invoices).toBeUndefined();
+
+    const { fetchImpl: failing } = fakeFetch(() => ({
+      status: 500,
+      body: "x",
+    }));
+    const empty = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: failing,
+      }),
+      { names: ["upcomingInvoice"] },
+    );
+    expect(empty.upcomingInvoice).toBeUndefined();
+    expect("upcomingInvoice" in empty).toBe(false);
   });
 });

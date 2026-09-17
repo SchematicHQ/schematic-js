@@ -6,12 +6,16 @@
  * the request that carries it, are `SchematicSession`.
  */
 
-import { GetCompanyInvoicesResponseFromJSON } from "./api/generated/models";
+import {
+  GetCompanyInvoicesResponseFromJSON,
+  GetCompanyUpcomingInvoiceResponseFromJSON,
+} from "./api/generated/models";
 import type {
   BillingData,
   BillingResourceName,
   InvoicePage,
   InvoiceQuery,
+  UpcomingInvoice,
 } from "./contract";
 import { normalizeInvoiceQuery } from "./contract";
 import type {
@@ -40,6 +44,8 @@ export type InvoicesResult = Omit<InvoicePage, "hasMore">;
  */
 export interface BillingClient {
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult>;
+  /** `null` when the company has no next bill. */
+  fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
 
   readonly sessionStatus: SessionStatus;
 
@@ -111,6 +117,23 @@ export class SchematicBillingClient implements BillingClient {
       return { invoices: decoded.invoices, count: decoded.count };
     });
   }
+
+  fetchUpcomingInvoice(): Promise<UpcomingInvoice | null> {
+    const path = "/company/upcoming-invoice";
+    // A company with no subscription has no next bill, and the endpoint
+    // says so with a 404. An account not yet on the company-context-api
+    // flag 404s the same way and arrives as the same null: that is the
+    // rollout switch, not something a page in production has to tell apart.
+    return this.session.request(path, { nullOn: [404] }).then((body) => {
+      if (body === null) {
+        return null;
+      }
+      if (typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return GetCompanyUpcomingInvoiceResponseFromJSON(body).data;
+    });
+  }
 }
 
 export interface BillingPrefetchOptions {
@@ -127,7 +150,7 @@ export async function fetchBillingData(
   client: BillingClient,
   options: BillingPrefetchOptions = {},
 ): Promise<BillingData> {
-  const wanted = options.names ?? ["invoices"];
+  const wanted = options.names ?? ["invoices", "upcomingInvoice"];
   const data: BillingData = {};
   // Normalized as the store normalizes what an element asks, so that a
   // prefetch for a non-default query is claimed rather than fetched again.
@@ -159,6 +182,12 @@ export async function fetchBillingData(
               hasMore:
                 page.invoices.length > 0 && page.invoices.length < page.count,
             };
+            break;
+          }
+          case "upcomingInvoice": {
+            // `null` is an answer, and seeding it is what spares the page a
+            // request the prefetch has already made.
+            data.upcomingInvoice = await client.fetchUpcomingInvoice();
             break;
           }
         }
