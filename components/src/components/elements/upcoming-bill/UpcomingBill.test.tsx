@@ -38,8 +38,13 @@ const state = vi.hoisted(() => {
   return { embed, subscription, company };
 });
 
-vi.mock("../../../hooks", () => ({
+// Mock the module itself, not the `hooks` barrel, so hooks that call
+// `useEmbed` internally (e.g. `useNextBillDate`) see the same state.
+vi.mock("../../../hooks/useEmbed", () => ({
   useEmbed: () => state.embed,
+}));
+
+vi.mock("../../../hooks/useIsLightBackground", () => ({
   useIsLightBackground: () => true,
 }));
 
