@@ -80,7 +80,7 @@ export function useInvoices(
 
 /**
  * The company's next bill. `data` is `null` when there is nothing to bill —
- * no subscription, which the endpoint reports as a 404 — so an element can
+ * no subscription, which the endpoint reports as a 204 — so an element can
  * render an empty state; `data === undefined` is what means not loaded yet.
  */
 export function useUpcomingInvoice(): ResourceHandle<UpcomingInvoice | null> {
