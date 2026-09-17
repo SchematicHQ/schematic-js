@@ -89,6 +89,27 @@ describe("deriveUpcomingInvoice", () => {
     });
   });
 
+  test("keeps the fraction of a fractional percentage", () => {
+    // Stripe allows two decimals on percent_off; rounding 12.5 to 13 would
+    // contradict the invoice it sends.
+    const lines = derive({
+      discounts: [
+        discount({ percentOff: 12.5 }),
+        discount({ percentOff: 33.33 }),
+        discount({ percentOff: 0.5 }),
+      ],
+    }).discounts;
+    expect(lines.map((line) => line.valueText)).toEqual([
+      "12.5%",
+      "33.33%",
+      "0.5%",
+    ]);
+    expect(
+      derive({ discounts: [discount({ percentOff: 20 })] }).discounts[0]
+        .valueText,
+    ).toBe("20%");
+  });
+
   test("describes a fixed-amount discount in its own currency", () => {
     const [line] = derive({
       discounts: [

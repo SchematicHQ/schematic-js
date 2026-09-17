@@ -9,7 +9,7 @@ import {
   type ElementProps,
   type HeadingLevel,
 } from "./common";
-import { deriveUpcomingInvoice, type DiscountLine } from "./model";
+import { deriveUpcomingInvoice, httpStatus, type DiscountLine } from "./model";
 import type { Translator } from "./strings";
 
 export interface UpcomingBillProps extends ElementProps {
@@ -30,9 +30,11 @@ export interface UpcomingBillProps extends ElementProps {
  * account balance and discounts that shaped the figure.
  *
  * A company with nothing to bill — no subscription — gets the empty state
- * rather than a fabricated zero. That is a loaded answer from the server,
- * not a missing one, so it renders as content rather than as a permanent
- * skeleton.
+ * rather than a fabricated zero. That is a loaded answer from the server (a
+ * 204), not a missing one, so it renders as content rather than as a
+ * permanent skeleton. A 404 is something else: the account is not enabled
+ * for company reads, and the card says so rather than showing a customer
+ * with a subscription "no upcoming invoice".
  */
 export function UpcomingBill({
   className,
@@ -64,13 +66,23 @@ export function UpcomingBill({
   const discountRow =
     showDiscounts && bill !== null && bill.discounts.length > 0;
 
+  // A 404 means the account is not enabled for company reads, but "not
+  // available" under a bill already loaded would contradict itself.
+  const unavailable = invoice === undefined && httpStatus(error) === 404;
+  // Only resolve error copy on failure, or a host's translator would report
+  // a missing key on every healthy render.
+  const errorMessage =
+    error === undefined
+      ? undefined
+      : unavailable
+        ? t("upcomingBillUnavailable")
+        : t("upcomingBillError");
+
   return (
     <StatusFrame
       className={cx("schematic-card", "schematic-upcoming-bill", className)}
       error={error}
-      // Only resolve error copy on failure, or a host's translator would
-      // report a missing key on every healthy render.
-      errorMessage={error === undefined ? undefined : t("upcomingBillError")}
+      errorMessage={errorMessage}
       hasData={invoice !== undefined}
       isPending={isPending}
       loadingLabel={t("upcomingBillLoading")}

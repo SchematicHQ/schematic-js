@@ -16,24 +16,32 @@ import { SCENARIOS } from "./fixtures/scenarios";
 /**
  * Answers /company/invoices the way the API does — a `limit`/`offset` window
  * plus the total count — and /company/upcoming-invoice with the bill, or a
- * 404 when there is nothing to bill.
+ * 204 when there is nothing to bill. An account not on the flag gets a 404
+ * from every company route, which is what everything else falls to.
  */
-function serve(scenario: ReturnType<(typeof SCENARIOS)["pro"]>) {
+function serve(
+  scenario: ReturnType<(typeof SCENARIOS)["pro"]>,
+  flagged = true,
+) {
   const all = scenario.invoices?.invoices ?? [];
   const count = scenario.invoices?.count ?? all.length;
   const upcoming = scenario.upcomingInvoice;
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
-    if (url.pathname === "/company/upcoming-invoice" && upcoming != null) {
-      return new Response(
-        JSON.stringify({
-          data: billingApi.CompanyUpcomingInvoiceResponseDataToJSON(upcoming),
-          params: {},
-        }),
-        { status: 200 },
-      );
+    if (flagged && url.pathname === "/company/upcoming-invoice") {
+      return upcoming == null
+        ? new Response(null, { status: 204 })
+        : new Response(
+            JSON.stringify({
+              data: billingApi.CompanyUpcomingInvoiceResponseDataToJSON(
+                upcoming,
+              ),
+              params: {},
+            }),
+            { status: 200 },
+          );
     }
-    if (url.pathname === "/company/invoices") {
+    if (flagged && url.pathname === "/company/invoices") {
       const limit = Number(url.searchParams.get("limit"));
       const offset = Number(url.searchParams.get("offset"));
       const rows = all
@@ -58,11 +66,12 @@ function renderStack(
   ui: React.ReactNode,
   token?: string,
   scenario = SCENARIOS.pro(),
+  flagged = true,
 ) {
   const client = new SchematicBillingClient({
     session: token === undefined ? undefined : { company: "co_test", token },
     apiUrl: "https://api.test",
-    fetch: serve(scenario),
+    fetch: serve(scenario, flagged),
   });
   return render(
     <SchematicProvider publishableKey="pk_test" billingClient={client}>
@@ -115,12 +124,24 @@ describe("end to end", () => {
     );
   });
 
-  test("UpcomingBill renders the empty state for a 404", async () => {
-    // No subscription is a 404 from the endpoint; the client reads it as no
+  test("UpcomingBill renders the empty state for a 204", async () => {
+    // No subscription is a 204 from the endpoint; the client reads it as no
     // next bill, and the element as content rather than a failure.
     renderStack(<UpcomingBill />, "tok", SCENARIOS.unbilled());
     expect(await screen.findByText("No upcoming invoice")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("UpcomingBill says it is not available for an account off the flag", async () => {
+    // The flag middleware answers 404; that must never read as "nothing to
+    // bill" for a customer who has a subscription.
+    renderStack(<UpcomingBill />, "tok", SCENARIOS.pro(), false);
+    expect(
+      await screen.findByText(
+        "Your upcoming invoice is not available for this account.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("No upcoming invoice")).toBeNull();
   });
 
   test("UpcomingBill waits rather than failing while the session is pending", async () => {

@@ -22,9 +22,9 @@ names — the tier is what `billing` names, not the resource.
 
 The company endpoints are gated on the `company-context-api` flag, per
 account. An account without it gets a 404 from every `/company/*` read, and
-because a 404 on the invoice history is not an answer — an empty history is
-a 200 with no rows — the element reports it as an error rather than showing
-a company with invoices an empty card. If a correctly configured page shows
+because a 404 is not an answer — an empty history is a 200 with no rows, and
+nothing to bill is a 204 — the elements report it as "not available" rather
+than showing a company with invoices, or a subscription, an empty card. If a correctly configured page shows
 `… failed with status 404`, the flag is what to check first. Ask Schematic
 to turn it on for the account.
 
