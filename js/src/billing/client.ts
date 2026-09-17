@@ -120,15 +120,16 @@ export class SchematicBillingClient implements BillingClient {
 
   fetchUpcomingInvoice(): Promise<UpcomingInvoice | null> {
     const path = "/company/upcoming-invoice";
-    // A company with no subscription has no next bill, and the endpoint
-    // says so with a 404. An account not yet on the company-context-api
-    // flag 404s the same way and arrives as the same null: that is the
-    // rollout switch, not something a page in production has to tell apart.
-    return this.session.request(path, { nullOn: [404] }).then((body) => {
-      if (body === null) {
+    // A company with nothing to bill — no subscription — is a 204, and
+    // resolves `null`. A 404 is the account not being on the
+    // company-context-api flag, and stays the error it is, so an element
+    // can say "not available" rather than a false "nothing to bill". A 200
+    // with no body is neither, and is malformed like an empty invoice page.
+    return this.session.request(path, { noContentOn: [204] }).then((body) => {
+      if (body === undefined) {
         return null;
       }
-      if (typeof body !== "object" || !("data" in body)) {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
         throw new Error(`Malformed response from ${path}`);
       }
       return GetCompanyUpcomingInvoiceResponseFromJSON(body).data;

@@ -22,7 +22,7 @@ export interface BillingResources {
   invoices: InvoicePage;
   /**
    * `GET /company/upcoming-invoice`. `null` is a loaded value — the company
-   * has no next bill, which the endpoint reports as a 404 — so only
+   * has no next bill, which the endpoint reports as a 204 — so only
    * `undefined` means the resource has not loaded.
    */
   upcomingInvoice: UpcomingInvoice | null;

@@ -73,39 +73,34 @@ describe("SchematicSession", () => {
     expect(tokens(calls)).toEqual(["t1", "t1"]);
   });
 
-  it("resolves null for a status the caller names as nothing", async () => {
-    const { fetchImpl } = fakeFetch(() => ({
-      status: 404,
-      body: { error: "not found" },
-    }));
+  it("resolves undefined for a status the caller names as no content", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ status: 204, body: null }));
     const session = new SchematicSession({
       session: { company: "comp_a", token: "t" },
       fetch: fetchImpl,
     });
     await expect(
-      session.request("/probe", { nullOn: [404] }),
-    ).resolves.toBeNull();
-    // Another status is still the failure it was.
-    await expect(session.request("/probe")).rejects.toMatchObject({
-      status: 404,
-    });
+      session.request("/probe", { noContentOn: [204] }),
+    ).resolves.toBeUndefined();
+    // Distinct from a 200 whose body is empty, which parses to null.
+    await expect(session.request("/probe")).resolves.toBeNull();
   });
 
-  it("refreshes a 401 before judging whether the answer is nothing", async () => {
+  it("refreshes a 401 before judging whether there is content", async () => {
     let n = 0;
     const provider = vi.fn(async () => `t${++n}`);
     const { calls, fetchImpl } = fakeFetch((_url, headers) =>
       headers["X-Schematic-Api-Key"] === "t1"
         ? { status: 401, body: { error: "expired" } }
-        : { status: 404, body: { error: "not found" } },
+        : { status: 204, body: null },
     );
     const session = new SchematicSession({
       session: { company: "comp_a", token: provider },
       fetch: fetchImpl,
     });
     await expect(
-      session.request("/probe", { nullOn: [401, 404] }),
-    ).resolves.toBeNull();
+      session.request("/probe", { noContentOn: [401, 204] }),
+    ).resolves.toBeUndefined();
     expect(calls).toHaveLength(2);
     expect(provider).toHaveBeenCalledTimes(2);
   });

@@ -166,13 +166,9 @@ describe("SchematicBillingClient", () => {
     expect(bill?.discounts[0].amountOff).toBeUndefined();
   });
 
-  it("reads a 404 as no next bill rather than a failure", async () => {
-    // No subscription is a 404 from the endpoint, and so is an account not
-    // yet on the flag: both are "nothing to bill" to a page.
-    const { fetchImpl } = fakeFetch(() => ({
-      status: 404,
-      body: { error: "billing subscription upcoming invoice not found" },
-    }));
+  it("reads a 204 as no next bill rather than a failure", async () => {
+    // No subscription is a 204 from the endpoint: nothing to bill, loaded.
+    const { fetchImpl } = fakeFetch(() => ({ status: 204, body: null }));
     const client = new SchematicBillingClient({
       session: { company: "comp_a", token: "t" },
       fetch: fetchImpl,
@@ -180,15 +176,34 @@ describe("SchematicBillingClient", () => {
     await expect(client.fetchUpcomingInvoice()).resolves.toBeNull();
   });
 
-  it("reports a malformed next bill rather than throwing a TypeError", async () => {
-    const { fetchImpl } = fakeFetch(() => ({ body: "yes" }));
+  it("keeps a 404 as the failure it is", async () => {
+    // An account not on the flag: "not available", never "nothing to bill".
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
     const client = new SchematicBillingClient({
       session: { company: "comp_a", token: "t" },
       fetch: fetchImpl,
     });
-    await expect(client.fetchUpcomingInvoice()).rejects.toThrow(
-      /Malformed response/,
-    );
+    const error = await client.fetchUpcomingInvoice().catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({ status: 404 });
+  });
+
+  it("reports a malformed next bill rather than reading it as none", async () => {
+    // A 200 with no body, or a body of the wrong shape, is not an answer:
+    // read as `null` it would seed "nothing to bill" that nothing refetches.
+    for (const body of [null, "yes", { nope: 1 }]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchUpcomingInvoice()).rejects.toThrow(
+        /Malformed response/,
+      );
+    }
   });
 
   it("throws SchematicApiError when the next bill cannot be read", async () => {
@@ -329,7 +344,10 @@ describe("fetchBillingData", () => {
     // `null` is the server's answer and the store must be spared asking
     // again; a failure is left out so the element asks for itself.
     const { fetchImpl } = fakeFetch(
-      byPath({ "/company/invoices": { body: wireEmpty } }),
+      byPath({
+        "/company/invoices": { body: wireEmpty },
+        "/company/upcoming-invoice": { status: 204, body: null },
+      }),
     );
     const client = new SchematicBillingClient({
       session: { company: "comp_a", token: "t" },
