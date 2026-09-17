@@ -52,6 +52,12 @@ const rulesCss = `
   gap: var(--schematic-space);
 }
 
+/* The message may run long; the action beside it stays one line. */
+.schematic-status__retry {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* Visually hidden, still read by assistive technology. */
 .schematic-hidden {
   border: 0;
