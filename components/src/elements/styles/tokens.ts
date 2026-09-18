@@ -18,6 +18,7 @@ const ld = (light: string, dark: string): string =>
 export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-accent": ld("#194bfb", "#6f92ff"),
   "--schematic-accent-contrast": ld("#ffffff", "#0a0a0a"),
+  "--schematic-backdrop": ld("hsla(0, 0%, 0%, 0.5)", "hsla(0, 0%, 0%, 0.7)"),
   "--schematic-background": ld("#ffffff", "#0e0e0e"),
   "--schematic-border": ld(
     "hsla(0, 0%, 0%, 0.125)",
@@ -41,6 +42,11 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
   // `light-dark()` takes colours only, so it is applied per shadow layer.
   "--schematic-shadow": `0px 1px 20px 0px ${ld("#1018280f", "#00000099")}, 0px 1px 3px 0px ${ld("#1018281a", "#0000007a")}`,
   "--schematic-space": "1rem",
+  // A tint over the background: the payment method pill.
+  "--schematic-surface": ld(
+    "hsla(0, 0%, 0%, 0.0625)",
+    "hsla(0, 0%, 100%, 0.125)",
+  ),
   "--schematic-text": ld("#000000", "#ffffff"),
   "--schematic-warning": ld("#ffaa06", "#ffbb3d"),
 };

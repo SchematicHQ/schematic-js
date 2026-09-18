@@ -3,7 +3,13 @@ import {
   useSchematicLocale,
   type BillingResourceName,
 } from "@schematichq/schematic-react";
-import React, { useCallback, useEffect, useSyncExternalStore } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 
 import { resolveLocale, viewerLocale } from "./model";
 import {
@@ -252,5 +258,77 @@ export const StatusFrame: React.FC<{
         </p>
       )}
     </div>
+  );
+};
+
+/**
+ * A modal over the page: a native `<dialog>` opened with `showModal()`, so
+ * the browser owns the focus trap, the backdrop, and Escape. It renders
+ * nothing while closed, so whatever it holds — a Stripe form — mounts only
+ * when it opens. Closing by any route (Escape, the backdrop, the header's
+ * control) reaches `onClose`; the owner drops `open` in answer.
+ */
+export const Dialog: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  /** The close control's accessible name. */
+  closeLabel: string;
+  onClose: () => void;
+  open: boolean;
+  title: string;
+  /** The title's id, for a host that labels something else by it. */
+  titleId?: string;
+}> = ({ children, className, closeLabel, onClose, open, title, titleId }) => {
+  const ref = useRef<HTMLDialogElement>(null);
+  const generatedId = useId();
+  const headingId = titleId ?? generatedId;
+
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!open || dialog === null) {
+      return;
+    }
+    if (!dialog.open) {
+      dialog.showModal();
+    }
+    return () => {
+      if (dialog.open) {
+        dialog.close();
+      }
+    };
+  }, [open]);
+
+  if (!open) {
+    return null;
+  }
+  return (
+    <dialog
+      aria-labelledby={headingId}
+      className={cx("schematic-dialog", className)}
+      ref={ref}
+      onClick={(event) => {
+        // The dialog has no padding, so a click on it and not on a child
+        // is a click on the backdrop.
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+      onClose={onClose}
+    >
+      <div className="schematic-dialog__header">
+        <h2 className="schematic-dialog__title" id={headingId}>
+          {title}
+        </h2>
+        <button
+          aria-label={closeLabel}
+          className="schematic-dialog__close"
+          type="button"
+          onClick={onClose}
+        >
+          ×
+        </button>
+      </div>
+      <div className="schematic-dialog__body">{children}</div>
+    </dialog>
   );
 };
