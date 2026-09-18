@@ -17,6 +17,8 @@ import type {
   Invoice,
   InvoicePage,
   InvoiceQuery,
+  PaymentMethod,
+  SetupIntent,
   UpcomingInvoice,
 } from "./contract";
 import { DEFAULT_INVOICE_QUERY, normalizeInvoiceQuery } from "./contract";
@@ -116,14 +118,15 @@ interface HeldSeed {
   invoices?: { params: InvoiceQuery; data: InvoicePage };
   /** `null` is a company with no next bill, and worth seeding. */
   upcomingInvoice?: UpcomingInvoice | null;
+  paymentMethods?: PaymentMethod[];
 }
 
 /**
  * The store for one session: a `KeyedResource` per billing resource, built
  * over a `BillingProviderClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
- * resource. Invoices and the upcoming invoice so far; the rest join with
- * their elements.
+ * resource. Invoices, the upcoming invoice and the payment methods so far;
+ * the rest join with their elements.
  *
  * Nothing loads before `connect()`: a store that is not listening for the
  * session would fetch under whatever the client held when a subscriber
@@ -135,6 +138,10 @@ export class BillingStore {
   readonly invoices: KeyedResource<InvoicePage, InvoiceQuery>;
   readonly upcomingInvoice: KeyedResource<
     UpcomingInvoice | null,
+    Record<string, never>
+  >;
+  readonly paymentMethods: KeyedResource<
+    PaymentMethod[],
     Record<string, never>
   >;
   private readonly _pageSize: number;
@@ -171,6 +178,10 @@ export class BillingStore {
       () => this._client.fetchUpcomingInvoice(),
       { readiness },
     );
+    this.paymentMethods = new KeyedResource(
+      () => this._client.fetchPaymentMethods(),
+      { readiness },
+    );
 
     const held: HeldSeed = { key: initialData.sessionKey };
     if (initialData.invoices !== undefined) {
@@ -189,7 +200,14 @@ export class BillingStore {
     if (initialData.upcomingInvoice !== undefined) {
       held.upcomingInvoice = initialData.upcomingInvoice;
     }
-    if (held.invoices !== undefined || held.upcomingInvoice !== undefined) {
+    if (initialData.paymentMethods !== undefined) {
+      held.paymentMethods = initialData.paymentMethods;
+    }
+    if (
+      held.invoices !== undefined ||
+      held.upcomingInvoice !== undefined ||
+      held.paymentMethods !== undefined
+    ) {
       this._held = held;
       this._settleSeed(claimFrom(options.session) ?? claimOf(this._client));
     }
@@ -267,6 +285,9 @@ export class BillingStore {
       if (held.upcomingInvoice !== undefined) {
         this.upcomingInvoice.seed(SINGLETON, held.upcomingInvoice);
       }
+      if (held.paymentMethods !== undefined) {
+        this.paymentMethods.seed(SINGLETON, held.paymentMethods);
+      }
       this._seedKey = held.key;
       this._seeded = true;
     }
@@ -343,8 +364,49 @@ export class BillingStore {
     });
   }
 
+  /**
+   * Makes the payment method `externalId` the company's default, then
+   * reloads the list so it says so. Rejects with the client's error when
+   * the write fails; a reload that fails afterwards lands on the list's
+   * `error`, since the write itself went through.
+   */
+  async setDefaultPaymentMethod(externalId: string): Promise<void> {
+    await this._client.updatePaymentMethod(externalId);
+    await this._reloadPaymentMethods();
+  }
+
+  /** Removes the payment method `id`, then reloads the list. Rejects as `setDefaultPaymentMethod` does. */
+  async removePaymentMethod(id: string): Promise<void> {
+    await this._client.deletePaymentMethod(id);
+    await this._reloadPaymentMethods();
+  }
+
+  /**
+   * Mints a setup intent for adding a payment method. Nothing in the store
+   * changes until the provider confirms it and the host reloads the list,
+   * so this is a pass-through to the client.
+   */
+  createSetupIntent(): Promise<SetupIntent> {
+    return this._client.createSetupIntent();
+  }
+
   dispose(): void {
     this._unsubscribe?.();
+  }
+
+  /**
+   * After a write. A list nobody has read is left alone: it loads fresh
+   * when someone does. One that is loaded, or subscribed and waiting on a
+   * failed load, is fetched again; `refetch` never rejects.
+   */
+  private async _reloadPaymentMethods(): Promise<void> {
+    if (!this.paymentMethods.has(SINGLETON)) {
+      return;
+    }
+    const resource = this.paymentMethods.get(SINGLETON);
+    if (resource.snapshot.data !== undefined || resource.subscriberCount > 0) {
+      await resource.refetch();
+    }
   }
 
   /**
@@ -399,4 +461,5 @@ export class BillingStore {
 export const RESOURCE_NAMES: readonly BillingResourceName[] = [
   "invoices",
   "upcomingInvoice",
+  "paymentMethods",
 ];
