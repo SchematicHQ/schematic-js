@@ -6,15 +6,21 @@ import type {
   BillingResources,
   InvoicePage,
   InvoiceQuery,
+  UpcomingInvoice,
 } from "./contract";
-import { DEFAULT_INVOICE_QUERY, normalizeInvoiceQuery } from "./contract";
+import {
+  DEFAULT_INVOICE_QUERY,
+  SINGLETON,
+  normalizeInvoiceQuery,
+} from "./contract";
 import { useBillingDataSource, type ResourceHandle } from "./context";
 import { hashKey } from "./store";
 
 /**
  * Hooks never fetch during server rendering: without `initialData` they
- * report pending on the server and load on the client. This release carries
- * `useInvoices`; the other resource hooks ship with their elements.
+ * report pending on the server and load on the client. `useInvoices` and
+ * `useUpcomingInvoice` so far; the other resource hooks ship with their
+ * elements.
  */
 
 /** The same object until the hash of `params` changes. */
@@ -70,6 +76,15 @@ export function useInvoices(
     [params, source],
   );
   return useMemo(() => ({ ...handle, loadMore }), [handle, loadMore]);
+}
+
+/**
+ * The company's next bill. `data` is `null` when there is nothing to bill —
+ * no subscription, which the endpoint reports as a 204 — so an element can
+ * render an empty state; `data === undefined` is what means not loaded yet.
+ */
+export function useUpcomingInvoice(): ResourceHandle<UpcomingInvoice | null> {
+  return useBillingResource("upcomingInvoice", SINGLETON);
 }
 
 /** Reloads every loaded billing resource (after a plan change, for instance). */

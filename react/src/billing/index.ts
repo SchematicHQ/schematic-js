@@ -20,6 +20,7 @@ export {
 export {
   useInvalidateBillingData,
   useInvoices,
+  useUpcomingInvoice,
   type InvoicesHandle,
 } from "./hooks";
 export { BillingProvider, type BillingProviderProps } from "./provider";

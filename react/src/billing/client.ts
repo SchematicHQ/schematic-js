@@ -1,6 +1,7 @@
 import {
   INVOICE_MAX_PAGE_SIZE,
   INVOICE_PAGE_SIZE,
+  SINGLETON,
   sessionKey,
   type BillingClient,
   type InvoicesResult,
@@ -16,6 +17,7 @@ import type {
   Invoice,
   InvoicePage,
   InvoiceQuery,
+  UpcomingInvoice,
 } from "./contract";
 import { DEFAULT_INVOICE_QUERY, normalizeInvoiceQuery } from "./contract";
 import { KeyedResource, type Readiness } from "./store";
@@ -109,18 +111,20 @@ export interface BillingStoreOptions {
   session?: SessionInput;
 }
 
+/** A prefetch not yet judged; a resource it did not carry is absent. */
 interface HeldSeed {
-  params: InvoiceQuery;
-  data: InvoicePage;
   key: string | undefined;
+  invoices?: { params: InvoiceQuery; data: InvoicePage };
+  /** `null` is a company with no next bill, and worth seeding. */
+  upcomingInvoice?: UpcomingInvoice | null;
 }
 
 /**
  * The store for one session: a `KeyedResource` per billing resource, built
  * over a `BillingClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
- * resource. This release carries the invoices resource; the others join it
- * with their elements.
+ * resource. Invoices and the upcoming invoice so far; the rest join with
+ * their elements.
  *
  * Nothing loads before `connect()`: a store that is not listening for the
  * session would fetch under whatever the client held when a subscriber
@@ -130,6 +134,10 @@ interface HeldSeed {
  */
 export class BillingStore {
   readonly invoices: KeyedResource<InvoicePage, InvoiceQuery>;
+  readonly upcomingInvoice: KeyedResource<
+    UpcomingInvoice | null,
+    Record<string, never>
+  >;
   private readonly _pageSize: number;
   private _unsubscribe: (() => void) | undefined;
   private _connected = false;
@@ -145,6 +153,11 @@ export class BillingStore {
     options: BillingStoreOptions = {},
   ) {
     this._pageSize = options.pageSize ?? INVOICE_PAGE_SIZE;
+    // Waiting until connected; then a session still pending stays pending,
+    // and one that has ended settles empty rather than recording the
+    // client's refusal as an error.
+    const readiness = (): Readiness =>
+      this._connected ? READINESS[this._client.sessionStatus] : "waiting";
     // A refetch re-requests the loaded window, so a user who has paged
     // three deep does not collapse back to one page on invalidation.
     this.invoices = new KeyedResource(
@@ -153,24 +166,32 @@ export class BillingStore {
           query,
           Math.max(this._pageSize, current?.invoices.length ?? 0),
         ),
-      // Waiting until connected; then a session still pending stays
-      // pending, and one that has ended settles empty rather than recording
-      // the client's refusal as an error.
-      {
-        readiness: () =>
-          this._connected ? READINESS[this._client.sessionStatus] : "waiting",
-      },
+      { readiness },
     );
+    this.upcomingInvoice = new KeyedResource(
+      () => this._client.fetchUpcomingInvoice(),
+      { readiness },
+    );
+
+    const held: HeldSeed = { key: initialData.sessionKey };
     if (initialData.invoices !== undefined) {
-      this._held = {
+      held.invoices = {
         // Normalized the way the hook normalizes, or the caller asking for
         // it fetches the same page again.
         params: normalizeInvoiceQuery(
           initialData.params?.invoices ?? DEFAULT_INVOICE_QUERY,
         ),
         data: initialData.invoices,
-        key: initialData.sessionKey,
       };
+    }
+    // `!== undefined`, not a truthiness check: `null` is the server's
+    // answer, and seeding it is what spares the page a request whose
+    // answer the prefetch already has.
+    if (initialData.upcomingInvoice !== undefined) {
+      held.upcomingInvoice = initialData.upcomingInvoice;
+    }
+    if (held.invoices !== undefined || held.upcomingInvoice !== undefined) {
+      this._held = held;
       this._settleSeed(claimFrom(options.session) ?? claimOf(this._client));
     }
   }
@@ -241,7 +262,12 @@ export class BillingStore {
     }
     this._held = undefined;
     if (verdict === "adopt") {
-      this.invoices.seed(held.params, held.data);
+      if (held.invoices !== undefined) {
+        this.invoices.seed(held.invoices.params, held.invoices.data);
+      }
+      if (held.upcomingInvoice !== undefined) {
+        this.upcomingInvoice.seed(SINGLETON, held.upcomingInvoice);
+      }
       this._seedKey = held.key;
       this._seeded = true;
     }
@@ -250,7 +276,7 @@ export class BillingStore {
   resource<K extends BillingResourceName>(
     name: K,
   ): KeyedResource<BillingResources[K], BillingResourceParams[K]> {
-    return this[name] as KeyedResource<
+    return this[name] as unknown as KeyedResource<
       BillingResources[K],
       BillingResourceParams[K]
     >;
@@ -371,4 +397,7 @@ export class BillingStore {
   }
 }
 
-export const RESOURCE_NAMES: readonly BillingResourceName[] = ["invoices"];
+export const RESOURCE_NAMES: readonly BillingResourceName[] = [
+  "invoices",
+  "upcomingInvoice",
+];
