@@ -48,14 +48,23 @@ export type ElementStrings = {
   paymentMethodsError: string;
   paymentMethodsUnavailable: string;
   paymentMethodsEmpty: string;
+  paymentMethodsEdit: string;
   paymentMethodsAdd: string;
-  paymentMethodsRemove: string;
-  paymentMethodsMakeDefault: string;
-  paymentMethodsDefault: string;
-  paymentMethodsLast4: string;
-  paymentMethodsExpires: string;
-  paymentMethodsExpiresSoon: string;
+  paymentMethodsExpiresInMonths: string;
   paymentMethodsExpired: string;
+  paymentMethodsCardEndingIn: string;
+  paymentMethodsApplePayEndingIn: string;
+  paymentMethodsGooglePayEndingIn: string;
+  paymentMethodsBankAccount: string;
+  paymentMethodsGeneric: string;
+  paymentMethodsDialogTitle: string;
+  paymentMethodsClose: string;
+  paymentMethodsChooseDifferent: string;
+  paymentMethodsExpires: string;
+  paymentMethodsSetDefault: string;
+  paymentMethodsRemove: string;
+  paymentMethodsAddNew: string;
+  paymentMethodsSelectExisting: string;
   paymentMethodsFormLoading: string;
   paymentMethodsSave: string;
   paymentMethodsSaveError: string;
@@ -131,18 +140,30 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
     "{{value}} off for next {{count}} months",
 
   paymentMethodsLoading: "Loading payment methods",
-  paymentMethodsHeader: "Payment methods",
+  paymentMethodsHeader: "Payment details",
   paymentMethodsError: "Could not load payment methods",
   paymentMethodsUnavailable: "Payment methods are not available",
-  paymentMethodsEmpty: "No payment method on file",
+  paymentMethodsEmpty: "No payment method added yet",
+  paymentMethodsEdit: "Edit",
   paymentMethodsAdd: "Add",
-  paymentMethodsRemove: "Remove",
-  paymentMethodsMakeDefault: "Make default",
-  paymentMethodsDefault: "Default",
-  paymentMethodsLast4: "···· {{last4}}",
+  // Looked up by the bare key with `{ count }`; English has two forms.
+  paymentMethodsExpiresInMonths: "Expires in {{months}} months",
+  paymentMethodsExpiresInMonths_one: "Expires in {{months}} month",
+  paymentMethodsExpiresInMonths_other: "Expires in {{months}} months",
+  paymentMethodsExpired: "Expired",
+  paymentMethodsCardEndingIn: "Card ending in",
+  paymentMethodsApplePayEndingIn: "Apple Pay ending in",
+  paymentMethodsGooglePayEndingIn: "Google Pay ending in",
+  paymentMethodsBankAccount: "Bank account",
+  paymentMethodsGeneric: "Payment method",
+  paymentMethodsDialogTitle: "Edit payment details",
+  paymentMethodsClose: "Close",
+  paymentMethodsChooseDifferent: "Choose different payment method",
   paymentMethodsExpires: "Expires {{date}}",
-  paymentMethodsExpiresSoon: "Expires soon · {{date}}",
-  paymentMethodsExpired: "Expired {{date}}",
+  paymentMethodsSetDefault: "Set default",
+  paymentMethodsRemove: "Remove",
+  paymentMethodsAddNew: "Add new payment method",
+  paymentMethodsSelectExisting: "Select existing payment method",
   paymentMethodsFormLoading: "Loading payment form",
   paymentMethodsSave: "Save",
   paymentMethodsSaveError: "Could not save the payment method",

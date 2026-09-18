@@ -1,7 +1,8 @@
 import { usePaymentMethods } from "@schematichq/schematic-react";
-import { Suspense, lazy, useCallback, useId, useMemo, useState } from "react";
+import React, { Suspense, lazy, useCallback, useMemo, useState } from "react";
 
 import {
+  Dialog,
   StatusFrame,
   cx,
   useResolvedLocale,
@@ -12,44 +13,45 @@ import {
 import {
   derivePaymentMethods,
   httpStatus,
+  type DerivedPaymentMethods,
+  type PaymentMethodLabel,
   type PaymentMethodRow,
 } from "./model";
 import type { Translator } from "./strings";
 
 /**
  * Loaded on the first Add: the form pulls in Stripe, which a page that only
- * lists methods never needs.
+ * shows the method on file never needs.
  */
 const PaymentMethodForm = lazy(() => import("./PaymentMethodForm"));
 
 export interface PaymentMethodsProps extends ElementProps {
-  /** The Add action and the form behind it. Default true. */
-  allowAdd?: boolean;
-  /** The Remove and Make default actions on each row. Default true. */
-  allowRemove?: boolean;
-  /** The "Payment methods" heading. Default true. */
+  /** The Edit (or Add) action and the dialog behind it. Default true. */
+  allowEdit?: boolean;
+  /** The "Payment details" heading. Default true. */
   showHeader?: boolean;
   /** Heading level, so the card fits the host's outline. Default 2. */
   headingLevel?: HeadingLevel;
-  /** A card's expiry beside it. Default true. */
+  /** The header's warning when the default card is about to expire. Default true. */
   showExpiration?: boolean;
 }
 
-/** Skeleton rows: a company rarely keeps more than a couple of methods. */
-const SKELETON_ROWS = 2;
+/** What the dialog shows: the method on file, or the form for a new one. */
+type DialogView = "current" | "add";
 
 /**
- * The company's saved payment methods. Each row names the method, marks the
- * default, warns of a card about to expire, and offers Make default and
- * Remove; Add opens a Stripe form for a new one, which becomes the default.
+ * The company's payment method on file, the embed's way: a pill naming the
+ * default, an expiry warning beside the heading, and an Edit that opens a
+ * dialog where the other saved methods can be made the default or removed
+ * and a new one added through Stripe.
  *
- * Which rows can be removed is the server's call: the default cannot go
- * while others exist, and the last method stays on an active subscription.
- * The row's `canRemove` carries that answer, so the element never guesses.
+ * The pill offers no Remove. The server refuses to remove the default while
+ * others exist and the last method on a subscription, so a Remove there
+ * would always fail; removal lives on the other rows in the dialog, where
+ * the server's `canRemove` decides which offer it.
  */
 export function PaymentMethods({
-  allowAdd = true,
-  allowRemove = true,
+  allowEdit = true,
   className,
   headingLevel = 2,
   locale: localeProp,
@@ -69,13 +71,17 @@ export function PaymentMethods({
   } = usePaymentMethods();
   const locale = useResolvedLocale(localeProp);
   const t = useTranslator(strings, localeProp);
-  const [adding, setAdding] = useState(false);
-  // The write that last failed, so Retry re-runs it rather than refetching.
+  // Null while the dialog is closed.
+  const [dialog, setDialog] = useState<DialogView | null>(null);
+  const [choosing, setChoosing] = useState(false);
+  // The write that last failed, so Retry re-runs it rather than refetching;
+  // also whether this dialog session has written at all, which is what
+  // decides whether a `mutationError` is its to show.
   const [lastWrite, setLastWrite] = useState<(() => Promise<void>) | null>(
     null,
   );
 
-  const rows = useMemo(
+  const derived = useMemo(
     () =>
       methods === undefined
         ? undefined
@@ -84,30 +90,43 @@ export function PaymentMethods({
   );
 
   // A rejected write also lands on `mutationError`, so the rejection here
-  // is already reported and only needs catching.
-  const write = useCallback((action: () => Promise<void>): Promise<void> => {
+  // is already reported and only needs catching. A write that lands leaves
+  // the dialog on the refreshed method, the other rows folded away.
+  const write = useCallback(async (action: () => Promise<void>) => {
     setLastWrite(() => action);
-    return action().catch(() => {});
+    try {
+      await action();
+      setDialog("current");
+      setChoosing(false);
+    } catch {
+      // Reported through `mutationError`.
+    }
   }, []);
 
-  // The method Stripe just saved becomes the default; a failure there lands
-  // under the list like any other write, with the form already closed.
+  // The method Stripe just saved becomes the default. Stripe has already
+  // kept it, so a failure here is a failed write to retry from the method
+  // view, not a form to resubmit.
   const saved = useCallback(
     async (paymentMethodId: string) => {
       await write(() => setDefault(paymentMethodId));
-      setAdding(false);
+      setDialog("current");
+      setChoosing(false);
     },
     [setDefault, write],
   );
 
-  // A list has no name of its own, so it is labelled by the heading, or by
-  // the same text when the header is hidden.
-  const headingId = useId();
+  const open = useCallback(() => {
+    setLastWrite(null);
+    setChoosing(false);
+    setDialog("current");
+  }, []);
+  const close = useCallback(() => setDialog(null), []);
+
   const Heading = `h${headingLevel}` as const;
 
   // A 404 means the account is not enabled for company reads, but "not
-  // available" under rows already loaded would contradict itself.
-  const unavailable = rows === undefined && httpStatus(error) === 404;
+  // available" over a method already loaded would contradict itself.
+  const unavailable = derived === undefined && httpStatus(error) === 404;
   // Only resolve error copy on failure, or a host's translator would report
   // a missing key on every healthy render.
   const errorMessage =
@@ -122,93 +141,64 @@ export function PaymentMethods({
       className={cx("schematic-card", "schematic-payment-methods", className)}
       error={error}
       errorMessage={errorMessage}
-      hasData={rows !== undefined}
+      hasData={derived !== undefined}
       isPending={isPending}
       loadingLabel={t("paymentMethodsLoading")}
       onRetry={refetch}
       retryText={t("retry")}
-      skeleton={
-        <PaymentMethodsSkeleton rows={SKELETON_ROWS} showHeader={showHeader} />
-      }
+      skeleton={<PaymentMethodsSkeleton showHeader={showHeader} />}
     >
-      {rows !== undefined && (
+      {derived !== undefined && (
         <>
-          {(showHeader || allowAdd) && (
+          {showHeader && (
             <div className="schematic-header">
-              {showHeader && (
-                <Heading className="schematic-header__title" id={headingId}>
-                  {t("paymentMethodsHeader")}
-                </Heading>
-              )}
-              {allowAdd && (
-                <button
-                  className="schematic-cta schematic-cta--small schematic-payment-methods__add"
-                  disabled={adding}
-                  type="button"
-                  onClick={() => setAdding(true)}
+              <Heading className="schematic-header__title">
+                {t("paymentMethodsHeader")}
+              </Heading>
+              {showExpiration && derived.expiryWarning !== "none" && (
+                <span
+                  className="schematic-small schematic-payment-methods__expiry-warning"
+                  data-expiry={derived.expiryWarning}
                 >
-                  {t("paymentMethodsAdd")}
-                </button>
+                  {expiryWarningText(derived, t)}
+                </span>
               )}
             </div>
           )}
-          {rows.length === 0 ? (
-            <p className="schematic-muted schematic-payment-methods__empty">
-              {t("paymentMethodsEmpty")}
-            </p>
-          ) : (
-            <ul
-              className="schematic-payment-methods__list"
-              aria-label={showHeader ? undefined : t("paymentMethodsHeader")}
-              aria-labelledby={showHeader ? headingId : undefined}
-            >
-              {rows.map((row) => (
-                <PaymentMethodItem
-                  allowRemove={allowRemove}
-                  disabled={isMutating}
-                  key={row.id}
-                  row={row}
-                  showExpiration={showExpiration}
-                  t={t}
-                  onMakeDefault={() =>
-                    void write(() => setDefault(row.externalId))
-                  }
-                  onRemove={() => void write(() => remove(row.id))}
-                />
-              ))}
-            </ul>
-          )}
-          {adding && (
-            <Suspense
-              fallback={<FormSkeleton label={t("paymentMethodsFormLoading")} />}
-            >
-              <PaymentMethodForm
-                locale={locale}
-                t={t}
-                onClose={() => setAdding(false)}
-                onSaved={saved}
-              />
-            </Suspense>
-          )}
-          {mutationError !== undefined && (
-            <p
-              className="schematic-status-note schematic-error schematic-payment-methods__write-error"
-              role="alert"
-            >
-              <span className="schematic-payment-methods__write-error-message">
-                {mutationError.message}
-              </span>
-              {lastWrite !== null && (
-                <button
-                  className="schematic-link-button schematic-payment-methods__write-retry"
-                  disabled={isMutating}
-                  type="button"
-                  onClick={() => void write(lastWrite)}
-                >
-                  {t("retry")}
-                </button>
-              )}
-            </p>
+          <MethodPill row={derived.current} t={t}>
+            {allowEdit && (
+              <button
+                className="schematic-link-button schematic-payment-methods__edit"
+                type="button"
+                onClick={open}
+              >
+                {derived.current === null
+                  ? t("paymentMethodsAdd")
+                  : t("paymentMethodsEdit")}
+              </button>
+            )}
+          </MethodPill>
+          {dialog !== null && (
+            <PaymentMethodsDialog
+              choosing={choosing}
+              derived={derived}
+              isMutating={isMutating}
+              locale={locale}
+              mutationError={lastWrite === null ? undefined : mutationError}
+              t={t}
+              view={dialog}
+              onChoose={() => setChoosing((was) => !was)}
+              onClose={close}
+              onRemove={(row) => void write(() => remove(row.id))}
+              onRetry={
+                lastWrite === null ? undefined : () => void write(lastWrite)
+              }
+              onSaved={saved}
+              onSetDefault={(row) =>
+                void write(() => setDefault(row.externalId))
+              }
+              onView={setDialog}
+            />
           )}
         </>
       )}
@@ -216,116 +206,243 @@ export function PaymentMethods({
   );
 }
 
-function PaymentMethodItem({
-  allowRemove,
-  disabled,
-  onMakeDefault,
+function PaymentMethodsDialog({
+  choosing,
+  derived,
+  isMutating,
+  locale,
+  mutationError,
+  onChoose,
+  onClose,
   onRemove,
-  row,
-  showExpiration,
+  onRetry,
+  onSaved,
+  onSetDefault,
+  onView,
   t,
+  view,
 }: {
-  allowRemove: boolean;
-  disabled: boolean;
-  onMakeDefault: () => void;
-  onRemove: () => void;
-  row: PaymentMethodRow;
-  showExpiration: boolean;
+  choosing: boolean;
+  derived: DerivedPaymentMethods;
+  isMutating: boolean;
+  locale: string;
+  mutationError: Error | undefined;
+  onChoose: () => void;
+  onClose: () => void;
+  onRemove: (row: PaymentMethodRow) => void;
+  onRetry?: () => void;
+  onSaved: (paymentMethodId: string) => Promise<void>;
+  onSetDefault: (row: PaymentMethodRow) => void;
+  onView: (view: DialogView) => void;
   t: Translator;
+  view: DialogView;
 }) {
-  const makeDefault = allowRemove && !row.isDefault;
-  const remove = allowRemove && row.canRemove;
+  const { current, others, rows } = derived;
+  // With nothing on file there is nothing to show but the form, as the
+  // embed does; Cancel then closes the dialog, since there is nowhere else
+  // to go.
+  const hasMethods = rows.length > 0;
+  const showForm = view === "add" || !hasMethods;
+
   return (
-    <li
-      className="schematic-payment-methods__row"
-      data-brand={row.brand}
-      data-default={row.isDefault ? "true" : "false"}
-      data-testid="schematic-payment-method"
+    <Dialog
+      className="schematic-payment-methods__dialog"
+      closeLabel={t("paymentMethodsClose")}
+      open
+      title={t("paymentMethodsDialogTitle")}
+      onClose={onClose}
     >
-      <span className="schematic-payment-methods__method">
-        <span className="schematic-payment-methods__brand">{row.label}</span>
-        {row.last4 !== null && (
-          <span className="schematic-payment-methods__last4">
-            {t("paymentMethodsLast4", { last4: row.last4 })}
-          </span>
-        )}
-        {row.isDefault && (
-          <span className="schematic-badge schematic-payment-methods__default">
-            {t("paymentMethodsDefault")}
-          </span>
-        )}
-      </span>
-      {showExpiration && row.expiry !== "none" && (
-        <span
-          className="schematic-small schematic-payment-methods__expires"
-          data-expiry={row.expiry}
+      {showForm ? (
+        <Suspense
+          fallback={<FormSkeleton label={t("paymentMethodsFormLoading")} />}
         >
-          {expiryText(row, t)}
-        </span>
-      )}
-      {(makeDefault || remove) && (
-        <span className="schematic-payment-methods__actions">
-          {makeDefault && (
-            <button
-              className="schematic-link-button schematic-payment-methods__make-default"
-              disabled={disabled}
-              type="button"
-              onClick={onMakeDefault}
+          <PaymentMethodForm
+            locale={locale}
+            t={t}
+            onClose={hasMethods ? () => onView("current") : onClose}
+            onSaved={onSaved}
+            onSelectExisting={hasMethods ? () => onView("current") : undefined}
+          />
+        </Suspense>
+      ) : (
+        <>
+          <MethodPill row={current} t={t} />
+          <button
+            aria-expanded={choosing}
+            className="schematic-link-button schematic-payment-methods__choose"
+            type="button"
+            onClick={onChoose}
+          >
+            {t("paymentMethodsChooseDifferent")}
+            <span
+              aria-hidden="true"
+              className="schematic-payment-methods__chevron"
             >
-              {t("paymentMethodsMakeDefault")}
+              ▼
+            </span>
+          </button>
+          {choosing && (
+            <>
+              {others.length > 0 && (
+                <ul
+                  aria-label={t("paymentMethodsChooseDifferent")}
+                  className="schematic-payment-methods__list"
+                >
+                  {others.map((row) => (
+                    <li
+                      className="schematic-payment-methods__row"
+                      data-brand={row.brand}
+                      data-kind={row.kind}
+                      data-testid="schematic-payment-method"
+                      key={row.id}
+                    >
+                      <Method row={row} t={t} />
+                      {row.expiresShort !== null && (
+                        <span className="schematic-muted schematic-small schematic-payment-methods__expires">
+                          {t("paymentMethodsExpires", {
+                            date: row.expiresShort,
+                          })}
+                        </span>
+                      )}
+                      <button
+                        className="schematic-link-button schematic-payment-methods__set-default"
+                        disabled={isMutating}
+                        type="button"
+                        onClick={() => onSetDefault(row)}
+                      >
+                        {t("paymentMethodsSetDefault")}
+                      </button>
+                      {row.canRemove && (
+                        <button
+                          aria-label={t("paymentMethodsRemove")}
+                          className="schematic-payment-methods__remove"
+                          disabled={isMutating}
+                          type="button"
+                          onClick={() => onRemove(row)}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button
+                className="schematic-cta schematic-payment-methods__add-new"
+                disabled={isMutating}
+                type="button"
+                onClick={() => onView("add")}
+              >
+                {t("paymentMethodsAddNew")}
+              </button>
+            </>
+          )}
+        </>
+      )}
+      {mutationError !== undefined && (
+        <p
+          className="schematic-status-note schematic-error schematic-payment-methods__error"
+          role="alert"
+        >
+          <span className="schematic-payment-methods__error-message">
+            {mutationError.message}
+          </span>
+          {onRetry !== undefined && (
+            <button
+              className="schematic-link-button schematic-payment-methods__error-retry"
+              disabled={isMutating}
+              type="button"
+              onClick={onRetry}
+            >
+              {t("retry")}
             </button>
           )}
-          {remove && (
-            <button
-              className="schematic-link-button schematic-payment-methods__remove"
-              disabled={disabled}
-              type="button"
-              onClick={onRemove}
-            >
-              {t("paymentMethodsRemove")}
-            </button>
-          )}
-        </span>
+        </p>
       )}
-    </li>
+    </Dialog>
   );
 }
 
-/** "Expires 08/2027", "Expires soon · 08/2027", or "Expired 08/2025". */
-function expiryText(row: PaymentMethodRow, t: Translator): string {
-  const vars = { date: row.expiresText };
-  switch (row.expiry) {
-    case "expired":
-      return t("paymentMethodsExpired", vars);
-    case "soon":
-      return t("paymentMethodsExpiresSoon", vars);
-    default:
-      return t("paymentMethodsExpires", vars);
-  }
+/**
+ * The pill: the method on file, or the empty copy, with whatever action the
+ * caller puts beside it.
+ */
+function MethodPill({
+  children,
+  row,
+  t,
+}: {
+  children?: React.ReactNode;
+  row: PaymentMethodRow | null;
+  t: Translator;
+}) {
+  return (
+    <div
+      className="schematic-payment-methods__current"
+      data-testid="schematic-payment-method-current"
+    >
+      {row === null ? (
+        <span className="schematic-payment-methods__empty">
+          {t("paymentMethodsEmpty")}
+        </span>
+      ) : (
+        <Method row={row} t={t} />
+      )}
+      {children}
+    </div>
+  );
+}
+
+/** "Card ending in 4444": the label and the digits that follow it. */
+function Method({ row, t }: { row: PaymentMethodRow; t: Translator }) {
+  return (
+    <span
+      className="schematic-payment-methods__method"
+      data-brand={row.brand}
+      data-kind={row.kind}
+    >
+      <span className="schematic-payment-methods__label">
+        {labelText(row.label, t)}
+      </span>
+      {row.last4 !== null && (
+        <>
+          {" "}
+          <span className="schematic-payment-methods__last4">{row.last4}</span>
+        </>
+      )}
+    </span>
+  );
+}
+
+function labelText(label: PaymentMethodLabel, t: Translator): string {
+  return label.key === undefined ? label.text : t(label.key);
+}
+
+/** "Expires in 2 months", or "Expired". */
+function expiryWarningText(
+  derived: DerivedPaymentMethods,
+  t: Translator,
+): string {
+  const months = derived.monthsToExpiration ?? 0;
+  return derived.expiryWarning === "expired"
+    ? t("paymentMethodsExpired")
+    : t("paymentMethodsExpiresInMonths", { count: months, months });
 }
 
 /**
- * Mirrors the loaded card's shape — a heading bar and a row per method, each
- * with its name on the left and its actions on the right — so the page does
- * not reflow when the rows arrive. The surrounding frame carries the loading
+ * Mirrors the loaded card's shape — a heading bar and the pill, with its
+ * name on the left and its action on the right — so the page does not
+ * reflow when the method arrives. The surrounding frame carries the loading
  * label.
  */
-function PaymentMethodsSkeleton({
-  rows,
-  showHeader,
-}: {
-  rows: number;
-  showHeader: boolean;
-}) {
+function PaymentMethodsSkeleton({ showHeader }: { showHeader: boolean }) {
   return (
     <div className="schematic-skeleton">
       {showHeader && <div className="schematic-skeleton__heading" />}
-      {Array.from({ length: rows }, (_, row) => (
-        <div className="schematic-skeleton__row" key={row}>
-          <div className="schematic-skeleton__cell" data-column="method" />
-          <div className="schematic-skeleton__cell" data-column="actions" />
-        </div>
-      ))}
+      <div className="schematic-skeleton__row">
+        <div className="schematic-skeleton__cell" data-column="method" />
+        <div className="schematic-skeleton__cell" data-column="action" />
+      </div>
     </div>
   );
 }

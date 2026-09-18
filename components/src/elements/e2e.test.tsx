@@ -223,22 +223,31 @@ describe("end to end", () => {
 
   test("PaymentMethods", async () => {
     renderStack(<PaymentMethods />, "tok");
-    const rows = await screen.findAllByTestId("schematic-payment-method");
-    expect(rows).toHaveLength(3);
-    expect(rows[0]).toHaveTextContent("Visa");
-    expect(rows[0]).toHaveTextContent("···· 4242");
-    expect(rows[0]).toHaveTextContent("Default");
-    expect(rows[0]).toHaveAttribute("data-default", "true");
-    expect(rows[1]).toHaveTextContent("Chase");
-    expect(rows[2]).toHaveTextContent("Link · jo@example.com");
+    const pill = await screen.findByTestId("schematic-payment-method-current");
+    expect(pill).toHaveTextContent("Card ending in 4444");
+    expect(pill).not.toHaveTextContent("Chase");
+    expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("PaymentMethods lists the other methods in its dialog", async () => {
+    renderStack(<PaymentMethods />, "tok");
+    fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Choose different payment method" }),
+    );
+    const rows = screen.getAllByTestId("schematic-payment-method");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveTextContent("Chase 6789");
+    expect(rows[1]).toHaveTextContent("jo@example.com");
+    expect(document.querySelector("dialog")).toHaveAttribute("open");
   });
 
   test("PaymentMethods renders the empty state for a 200 with no methods", async () => {
     // Nothing on file is an empty list, never a 204 and never a 404.
     renderStack(<PaymentMethods />, "tok", SCENARIOS.paymentMethodsEmpty());
     expect(
-      await screen.findByText("No payment method on file"),
+      await screen.findByText("No payment method added yet"),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Add" })).toBeInTheDocument();
     expect(screen.queryByRole("alert")).toBeNull();
@@ -249,7 +258,7 @@ describe("end to end", () => {
     expect(
       await screen.findByText("Payment methods are not available"),
     ).toBeInTheDocument();
-    expect(screen.queryByText("No payment method on file")).toBeNull();
+    expect(screen.queryByText("No payment method added yet")).toBeNull();
   });
 
   test("PaymentMethods waits rather than failing while the session is pending", async () => {
@@ -284,7 +293,9 @@ describe("end to end", () => {
         <PaymentMethods />
       </SchematicProvider>,
     );
-    expect(screen.getAllByTestId("schematic-payment-method")).toHaveLength(3);
+    expect(
+      screen.getByTestId("schematic-payment-method-current"),
+    ).toHaveTextContent("Card ending in 4444");
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(calls).toHaveLength(1);
   });

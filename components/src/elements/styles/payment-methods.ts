@@ -14,9 +14,59 @@ export const paymentMethodsCss = `
   margin-bottom: 0;
 }
 
-/* Keeps a lone Add at the end when the heading is hidden. */
-.schematic-payment-methods__add {
-  margin-inline-start: auto;
+.schematic-payment-methods__expiry-warning {
+  color: var(--schematic-danger);
+  white-space: nowrap;
+}
+
+/* The pill: the default method on the left, Edit or Add on the right. */
+.schematic-payment-methods__current {
+  align-items: center;
+  background: var(--schematic-surface);
+  border-radius: 9999px;
+  display: flex;
+  gap: var(--schematic-space);
+  justify-content: space-between;
+  padding: calc(var(--schematic-space) * 0.5) var(--schematic-space);
+}
+
+.schematic-payment-methods__method {
+  align-items: center;
+  display: inline-flex;
+  flex-grow: 1;
+  flex-wrap: wrap;
+  gap: 0.25em;
+}
+
+.schematic-payment-methods__last4 {
+  font-variant-numeric: tabular-nums;
+}
+
+.schematic-payment-methods__empty {
+  flex-grow: 1;
+}
+
+.schematic-payment-methods__edit {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* The toggle that reveals the other methods, with its chevron. */
+.schematic-payment-methods__choose {
+  align-items: center;
+  align-self: flex-start;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.schematic-payment-methods__chevron {
+  display: inline-block;
+  font-size: 0.75em;
+  transition: transform 0.15s;
+}
+
+.schematic-payment-methods__choose[aria-expanded="true"] .schematic-payment-methods__chevron {
+  transform: rotate(180deg);
 }
 
 .schematic-payment-methods__list {
@@ -27,92 +77,83 @@ export const paymentMethodsCss = `
   padding: 0;
 }
 
-/* The name on the left, the expiry and actions on the right; a narrow card
-   wraps the actions under the name. */
+/* The name on the left, the expiry and actions on the right; a narrow
+   dialog wraps the actions under the name. */
 .schematic-payment-methods__row {
   align-items: center;
-  border-top: 1px solid var(--schematic-card-divider);
+  border-bottom: 1px solid var(--schematic-card-divider);
   display: flex;
   flex-wrap: wrap;
   gap: calc(var(--schematic-space) / 2) var(--schematic-space);
-  padding: calc(var(--schematic-space) * 0.75) 0;
-}
-
-.schematic-payment-methods__row:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.schematic-payment-methods__row:last-child {
-  padding-bottom: 0;
-}
-
-.schematic-payment-methods__method {
-  align-items: center;
-  display: inline-flex;
-  flex-grow: 1;
-  flex-wrap: wrap;
-  gap: calc(var(--schematic-space) / 2);
-}
-
-.schematic-payment-methods__brand {
-  font-weight: 500;
-}
-
-.schematic-payment-methods__last4 {
-  font-variant-numeric: tabular-nums;
+  padding: calc(var(--schematic-space) / 2) 0;
 }
 
 .schematic-payment-methods__expires {
-  color: var(--schematic-muted);
+  flex-grow: 1;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.schematic-payment-methods__expires[data-expiry="soon"] {
-  color: var(--schematic-warning);
-}
-
-.schematic-payment-methods__expires[data-expiry="expired"] {
-  color: var(--schematic-danger);
-}
-
-.schematic-payment-methods__actions {
-  align-items: center;
-  display: inline-flex;
-  gap: var(--schematic-space);
+.schematic-payment-methods__set-default {
   white-space: nowrap;
 }
 
-.schematic-payment-methods__actions .schematic-link-button:disabled {
+.schematic-payment-methods__set-default:disabled,
+.schematic-payment-methods__edit:disabled {
   color: var(--schematic-muted);
   cursor: not-allowed;
   text-decoration: none;
 }
 
-.schematic-payment-methods__empty {
-  padding: calc(var(--schematic-space) / 2) 0;
+.schematic-payment-methods__remove {
+  background: none;
+  border: none;
+  border-radius: 9999px;
+  color: var(--schematic-muted);
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0 0.25rem;
 }
 
-/* The failed write and its retry sit on one line beneath the list. */
-.schematic-payment-methods__write-error {
+.schematic-payment-methods__remove:hover:not(:disabled) {
+  color: var(--schematic-text);
+}
+
+.schematic-payment-methods__remove:focus-visible {
+  outline: 2px solid var(--schematic-accent);
+  outline-offset: 2px;
+}
+
+.schematic-payment-methods__remove:disabled {
+  cursor: not-allowed;
+}
+
+.schematic-payment-methods__add-new {
+  width: 100%;
+}
+
+.schematic-payment-methods__select-existing {
+  align-self: flex-start;
+}
+
+/* The failed write and its retry sit on one line at the foot of the dialog. */
+.schematic-payment-methods__error {
   align-items: center;
   display: flex;
   gap: var(--schematic-space);
   margin-top: 0;
 }
 
-.schematic-payment-methods__write-retry {
+.schematic-payment-methods__error-retry {
   flex-shrink: 0;
   white-space: nowrap;
 }
 
 .schematic-payment-methods__form {
-  border-top: 1px solid var(--schematic-card-divider);
   display: flex;
   flex-direction: column;
   gap: var(--schematic-space);
-  padding-top: var(--schematic-space);
 }
 
 .schematic-payment-methods__form-actions {
@@ -125,8 +166,8 @@ export const paymentMethodsCss = `
   width: 10rem;
 }
 
-.schematic-payment-methods .schematic-skeleton__cell[data-column="actions"] {
-  width: 6rem;
+.schematic-payment-methods .schematic-skeleton__cell[data-column="action"] {
+  width: 3rem;
 }
 
 .schematic-payment-methods .schematic-skeleton__cell[data-column="field"] {

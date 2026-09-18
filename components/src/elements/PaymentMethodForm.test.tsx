@@ -6,7 +6,7 @@ import {
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { PaymentMethodForm } from "./PaymentMethodForm";
+import { PaymentMethodForm, resolveAppearance } from "./PaymentMethodForm";
 import { defaultString } from "./strings";
 
 /**
@@ -48,7 +48,11 @@ function intent(overrides: Partial<SetupIntent> = {}): SetupIntent {
   };
 }
 
-function renderForm(actions: Partial<BillingActions>, locale = L) {
+function renderForm(
+  actions: Partial<BillingActions>,
+  locale = L,
+  onSelectExisting?: () => void,
+) {
   const onClose = vi.fn();
   const onSaved = vi.fn().mockResolvedValue(undefined);
   render(
@@ -58,6 +62,7 @@ function renderForm(actions: Partial<BillingActions>, locale = L) {
         t={defaultString}
         onClose={onClose}
         onSaved={onSaved}
+        onSelectExisting={onSelectExisting}
       />
     </BillingDataProvider>,
   );
@@ -65,13 +70,46 @@ function renderForm(actions: Partial<BillingActions>, locale = L) {
 }
 
 /** A form that has minted its intent and loaded Stripe. */
-async function renderReady(overrides: Partial<SetupIntent> = {}) {
+async function renderReady(
+  overrides: Partial<SetupIntent> = {},
+  onSelectExisting?: () => void,
+) {
   stripe.loadStripe.mockResolvedValue(stripe.instance);
-  const handlers = renderForm({
-    createSetupIntent: vi.fn().mockResolvedValue(intent(overrides)),
-  });
+  const handlers = renderForm(
+    { createSetupIntent: vi.fn().mockResolvedValue(intent(overrides)) },
+    L,
+    onSelectExisting,
+  );
   await screen.findByRole("button", { name: "Save" });
   return handlers;
+}
+
+/** What a browser resolves the probe to, under the default palette. */
+const RESOLVED = {
+  backgroundColor: "rgb(255, 255, 255)",
+  borderTopColor: "rgb(25, 75, 251)",
+  borderTopLeftRadius: "10px",
+  color: "rgb(0, 0, 0)",
+  fontFamily: '"Public Sans", system-ui, sans-serif',
+  outlineColor: "rgb(215, 90, 92)",
+} as CSSStyleDeclaration;
+
+/**
+ * Answers the appearance probe as a browser would; every other element
+ * keeps jsdom's answer, which testing-library's queries depend on.
+ */
+function resolveProbe(onProbe?: (probe: HTMLElement) => void) {
+  const real = window.getComputedStyle.bind(window);
+  return vi
+    .spyOn(window, "getComputedStyle")
+    .mockImplementation((element, pseudo) => {
+      const probe = element as HTMLElement;
+      if (probe.style.color.includes("--schematic-text")) {
+        onProbe?.(probe);
+        return RESOLVED;
+      }
+      return real(element, pseudo);
+    });
 }
 
 describe("PaymentMethodForm", () => {
@@ -97,12 +135,86 @@ describe("PaymentMethodForm", () => {
       locale: L,
     });
     expect(stripe.elementsProps).toHaveBeenCalledWith({
-      options: { clientSecret: "seti_secret" },
+      options: {
+        appearance: { theme: "stripe", variables: expect.any(Object) },
+        clientSecret: "seti_secret",
+      },
       stripe: stripe.instance,
     });
     expect(screen.getByTestId("payment-element")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Select existing payment method" }),
+    ).toBeNull();
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("themes Stripe's iframe from the tokens as the browser resolves them", async () => {
+    const computed = resolveProbe();
+    try {
+      await renderReady();
+    } finally {
+      computed.mockRestore();
+    }
+    expect(stripe.elementsProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          appearance: {
+            theme: "stripe",
+            variables: {
+              borderRadius: "10px",
+              colorBackground: "rgb(255, 255, 255)",
+              colorDanger: "rgb(215, 90, 92)",
+              colorPrimary: "rgb(25, 75, 251)",
+              colorText: "rgb(0, 0, 0)",
+              fontFamily: '"Public Sans", system-ui, sans-serif',
+            },
+          },
+        }),
+      }),
+    );
+  });
+
+  test("resolveAppearance reads the tokens through a probe under the host, and leaves it no trace", () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const probed = vi.fn((probe: HTMLElement) => {
+      expect(probe.parentElement).toBe(host);
+      expect(probe.style.visibility).toBe("hidden");
+    });
+    const computed = resolveProbe(probed);
+    try {
+      expect(resolveAppearance(host).variables).toMatchObject({
+        colorText: "rgb(0, 0, 0)",
+        colorBackground: "rgb(255, 255, 255)",
+      });
+    } finally {
+      computed.mockRestore();
+      host.remove();
+    }
+    expect(probed).toHaveBeenCalledTimes(1);
+    expect(host.childElementCount).toBe(0);
+  });
+
+  test("resolveAppearance drops a token the browser did not resolve, leaving Stripe its default", () => {
+    // jsdom hands the `var()` back unresolved; a real browser never does.
+    const { variables } = resolveAppearance(document.body);
+    expect(variables).not.toHaveProperty("colorText");
+    expect(variables).not.toHaveProperty("fontFamily");
+    for (const value of Object.values(variables ?? {})) {
+      expect(value).not.toContain("var(");
+    }
+  });
+
+  test("offers the way back to the methods on file when there are any", async () => {
+    const onSelectExisting = vi.fn();
+    const { onClose } = await renderReady({}, onSelectExisting);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Select existing payment method" }),
+    );
+    expect(onSelectExisting).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(stripe.confirmSetup).not.toHaveBeenCalled();
   });
 
   test("a connected account loads through Schematic's key, naming the account", async () => {

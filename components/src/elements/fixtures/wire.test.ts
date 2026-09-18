@@ -59,7 +59,7 @@ describe("wire round trip", () => {
       is_default: true,
       can_remove: false,
       card_brand: "visa",
-      card_last4: "4242",
+      card_last4: "4444",
       card_exp_month: 8,
       card_exp_year: 2027,
     });

@@ -21,22 +21,21 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * aimed at a shipped element is checked against the element in every state.
  *
  * Rules for elements not yet shipped match nothing by definition and are
- * skipped.
+ * skipped; `schematic-badge` is among them, worn only by the plan cards.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|row|chip|badge|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
  * every shipped element passes one, so nothing here can match it — and the
- * Add form, which renders inside Stripe's `<Elements>` and cannot be staged
- * without it. PaymentMethodForm.test.tsx covers the form's markup.
+ * loaded Add form, which renders inside Stripe's `<Elements>` and cannot be
+ * staged without it. PaymentMethodForm.test.tsx covers the form's markup.
  */
 const UNREACHABLE = new Set([
   ".schematic-skeleton:empty",
-  ".schematic-payment-methods__form",
   ".schematic-payment-methods__form-actions",
-  '.schematic-payment-methods .schematic-skeleton__cell[data-column="field"]',
+  ".schematic-payment-methods__select-existing",
 ]);
 
 function shippedSelectors(): string[] {
@@ -84,31 +83,62 @@ function tree(
   return container.firstElementChild as HTMLElement;
 }
 
-/** A card expiring this month, judged against the real clock. */
-function expiringCard() {
+/** A default card expiring this month, judged against the real clock, so
+ * the header warns of it. */
+function expiringDefault() {
   const now = new Date();
   return cardPaymentMethod({
-    cardExpMonth: now.getUTCMonth() + 1,
-    cardExpYear: now.getUTCFullYear(),
+    isDefault: true,
+    canRemove: false,
+    cardExpMonth: now.getMonth() + 1,
+    cardExpYear: now.getFullYear(),
   });
 }
 
-/** The list with a write that has just failed beneath it. */
-async function failedWrite() {
-  const root = tree(
-    <PaymentMethods locale="en-US" />,
-    SCENARIOS.paymentMethods(),
-    undefined,
-    { setDefaultPaymentMethod: vi.fn().mockRejectedValue(new Error("Nope")) },
-  );
-  // Scoped to this card: the other cards on the page offer the same action.
+/** Opens the card's dialog and unfolds the other methods. Scoped to the
+ * card: the other cards on the page offer the same actions. */
+function unfold(root: HTMLElement) {
   fireEvent.click(
-    root.querySelector(".schematic-payment-methods__make-default") as Element,
+    root.querySelector(".schematic-payment-methods__edit") as Element,
+  );
+  fireEvent.click(
+    root.querySelector(".schematic-payment-methods__choose") as Element,
+  );
+  return root;
+}
+
+/** The dialog with a write that has just failed at its foot. */
+async function failedWrite() {
+  const root = unfold(
+    tree(
+      <PaymentMethods locale="en-US" />,
+      SCENARIOS.paymentMethods(),
+      undefined,
+      {
+        setDefaultPaymentMethod: vi.fn().mockRejectedValue(new Error("Nope")),
+      },
+    ),
+  );
+  fireEvent.click(
+    root.querySelector(".schematic-payment-methods__set-default") as Element,
   );
   await waitFor(() =>
     expect(
-      root.querySelector(".schematic-payment-methods__write-error"),
+      root.querySelector(".schematic-payment-methods__error"),
     ).not.toBeNull(),
+  );
+  return root;
+}
+
+/** The dialog opened straight onto the form, whose place is held while it
+ * loads. */
+function adding() {
+  const root = tree(
+    <PaymentMethods locale="en-US" />,
+    SCENARIOS.paymentMethodsEmpty(),
+  );
+  fireEvent.click(
+    root.querySelector(".schematic-payment-methods__edit") as Element,
   );
   return root;
 }
@@ -118,21 +148,25 @@ async function everyCard() {
   const noUrl = SCENARIOS.pro();
   noUrl.invoices = invoicePage([invoice({ url: null })]);
   const boom = new Error("Boom");
-  const everyExpiry = {
+  // The default is expiring; a card is among the others, so a row shows an
+  // expiry.
+  const everyExpiry = () => ({
     paymentMethods: [
-      ...paymentMethodSet(),
-      expiringCard(),
+      expiringDefault(),
+      ...paymentMethodSet().slice(1),
       cardPaymentMethod({ cardExpMonth: 1, cardExpYear: 2020 }),
     ],
-  };
+  });
 
   return [
-    tree(<PaymentMethods locale="en-US" />, everyExpiry),
+    tree(<PaymentMethods locale="en-US" />, everyExpiry()),
+    unfold(tree(<PaymentMethods locale="en-US" />, everyExpiry())),
     tree(
       <PaymentMethods locale="en-US" />,
       SCENARIOS.paymentMethodsNoDefault(),
     ),
     tree(<PaymentMethods locale="en-US" />, SCENARIOS.paymentMethodsEmpty()),
+    adding(),
     tree(<PaymentMethods locale="en-US" />, {}, {
       paymentMethods: { isPending: true },
     } as never),
@@ -175,11 +209,14 @@ describe("the packaged stylesheet", () => {
   test("every rule aimed at a shipped element still matches its markup", async () => {
     const cards = await everyCard();
     const unmatched = shippedSelectors().filter((selector) => {
-      // Interaction states cannot be staged in a render, and the expanded
-      // toggle is the collapsed one with its attribute flipped.
+      // Interaction states and pseudo-elements cannot be staged in a
+      // render, and the expanded toggle is the collapsed one with its
+      // attribute flipped — or the reverse, for a toggle staged open.
       const probe = selector
+        .replace(/:not\(:disabled\)/g, "")
         .replace(/:(hover|focus-visible|disabled)/g, "")
-        .replace('[aria-expanded="true"]', '[aria-expanded="false"]');
+        .replace(/::[a-z-]+/g, "")
+        .replace(/\[aria-expanded="(true|false)"\]/, "");
       return !cards.some(
         (root) => root.matches(probe) || root.querySelector(probe) !== null,
       );
