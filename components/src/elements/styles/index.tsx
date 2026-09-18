@@ -1,5 +1,6 @@
 import React from "react";
 
+import { dialogCss } from "./dialog";
 import { invoicesCss } from "./invoices";
 import { paymentMethodsCss } from "./payment-methods";
 import { withTokenDefaults } from "./tokens";
@@ -526,6 +527,7 @@ const rulesCss = `
   width: 100%;
 }
 
+${dialogCss}
 ${invoicesCss}
 ${upcomingBillCss}
 ${paymentMethodsCss}
