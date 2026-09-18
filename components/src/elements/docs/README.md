@@ -5,8 +5,7 @@ the billing API. Each element reads one or two resources through hooks from
 `@schematichq/schematic-react`, reduces them to a domain model with a pure
 derivation, and renders with CSS-variable styling.
 
-This release carries the first element; the rest land with the endpoints
-that feed them.
+The rest of the elements land with the endpoints that feed them.
 
 Naming: `billing` is the end-customer API tier that the elements read from
 (`SchematicBillingClient`, `BillingProvider`, `fetchBillingData`); `catalog`
@@ -14,17 +13,28 @@ is reserved for the offerings resource. The routes those clients call are
 still `/company/*`, and the generated wire models keep their `Company…`
 names — the tier is what `billing` names, not the resource.
 
-| Element  | Hooks         | Derivation          | Recipe                       |
-| -------- | ------------- | ------------------- | ---------------------------- |
-| Invoices | `useInvoices` | `deriveInvoiceList` | [invoices.md](./invoices.md) |
+| Element      | Hooks                | Derivation              | Reads             | Recipe                                 |
+| ------------ | -------------------- | ----------------------- | ----------------- | -------------------------------------- |
+| Invoices     | `useInvoices`        | `deriveInvoiceList`     | `invoices`        | [invoices.md](./invoices.md)           |
+| UpcomingBill | `useUpcomingInvoice` | `deriveUpcomingInvoice` | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md) |
 
 ## Before it can load
 
 The company endpoints are gated on the `company-context-api` flag, per
 account. An account without it gets a 404 from every `/company/*` read, and
-because a 404 on the invoice history is not an answer — an empty history is
-a 200 with no rows — the element reports it as an error rather than showing
-a company with invoices an empty card. If a correctly configured page shows
+because a 404 is not an answer the elements report it as "not available"
+rather than showing a company with invoices, or a subscription, an empty
+card.
+
+The endpoints follow one rule the elements rely on. A collection with
+nothing in it is a 200 with an empty list (`/company/invoices`). A single
+resource that can legitimately be absent is a 204 (`/company/upcoming-invoice`
+for a company with nothing to bill), which the client reads as `null` — a
+loaded value, so the element renders its empty state. A 404 means the caller
+cannot read the resource: the account is off the flag, the token does not
+resolve, or the billing provider no longer knows the customer. A 404 never
+means "nothing here", so the elements render "not available" for it and key
+on the status alone, never on the error message. If a correctly configured page shows
 `… failed with status 404`, the flag is what to check first. Ask Schematic
 to turn it on for the account.
 
@@ -91,10 +101,21 @@ signed in, so read `isLoaded` before deciding which you mean.
 `token` is a string or a provider called (and re-called after a 401) for one.
 Without a session the element reports the missing token in its status frame.
 
-For server rendering, `fetchBillingData(client)` in schematic-js returns an
-`initialData` bag the provider seeds from. Pass the query your element asks —
-`fetchBillingData(client, { invoices: { includePending: true } })` — or the
-seed answers a question nothing asked and the element fetches it again.
+For server rendering, `fetchBillingData` in schematic-js returns an
+`initialData` bag the provider seeds from. Name the resources the page
+renders, since each is a request on the server (the upcoming invoice is a
+live billing-provider preview) and there is no default set. Every element
+declares what it reads as `resources`, and `billingResources` collects them:
+
+```ts
+fetchBillingData(client, {
+  names: billingResources(UpcomingBill, Invoices),
+  invoices: { includePending: true },
+});
+```
+
+Pass the query your element asks, as above, or the seed answers a question
+nothing asked and the element fetches it again.
 
 Those rows show on the first render even though your auth usually resolves a
 render later, and they are checked against it: `fetchBillingData` records

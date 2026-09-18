@@ -1,6 +1,7 @@
 import {
   useSchematicI18n,
   useSchematicLocale,
+  type BillingResourceName,
 } from "@schematichq/schematic-react";
 import React, { useCallback, useEffect, useSyncExternalStore } from "react";
 
@@ -30,6 +31,37 @@ export interface ElementProps {
 
 /** Heading level an element's own heading renders at. Default 2. */
 export type HeadingLevel = 2 | 3 | 4 | 5 | 6;
+
+/**
+ * What an element reads from the billing store, declared on the element so
+ * a page can prefetch exactly that. `fetchBillingData` has no default set:
+ * each resource is a request on the server, and the set grows with every
+ * element, so the page names what it renders.
+ */
+export interface ReadsBillingResources {
+  readonly resources: readonly BillingResourceName[];
+}
+
+/**
+ * The resource names to prefetch for the elements a page renders, each once:
+ *
+ * ```ts
+ * fetchBillingData(client, { names: billingResources(UpcomingBill, Invoices) });
+ * ```
+ */
+export function billingResources(
+  ...elements: ReadsBillingResources[]
+): BillingResourceName[] {
+  const names: BillingResourceName[] = [];
+  for (const element of elements) {
+    for (const name of element.resources) {
+      if (!names.includes(name)) {
+        names.push(name);
+      }
+    }
+  }
+  return names;
+}
 
 /**
  * The element's `locale` prop, else the provider's, else the viewer's.

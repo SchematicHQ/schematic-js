@@ -19,4 +19,20 @@ describe("wire round trip", () => {
     );
     expect(decoded).toEqual(rows);
   });
+
+  test.each(Object.keys(SCENARIOS) as ScenarioName[])(
+    "%s, the next bill",
+    (name) => {
+      const bill = SCENARIOS[name]().upcomingInvoice;
+      if (bill == null) {
+        return; // nothing to bill is a 204, not a body
+      }
+      const wire = billingApi.CompanyUpcomingInvoiceResponseDataToJSON(bill);
+      expect(JSON.stringify(wire)).not.toMatch(/"[a-z]+[A-Z]/);
+      const decoded = billingApi.CompanyUpcomingInvoiceResponseDataFromJSON(
+        JSON.parse(JSON.stringify(wire)),
+      );
+      expect(decoded).toEqual(bill);
+    },
+  );
 });

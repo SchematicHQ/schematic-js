@@ -1,9 +1,15 @@
-import { SchematicBillingClient, billingApi } from "@schematichq/schematic-js";
+import {
+  SchematicBillingClient,
+  billingApi,
+  fetchBillingData,
+} from "@schematichq/schematic-js";
 import { SchematicProvider } from "@schematichq/schematic-react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { Invoices } from "./Invoices";
+import { UpcomingBill } from "./UpcomingBill";
+import { billingResources } from "./common";
 import { invoice } from "./fixtures/builders";
 import { SCENARIOS } from "./fixtures/scenarios";
 
@@ -12,14 +18,35 @@ import { SCENARIOS } from "./fixtures/scenarios";
  * schematic-react hooks to the DOM, with fetch faked at the network edge.
  */
 
-/** Answers /company/invoices the way the API does: a `limit`/`offset` window
- * plus the total count. */
-function serve(scenario: ReturnType<(typeof SCENARIOS)["pro"]>) {
+/**
+ * Answers /company/invoices the way the API does — a `limit`/`offset` window
+ * plus the total count — and /company/upcoming-invoice with the bill, or a
+ * 204 when there is nothing to bill. An account not on the flag gets a 404
+ * from every company route, which is what everything else falls to.
+ */
+function serve(
+  scenario: ReturnType<(typeof SCENARIOS)["pro"]>,
+  flagged = true,
+) {
   const all = scenario.invoices?.invoices ?? [];
   const count = scenario.invoices?.count ?? all.length;
+  const upcoming = scenario.upcomingInvoice;
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
-    if (url.pathname === "/company/invoices") {
+    if (flagged && url.pathname === "/company/upcoming-invoice") {
+      return upcoming == null
+        ? new Response(null, { status: 204 })
+        : new Response(
+            JSON.stringify({
+              data: billingApi.CompanyUpcomingInvoiceResponseDataToJSON(
+                upcoming,
+              ),
+              params: {},
+            }),
+            { status: 200 },
+          );
+    }
+    if (flagged && url.pathname === "/company/invoices") {
       const limit = Number(url.searchParams.get("limit"));
       const offset = Number(url.searchParams.get("offset"));
       const rows = all
@@ -44,11 +71,12 @@ function renderStack(
   ui: React.ReactNode,
   token?: string,
   scenario = SCENARIOS.pro(),
+  flagged = true,
 ) {
   const client = new SchematicBillingClient({
     session: token === undefined ? undefined : { company: "co_test", token },
     apiUrl: "https://api.test",
-    fetch: serve(scenario),
+    fetch: serve(scenario, flagged),
   });
   return render(
     <SchematicProvider publishableKey="pk_test" billingClient={client}>
@@ -86,6 +114,86 @@ describe("end to end", () => {
       expect(screen.getAllByTestId("schematic-invoice")).toHaveLength(30),
     );
     expect(screen.queryByRole("button", { name: "Load more" })).toBeNull();
+  });
+
+  test("UpcomingBill", async () => {
+    renderStack(<UpcomingBill />, "tok");
+    expect(
+      await screen.findByTestId("schematic-upcoming-total"),
+    ).toHaveTextContent("$68.00");
+    expect(screen.getByTestId("schematic-balance-applied")).toHaveTextContent(
+      "-$15.00",
+    );
+    expect(screen.getByTestId("schematic-discount")).toHaveTextContent(
+      "20% off for next 3 months",
+    );
+  });
+
+  test("UpcomingBill renders the empty state for a 204", async () => {
+    // No subscription is a 204 from the endpoint; the client reads it as no
+    // next bill, and the element as content rather than a failure.
+    renderStack(<UpcomingBill />, "tok", SCENARIOS.unbilled());
+    expect(await screen.findByText("No upcoming invoice")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("UpcomingBill says it is not available for an account off the flag", async () => {
+    // The flag middleware answers 404; that must never read as "nothing to
+    // bill" for a customer who has a subscription.
+    renderStack(<UpcomingBill />, "tok", SCENARIOS.pro(), false);
+    expect(
+      await screen.findByText(
+        "Your upcoming invoice is not available for this account.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("No upcoming invoice")).toBeNull();
+  });
+
+  test("UpcomingBill waits rather than failing while the session is pending", async () => {
+    renderStack(<UpcomingBill />);
+    expect(
+      await screen.findByText("Loading your next bill"),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("a page prefetched by what its elements read makes no request of its own", async () => {
+    // What `fetchBillingData` is for on a server-rendered page: the elements
+    // declare what they read, the page prefetches exactly that, and the
+    // provider seeds it, so nothing is fetched again after hydration.
+    const fetchImpl = serve(SCENARIOS.pro());
+    const client = new SchematicBillingClient({
+      session: { company: "co_test", token: "tok" },
+      apiUrl: "https://api.test",
+      fetch: fetchImpl,
+    });
+    const names = billingResources(UpcomingBill, Invoices, Invoices);
+    expect(names).toEqual(["upcomingInvoice", "invoices"]);
+    const initialData = await fetchBillingData(client, { names });
+    const requests = (fetchImpl as unknown as { mock: { calls: unknown[] } })
+      .mock.calls.length;
+    expect(requests).toBe(2);
+
+    render(
+      <SchematicProvider
+        publishableKey="pk_test"
+        billingClient={client}
+        initialData={initialData}
+        session={{ company: "co_test", token: "tok" }}
+      >
+        <UpcomingBill />
+        <Invoices limit={2} />
+      </SchematicProvider>,
+    );
+    expect(screen.getByTestId("schematic-upcoming-total")).toHaveTextContent(
+      "$68.00",
+    );
+    expect(screen.getAllByTestId("schematic-invoice")).toHaveLength(2);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(
+      (fetchImpl as unknown as { mock: { calls: unknown[] } }).mock.calls
+        .length,
+    ).toBe(requests);
   });
 
   test("Invoices waits rather than failing while the session is pending", async () => {

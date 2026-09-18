@@ -256,4 +256,7 @@ function InvoiceDate({ row, t }: { row: InvoiceRow; t: Translator }) {
   );
 }
 
+/** What the element reads, for `fetchBillingData` on a server-rendered page. */
+Invoices.resources = ["invoices"] as const;
+
 export default Invoices;
