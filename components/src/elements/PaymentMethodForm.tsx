@@ -1,13 +1,15 @@
 import { useSetupIntent } from "@schematichq/schematic-react";
 import type * as ReactStripe from "@stripe/react-stripe-js";
 import type {
+  Appearance,
   Stripe,
   StripeConstructorOptions,
   StripeElementLocale,
 } from "@stripe/stripe-js";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import type { Translator } from "./strings";
+import { withTokenDefaults } from "./styles/tokens";
 
 /**
  * The Add form: a Stripe PaymentElement over a setup intent the API mints
@@ -20,9 +22,13 @@ import type { Translator } from "./strings";
 export interface PaymentMethodFormProps {
   locale: string;
   t: Translator;
+  /** Cancel: back to whatever the form replaced. */
   onClose: () => void;
   /** The saved method's provider id; resolves once the list has taken it. */
   onSaved: (paymentMethodId: string) => Promise<void>;
+  /** The "Select existing payment method" link; omitted when there is none
+   * to select. */
+  onSelectExisting?: () => void;
 }
 
 type StripeUi = Pick<
@@ -34,19 +40,82 @@ type FormState =
   | { status: "loading" }
   /** `message` is Stripe's own wording, or `null` for the element's copy. */
   | { status: "failed"; message: string | null }
-  | { status: "ready"; clientSecret: string; stripe: Stripe; ui: StripeUi };
+  | {
+      status: "ready";
+      appearance: Appearance;
+      clientSecret: string;
+      stripe: Stripe;
+      ui: StripeUi;
+    };
 
 const NO_CLIENT_SECRET = "The setup intent carries no client secret.";
 const STRIPE_NOT_LOADED = "Stripe.js did not load.";
+
+/**
+ * The tokens Stripe's iframe is themed from, as the properties a probe
+ * element resolves them through. Written with the same fallbacks as the
+ * stylesheet, so a host that sets no token gets the element's own palette.
+ */
+const PROBE_CSS = withTokenDefaults(
+  [
+    "background-color: var(--schematic-background)",
+    "border-color: var(--schematic-accent)",
+    "border-radius: var(--schematic-radius)",
+    "color: var(--schematic-text)",
+    "font-family: var(--schematic-font-body)",
+    "outline-color: var(--schematic-danger)",
+    "position: absolute",
+    "visibility: hidden",
+  ].join("; "),
+);
+
+/** A computed value the browser resolved; jsdom hands back the `var()`. */
+function resolved(value: string): boolean {
+  return value !== "" && !value.includes("var(");
+}
+
+/**
+ * Stripe's Elements render in an iframe, where the host's CSS variables do
+ * not reach, so the tokens are resolved here — `light-dark()` included, as
+ * the browser sees the host's `color-scheme` — and handed over as values.
+ * A dark host gets a form it can read.
+ */
+export function resolveAppearance(host: Element): Appearance {
+  const document = host.ownerDocument;
+  const probe = document.createElement("span");
+  probe.style.cssText = PROBE_CSS;
+  host.appendChild(probe);
+  const style = (document.defaultView ?? window).getComputedStyle(probe);
+  const candidates: Record<string, string> = {
+    borderRadius: style.borderTopLeftRadius,
+    colorBackground: style.backgroundColor,
+    colorDanger: style.outlineColor,
+    colorPrimary: style.borderTopColor,
+    colorText: style.color,
+    fontFamily: style.fontFamily,
+  };
+  probe.remove();
+  const variables: Record<string, string> = {};
+  for (const [name, value] of Object.entries(candidates)) {
+    if (resolved(value)) {
+      variables[name] = value;
+    }
+  }
+  return { theme: "stripe", variables };
+}
 
 export function PaymentMethodForm({
   locale,
   onClose,
   onSaved,
+  onSelectExisting,
   t,
 }: PaymentMethodFormProps) {
   const { create } = useSetupIntent();
   const [state, setState] = useState<FormState>({ status: "loading" });
+  // Where the form will mount, so the appearance is read under the host's
+  // own tokens rather than the page's.
+  const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,7 +145,10 @@ export function PaymentMethodForm({
           throw new Error(STRIPE_NOT_LOADED);
         }
         if (!cancelled) {
-          setState({ status: "ready", clientSecret, stripe, ui });
+          const appearance = resolveAppearance(
+            hostRef.current ?? document.body,
+          );
+          setState({ status: "ready", appearance, clientSecret, stripe, ui });
         }
       })
       .catch(() => {
@@ -96,6 +168,7 @@ export function PaymentMethodForm({
         aria-busy="true"
         className="schematic-payment-methods__form"
         data-state="pending"
+        ref={hostRef}
       >
         <span className="schematic-hidden">
           {t("paymentMethodsFormLoading")}
@@ -132,9 +205,18 @@ export function PaymentMethodForm({
   return (
     <Elements
       stripe={state.stripe}
-      options={{ clientSecret: state.clientSecret }}
+      options={{
+        appearance: state.appearance,
+        clientSecret: state.clientSecret,
+      }}
     >
-      <Fields t={t} ui={state.ui} onClose={onClose} onSaved={onSaved} />
+      <Fields
+        t={t}
+        ui={state.ui}
+        onClose={onClose}
+        onSaved={onSaved}
+        onSelectExisting={onSelectExisting}
+      />
     </Elements>
   );
 }
@@ -146,11 +228,13 @@ export function PaymentMethodForm({
 function Fields({
   onClose,
   onSaved,
+  onSelectExisting,
   t,
   ui,
 }: {
   onClose: () => void;
   onSaved: (paymentMethodId: string) => Promise<void>;
+  onSelectExisting?: () => void;
   t: Translator;
   ui: StripeUi;
 }) {
@@ -227,6 +311,16 @@ function Fields({
           {t("paymentMethodsCancel")}
         </button>
       </div>
+      {onSelectExisting !== undefined && (
+        <button
+          className="schematic-link-button schematic-payment-methods__select-existing"
+          disabled={saving}
+          type="button"
+          onClick={onSelectExisting}
+        >
+          {t("paymentMethodsSelectExisting")}
+        </button>
+      )}
     </form>
   );
 }

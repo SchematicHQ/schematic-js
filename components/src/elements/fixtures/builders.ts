@@ -92,7 +92,7 @@ export function cardPaymentMethod(
     isDefault: false,
     canRemove: true,
     cardBrand: "visa",
-    cardLast4: "4242",
+    cardLast4: "4444",
     cardExpMonth: 8,
     cardExpYear: 2027,
     ...overrides,

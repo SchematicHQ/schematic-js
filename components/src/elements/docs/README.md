@@ -42,9 +42,15 @@ to turn it on for the account.
 Adding a payment method goes through Stripe, so `PaymentMethods`' Add form
 needs `@stripe/stripe-js` and `@stripe/react-stripe-js` installed beside the
 package. Both are optional peers: the elements bundle leaves them out and
-imports them on the first Add, so a page that only lists methods never loads
-Stripe, and a host without them still lists — the form reports that it could
-not load rather than crashing.
+imports them when the form first opens, so a page that only shows the method
+on file never loads Stripe, and a host without them still shows it — the
+form reports that it could not load rather than crashing.
+
+The server also refuses to remove the default payment method while others
+exist, and the last method on an active subscription. That is why the
+`PaymentMethods` pill offers no Remove: it names the default, and a Remove on
+it would fail every time. Removal is offered in the dialog on the other
+methods, and only where the server's `canRemove` allows it.
 
 ## Setup
 
@@ -140,10 +146,11 @@ matching markup on both sides rather than a hydration mismatch per row.
 ## Styling
 
 `<SchematicStyles />` injects one stylesheet driven by `--schematic-*`
-custom properties: `accent`, `accent-contrast`, `background`, `border`,
-`card-divider`, `card-padding`, `danger`, `font-body`, `font-heading`,
-`line-height`, `line-height-heading`, `meter-track`, `muted`, `primary`,
-`primary-contrast`, `radius`, `shadow`, `space`, `text`, `warning`.
+custom properties: `accent`, `accent-contrast`, `backdrop`, `background`,
+`border`, `card-divider`, `card-padding`, `danger`, `font-body`,
+`font-heading`, `line-height`, `line-height-heading`, `meter-track`, `muted`,
+`primary`, `primary-contrast`, `radius`, `shadow`, `space`, `surface`,
+`text`, `warning`.
 
 ### Light and dark
 
@@ -210,6 +217,11 @@ they are API, and each element's doc shows the tree it renders.
 | `schematic-status__retry`     | Its retry action.                                          |
 | `schematic-error`             | Error text.                                                |
 | `schematic-status-note`       | A failure reported under content that is still on screen.  |
+| `schematic-dialog`            | A modal `<dialog>` an element opens, inside its root.      |
+| `schematic-dialog__header`    | The dialog's title row.                                    |
+| `schematic-dialog__title`     | The title itself, which labels the dialog.                 |
+| `schematic-dialog__close`     | The control in the header that closes it.                  |
+| `schematic-dialog__body`      | Everything beneath the header.                             |
 | `schematic-skeleton`          | The pending placeholder, rendered inside the card.         |
 | `schematic-skeleton__heading` | The bar standing in for a card's heading.                  |
 | `schematic-skeleton__row`     | One row of the pending placeholder.                        |

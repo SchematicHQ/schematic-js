@@ -1,6 +1,6 @@
 # PaymentMethods
 
-The company's saved payment methods: what each one is, which is the default, whether a card is about to expire, and the actions to change any of that — Make default, Remove, and Add, which opens a Stripe form.
+The company's payment method on file, laid out as the embed's `PaymentMethod` element is: a pill naming the default method, a warning beside the heading when that card is about to expire, and an Edit that opens a dialog where the other saved methods can be made the default or removed and a new one added through Stripe.
 
 ## Hook and derivation
 
@@ -13,9 +13,11 @@ Four rules hold across the list, and the server applies them, not the element:
 - The default cannot be removed while other methods exist; `canRemove` is false on it.
 - The last method stays on an active subscription, so its `canRemove` is false too.
 - A method added through the form becomes the default. The form asks for that itself, with `setDefault`, once Stripe confirms the setup.
-- Nothing is promoted. A list with no default — which a provider allows — stays that way until someone chooses; the element shows no badge and offers Make default on every row.
+- Nothing is promoted. A list with no default — which a provider allows — stays that way until someone chooses; the pill reads as empty and every method is offered in the dialog.
 
-`derivePaymentMethods` turns the wire rows into display rows. Each has a `kind` (`card`, `bank`, `wallet`, `other`), a `label` ("Visa", "Chase", "Link · jo@example.com"), the `last4` digits that tell it from another of the same brand, and an `expiry`: `expired` once a card's last month has passed, `soon` when it ends within four months, `ok` otherwise, and `none` for anything that does not expire. `expiresText` is the month and year for the locale ("08/2027"), and `now` fixes the moment expiry is judged from, for a test or a server render.
+`derivePaymentMethods` turns the wire rows into what the element shows. It returns the `rows`, the `current` one — the default, which is what the pill shows, or `null` when none is — and the `others`, which is every row but the default (all of them when there is no default). Alongside sit `monthsToExpiration` and `expiryWarning` for the header: `soon` when the default card has fewer than four months left, `expired` once its month has arrived, `none` otherwise. The months are whole calendar months from the current month to the card's, as the embed counts them; `now` fixes the moment they are counted from, for a test or a server render.
+
+Each row has a `kind` (`card`, `bank`, `wallet`, `other`), the `last4` digits that follow its label, `expiresShort` ("8/27", the embed's form, for a card), its own `monthsToExpiration` and `expiry`, and a `label`. The label is either `{ key }` — copy to resolve through the translator, such as `paymentMethodsCardEndingIn` for "Card ending in" — or `{ text }`, a value the provider supplied: the bank's name, the email behind a Link account, the account name behind PayPal or Cash App, or a wallet's own name when it supplied nothing. That split keeps the derivation pure and the translatable words in the string catalogue.
 
 ```tsx
 import {
@@ -23,29 +25,34 @@ import {
   usePaymentMethods,
 } from "@schematichq/schematic-components/elements";
 
-function CardsOnFile() {
-  const { data, setDefault, remove } = usePaymentMethods();
+function CardOnFile() {
+  const { data, setDefault } = usePaymentMethods();
   if (data === undefined) return <Spinner />;
 
-  const rows = derivePaymentMethods(data, { locale: "en-US" });
+  const { current, others, expiryWarning } = derivePaymentMethods(data, {
+    locale: "en-US",
+  });
+  const name = (row: PaymentMethodRow) =>
+    row.label.key !== undefined ? t(row.label.key) : row.label.text;
   return (
-    <ul>
-      {rows.map((row) => (
-        <li key={row.id}>
-          {row.label} {row.last4 !== null && `···· ${row.last4}`}
-          {row.isDefault && <strong>Default</strong>}
-          {row.expiry === "expired" && <em>Expired {row.expiresText}</em>}
-          {!row.isDefault && (
+    <section>
+      {expiryWarning === "expired" && <em>Expired</em>}
+      <p>
+        {current === null
+          ? "No payment method added yet"
+          : `${name(current)} ${current.last4 ?? ""}`}
+      </p>
+      <ul>
+        {others.map((row) => (
+          <li key={row.id}>
+            {name(row)} {row.last4}
             <button onClick={() => setDefault(row.externalId)}>
-              Make default
+              Set default
             </button>
-          )}
-          {row.canRemove && (
-            <button onClick={() => remove(row.id)}>Remove</button>
-          )}
-        </li>
-      ))}
-    </ul>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 ```
@@ -55,43 +62,70 @@ Every row carries its raw fields beside the text — `brand`, `type`, `isDefault
 ## The styled element
 
 ```tsx
-<PaymentMethods allowRemove={false} />
+<PaymentMethods allowEdit={false} />
 ```
 
-| Prop                  | Default | Effect                                                 |
-| --------------------- | ------- | ------------------------------------------------------ |
-| `allowAdd`            | `true`  | The Add action and the Stripe form behind it.          |
-| `allowRemove`         | `true`  | The Remove and Make default actions on each row.       |
-| `showHeader`          | `true`  | The "Payment methods" heading.                         |
-| `showExpiration`      | `true`  | A card's expiry beside it.                             |
-| `headingLevel`        | `2`     | The heading's level, to fit the host's outline.        |
-| `className`, `locale` | —       | Root class; BCP 47 tag for formatting and Stripe's UI. |
-| `strings`             | —       | Copy for this card by key; wins over the provider's.   |
+| Prop                  | Default | Effect                                                             |
+| --------------------- | ------- | ------------------------------------------------------------------ |
+| `showHeader`          | `true`  | The "Payment details" heading, and the expiry warning beside it.   |
+| `showExpiration`      | `true`  | The warning when the default card has fewer than four months left. |
+| `allowEdit`           | `true`  | The Edit (or Add) action on the pill, and the dialog behind it.    |
+| `headingLevel`        | `2`     | The heading's level, to fit the host's outline.                    |
+| `className`, `locale` | —       | Root class; BCP 47 tag for formatting and Stripe's UI.             |
+| `strings`             | —       | Copy for this card by key; wins over the provider's.               |
 
 `locale` falls back to the one configured on the provider, then to the
 viewer's language; see [Localizing it](#localizing-it) for the copy.
 
-Each row names the method and its last four digits, wears the Default badge
-when it is the default, and shows the card's expiry beside it — muted while
-it is fine, in the warning colour when it ends within four months, in the
-danger colour once it has. Make default appears on every row but the default;
-Remove on every row the server allows it. The row's actions are disabled
-while a write is on the wire, and a write that fails is reported beneath the
-list with "Try again", which re-runs that write; the rows stay.
+The card is the embed's. The heading reads "Payment details", and when the
+default card has fewer than four months left the right of the header says
+"Expires in 2 months", or "Expired" once its month has arrived, in the
+danger colour. Below it one pill names the default method the way the embed
+does — "Card ending in 4444", "Apple Pay ending in 1881", the bank's name and
+the account's digits, a Link account by its email — with Edit on the right,
+or "No payment method added yet" with Add when nothing is on file. The pill
+shows the default only; the other methods live in the dialog. It carries
+`data-kind` and `data-brand` for a host that wants a brand mark before the
+label; the element draws none itself.
 
-Add opens a form under the list. The form is loaded on that first click, and
-the Stripe packages with it, so a page that only lists methods never
-downloads Stripe. It mints a setup intent, mounts Stripe's `PaymentElement`
-on it, and on Save confirms the setup in place; the saved method is then
-made the default and the form closes. Stripe's own wording shows for a
-declined card. A missing client secret, a Stripe that fails to load, or a
-host without the Stripe packages installed each show "Could not load payment
-methods" in place of the form, with Cancel as the way out.
+The pill offers no Remove. The server refuses to remove the default while
+other methods exist, and the last method on an active subscription, so a
+Remove on the default would fail every time; removal is offered on the other
+rows in the dialog, and only where the server's `canRemove` allows it.
 
-A failure with rows still on screen — a refetch that did not land — is
-reported under them rather than replacing them; only a failure with nothing
-to show takes over the card. A 404 with nothing to show renders "Payment
-methods are not available"; every other failure, and a 404 under rows
+Edit opens a modal dialog titled "Edit payment details", closed by Escape,
+the backdrop, or the control in its header. It opens on the pill again,
+without Edit, and beneath it "Choose different payment method" unfolds the
+other methods: each row names the method, says when a card expires ("Expires
+8/27"), and offers Set default and a remove control where the server allows
+it. Under the rows a full-width "Add new payment method" opens the form. The
+actions are disabled while a write is on the wire; a write that lands leaves
+the dialog open on the refreshed method with the rows folded away, and one
+that fails is reported at the foot of the dialog with "Try again", which
+re-runs it.
+
+The form is loaded on first use, and the Stripe packages with it, so a page
+that only shows the method on file never downloads Stripe. It mints a setup
+intent, mounts Stripe's `PaymentElement` on it, and on Save confirms the
+setup in place; the saved method is then made the default and the dialog
+returns to it. "Select existing payment method" beneath the form goes back
+without saving, as Cancel does. With nothing on file the dialog opens
+straight onto the form, and Cancel closes it, since there is nothing to go
+back to. Stripe's own wording shows for a declined card. A missing client
+secret, a Stripe that fails to load, or a host without the Stripe packages
+installed each show "Could not load payment methods" in place of the form,
+with Cancel as the way out.
+
+Stripe's fields render in an iframe, where the host's CSS reaches nothing,
+so the form hands Stripe an `appearance` resolved from the tokens: the body
+font, the text, background, accent, and danger colours, and the radius, each
+read as the browser resolves it under the host's `color-scheme`. A dark host
+gets a form it can read.
+
+A failure with a method still on screen — a refetch that did not land — is
+reported under it rather than replacing it; only a failure with nothing to
+show takes over the card. A 404 with nothing to show renders "Payment
+methods are not available"; every other failure, and a 404 under a method
 already loaded, reads "Could not load payment methods". Both offer "Try
 again". Neither shows the error's own message; in development it is logged
 to the console beside the copy.
@@ -100,113 +134,174 @@ to the console beside the copy.
 
 `locale` localizes the formatting and is handed to Stripe for the form's own
 labels; the words come from `strings` or from the host's `translate`.
-`strings={{ paymentMethodsHeader: "Cards on file" }}` renames the heading with
-no i18n stack, and `translate={t}` routes every string through i18next.
+`strings={{ paymentMethodsHeader: "Billing" }}` renames the heading with no
+i18n stack, and `translate={t}` routes every string through i18next.
 
 The keys this element renders are `paymentMethodsHeader`,
 `paymentMethodsLoading`, `paymentMethodsError`, `paymentMethodsUnavailable`,
-`paymentMethodsEmpty`, `paymentMethodsAdd`, `paymentMethodsRemove`,
-`paymentMethodsMakeDefault`, `paymentMethodsDefault`, `paymentMethodsLast4`,
-`paymentMethodsExpires`, `paymentMethodsExpiresSoon`, `paymentMethodsExpired`,
-`paymentMethodsFormLoading`, `paymentMethodsSave`, `paymentMethodsSaveError`,
-`paymentMethodsCancel`, and `retry`. `strings.test.ts` freezes the list, so a
-rename is a deliberate, breaking change.
+`paymentMethodsEmpty`, `paymentMethodsEdit`, `paymentMethodsAdd`,
+`paymentMethodsExpiresInMonths`, `paymentMethodsExpired`,
+`paymentMethodsCardEndingIn`, `paymentMethodsApplePayEndingIn`,
+`paymentMethodsGooglePayEndingIn`, `paymentMethodsBankAccount`,
+`paymentMethodsGeneric`, `paymentMethodsDialogTitle`, `paymentMethodsClose`,
+`paymentMethodsChooseDifferent`, `paymentMethodsExpires`,
+`paymentMethodsSetDefault`, `paymentMethodsRemove`, `paymentMethodsAddNew`,
+`paymentMethodsSelectExisting`, `paymentMethodsFormLoading`,
+`paymentMethodsSave`, `paymentMethodsSaveError`, `paymentMethodsCancel`,
+and `retry`. `strings.test.ts` freezes the list, so a rename is a
+deliberate, breaking change.
 
-Four of them take values: `paymentMethodsLast4` interpolates `{{last4}}`,
-and `paymentMethodsExpires`, `paymentMethodsExpiresSoon`, and
-`paymentMethodsExpired` interpolate `{{date}}`, already formatted for the
-locale.
+Two of them take values. `paymentMethodsExpires` interpolates `{{date}}`, the
+embed's short form. `paymentMethodsExpiresInMonths` interpolates `{{months}}`
+and varies by `{{count}}` — so its catalogue entries are the suffixed
+`paymentMethodsExpiresInMonths_one` and `_other`, i18next's convention, while
+the element asks for the bare name. A host's `translate` receives the same
+`count`, so its own catalogue picks the form for languages English has no
+category for.
+
+The labels are not assembled from fragments: "Card ending in" is one string,
+and the digits follow it in their own node, so a translator owns the words
+and a host can style the digits.
 
 ## Markup
 
 What the element renders, for a host styling it without `<SchematicStyles />`.
 The root's class list is the same in all three states — read `data-state` to
-tell them apart.
+tell them apart. The dialog renders inside the root while it is open.
 
 ```html
 <div class="schematic-card schematic-payment-methods" data-state="ready">
-  <!-- the bar is omitted when both the heading and Add are off -->
+  <!-- omitted by showHeader={false}, and the warning with it -->
   <div class="schematic-header">
-    <h2 class="schematic-header__title">Payment methods</h2>
-    <button
-      class="schematic-cta schematic-cta--small schematic-payment-methods__add"
+    <h2 class="schematic-header__title">Payment details</h2>
+    <!-- when the default card has fewer than four months left;
+         data-expiry is soon or expired -->
+    <span
+      class="schematic-small schematic-payment-methods__expiry-warning"
+      data-expiry="soon"
+      >Expires in 2 months</span
     >
-      Add
+  </div>
+
+  <div
+    class="schematic-payment-methods__current"
+    data-testid="schematic-payment-method-current"
+  >
+    <span
+      class="schematic-payment-methods__method"
+      data-kind="card"
+      data-brand="visa"
+    >
+      <span class="schematic-payment-methods__label">Card ending in</span>
+      <!-- omitted for a method with no digits -->
+      <span class="schematic-payment-methods__last4">4444</span>
+    </span>
+    <!-- with nothing on file, in place of the method -->
+    <span class="schematic-payment-methods__empty"
+      >No payment method added yet</span
+    >
+    <!-- omitted by allowEdit={false}; reads Add when nothing is on file -->
+    <button class="schematic-link-button schematic-payment-methods__edit">
+      Edit
     </button>
   </div>
 
-  <ul class="schematic-payment-methods__list">
-    <li
-      class="schematic-payment-methods__row"
-      data-brand="visa"
-      data-default="true"
-      data-testid="schematic-payment-method"
-    >
-      <span class="schematic-payment-methods__method">
-        <span class="schematic-payment-methods__brand">Visa</span>
-        <!-- omitted for a method with no digits -->
-        <span class="schematic-payment-methods__last4">···· 4242</span>
-        <!-- the default row only -->
-        <span class="schematic-badge schematic-payment-methods__default"
-          >Default</span
-        >
-      </span>
-      <!-- cards only; data-expiry is ok, soon, or expired -->
-      <span
-        class="schematic-small schematic-payment-methods__expires"
-        data-expiry="ok"
-        >Expires 08/2027</span
-      >
-      <!-- omitted when the row offers nothing -->
-      <span class="schematic-payment-methods__actions">
-        <!-- every row but the default -->
-        <button
-          class="schematic-link-button schematic-payment-methods__make-default"
-        >
-          Make default
-        </button>
-        <!-- rows the server lets go -->
-        <button class="schematic-link-button schematic-payment-methods__remove">
-          Remove
-        </button>
-      </span>
-    </li>
-  </ul>
-
-  <!-- with nothing on file, in place of the list -->
-  <p class="schematic-muted schematic-payment-methods__empty">
-    No payment method on file
-  </p>
-
-  <!-- the Add form, once opened; its fields are Stripe's -->
-  <form class="schematic-payment-methods__form" data-state="ready">
-    <div class="schematic-payment-methods__fields">…</div>
-    <div class="schematic-payment-methods__form-actions">
-      <button
-        class="schematic-cta schematic-cta--small schematic-payment-methods__save"
-      >
-        Save
-      </button>
-      <button class="schematic-link-button schematic-payment-methods__cancel">
-        Cancel
-      </button>
-    </div>
-  </form>
-
-  <!-- a write that failed, with the rows still above it -->
-  <p
-    class="schematic-status-note schematic-error schematic-payment-methods__write-error"
-    role="alert"
+  <!-- while open -->
+  <dialog
+    class="schematic-dialog schematic-payment-methods__dialog"
+    aria-labelledby="…"
+    open
   >
-    <span class="schematic-payment-methods__write-error-message">…</span>
-    <button
-      class="schematic-link-button schematic-payment-methods__write-retry"
-    >
-      Try again
-    </button>
-  </p>
+    <div class="schematic-dialog__header">
+      <h2 class="schematic-dialog__title" id="…">Edit payment details</h2>
+      <button class="schematic-dialog__close" aria-label="Close">×</button>
+    </div>
+    <div class="schematic-dialog__body">
+      <!-- the pill again, without Edit -->
+      <div class="schematic-payment-methods__current">…</div>
 
-  <!-- a refetch that failed with rows still on screen -->
+      <button
+        class="schematic-link-button schematic-payment-methods__choose"
+        aria-expanded="true"
+      >
+        Choose different payment method
+        <span class="schematic-payment-methods__chevron" aria-hidden="true"
+          >▼</span
+        >
+      </button>
+
+      <!-- while unfolded; the list is omitted when there are no others -->
+      <ul class="schematic-payment-methods__list">
+        <li
+          class="schematic-payment-methods__row"
+          data-kind="bank"
+          data-brand="us_bank_account"
+          data-testid="schematic-payment-method"
+        >
+          <span class="schematic-payment-methods__method" …>
+            <span class="schematic-payment-methods__label">Chase</span>
+            <span class="schematic-payment-methods__last4">6789</span>
+          </span>
+          <!-- cards only -->
+          <span
+            class="schematic-muted schematic-small schematic-payment-methods__expires"
+            >Expires 8/27</span
+          >
+          <button
+            class="schematic-link-button schematic-payment-methods__set-default"
+          >
+            Set default
+          </button>
+          <!-- rows the server lets go -->
+          <button class="schematic-payment-methods__remove" aria-label="Remove">
+            ×
+          </button>
+        </li>
+      </ul>
+      <button class="schematic-cta schematic-payment-methods__add-new">
+        Add new payment method
+      </button>
+
+      <!-- in place of everything above, on Add new or with nothing on file;
+           its fields are Stripe's -->
+      <form class="schematic-payment-methods__form" data-state="ready">
+        <div class="schematic-payment-methods__fields">…</div>
+        <div class="schematic-payment-methods__form-actions">
+          <button
+            class="schematic-cta schematic-cta--small schematic-payment-methods__save"
+          >
+            Save
+          </button>
+          <button
+            class="schematic-link-button schematic-payment-methods__cancel"
+          >
+            Cancel
+          </button>
+        </div>
+        <!-- omitted with nothing on file -->
+        <button
+          class="schematic-link-button schematic-payment-methods__select-existing"
+        >
+          Select existing payment method
+        </button>
+      </form>
+
+      <!-- a write that failed -->
+      <p
+        class="schematic-status-note schematic-error schematic-payment-methods__error"
+        role="alert"
+      >
+        <span class="schematic-payment-methods__error-message">…</span>
+        <button
+          class="schematic-link-button schematic-payment-methods__error-retry"
+        >
+          Try again
+        </button>
+      </p>
+    </div>
+  </dialog>
+
+  <!-- a refetch that failed with the method still on screen -->
   <p class="schematic-status-note schematic-error">…</p>
 </div>
 
@@ -220,11 +315,7 @@ tell them apart.
     <div class="schematic-skeleton__heading"></div>
     <div class="schematic-skeleton__row">
       <div class="schematic-skeleton__cell" data-column="method"></div>
-      <div class="schematic-skeleton__cell" data-column="actions"></div>
-    </div>
-    <div class="schematic-skeleton__row">
-      <div class="schematic-skeleton__cell" data-column="method"></div>
-      <div class="schematic-skeleton__cell" data-column="actions"></div>
+      <div class="schematic-skeleton__cell" data-column="action"></div>
     </div>
   </div>
 </div>
