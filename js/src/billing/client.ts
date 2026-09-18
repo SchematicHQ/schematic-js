@@ -120,11 +120,13 @@ export class SchematicBillingClient implements BillingClient {
 
   fetchUpcomingInvoice(): Promise<UpcomingInvoice | null> {
     const path = "/company/upcoming-invoice";
-    // A company with nothing to bill — no subscription — is a 204, and
-    // resolves `null`. A 404 is the account not being on the
-    // company-context-api flag, and stays the error it is, so an element
-    // can say "not available" rather than a false "nothing to bill". A 200
-    // with no body is neither, and is malformed like an empty invoice page.
+    // A company with nothing to bill — no subscription, or a trial that
+    // cancels — is a 204, and resolves `null`. A 404 means the bill cannot
+    // be read: the account is not on the company-context-api flag, or the
+    // provider no longer knows the customer. It stays the error it is, so
+    // an element can say "not available" rather than a false "nothing to
+    // bill". A 200 with no body is neither, and is malformed like an empty
+    // invoice page.
     return this.session.request(path, { noContentOn: [204] }).then((body) => {
       if (body === undefined) {
         return null;
