@@ -42,6 +42,24 @@ export type ElementStrings = {
   upcomingBillDiscount: string;
   upcomingBillDiscountValue: string;
   upcomingBillDiscountRepeating: string;
+
+  paymentMethodsLoading: string;
+  paymentMethodsHeader: string;
+  paymentMethodsError: string;
+  paymentMethodsUnavailable: string;
+  paymentMethodsEmpty: string;
+  paymentMethodsAdd: string;
+  paymentMethodsRemove: string;
+  paymentMethodsMakeDefault: string;
+  paymentMethodsDefault: string;
+  paymentMethodsLast4: string;
+  paymentMethodsExpires: string;
+  paymentMethodsExpiresSoon: string;
+  paymentMethodsExpired: string;
+  paymentMethodsFormLoading: string;
+  paymentMethodsSave: string;
+  paymentMethodsSaveError: string;
+  paymentMethodsCancel: string;
 };
 
 export type StringKey = keyof ElementStrings;
@@ -111,6 +129,24 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   upcomingBillDiscountRepeating_one: "{{value}} off for next month",
   upcomingBillDiscountRepeating_other:
     "{{value}} off for next {{count}} months",
+
+  paymentMethodsLoading: "Loading payment methods",
+  paymentMethodsHeader: "Payment methods",
+  paymentMethodsError: "Could not load payment methods",
+  paymentMethodsUnavailable: "Payment methods are not available",
+  paymentMethodsEmpty: "No payment method on file",
+  paymentMethodsAdd: "Add",
+  paymentMethodsRemove: "Remove",
+  paymentMethodsMakeDefault: "Make default",
+  paymentMethodsDefault: "Default",
+  paymentMethodsLast4: "···· {{last4}}",
+  paymentMethodsExpires: "Expires {{date}}",
+  paymentMethodsExpiresSoon: "Expires soon · {{date}}",
+  paymentMethodsExpired: "Expired {{date}}",
+  paymentMethodsFormLoading: "Loading payment form",
+  paymentMethodsSave: "Save",
+  paymentMethodsSaveError: "Could not save the payment method",
+  paymentMethodsCancel: "Cancel",
 };
 
 /**

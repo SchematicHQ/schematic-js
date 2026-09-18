@@ -8,11 +8,14 @@ export {
   SchematicI18nProvider,
   useInvalidateBillingData,
   useInvoices,
+  usePaymentMethods,
   useSchematicI18n,
   useSchematicLocale,
   useSchematicStrings,
   useSchematicTranslate,
+  useSetupIntent,
   useUpcomingInvoice,
+  type BillingActions,
   type BillingData,
   type BillingDataProviderProps,
   type BillingDataStatus,
@@ -20,19 +23,25 @@ export {
   type Invoice,
   type InvoicePage,
   type InvoiceQuery,
+  type PaymentMethod,
+  type PaymentMethodsHandle,
   type ResourceHandle,
   type ResourceState,
   type SchematicI18nConfig,
   type SchematicI18nProviderProps,
+  type SetupIntent,
+  type SetupIntentHandle,
   type UpcomingInvoice,
 } from "@schematichq/schematic-react";
 export {
   deriveInvoiceList,
+  derivePaymentMethods,
   deriveUpcomingInvoice,
   featureName,
   formatConsumptionRate,
   formatCurrency,
   formatDate,
+  formatMonthYear,
   formatNumber,
   formatPercent,
   formatShortDate,
@@ -42,12 +51,16 @@ export {
   viewerLocale,
   type BillLine,
   type DeriveInvoiceListOptions,
+  type DerivePaymentMethodsOptions,
   type DeriveUpcomingInvoiceOptions,
   type DiscountLine,
   type FormatCurrencyOptions,
   type InvoiceFormatters,
   type InvoiceList,
   type InvoiceRow,
+  type PaymentMethodExpiry,
+  type PaymentMethodKind,
+  type PaymentMethodRow,
   type UpcomingBillSummary,
   type UpcomingInvoiceFormatters,
 } from "./model";
@@ -65,6 +78,7 @@ export {
 } from "./strings";
 export * from "./styles";
 export { Invoices, type InvoicesProps } from "./Invoices";
+export { PaymentMethods, type PaymentMethodsProps } from "./PaymentMethods";
 export { UpcomingBill, type UpcomingBillProps } from "./UpcomingBill";
 export {
   billingResources,
