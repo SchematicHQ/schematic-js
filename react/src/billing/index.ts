@@ -15,6 +15,7 @@ export {
 export {
   BillingDataProvider,
   useBillingDataSource,
+  type BillingActions,
   type BillingDataProviderProps,
   type BillingDataSource,
   type BillingDataStatus,
@@ -23,8 +24,12 @@ export {
 export {
   useInvalidateBillingData,
   useInvoices,
+  usePaymentMethods,
+  useSetupIntent,
   useUpcomingInvoice,
   type InvoicesHandle,
+  type PaymentMethodsHandle,
+  type SetupIntentHandle,
 } from "./hooks";
 export { BillingProvider, type BillingProviderProps } from "./provider";
 // `Resource`, `KeyedResource`, `BillingStore` and `BillingDataContext` stay
