@@ -6,7 +6,13 @@
 
 import { vi } from "vitest";
 
-export type Call = { url: string; headers: Record<string, string> };
+export type Call = {
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  /** The request body, parsed; `undefined` when the call carried none. */
+  body: unknown;
+};
 
 export function fakeFetch(
   respond: (
@@ -22,7 +28,13 @@ export function fakeFetch(
     async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       const headers = (init?.headers ?? {}) as Record<string, string>;
-      calls.push({ url, headers });
+      calls.push({
+        url,
+        method: init?.method ?? "GET",
+        headers,
+        body:
+          typeof init?.body === "string" ? JSON.parse(init.body) : undefined,
+      });
       const { status = 200, body = { ok: true } } = respond(url, headers);
       // A 204 may not carry a body, even an empty one; `body: null` on any
       // other status is an empty body, which is how a malformed 200 reads.

@@ -52,7 +52,7 @@ export interface CompanyUpcomingInvoiceResponseData {
    */
   customerBalanceRemaining: number;
   /**
-   * Only active discounts that reduce the bill.
+   * The subscription's active discounts, to show beside the bill. Informational: the amounts come from the provider's preview and already reflect whatever it applied, so subtotal less these need not equal amount_due.
    * @type {Array<CompanyDiscountResponseData>}
    * @memberof CompanyUpcomingInvoiceResponseData
    */
