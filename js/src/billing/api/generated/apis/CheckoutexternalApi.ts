@@ -15,17 +15,36 @@
 import * as runtime from "../runtime";
 import type {
   ApiError,
+  CreateSetupIntentResponse,
+  DeletePaymentMethodResponse,
   GetCompanyInvoicesResponse,
+  GetCompanyPaymentMethodsResponse,
   GetCompanyUpcomingInvoiceResponse,
+  UpdatePaymentMethodRequestBody,
+  UpdatePaymentMethodResponse,
 } from "../models/index";
 import {
   ApiErrorFromJSON,
   ApiErrorToJSON,
+  CreateSetupIntentResponseFromJSON,
+  CreateSetupIntentResponseToJSON,
+  DeletePaymentMethodResponseFromJSON,
+  DeletePaymentMethodResponseToJSON,
   GetCompanyInvoicesResponseFromJSON,
   GetCompanyInvoicesResponseToJSON,
+  GetCompanyPaymentMethodsResponseFromJSON,
+  GetCompanyPaymentMethodsResponseToJSON,
   GetCompanyUpcomingInvoiceResponseFromJSON,
   GetCompanyUpcomingInvoiceResponseToJSON,
+  UpdatePaymentMethodRequestBodyFromJSON,
+  UpdatePaymentMethodRequestBodyToJSON,
+  UpdatePaymentMethodResponseFromJSON,
+  UpdatePaymentMethodResponseToJSON,
 } from "../models/index";
+
+export interface DeletePaymentMethodRequest {
+  checkoutId: string;
+}
 
 export interface GetCompanyInvoicesRequest {
   includePending?: boolean;
@@ -33,10 +52,111 @@ export interface GetCompanyInvoicesRequest {
   offset?: number;
 }
 
+export interface UpdatePaymentMethodRequest {
+  updatePaymentMethodRequestBody: UpdatePaymentMethodRequestBody;
+}
+
 /**
  *
  */
 export class CheckoutexternalApi extends runtime.BaseAPI {
+  /**
+   * Create setup intent
+   */
+  async createSetupIntentRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<CreateSetupIntentResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/setup-intent`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      CreateSetupIntentResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Create setup intent
+   */
+  async createSetupIntent(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<CreateSetupIntentResponse> {
+    const response = await this.createSetupIntentRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Delete payment method
+   */
+  async deletePaymentMethodRaw(
+    requestParameters: DeletePaymentMethodRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<DeletePaymentMethodResponse>> {
+    if (requestParameters["checkoutId"] == null) {
+      throw new runtime.RequiredError(
+        "checkoutId",
+        'Required parameter "checkoutId" was null or undefined when calling deletePaymentMethod().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/paymentmethod/{checkout_id}`.replace(
+          `{${"checkout_id"}}`,
+          encodeURIComponent(String(requestParameters["checkoutId"])),
+        ),
+        method: "DELETE",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DeletePaymentMethodResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Delete payment method
+   */
+  async deletePaymentMethod(
+    requestParameters: DeletePaymentMethodRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<DeletePaymentMethodResponse> {
+    const response = await this.deletePaymentMethodRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
   /**
    * Get company invoices
    */
@@ -96,6 +216,47 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
+   * Get company payment methods
+   */
+  async getCompanyPaymentMethodsRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyPaymentMethodsResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/payment-methods`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyPaymentMethodsResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get company payment methods
+   */
+  async getCompanyPaymentMethods(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyPaymentMethodsResponse> {
+    const response = await this.getCompanyPaymentMethodsRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
    * Get company upcoming invoice
    */
   async getCompanyUpcomingInvoiceRaw(
@@ -141,5 +302,63 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
       default:
         return await response.value();
     }
+  }
+
+  /**
+   * Update payment method
+   */
+  async updatePaymentMethodRaw(
+    requestParameters: UpdatePaymentMethodRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UpdatePaymentMethodResponse>> {
+    if (requestParameters["updatePaymentMethodRequestBody"] == null) {
+      throw new runtime.RequiredError(
+        "updatePaymentMethodRequestBody",
+        'Required parameter "updatePaymentMethodRequestBody" was null or undefined when calling updatePaymentMethod().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/paymentmethod/update`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdatePaymentMethodRequestBodyToJSON(
+          requestParameters["updatePaymentMethodRequestBody"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      UpdatePaymentMethodResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Update payment method
+   */
+  async updatePaymentMethod(
+    requestParameters: UpdatePaymentMethodRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UpdatePaymentMethodResponse> {
+    const response = await this.updatePaymentMethodRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
   }
 }

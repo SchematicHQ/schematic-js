@@ -1,8 +1,10 @@
 #!/bin/bash
 # Regenerates the narrow billing API client (src/billing/api/generated)
 # from the temporary-access-token OpenAPI spec, filtered to the surface this
-# branch ships (/company/invoices, /company/upcoming-invoice; hydrate, checkout and the rest join with
-# their elements).
+# branch ships (/company/invoices, /company/upcoming-invoice,
+# /company/payment-methods and the payment-method writes beside it: the
+# setup intent, the default update and the delete; hydrate, checkout and the
+# rest join with their elements).
 #
 # Until the endpoints deploy, the source of truth is a local schematic-api
 # checkout; point SCHEMATIC_API_DIR at it (default: ../../schematic-api).
@@ -21,7 +23,9 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 # which would sidestep the minimumReleaseAge guard in pnpm-workspace.yaml.
 pnpm exec js-yaml "$SPEC_DIR/temporaryaccesstoken.yml" > "$TMP_DIR/spec.json"
 node scripts/filter-openapi.mjs "$TMP_DIR/spec.json" "$TMP_DIR/spec.filtered.json" \
-  /company/invoices /company/upcoming-invoice
+  /company/invoices /company/upcoming-invoice /company/payment-methods \
+  /checkout/paymentmethod/update '/checkout/paymentmethod/{checkout_id}' \
+  /components/setup-intent
 rm -rf src/billing/api/generated
 pnpm exec openapi-generator-cli generate -c src/billing/api/config.yml \
   --input-spec="$TMP_DIR/spec.filtered.json"

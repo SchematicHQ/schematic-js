@@ -1,4 +1,5 @@
 import type { InvoicePage, InvoiceQuery } from "./invoices";
+import type { PaymentMethod } from "./paymentMethods";
 import type { UpcomingInvoice } from "./upcoming";
 
 export interface ResourceState<T> {
@@ -26,12 +27,18 @@ export interface BillingResources {
    * `undefined` means the resource has not loaded.
    */
   upcomingInvoice: UpcomingInvoice | null;
+  /**
+   * `GET /company/payment-methods`. Empty is a loaded value — the company
+   * has no method on file — so only `undefined` means not loaded.
+   */
+  paymentMethods: PaymentMethod[];
 }
 
 /** `Record<string, never>` marks a singleton; anything else is keyed. */
 export interface BillingResourceParams {
   invoices: InvoiceQuery;
   upcomingInvoice: Record<string, never>;
+  paymentMethods: Record<string, never>;
 }
 
 /** The params of every singleton resource. */

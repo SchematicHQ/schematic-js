@@ -7,7 +7,9 @@
  */
 
 import {
+  CreateSetupIntentResponseFromJSON,
   GetCompanyInvoicesResponseFromJSON,
+  GetCompanyPaymentMethodsResponseFromJSON,
   GetCompanyUpcomingInvoiceResponseFromJSON,
 } from "./api/generated/models";
 import type {
@@ -15,6 +17,8 @@ import type {
   BillingResourceName,
   InvoicePage,
   InvoiceQuery,
+  PaymentMethod,
+  SetupIntent,
   UpcomingInvoice,
 } from "./contract";
 import { normalizeInvoiceQuery } from "./contract";
@@ -38,14 +42,23 @@ export interface InvoicesRequest extends InvoiceQuery {
 export type InvoicesResult = Omit<InvoicePage, "hasMore">;
 
 /**
- * What a reader of billing data can ask for. Subscription and usage — the
- * rest of what `hydrate` serves — and the checkout calls that change them
- * join this interface as their endpoints ship.
+ * What a reader of billing data can ask for, and the few writes beside it.
+ * Subscription and usage — the rest of what `hydrate` serves — and the
+ * checkout calls that change them join this interface as their endpoints
+ * ship.
  */
 export interface BillingClient {
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult>;
   /** `null` when the company has no next bill. */
   fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
+  /** Empty when the company has no method on file. */
+  fetchPaymentMethods(): Promise<PaymentMethod[]>;
+  /** What a provider's card form is mounted with to add a method. */
+  createSetupIntent(): Promise<SetupIntent>;
+  /** Makes the method the default, by the provider's id (`externalId`). */
+  updatePaymentMethod(externalId: string): Promise<void>;
+  /** Removes the method, by Schematic's id (`id`). */
+  deletePaymentMethod(id: string): Promise<void>;
 
   readonly sessionStatus: SessionStatus;
 
@@ -137,6 +150,56 @@ export class SchematicBillingClient implements BillingClient {
       return GetCompanyUpcomingInvoiceResponseFromJSON(body).data;
     });
   }
+
+  fetchPaymentMethods(): Promise<PaymentMethod[]> {
+    const path = "/company/payment-methods";
+    // No method on file is a 200 with an empty list, never a 204. A 404 is
+    // the account being off the flag, or the provider not knowing the
+    // customer, and stays the error it is.
+    return this.session.request(path).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      // As for invoices: a null list from anywhere in the chain is no
+      // methods, not a throw in the decoder.
+      const data = (body as { data: unknown }).data as {
+        payment_methods?: unknown;
+      } | null;
+      if (data == null || data.payment_methods == null) {
+        return [];
+      }
+      return GetCompanyPaymentMethodsResponseFromJSON(body).data.paymentMethods;
+    });
+  }
+
+  createSetupIntent(): Promise<SetupIntent> {
+    const path = "/components/setup-intent";
+    return this.session.request(path, { method: "POST" }).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return CreateSetupIntentResponseFromJSON(body).data;
+    });
+  }
+
+  updatePaymentMethod(externalId: string): Promise<void> {
+    // The body is the method as the provider reports it, which the caller
+    // already has from the list; nothing to decode.
+    return this.session
+      .request("/checkout/paymentmethod/update", {
+        method: "POST",
+        body: { payment_method_id: externalId },
+      })
+      .then(() => undefined);
+  }
+
+  deletePaymentMethod(id: string): Promise<void> {
+    return this.session
+      .request(`/checkout/paymentmethod/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      })
+      .then(() => undefined);
+  }
 }
 
 export interface BillingPrefetchOptions {
@@ -197,6 +260,10 @@ export async function fetchBillingData(
             // `null` is an answer, and seeding it is what spares the page a
             // request the prefetch has already made.
             data.upcomingInvoice = await client.fetchUpcomingInvoice();
+            break;
+          }
+          case "paymentMethods": {
+            data.paymentMethods = await client.fetchPaymentMethods();
             break;
           }
         }

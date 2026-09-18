@@ -45,6 +45,57 @@ const wireUpcoming = {
   params: {},
 };
 
+const wirePaymentMethods = {
+  data: {
+    count: 2,
+    payment_methods: [
+      {
+        id: "pm_sch_1",
+        external_id: "pm_stripe_1",
+        type: "card",
+        is_default: true,
+        can_remove: false,
+        card_brand: "visa",
+        card_last4: "4242",
+        card_exp_month: 12,
+        card_exp_year: 2030,
+        bank_name: null,
+        account_last4: null,
+        account_name: null,
+        billing_name: "Ada",
+        billing_email: "ada@example.com",
+      },
+      {
+        id: "pm_sch_2",
+        external_id: "ba_stripe_2",
+        type: "us_bank_account",
+        is_default: false,
+        can_remove: true,
+        card_brand: null,
+        card_last4: null,
+        card_exp_month: null,
+        card_exp_year: null,
+        bank_name: "First Bank",
+        account_last4: "6789",
+        account_name: "Checking",
+        billing_name: null,
+        billing_email: null,
+      },
+    ],
+  },
+  params: {},
+};
+
+const wireSetupIntent = {
+  data: {
+    account_id: "acct_1",
+    publishable_key: "pk_test_1",
+    schematic_publishable_key: "api_1",
+    setup_intent_client_secret: "seti_1_secret",
+  },
+  params: {},
+};
+
 /** What each path answers, so one fake can serve a whole prefetch. */
 const byPath =
   (routes: Record<string, { status?: number; body?: unknown }>) =>
@@ -220,6 +271,188 @@ describe("SchematicBillingClient", () => {
     });
   });
 
+  it("decodes the payment methods", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: wirePaymentMethods,
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const methods = await client.fetchPaymentMethods();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/company/payment-methods",
+      method: "GET",
+    });
+    expect(methods).toHaveLength(2);
+    expect(methods[0]).toMatchObject({
+      id: "pm_sch_1",
+      externalId: "pm_stripe_1",
+      type: "card",
+      isDefault: true,
+      canRemove: false,
+      cardBrand: "visa",
+      cardLast4: "4242",
+      cardExpMonth: 12,
+      cardExpYear: 2030,
+      billingEmail: "ada@example.com",
+    });
+    expect(methods[1]).toMatchObject({
+      isDefault: false,
+      canRemove: true,
+      bankName: "First Bank",
+      accountLast4: "6789",
+    });
+    // The generated FromJSON maps wire nulls to undefined optionals.
+    expect(methods[0].bankName).toBeUndefined();
+    expect(methods[1].cardBrand).toBeUndefined();
+  });
+
+  it("reads no methods from an empty, null or omitted list", async () => {
+    // The API sends `[]` for a company with nothing on file, but a null
+    // from anywhere in the chain reads as no methods rather than throwing
+    // in the decoder.
+    for (const body of [
+      { data: { count: 0, payment_methods: [] } },
+      { data: { count: 0, payment_methods: null } },
+      { data: { count: 0 } },
+      { data: null },
+    ]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchPaymentMethods()).resolves.toEqual([]);
+    }
+  });
+
+  it("reports malformed payment methods rather than reading them as none", async () => {
+    for (const body of [null, "yes", { nope: 1 }]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchPaymentMethods()).rejects.toThrow(
+        /Malformed response/,
+      );
+    }
+  });
+
+  it("keeps a 404 on the payment methods the failure it is", async () => {
+    // Off the flag, or a customer the provider no longer knows: "not
+    // available", never "nothing on file".
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client.fetchPaymentMethods().catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({
+      status: 404,
+      path: "/company/payment-methods",
+    });
+  });
+
+  it("creates a setup intent and decodes it", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      status: 201,
+      body: wireSetupIntent,
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const intent = await client.createSetupIntent();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/components/setup-intent",
+      method: "POST",
+      body: undefined,
+    });
+    expect(intent).toEqual({
+      accountId: "acct_1",
+      publishableKey: "pk_test_1",
+      schematicPublishableKey: "api_1",
+      setupIntentClientSecret: "seti_1_secret",
+    });
+  });
+
+  it("reports a malformed setup intent", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ status: 201, body: { nope: 1 } }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(client.createSetupIntent()).rejects.toThrow(
+      /Malformed response/,
+    );
+  });
+
+  it("makes a method the default by the provider's id", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      status: 201,
+      body: { data: { id: "pm_stripe_1" }, params: {} },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(
+      client.updatePaymentMethod("pm_stripe_1"),
+    ).resolves.toBeUndefined();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/checkout/paymentmethod/update",
+      method: "POST",
+      body: { payment_method_id: "pm_stripe_1" },
+    });
+    expect(calls[0].headers["Content-Type"]).toBe("application/json");
+  });
+
+  it("removes a method by Schematic's id", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: { data: { deleted: true }, params: {} },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(
+      client.deletePaymentMethod("pm_sch/2"),
+    ).resolves.toBeUndefined();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/checkout/paymentmethod/pm_sch%2F2",
+      method: "DELETE",
+      body: undefined,
+    });
+  });
+
+  it("throws SchematicApiError when a write is refused", async () => {
+    // The server's rule, not the client's: a delete the server refuses is
+    // the error it sends, body and all, for the element to show.
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 400,
+      body: { error: "cannot remove the default payment method" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client
+      .deletePaymentMethod("pm_sch_1")
+      .catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({
+      status: 400,
+      path: "/checkout/paymentmethod/pm_sch_1",
+      message: "cannot remove the default payment method",
+    });
+  });
+
   it("reports the session it reads, and states one through to it", () => {
     const client = new SchematicBillingClient();
     const events: string[] = [];
@@ -390,5 +623,49 @@ describe("fetchBillingData", () => {
     );
     expect(empty.upcomingInvoice).toBeUndefined();
     expect("upcomingInvoice" in empty).toBe(false);
+  });
+
+  it("seeds the payment methods, an empty list included", async () => {
+    // `[]` is the server's answer — nothing on file — and seeding it spares
+    // the element the request; a failure is left out so it asks for itself.
+    const { calls, fetchImpl } = fakeFetch(
+      byPath({ "/company/payment-methods": { body: wirePaymentMethods } }),
+    );
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const data = await fetchBillingData(client, { names: ["paymentMethods"] });
+    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
+      "/company/payment-methods",
+    ]);
+    expect(data.paymentMethods).toHaveLength(2);
+    expect(data.paymentMethods?.[0]).toMatchObject({ isDefault: true });
+    expect(data.invoices).toBeUndefined();
+
+    const { fetchImpl: none } = fakeFetch(() => ({
+      body: { data: { count: 0, payment_methods: [] } },
+    }));
+    const empty = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: none,
+      }),
+      { names: ["paymentMethods"] },
+    );
+    expect(empty.paymentMethods).toEqual([]);
+
+    const { fetchImpl: failing } = fakeFetch(() => ({
+      status: 500,
+      body: "x",
+    }));
+    const failed = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: failing,
+      }),
+      { names: ["paymentMethods"] },
+    );
+    expect("paymentMethods" in failed).toBe(false);
   });
 });
