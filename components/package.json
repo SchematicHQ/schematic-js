@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-components",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "main": "dist/schematic-components.cjs.js",
   "module": "dist/schematic-components.esm.js",
   "types": "dist/schematic-components.d.ts",
@@ -84,7 +84,7 @@
     "@microsoft/api-extractor": "^7.59.1",
     "@openapitools/openapi-generator-cli": "^2.41.0",
     "@schematichq/schematic-js": "^1.8.0",
-    "@schematichq/schematic-react": "^1.7.0",
+    "@schematichq/schematic-react": "^1.8.0",
     "@stripe/react-stripe-js": "^6.10.0",
     "@swc/core": "^1.16.2",
     "@testing-library/dom": "^10.4.2",
@@ -114,12 +114,19 @@
   },
   "peerDependencies": {
     "@stripe/react-stripe-js": ">=3",
+    "@stripe/stripe-js": ">=4",
     "react": ">=18",
     "react-dom": ">=18",
-    "@schematichq/schematic-react": "^1.7.0"
+    "@schematichq/schematic-react": "^1.8.0"
   },
   "peerDependenciesMeta": {
     "@schematichq/schematic-react": {
+      "optional": true
+    },
+    "@stripe/react-stripe-js": {
+      "optional": true
+    },
+    "@stripe/stripe-js": {
       "optional": true
     }
   },
