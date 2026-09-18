@@ -16,6 +16,7 @@ import { SchematicProvider } from "../context";
 
 import { BillingStore, type BillingClient, type SessionEvent } from "./client";
 import {
+  BILLING_ACTION_UNAVAILABLE_MESSAGE,
   BillingDataProvider,
   MISSING_BILLING_SOURCE_MESSAGE,
   useBillingDataSource,
@@ -24,9 +25,16 @@ import {
   normalizeInvoiceQuery,
   type BillingData,
   type Invoice,
+  type PaymentMethod,
+  type SetupIntent,
   type UpcomingInvoice,
 } from "./contract";
-import { useInvoices, useUpcomingInvoice } from "./hooks";
+import {
+  useInvoices,
+  usePaymentMethods,
+  useSetupIntent,
+  useUpcomingInvoice,
+} from "./hooks";
 import { BillingProvider, SESSION_REPLACED_MESSAGE } from "./provider";
 
 const isDOMEnvironment = typeof document !== "undefined";
@@ -63,6 +71,24 @@ const bill = (amountDue: number): UpcomingInvoice => ({
   subtotal: amountDue,
 });
 
+/** Only the fields the tests read; the rest of the wire shape is the API's. */
+const card = (id: string, isDefault = false): PaymentMethod =>
+  ({
+    id,
+    externalId: `pm_${id}`,
+    type: "card",
+    isDefault,
+    canRemove: !isDefault,
+    cardBrand: "visa",
+    cardLast4: "4242",
+  }) as unknown as PaymentMethod;
+
+const intent = (secret: string): SetupIntent =>
+  ({
+    schematicPublishableKey: "api_key",
+    setupIntentClientSecret: secret,
+  }) as unknown as SetupIntent;
+
 type SessionListener = (event: SessionEvent) => void;
 
 function fakeClient(overrides: Partial<BillingClient> = {}): BillingClient & {
@@ -75,6 +101,10 @@ function fakeClient(overrides: Partial<BillingClient> = {}): BillingClient & {
     sessionKey: undefined,
     fetchInvoices: vi.fn(async () => rowsOf()),
     fetchUpcomingInvoice: vi.fn(async () => null),
+    fetchPaymentMethods: vi.fn(async () => []),
+    createSetupIntent: vi.fn(async () => intent("seti_secret")),
+    updatePaymentMethod: vi.fn(async () => {}),
+    deletePaymentMethod: vi.fn(async () => {}),
     onSessionChange: (listener) => {
       listeners.push(listener);
       return () => {};
@@ -1588,6 +1618,468 @@ describe("useUpcomingInvoice", () => {
       ),
     });
     expect(result.current).toMatchObject({ data: null, isPending: false });
+  });
+});
+
+describe("usePaymentMethods", () => {
+  const wrap = (client: BillingClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  /** A write the test lands or fails by hand. */
+  const deferred = () => {
+    let resolve!: () => void;
+    let reject!: (cause: unknown) => void;
+    const promise = new Promise<void>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+
+  it_("reports the missing-source error outside any provider", async () => {
+    const { result } = renderHook(() => usePaymentMethods());
+    expect(result.current.error?.message).toBe(MISSING_BILLING_SOURCE_MESSAGE);
+    expect(result.current.isPending).toBe(false);
+    await expect(result.current.setDefault("pm_1")).rejects.toThrow(
+      MISSING_BILLING_SOURCE_MESSAGE,
+    );
+    await expect(result.current.remove("1")).rejects.toThrow(
+      MISSING_BILLING_SOURCE_MESSAGE,
+    );
+  });
+
+  it_("loads the list once for every reader", async () => {
+    const client = fakeClient({
+      fetchPaymentMethods: vi.fn(async () => [card("1", true), card("2")]),
+    });
+    const { result } = renderHook(
+      () => [usePaymentMethods(), usePaymentMethods()] as const,
+      { wrapper: wrap(client) },
+    );
+    expect(result.current[0].isPending).toBe(true);
+    await flush();
+    expect(result.current[0].data?.map((m) => m.id)).toEqual(["1", "2"]);
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(result.current[0]).toMatchObject({
+      isMutating: false,
+      mutationError: undefined,
+    });
+    expect(client.fetchPaymentMethods).toHaveBeenCalledTimes(1);
+    act(() => result.current[0].refetch());
+    await flush();
+    expect(client.fetchPaymentMethods).toHaveBeenCalledTimes(2);
+  });
+
+  it_("reads an empty list as loaded, not as pending", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current).toMatchObject({
+      data: [],
+      error: undefined,
+      isPending: false,
+    });
+  });
+
+  it_("serves a prefetched list without a request", async () => {
+    const client = fakeClient({
+      fetchPaymentMethods: vi.fn(async () => [card("fetched")]),
+    });
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: wrap(client, { paymentMethods: [card("seeded")] }),
+    });
+    expect(result.current.data?.[0].id).toBe("seeded");
+    await flush();
+    expect(client.fetchPaymentMethods).not.toHaveBeenCalled();
+  });
+
+  it_("serves a prefetched empty list without asking again", async () => {
+    const client = fakeClient({
+      fetchPaymentMethods: vi.fn(async () => [card("fetched")]),
+    });
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: wrap(client, { paymentMethods: [] }),
+    });
+    expect(result.current).toMatchObject({ data: [], isPending: false });
+    await flush();
+    expect(client.fetchPaymentMethods).not.toHaveBeenCalled();
+  });
+
+  it_("seeds each resource the prefetch carried, and only those", async () => {
+    const client = fakeClient({
+      fetchUpcomingInvoice: vi.fn(async () => bill(1)),
+      fetchPaymentMethods: vi.fn(async () => [card("fetched")]),
+    });
+    const { result } = renderHook(
+      () => [useUpcomingInvoice(), usePaymentMethods()] as const,
+      { wrapper: wrap(client, { paymentMethods: [card("seeded")] }) },
+    );
+    expect(result.current[1].data?.[0].id).toBe("seeded");
+    expect(result.current[0].isPending).toBe(true);
+    await flush();
+    expect(result.current[0].data?.amountDue).toBe(1);
+    expect(client.fetchPaymentMethods).not.toHaveBeenCalled();
+  });
+
+  it_(
+    "holds a stamped list with the rows until the session is checked",
+    async () => {
+      let status: "pending" | "active" | "ended" = "pending";
+      let key: string | undefined = undefined;
+      const client = fakeClient({
+        fetchPaymentMethods: vi.fn(async () => [card("fetched")]),
+      });
+      Object.defineProperty(client, "sessionStatus", { get: () => status });
+      Object.defineProperty(client, "sessionKey", { get: () => key });
+      const store = new BillingStore(client, {
+        invoices: page("seeded"),
+        paymentMethods: [card("seeded")],
+        sessionKey: "company_a",
+      });
+      store.connect();
+      const resource = store.paymentMethods.get({});
+      resource.subscribe(() => {});
+      await flush();
+      expect(resource.snapshot).toMatchObject({
+        data: undefined,
+        isPending: true,
+      });
+
+      status = "active";
+      key = "company_a";
+      act(() => {
+        client.listeners.forEach((listener) => listener({ type: "started" }));
+      });
+      await flush();
+      expect(resource.snapshot.data?.[0].id).toBe("seeded");
+      expect(store.invoices.get({}).snapshot.data?.invoices[0].id).toBe(
+        "seeded",
+      );
+      expect(client.fetchPaymentMethods).not.toHaveBeenCalled();
+    },
+  );
+
+  it_("drops a list prefetched for another session", async () => {
+    const client = fakeClient({
+      fetchPaymentMethods: vi.fn(async () => [card("fetched")]),
+    });
+    Object.defineProperty(client, "sessionStatus", { get: () => "active" });
+    Object.defineProperty(client, "sessionKey", { get: () => "company_a" });
+    const store = new BillingStore(client, {
+      paymentMethods: [card("seeded")],
+      sessionKey: "company_b",
+    });
+    store.connect();
+    const resource = store.paymentMethods.get({});
+    resource.subscribe(() => {});
+    await flush();
+    expect(resource.snapshot.data?.[0].id).toBe("fetched");
+  });
+
+  it_("drops the list when the session changes, and reloads it", async () => {
+    const client = fakeClient({
+      fetchPaymentMethods: vi.fn(async () => [card("1")]),
+    });
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(client.fetchPaymentMethods).toHaveBeenCalledTimes(1);
+    act(() => {
+      client.listeners.forEach((listener) => listener({ type: "changed" }));
+    });
+    await flush();
+    expect(client.fetchPaymentMethods).toHaveBeenCalledTimes(2);
+    expect(result.current.data?.[0].id).toBe("1");
+  });
+
+  it_("waits rather than failing while the session is pending", async () => {
+    const client = fakeClient({
+      fetchPaymentMethods: vi.fn(async () => [card("1")]),
+    });
+    Object.defineProperty(client, "sessionStatus", { get: () => "pending" });
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current).toMatchObject({
+      data: undefined,
+      error: undefined,
+      isPending: true,
+    });
+    expect(client.fetchPaymentMethods).not.toHaveBeenCalled();
+  });
+
+  it_("setDefault writes through the client and reloads the list", async () => {
+    let rows = [card("1", true), card("2")];
+    const client = fakeClient({
+      fetchPaymentMethods: vi.fn(async () => rows),
+      updatePaymentMethod: vi.fn(async (externalId: string) => {
+        rows = rows.map((m) => card(m.id, m.externalId === externalId));
+      }),
+    });
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current.data?.find((m) => m.isDefault)?.id).toBe("1");
+
+    await act(() => result.current.setDefault("pm_2"));
+    expect(client.updatePaymentMethod).toHaveBeenCalledWith("pm_2");
+    expect(client.fetchPaymentMethods).toHaveBeenCalledTimes(2);
+    expect(result.current.data?.find((m) => m.isDefault)?.id).toBe("2");
+    expect(result.current).toMatchObject({
+      isMutating: false,
+      mutationError: undefined,
+    });
+  });
+
+  it_("remove writes through the client and reloads the list", async () => {
+    let rows = [card("1", true), card("2")];
+    const client = fakeClient({
+      fetchPaymentMethods: vi.fn(async () => rows),
+      deletePaymentMethod: vi.fn(async (id: string) => {
+        rows = rows.filter((m) => m.id !== id);
+      }),
+    });
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current.data).toHaveLength(2);
+
+    await act(() => result.current.remove("2"));
+    expect(client.deletePaymentMethod).toHaveBeenCalledWith("2");
+    expect(client.fetchPaymentMethods).toHaveBeenCalledTimes(2);
+    expect(result.current.data?.map((m) => m.id)).toEqual(["1"]);
+  });
+
+  it_("reads as mutating while a write is on the wire", async () => {
+    const write = deferred();
+    const client = fakeClient({
+      fetchPaymentMethods: vi.fn(async () => [card("1", true)]),
+      updatePaymentMethod: vi.fn(() => write.promise),
+    });
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current.isMutating).toBe(false);
+
+    let settled!: Promise<void>;
+    act(() => {
+      settled = result.current.setDefault("pm_1");
+    });
+    expect(result.current.isMutating).toBe(true);
+    // The list's own state is untouched by a write in flight.
+    expect(result.current.isPending).toBe(false);
+
+    write.resolve();
+    await act(() => settled);
+    expect(result.current.isMutating).toBe(false);
+  });
+
+  it_(
+    "a failed write rejects and surfaces mutationError, and the next success clears it",
+    async () => {
+      const client = fakeClient({
+        fetchPaymentMethods: vi.fn(async () => [card("1", true), card("2")]),
+        deletePaymentMethod: vi
+          .fn<(id: string) => Promise<void>>()
+          .mockRejectedValueOnce(new Error("in use"))
+          .mockResolvedValueOnce(undefined),
+      });
+      const { result } = renderHook(() => usePaymentMethods(), {
+        wrapper: wrap(client),
+      });
+      await flush();
+
+      let rejected: unknown;
+      await act(async () => {
+        await result.current.remove("1").catch((cause: unknown) => {
+          rejected = cause;
+        });
+      });
+      expect(rejected).toEqual(new Error("in use"));
+      expect(result.current.mutationError?.message).toBe("in use");
+      expect(result.current.isMutating).toBe(false);
+      // A write's failure is not the list's: what was loaded stands.
+      expect(result.current.error).toBeUndefined();
+      expect(result.current.data).toHaveLength(2);
+      expect(client.fetchPaymentMethods).toHaveBeenCalledTimes(1);
+
+      await act(() => result.current.remove("2"));
+      expect(result.current.mutationError).toBeUndefined();
+      expect(client.fetchPaymentMethods).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it_(
+    "stays mutating until the last of two overlapping writes lands",
+    async () => {
+      const first = deferred();
+      const second = deferred();
+      const client = fakeClient({
+        fetchPaymentMethods: vi.fn(async () => [card("1", true), card("2")]),
+        updatePaymentMethod: vi
+          .fn<(externalId: string) => Promise<void>>()
+          .mockReturnValueOnce(first.promise)
+          .mockReturnValueOnce(second.promise),
+      });
+      const { result } = renderHook(() => usePaymentMethods(), {
+        wrapper: wrap(client),
+      });
+      await flush();
+
+      let one!: Promise<void>;
+      let two!: Promise<void>;
+      act(() => {
+        one = result.current.setDefault("pm_1");
+        two = result.current.setDefault("pm_2");
+      });
+      expect(client.updatePaymentMethod).toHaveBeenCalledTimes(2);
+      expect(result.current.isMutating).toBe(true);
+
+      first.resolve();
+      await act(() => one);
+      expect(result.current.isMutating).toBe(true);
+
+      second.resolve();
+      await act(() => two);
+      expect(result.current.isMutating).toBe(false);
+    },
+  );
+
+  it_("does not reload a list nobody has read after a write", async () => {
+    const client = fakeClient();
+    const store = new BillingStore(client);
+    store.connect();
+    await store.setDefaultPaymentMethod("pm_1");
+    expect(client.updatePaymentMethod).toHaveBeenCalledWith("pm_1");
+    expect(client.fetchPaymentMethods).not.toHaveBeenCalled();
+  });
+
+  it_("rejects writes from plain data with no client at all", async () => {
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: ({ children }) => (
+        <BillingProvider initialData={{ paymentMethods: [card("1", true)] }}>
+          {children}
+        </BillingProvider>
+      ),
+    });
+    expect(result.current.data).toHaveLength(1);
+    await expect(result.current.remove("1")).rejects.toThrow(
+      BILLING_ACTION_UNAVAILABLE_MESSAGE("removePaymentMethod"),
+    );
+  });
+
+  it_("BillingDataProvider routes writes to the actions given", async () => {
+    const setDefaultPaymentMethod = vi.fn(async () => {});
+    const { result } = renderHook(() => usePaymentMethods(), {
+      wrapper: ({ children }) => (
+        <BillingDataProvider
+          data={{ paymentMethods: [card("1", true), card("2")] }}
+          actions={{ setDefaultPaymentMethod }}
+        >
+          {children}
+        </BillingDataProvider>
+      ),
+    });
+    expect(result.current.data).toHaveLength(2);
+    await act(() => result.current.setDefault("pm_2"));
+    expect(setDefaultPaymentMethod).toHaveBeenCalledWith("pm_2");
+    expect(result.current.mutationError).toBeUndefined();
+
+    // An action left out rejects, naming itself.
+    let rejected: unknown;
+    await act(async () => {
+      await result.current.remove("2").catch((cause: unknown) => {
+        rejected = cause;
+      });
+    });
+    expect(rejected).toEqual(
+      new Error(BILLING_ACTION_UNAVAILABLE_MESSAGE("removePaymentMethod")),
+    );
+    expect(result.current.mutationError).toEqual(rejected);
+  });
+});
+
+describe("useSetupIntent", () => {
+  it_("reports the missing-source error outside any provider", async () => {
+    const { result } = renderHook(() => useSetupIntent());
+    await expect(result.current.create()).rejects.toThrow(
+      MISSING_BILLING_SOURCE_MESSAGE,
+    );
+  });
+
+  it_("mints a new intent from the client on every call", async () => {
+    const client = fakeClient({
+      createSetupIntent: vi
+        .fn<() => Promise<SetupIntent>>()
+        .mockResolvedValueOnce(intent("seti_1"))
+        .mockResolvedValueOnce(intent("seti_2")),
+    });
+    const { result } = renderHook(() => useSetupIntent(), {
+      wrapper: ({ children }) => (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      ),
+    });
+    await expect(result.current.create()).resolves.toMatchObject({
+      setupIntentClientSecret: "seti_1",
+    });
+    await expect(result.current.create()).resolves.toMatchObject({
+      setupIntentClientSecret: "seti_2",
+    });
+    expect(client.createSetupIntent).toHaveBeenCalledTimes(2);
+    // Action only: no resource was read for it.
+    expect(client.fetchPaymentMethods).not.toHaveBeenCalled();
+  });
+
+  it_("rejects with the client's failure", async () => {
+    const client = fakeClient({
+      createSetupIntent: vi.fn(async () => {
+        throw new Error("no customer");
+      }),
+    });
+    const { result } = renderHook(() => useSetupIntent(), {
+      wrapper: ({ children }) => (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      ),
+    });
+    await expect(result.current.create()).rejects.toThrow("no customer");
+  });
+
+  it_("BillingDataProvider serves the intent given, or rejects", async () => {
+    const createSetupIntent = vi.fn(async () => intent("seti_fixture"));
+    const withAction = renderHook(() => useSetupIntent(), {
+      wrapper: ({ children }) => (
+        <BillingDataProvider data={{}} actions={{ createSetupIntent }}>
+          {children}
+        </BillingDataProvider>
+      ),
+    });
+    await expect(withAction.result.current.create()).resolves.toMatchObject({
+      setupIntentClientSecret: "seti_fixture",
+    });
+
+    const without = renderHook(() => useSetupIntent(), {
+      wrapper: ({ children }) => (
+        <BillingDataProvider data={{}}>{children}</BillingDataProvider>
+      ),
+    });
+    await expect(without.result.current.create()).rejects.toThrow(
+      BILLING_ACTION_UNAVAILABLE_MESSAGE("createSetupIntent"),
+    );
   });
 });
 

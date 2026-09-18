@@ -1,7 +1,8 @@
 /**
  * The billing contract lives in schematic-js; re-exported here so the hooks
- * and components share one set of types. The invoices and upcoming-invoice
- * slices so far; the rest of the contract ships with its elements.
+ * and components share one set of types. The invoices, upcoming-invoice and
+ * payment-methods slices so far; the rest of the contract ships with its
+ * elements.
  */
 import { normalizeInvoiceQuery as normalize } from "@schematichq/schematic-js";
 
@@ -19,7 +20,9 @@ export {
   type InvoicePage,
   type Discount,
   type InvoiceQuery,
+  type PaymentMethod,
   type ResourceState,
+  type SetupIntent,
   type UpcomingInvoice,
 } from "@schematichq/schematic-js";
 
