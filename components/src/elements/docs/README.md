@@ -31,9 +31,10 @@ nothing in it is a 200 with an empty list (`/company/invoices`). A single
 resource that can legitimately be absent is a 204 (`/company/upcoming-invoice`
 for a company with nothing to bill), which the client reads as `null` — a
 loaded value, so the element renders its empty state. A 404 means the caller
-cannot read the route at all: the account is off the flag, or the token
-does not resolve. Nothing else answers 404, so a 404 is always "not
-available", never "nothing here". If a correctly configured page shows
+cannot read the resource: the account is off the flag, the token does not
+resolve, or the billing provider no longer knows the customer. A 404 never
+means "nothing here", so the elements render "not available" for it and key
+on the status alone, never on the error message. If a correctly configured page shows
 `… failed with status 404`, the flag is what to check first. Ask Schematic
 to turn it on for the account.
 

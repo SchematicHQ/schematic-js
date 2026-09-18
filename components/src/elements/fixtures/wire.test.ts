@@ -25,7 +25,7 @@ describe("wire round trip", () => {
     (name) => {
       const bill = SCENARIOS[name]().upcomingInvoice;
       if (bill == null) {
-        return; // nothing to bill is a 404, not a body
+        return; // nothing to bill is a 204, not a body
       }
       const wire = billingApi.CompanyUpcomingInvoiceResponseDataToJSON(bill);
       expect(JSON.stringify(wire)).not.toMatch(/"[a-z]+[A-Z]/);

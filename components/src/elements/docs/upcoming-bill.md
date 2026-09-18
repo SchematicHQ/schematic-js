@@ -4,7 +4,7 @@ The company's next bill: what it will be charged and when, with the account bala
 
 ## Hook and derivation
 
-`useUpcomingInvoice()` serves `GET /company/upcoming-invoice`. It takes no parameters — a company has one next bill — and `data` is `UpcomingInvoice | null`, where **`null` means there is nothing to bill**: the company has no subscription, or the billing provider has no preview for it. That is a loaded answer, so `isPending` is false and there is no error; only `data === undefined` means the resource has not loaded. The endpoint reports it as a 204 and the client turns it into the `null`. A 404 is something else — the account is not on the `company-context-api` flag — and surfaces as an error, as it does for the invoice history, so a subscribed customer is never shown "no upcoming invoice" over a real one.
+`useUpcomingInvoice()` serves `GET /company/upcoming-invoice`. It takes no parameters — a company has one next bill — and `data` is `UpcomingInvoice | null`, where **`null` means there is nothing to bill**: the company has no subscription, its trial will cancel, or the billing provider has no preview for it. That is a loaded answer, so `isPending` is false and there is no error; only `data === undefined` means the resource has not loaded. The endpoint reports it as a 204 and the client turns it into the `null`. A 404 is something else — the bill cannot be read, because the account is not on the `company-context-api` flag or the provider no longer knows the customer — and surfaces as an error, as it does for the invoice history, so a subscribed customer is never shown "no upcoming invoice" over a real one.
 
 `deriveUpcomingInvoice` formats the parts. The arithmetic is not in it: the server sends how much balance the invoice consumes and how much survives, because those depend on billing-provider conventions no consumer should have to know. The derivation signs the applied balance (it comes off the bill) and formats each amount for the locale. `subtotal` is derived too, for a host that wants to show what the discounts and balance took off; the styled element does not render it.
 
@@ -70,8 +70,8 @@ chip when the coupon has none.
 A failure with a bill still on screen — a refetch that did not land — is
 reported under it rather than replacing it; only a failure with nothing to
 show takes over the card. A 404 with nothing to show — the account is not on
-the flag that serves company reads — renders "Your upcoming invoice is not
-available for this account."; every other failure, and a 404 under a bill
+the flag that serves company reads, or the provider no longer knows the
+customer — renders "Your upcoming invoice is not available for this account."; every other failure, and a 404 under a bill
 already loaded, reads "There was a problem retrieving your upcoming
 invoice." Both offer "Try again". Neither shows the error's own message; in
 development it is logged to the console beside the copy.
