@@ -283,19 +283,15 @@ export const Dialog: React.FC<{
   const generatedId = useId();
   const headingId = titleId ?? generatedId;
 
+  // No cleanup: unmounting removes the element from the top layer without
+  // a `close` event. Calling close() here would fire one, and under Strict
+  // Mode's mount-unmount-mount that event reached the owner and shut the
+  // dialog the instant it opened.
   useEffect(() => {
     const dialog = ref.current;
-    if (!open || dialog === null) {
-      return;
-    }
-    if (!dialog.open) {
+    if (open && dialog !== null && !dialog.open) {
       dialog.showModal();
     }
-    return () => {
-      if (dialog.open) {
-        dialog.close();
-      }
-    };
   }, [open]);
 
   if (!open) {
