@@ -114,11 +114,18 @@
   "peerDependencies": {
     "@schematichq/schematic-react": "^1.8.0",
     "@stripe/react-stripe-js": ">=3",
+    "@stripe/stripe-js": ">=4",
     "react": ">=18",
     "react-dom": ">=18"
   },
   "peerDependenciesMeta": {
     "@schematichq/schematic-react": {
+      "optional": true
+    },
+    "@stripe/react-stripe-js": {
+      "optional": true
+    },
+    "@stripe/stripe-js": {
       "optional": true
     }
   },
