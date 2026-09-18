@@ -3,7 +3,11 @@ import { useTranslation } from "react-i18next";
 
 import { type UpcomingInvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  useNextBillDate,
+} from "../../../hooks";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
@@ -151,6 +155,8 @@ export const UpcomingBill = forwardRef<
     upcomingInvoice?.subtotal,
   ]);
 
+  const { billDate, paymentDueDate } = useNextBillDate(upcomingInvoice ?? null);
+
   const hasApplied = applied > 0;
   const hasBalance = remaining > 0 || applied > 0;
 
@@ -191,11 +197,22 @@ export const UpcomingBill = forwardRef<
           <TransitionBox>
             {upcomingInvoice ? (
               <Flex $flexDirection="column" $gap="1rem">
-                {props.header.isVisible && upcomingInvoice.dueDate && (
-                  <Text display={props.header.fontStyle}>
-                    {props.header.prefix}{" "}
-                    {toPrettyDate(upcomingInvoice.dueDate)}
-                  </Text>
+                {props.header.isVisible && billDate && (
+                  <Flex $flexDirection="column" $gap="0.25rem">
+                    <Text display={props.header.fontStyle}>
+                      {props.header.prefix} {toPrettyDate(billDate)}
+                    </Text>
+
+                    {paymentDueDate && (
+                      <Text
+                        $size={0.8125 * settings.theme.typography.text.fontSize}
+                      >
+                        {t("Payment due", {
+                          date: toPrettyDate(paymentDueDate),
+                        })}
+                      </Text>
+                    )}
+                  </Flex>
                 )}
 
                 <Flex

@@ -10,8 +10,12 @@ import { UpcomingBill } from "./UpcomingBill";
 // Tests mutate `subscription.discounts` in place before rendering.
 const state = vi.hoisted(() => {
   const subscription = { discounts: [] as Record<string, unknown>[] };
+  const company = {
+    billingSubscription: undefined as Record<string, unknown> | undefined,
+  };
   const embed = {
     data: {
+      company,
       component: { id: "comp_1" },
       subscription,
       upcomingInvoice: {
@@ -31,16 +35,22 @@ const state = vi.hoisted(() => {
     getCustomerBalance: vi.fn(),
   };
 
-  return { embed, subscription };
+  return { embed, subscription, company };
 });
 
-vi.mock("../../../hooks", () => ({
+// Mock the module itself, not the `hooks` barrel, so hooks that call
+// `useEmbed` internally (e.g. `useNextBillDate`) see the same state.
+vi.mock("../../../hooks/useEmbed", () => ({
   useEmbed: () => state.embed,
+}));
+
+vi.mock("../../../hooks/useIsLightBackground", () => ({
   useIsLightBackground: () => true,
 }));
 
 beforeEach(() => {
   state.subscription.discounts = [];
+  state.company.billingSubscription = undefined;
   state.embed.getUpcomingInvoice.mockResolvedValue({
     data: {
       amountDue: 20000,
@@ -50,6 +60,67 @@ beforeEach(() => {
   });
   state.embed.getCustomerBalance.mockResolvedValue({
     data: { balances: [] },
+  });
+});
+
+// Built from local-time components so the rendered date does not shift with
+// the runner's timezone.
+const SEP_9_2027 = new Date(2027, 8, 9).getTime() / 1000;
+const OCT_24_2027 = new Date(2027, 9, 24);
+
+describe("`UpcomingBill` heading date", () => {
+  test("leads with the bill date and calls out the net-terms deadline", async () => {
+    // Net 45 on a `send_invoice` subscription: billed Sep 9, payable Oct 24.
+    state.company.billingSubscription = {
+      periodEnd: SEP_9_2027,
+    };
+    state.embed.getUpcomingInvoice.mockResolvedValue({
+      data: {
+        amountDue: 3600000,
+        currency: "usd",
+        collectionMethod: "send_invoice",
+        dueDate: OCT_24_2027,
+      },
+    });
+
+    render(<UpcomingBill />);
+
+    expect(
+      await screen.findByText("Next bill due September 9, 2027"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Payment due October 24, 2027"),
+    ).toBeInTheDocument();
+  });
+
+  test("omits the deadline line when collection is automatic", async () => {
+    state.company.billingSubscription = {
+      periodEnd: SEP_9_2027,
+    };
+    state.embed.getUpcomingInvoice.mockResolvedValue({
+      data: {
+        amountDue: 3600000,
+        currency: "usd",
+        collectionMethod: "charge_automatically",
+        dueDate: OCT_24_2027,
+      },
+    });
+
+    render(<UpcomingBill />);
+
+    expect(
+      await screen.findByText("Next bill due September 9, 2027"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Payment due/)).not.toBeInTheDocument();
+  });
+
+  test("falls back to the due date when the subscription has no period end", async () => {
+    render(<UpcomingBill />);
+
+    expect(
+      await screen.findByText(/^Next bill due February \d, 2026$/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Payment due/)).not.toBeInTheDocument();
   });
 });
 
