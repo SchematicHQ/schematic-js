@@ -1,6 +1,7 @@
 import React from "react";
 
 import { invoicesCss } from "./invoices";
+import { paymentMethodsCss } from "./payment-methods";
 import { withTokenDefaults } from "./tokens";
 import { upcomingBillCss } from "./upcoming-bill";
 
@@ -527,6 +528,7 @@ const rulesCss = `
 
 ${invoicesCss}
 ${upcomingBillCss}
+${paymentMethodsCss}
 `;
 
 /**

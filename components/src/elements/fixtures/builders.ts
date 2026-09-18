@@ -7,6 +7,7 @@ import type {
   Discount,
   Invoice,
   InvoicePage,
+  PaymentMethod,
   UpcomingInvoice,
 } from "@schematichq/schematic-react";
 
@@ -71,6 +72,63 @@ export function upcomingInvoice(
     discounts: [],
     dueDate: daysFromNow(14),
     subtotal: 6800,
+    ...overrides,
+  };
+}
+
+/**
+ * A Visa good for a year past `NOW`, not the default. Absent optionals are
+ * omitted rather than `null`, as for `discount`. The external id is what
+ * the provider knows the method by, and what "make default" is asked with.
+ */
+export function cardPaymentMethod(
+  overrides: Partial<PaymentMethod> = {},
+): PaymentMethod {
+  const id = nextId("pm");
+  return {
+    id,
+    externalId: `${id}_ext`,
+    type: "card",
+    isDefault: false,
+    canRemove: true,
+    cardBrand: "visa",
+    cardLast4: "4242",
+    cardExpMonth: 8,
+    cardExpYear: 2027,
+    ...overrides,
+  };
+}
+
+/** A US bank account at Chase. */
+export function bankPaymentMethod(
+  overrides: Partial<PaymentMethod> = {},
+): PaymentMethod {
+  const id = nextId("pm");
+  return {
+    id,
+    externalId: `${id}_ext`,
+    type: "us_bank_account",
+    isDefault: false,
+    canRemove: true,
+    bankName: "Chase",
+    accountLast4: "6789",
+    ...overrides,
+  };
+}
+
+/** A Link wallet, told apart by the email behind it. */
+export function walletPaymentMethod(
+  overrides: Partial<PaymentMethod> = {},
+): PaymentMethod {
+  const id = nextId("pm");
+  return {
+    id,
+    externalId: `${id}_ext`,
+    type: "link",
+    isDefault: false,
+    canRemove: true,
+    accountName: "jo@example.com",
+    billingEmail: "jo@example.com",
     ...overrides,
   };
 }
