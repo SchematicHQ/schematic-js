@@ -11,6 +11,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import { StrictMode } from "react";
 import { vi } from "vitest";
 
 import type { PaymentMethodFormProps } from "./PaymentMethodForm";
@@ -293,6 +294,21 @@ describe("PaymentMethods", () => {
   });
 
   describe("the dialog", () => {
+    test("opens under Strict Mode, whose effect replay must not close it", () => {
+      render(
+        <StrictMode>
+          <BillingDataProvider data={SCENARIOS.paymentMethods()}>
+            <PaymentMethods locale={L} />
+          </BillingDataProvider>
+        </StrictMode>,
+      );
+      const modal = openDialog();
+      expect(modal).toHaveAttribute("open");
+      expect(
+        within(modal).getByRole("heading", { name: "Edit payment details" }),
+      ).toBeInTheDocument();
+    });
+
     test("Edit opens it as a modal, titled, on the method on file", () => {
       renderCard();
       const modal = openDialog();
