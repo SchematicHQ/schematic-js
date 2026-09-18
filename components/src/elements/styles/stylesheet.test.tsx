@@ -2,12 +2,14 @@ import {
   BillingDataProvider,
   type BillingData,
 } from "@schematichq/schematic-react";
-import { render } from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
+import { vi } from "vitest";
 
 import { Invoices } from "../Invoices";
+import { PaymentMethods } from "../PaymentMethods";
 import { UpcomingBill } from "../UpcomingBill";
-import { invoice, invoicePage } from "../fixtures/builders";
-import { SCENARIOS } from "../fixtures/scenarios";
+import { cardPaymentMethod, invoice, invoicePage } from "../fixtures/builders";
+import { SCENARIOS, paymentMethodSet } from "../fixtures/scenarios";
 
 import { withTokenDefaults } from "./tokens";
 
@@ -22,13 +24,20 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|row|chip|badge|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
- * The pending fallback for an element that passes no skeleton of its own.
- * Every shipped element passes one, so nothing here can match it.
+ * The pending fallback for an element that passes no skeleton of its own —
+ * every shipped element passes one, so nothing here can match it — and the
+ * Add form, which renders inside Stripe's `<Elements>` and cannot be staged
+ * without it. PaymentMethodForm.test.tsx covers the form's markup.
  */
-const UNREACHABLE = new Set([".schematic-skeleton:empty"]);
+const UNREACHABLE = new Set([
+  ".schematic-skeleton:empty",
+  ".schematic-payment-methods__form",
+  ".schematic-payment-methods__form-actions",
+  '.schematic-payment-methods .schematic-skeleton__cell[data-column="field"]',
+]);
 
 function shippedSelectors(): string[] {
   const stripped = schematicStylesCss
@@ -61,22 +70,79 @@ function compounds(selector: string): string[] {
     .filter((part) => part !== "");
 }
 
-function tree(node: React.ReactNode, data: BillingData, status?: never) {
+function tree(
+  node: React.ReactNode,
+  data: BillingData,
+  status?: never,
+  actions?: React.ComponentProps<typeof BillingDataProvider>["actions"],
+) {
   const { container } = render(
-    <BillingDataProvider data={data} status={status}>
+    <BillingDataProvider actions={actions} data={data} status={status}>
       {node}
     </BillingDataProvider>,
   );
   return container.firstElementChild as HTMLElement;
 }
 
+/** A card expiring this month, judged against the real clock. */
+function expiringCard() {
+  const now = new Date();
+  return cardPaymentMethod({
+    cardExpMonth: now.getUTCMonth() + 1,
+    cardExpYear: now.getUTCFullYear(),
+  });
+}
+
+/** The list with a write that has just failed beneath it. */
+async function failedWrite() {
+  const root = tree(
+    <PaymentMethods locale="en-US" />,
+    SCENARIOS.paymentMethods(),
+    undefined,
+    { setDefaultPaymentMethod: vi.fn().mockRejectedValue(new Error("Nope")) },
+  );
+  // Scoped to this card: the other cards on the page offer the same action.
+  fireEvent.click(
+    root.querySelector(".schematic-payment-methods__make-default") as Element,
+  );
+  await waitFor(() =>
+    expect(
+      root.querySelector(".schematic-payment-methods__write-error"),
+    ).not.toBeNull(),
+  );
+  return root;
+}
+
 /** Every render that reaches a selector in the sheet. */
-function everyCard() {
+async function everyCard() {
   const noUrl = SCENARIOS.pro();
   noUrl.invoices = invoicePage([invoice({ url: null })]);
   const boom = new Error("Boom");
+  const everyExpiry = {
+    paymentMethods: [
+      ...paymentMethodSet(),
+      expiringCard(),
+      cardPaymentMethod({ cardExpMonth: 1, cardExpYear: 2020 }),
+    ],
+  };
 
   return [
+    tree(<PaymentMethods locale="en-US" />, everyExpiry),
+    tree(
+      <PaymentMethods locale="en-US" />,
+      SCENARIOS.paymentMethodsNoDefault(),
+    ),
+    tree(<PaymentMethods locale="en-US" />, SCENARIOS.paymentMethodsEmpty()),
+    tree(<PaymentMethods locale="en-US" />, {}, {
+      paymentMethods: { isPending: true },
+    } as never),
+    tree(<PaymentMethods locale="en-US" />, {}, {
+      paymentMethods: { error: boom },
+    } as never),
+    tree(<PaymentMethods locale="en-US" />, SCENARIOS.paymentMethods(), {
+      paymentMethods: { error: boom },
+    } as never),
+    await failedWrite(),
     tree(<Invoices limit={1} locale="en-US" />, SCENARIOS.pro()),
     tree(<Invoices collapsible={false} locale="en-US" />, SCENARIOS.pro()),
     tree(<Invoices locale="en-US" />, noUrl),
@@ -106,8 +172,8 @@ function everyCard() {
 }
 
 describe("the packaged stylesheet", () => {
-  test("every rule aimed at a shipped element still matches its markup", () => {
-    const cards = everyCard();
+  test("every rule aimed at a shipped element still matches its markup", async () => {
+    const cards = await everyCard();
     const unmatched = shippedSelectors().filter((selector) => {
       // Interaction states cannot be staged in a render, and the expanded
       // toggle is the collapsed one with its attribute flipped.

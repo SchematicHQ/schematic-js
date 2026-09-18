@@ -13,10 +13,11 @@ is reserved for the offerings resource. The routes those clients call are
 still `/company/*`, and the generated wire models keep their `Company…`
 names — the tier is what `billing` names, not the resource.
 
-| Element      | Hooks                | Derivation              | Reads             | Recipe                                 |
-| ------------ | -------------------- | ----------------------- | ----------------- | -------------------------------------- |
-| Invoices     | `useInvoices`        | `deriveInvoiceList`     | `invoices`        | [invoices.md](./invoices.md)           |
-| UpcomingBill | `useUpcomingInvoice` | `deriveUpcomingInvoice` | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md) |
+| Element        | Hooks                                 | Derivation              | Reads             | Recipe                                     |
+| -------------- | ------------------------------------- | ----------------------- | ----------------- | ------------------------------------------ |
+| Invoices       | `useInvoices`                         | `deriveInvoiceList`     | `invoices`        | [invoices.md](./invoices.md)               |
+| UpcomingBill   | `useUpcomingInvoice`                  | `deriveUpcomingInvoice` | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md)     |
+| PaymentMethods | `usePaymentMethods`, `useSetupIntent` | `derivePaymentMethods`  | `paymentMethods`  | [payment-methods.md](./payment-methods.md) |
 
 ## Before it can load
 
@@ -37,6 +38,13 @@ means "nothing here", so the elements render "not available" for it and key
 on the status alone, never on the error message. If a correctly configured page shows
 `… failed with status 404`, the flag is what to check first. Ask Schematic
 to turn it on for the account.
+
+Adding a payment method goes through Stripe, so `PaymentMethods`' Add form
+needs `@stripe/stripe-js` and `@stripe/react-stripe-js` installed beside the
+package. Both are optional peers: the elements bundle leaves them out and
+imports them on the first Add, so a page that only lists methods never loads
+Stripe, and a host without them still lists — the form reports that it could
+not load rather than crashing.
 
 ## Setup
 

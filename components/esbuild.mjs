@@ -74,13 +74,17 @@ const options = {
   outfile,
   // The elements must share the host's copies of these: React and
   // schematic-react each hold module-level context, and a second schematic-js
-  // is a second set of classes.
+  // is a second set of classes. Stripe is an optional peer the Add form
+  // imports at runtime, so it stays out of the bundle and off pages that
+  // never open the form.
   external: isElements
     ? [
         "react",
         "react-dom",
         "@schematichq/schematic-js",
         "@schematichq/schematic-react",
+        "@stripe/react-stripe-js",
+        "@stripe/stripe-js",
       ]
     : ["react", "react-dom", "@stripe/react-stripe-js"],
   define: {
