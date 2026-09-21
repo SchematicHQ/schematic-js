@@ -5,6 +5,7 @@ import {
 } from "./api/models";
 import { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
 import { type TrialStatus } from "./api/models/TrialStatus";
+import { type WarningTier } from "./api/models/WarningTier";
 
 export type EventType = "identify" | "track" | "flag_check";
 
@@ -119,6 +120,8 @@ export type CheckFlagReturn = {
   userId?: string;
   /** A boolean flag check result; for feature entitlements, this represents whether further consumption of the feature is permitted */
   value: boolean;
+  /** Customer-defined usage warning thresholds configured on this entitlement */
+  warningTiers?: WarningTier[];
 };
 
 export type CheckPlanReturn = {
@@ -308,6 +311,8 @@ export const CheckFlagReturnFromJSON = (
       entitlement?.softLimit == null ? undefined : entitlement.softLimit,
     userId: userId == null ? undefined : userId,
     value,
+    warningTiers:
+      entitlement?.warningTiers == null ? undefined : entitlement.warningTiers,
   };
 };
 
@@ -367,3 +372,4 @@ export type { CompanyCreditBalance } from "./api/models/CompanyCreditBalance";
 export { CheckFlagsResponseFromJSON } from "./api/models/CheckFlagsResponse";
 export { DatastreamCompanyPlanFromJSON } from "./api/models/DatastreamCompanyPlan";
 export { TrialStatus } from "./api/models/TrialStatus";
+export type { WarningTier } from "./api/models/WarningTier";

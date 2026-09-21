@@ -3190,6 +3190,45 @@ describe("CheckFlagReturnFromJSON", () => {
     expect(result.softLimit).toBeUndefined();
   });
 
+  it("should surface warningTiers from entitlement", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      entitlement: {
+        feature_id: "feat-1",
+        feature_key: "test-flag",
+        value_type: "numeric",
+        allocation: 1000,
+        usage: 800,
+        warning_tiers: [
+          { key: "approaching", value: 750 },
+          { key: "critical", value: 950 },
+        ],
+      },
+    });
+
+    expect(result.warningTiers).toEqual([
+      { key: "approaching", value: 750 },
+      { key: "critical", value: 950 },
+    ]);
+  });
+
+  it("should return undefined for warningTiers when entitlement omits them", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      entitlement: {
+        feature_id: "feat-1",
+        feature_key: "test-flag",
+        value_type: "boolean",
+      },
+    });
+
+    expect(result.warningTiers).toBeUndefined();
+  });
+
   it("should surface creditId, creditReserved, and creditSettled from entitlement", () => {
     const result = CheckFlagReturnFromJSON({
       flag: "test-flag",

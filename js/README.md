@@ -115,6 +115,25 @@ if (check?.creditId) {
 
 The entitlement refreshes with each flag check. `getCreditBalance` also updates on the credit partials that arrive between checks, so prefer it for a balance you render.
 
+### Usage warnings
+
+If a usage warning is configured on the entitlement, `getFlagCheck` returns it as `warningTiers`, so you can warn a customer before they hit the limit rather than after. Each tier is a `{ key, value }` pair in the entitlement's usage units, and the dashboard writes a single tier under the key `default`. The field is `undefined` when no warning is configured.
+
+```typescript
+const check = schematic.getFlagCheck("some-flag-key");
+const warning = check?.warningTiers?.find((tier) => tier.key === "default");
+
+if (
+    typeof check?.featureUsage === "number" &&
+    typeof warning?.value === "number" &&
+    check.featureUsage >= warning.value
+) {
+    console.log(`Approaching your limit of ${warning.value}`);
+}
+```
+
+`getFlagCheck` also returns `softLimit`, the soft limit for overage charges or the next tier boundary under usage-based pricing.
+
 ## Fallback Behavior
 
 The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).
