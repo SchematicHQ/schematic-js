@@ -23,6 +23,7 @@ import type {
   FetchCustomerBalanceResponse,
   GetCheckoutTaxIDResponse,
   GetCompanyInvoicesResponse,
+  GetCompanyUpcomingInvoiceResponse,
   GetCreditUsageByUserResponse,
   GetFeatureUsageByUserResponse,
   GetSetupIntentResponse,
@@ -57,6 +58,8 @@ import {
   GetCheckoutTaxIDResponseToJSON,
   GetCompanyInvoicesResponseFromJSON,
   GetCompanyInvoicesResponseToJSON,
+  GetCompanyUpcomingInvoiceResponseFromJSON,
+  GetCompanyUpcomingInvoiceResponseToJSON,
   GetCreditUsageByUserResponseFromJSON,
   GetCreditUsageByUserResponseToJSON,
   GetFeatureUsageByUserResponseFromJSON,
@@ -486,6 +489,54 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
       initOverrides,
     );
     return await response.value();
+  }
+
+  /**
+   * Get company upcoming invoice
+   */
+  async getCompanyUpcomingInvoiceRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyUpcomingInvoiceResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/upcoming-invoice`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyUpcomingInvoiceResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get company upcoming invoice
+   */
+  async getCompanyUpcomingInvoice(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyUpcomingInvoiceResponse | null | undefined> {
+    const response = await this.getCompanyUpcomingInvoiceRaw(initOverrides);
+    switch (response.raw.status) {
+      case 200:
+        return await response.value();
+      case 204:
+        return null;
+      default:
+        return await response.value();
+    }
   }
 
   /**

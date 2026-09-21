@@ -56,6 +56,7 @@ models/CheckoutUnsubscribeResponse.ts
 models/CompanyBillingProfileResponseData.ts
 models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts
+models/CompanyDiscountResponseData.ts
 models/CompanyEventPeriodMetricsResponseData.ts
 models/CompanyInvoiceResponseData.ts
 models/CompanyInvoicesResponseData.ts
@@ -68,6 +69,7 @@ models/CompanyPlanWithBillingSubView.ts
 models/CompanyResponseData.ts
 models/CompanySubscriptionResponseData.ts
 models/CompanyTaxIDView.ts
+models/CompanyUpcomingInvoiceResponseData.ts
 models/ComparableOperator.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
@@ -126,6 +128,7 @@ models/GenericPreviewObject.ts
 models/GetCheckoutTaxIDResponse.ts
 models/GetCompanyInvoicesParams.ts
 models/GetCompanyInvoicesResponse.ts
+models/GetCompanyUpcomingInvoiceResponse.ts
 models/GetCreditUsageByUserParams.ts
 models/GetCreditUsageByUserResponse.ts
 models/GetFeatureUsageByUserParams.ts
