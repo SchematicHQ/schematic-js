@@ -49,7 +49,7 @@
     "happy-dom": "^20.14.5",
     "husky": "^9.1.7",
     "jsdom": "^30.0.1",
-    "prettier": "^3.9.6",
+    "prettier": "^3.9.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "typescript": "^6.0.3",
