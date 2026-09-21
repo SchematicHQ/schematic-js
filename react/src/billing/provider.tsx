@@ -4,13 +4,14 @@ import { sessionKey } from "@schematichq/schematic-js";
 
 import { SchematicI18nProvider, type SchematicI18nConfig } from "../i18n";
 
-import { BillingStore, type BillingClient, type SessionInput } from "./client";
+import { BillingStore, type SessionInput } from "./client";
 import {
   BillingDataContext,
   type BillingDataSource,
   type ResourceHandle,
 } from "./context";
 import type {
+  BillingClient,
   BillingData,
   BillingResourceName,
   BillingResourceParams,

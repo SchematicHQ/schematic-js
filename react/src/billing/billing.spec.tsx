@@ -14,17 +14,18 @@ import { vi } from "vitest";
 
 import { SchematicProvider } from "../context";
 
-import { BillingStore, type BillingClient, type SessionEvent } from "./client";
+import { BillingStore, type SessionEvent } from "./client";
+import {
+  normalizeInvoiceQuery,
+  type BillingClient,
+  type BillingData,
+  type Invoice,
+} from "./contract";
 import {
   BillingDataProvider,
   MISSING_BILLING_SOURCE_MESSAGE,
   useBillingDataSource,
 } from "./context";
-import {
-  normalizeInvoiceQuery,
-  type BillingData,
-  type Invoice,
-} from "./contract";
 import { useInvoices } from "./hooks";
 import { BillingProvider, SESSION_REPLACED_MESSAGE } from "./provider";
 

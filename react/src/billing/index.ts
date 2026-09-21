@@ -3,7 +3,6 @@ export {
   INVOICE_PAGE_SIZE,
   type AccessToken,
   type AccessTokenProvider,
-  type BillingClient,
   type Session,
   type SessionEvent,
   type SessionInput,

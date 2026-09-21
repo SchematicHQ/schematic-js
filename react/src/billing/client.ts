@@ -2,13 +2,13 @@ import {
   INVOICE_MAX_PAGE_SIZE,
   INVOICE_PAGE_SIZE,
   sessionKey,
-  type BillingClient,
   type InvoicesResult,
   type SessionInput,
   type SessionStatus,
 } from "@schematichq/schematic-js";
 
 import type {
+  BillingClient,
   BillingData,
   BillingResourceName,
   BillingResourceParams,
@@ -84,7 +84,6 @@ const READINESS: Record<SessionStatus, Readiness> = {
 export type {
   AccessToken,
   AccessTokenProvider,
-  BillingClient,
   Session,
   SessionEvent,
   SessionInput,
