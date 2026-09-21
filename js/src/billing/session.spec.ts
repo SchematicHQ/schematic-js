@@ -73,6 +73,38 @@ describe("SchematicSession", () => {
     expect(tokens(calls)).toEqual(["t1", "t1"]);
   });
 
+  it("resolves undefined for a status the caller names as no content", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ status: 204, body: null }));
+    const session = new SchematicSession({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(
+      session.request("/probe", { noContentOn: [204] }),
+    ).resolves.toBeUndefined();
+    // Distinct from a 200 whose body is empty, which parses to null.
+    await expect(session.request("/probe")).resolves.toBeNull();
+  });
+
+  it("refreshes a 401 before judging whether there is content", async () => {
+    let n = 0;
+    const provider = vi.fn(async () => `t${++n}`);
+    const { calls, fetchImpl } = fakeFetch((_url, headers) =>
+      headers["X-Schematic-Api-Key"] === "t1"
+        ? { status: 401, body: { error: "expired" } }
+        : { status: 204, body: null },
+    );
+    const session = new SchematicSession({
+      session: { company: "comp_a", token: provider },
+      fetch: fetchImpl,
+    });
+    await expect(
+      session.request("/probe", { noContentOn: [401, 204] }),
+    ).resolves.toBeUndefined();
+    expect(calls).toHaveLength(2);
+    expect(provider).toHaveBeenCalledTimes(2);
+  });
+
   it("refreshes the token once after a 401 and retries", async () => {
     let n = 0;
     const provider = vi.fn(async () => `t${++n}`);

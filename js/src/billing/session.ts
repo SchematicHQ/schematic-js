@@ -73,6 +73,14 @@ export interface SessionOptions {
 export interface RequestOptions {
   method?: string;
   body?: unknown;
+  /**
+   * Success statuses that carry no body — a 204 for a resource that is
+   * legitimately absent. The request resolves `undefined` for them, which
+   * is distinct from a body that parsed to `null`. A 401 is never one — the
+   * refresh and retry run first, and only what comes back from that is
+   * judged.
+   */
+  noContentOn?: number[];
 }
 
 export class SchematicApiError extends Error {
@@ -411,6 +419,13 @@ export class SchematicSession {
       if (!retried) {
         throw new SchematicApiError(status, path, rejected);
       }
+    }
+
+    if (options.noContentOn?.includes(response.status) === true) {
+      // Drained to release the connection; there is no body to read.
+      await discardBody(response);
+      await stillOurs();
+      return undefined;
     }
 
     const parsed = await readBody(response);

@@ -6,12 +6,16 @@
  * the request that carries it, are `SchematicSession`.
  */
 
-import { GetCompanyInvoicesResponseFromJSON } from "./api/generated/models";
+import {
+  GetCompanyInvoicesResponseFromJSON,
+  GetCompanyUpcomingInvoiceResponseFromJSON,
+} from "./api/generated/models";
 import type {
   BillingData,
   BillingResourceName,
   InvoicePage,
   InvoiceQuery,
+  UpcomingInvoice,
 } from "./contract";
 import { normalizeInvoiceQuery } from "./contract";
 import type {
@@ -40,6 +44,8 @@ export type InvoicesResult = Omit<InvoicePage, "hasMore">;
  */
 export interface BillingClient {
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult>;
+  /** `null` when the company has no next bill. */
+  fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
 
   readonly sessionStatus: SessionStatus;
 
@@ -111,10 +117,36 @@ export class SchematicBillingClient implements BillingClient {
       return { invoices: decoded.invoices, count: decoded.count };
     });
   }
+
+  fetchUpcomingInvoice(): Promise<UpcomingInvoice | null> {
+    const path = "/company/upcoming-invoice";
+    // A company with nothing to bill — no subscription, or a trial that
+    // cancels — is a 204, and resolves `null`. A 404 means the bill cannot
+    // be read: the account is not on the company-context-api flag, or the
+    // provider no longer knows the customer. It stays the error it is, so
+    // an element can say "not available" rather than a false "nothing to
+    // bill". A 200 with no body is neither, and is malformed like an empty
+    // invoice page.
+    return this.session.request(path, { noContentOn: [204] }).then((body) => {
+      if (body === undefined) {
+        return null;
+      }
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return GetCompanyUpcomingInvoiceResponseFromJSON(body).data;
+    });
+  }
 }
 
 export interface BillingPrefetchOptions {
-  names?: BillingResourceName[];
+  /**
+   * The resources the page renders, and no default: each one is a request
+   * on the server — the upcoming invoice is a live provider preview — and
+   * the list grows with every element, so a page names what it needs rather
+   * than paying for everything.
+   */
+  names: BillingResourceName[];
   /** The invoice query to prefetch for; the element must ask the same one. */
   invoices?: InvoiceQuery;
 }
@@ -125,9 +157,9 @@ export interface BillingPrefetchOptions {
  */
 export async function fetchBillingData(
   client: BillingClient,
-  options: BillingPrefetchOptions = {},
+  options: BillingPrefetchOptions,
 ): Promise<BillingData> {
-  const wanted = options.names ?? ["invoices"];
+  const wanted = options.names;
   const data: BillingData = {};
   // Normalized as the store normalizes what an element asks, so that a
   // prefetch for a non-default query is claimed rather than fetched again.
@@ -159,6 +191,12 @@ export async function fetchBillingData(
               hasMore:
                 page.invoices.length > 0 && page.invoices.length < page.count,
             };
+            break;
+          }
+          case "upcomingInvoice": {
+            // `null` is an answer, and seeding it is what spares the page a
+            // request the prefetch has already made.
+            data.upcomingInvoice = await client.fetchUpcomingInvoice();
             break;
           }
         }

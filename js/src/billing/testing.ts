@@ -24,7 +24,10 @@ export function fakeFetch(
       const headers = (init?.headers ?? {}) as Record<string, string>;
       calls.push({ url, headers });
       const { status = 200, body = { ok: true } } = respond(url, headers);
-      return new Response(body === null ? "" : JSON.stringify(body), {
+      // A 204 may not carry a body, even an empty one; `body: null` on any
+      // other status is an empty body, which is how a malformed 200 reads.
+      const raw = body === null ? "" : JSON.stringify(body);
+      return new Response(status === 204 ? null : raw, {
         status,
         headers: { "Content-Type": "application/json" },
       });
