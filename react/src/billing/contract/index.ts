@@ -35,12 +35,13 @@ export type BillingResourceParams = Pick<
 >;
 
 /**
- * What the store asks of a client: the session it reads under, and the
- * fetch behind each resource above. schematic-js's `SchematicBillingClient`
+ * What `BillingProvider` asks of its client: the session it reads under, and
+ * the fetch behind each resource above. schematic-js's `SchematicBillingClient`
  * satisfies it, and so does a host's own client that implements only this
- * much.
+ * much. Named apart from schematic-js's `BillingClient`, which is the whole
+ * interface; this is the part the hooks here call.
  */
-export type BillingClient = Pick<
+export type BillingProviderClient = Pick<
   ContractClient,
   | "sessionStatus"
   | "sessionKey"

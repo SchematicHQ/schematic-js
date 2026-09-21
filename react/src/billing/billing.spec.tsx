@@ -17,8 +17,8 @@ import { SchematicProvider } from "../context";
 import { BillingStore, type SessionEvent } from "./client";
 import {
   normalizeInvoiceQuery,
-  type BillingClient,
   type BillingData,
+  type BillingProviderClient,
   type Invoice,
 } from "./contract";
 import {
@@ -56,7 +56,9 @@ const serve =
 
 type SessionListener = (event: SessionEvent) => void;
 
-function fakeClient(overrides: Partial<BillingClient> = {}): BillingClient & {
+function fakeClient(
+  overrides: Partial<BillingProviderClient> = {},
+): BillingProviderClient & {
   listeners: SessionListener[];
 } {
   const listeners: SessionListener[] = [];
@@ -1029,7 +1031,7 @@ describe("billing hooks", () => {
       const second = fakeClient({
         fetchInvoices: vi.fn(async () => rowsOf("second")),
       });
-      const tree = (client: BillingClient) => (
+      const tree = (client: BillingProviderClient) => (
         <StrictMode>
           <BillingProvider
             billingClient={client}

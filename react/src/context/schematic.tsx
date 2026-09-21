@@ -3,8 +3,8 @@ import React, { createContext, useEffect, useMemo, useRef } from "react";
 
 import {
   BillingProvider,
-  type BillingClient,
   type BillingData,
+  type BillingProviderClient,
   type SessionInput,
 } from "../billing";
 import { type SchematicI18nConfig } from "../i18n";
@@ -23,7 +23,7 @@ type BaseSchematicProviderProps = Omit<
    */
   session?: SessionInput;
   /** A billing client; schematic-js supplies one when omitted. */
-  billingClient?: BillingClient;
+  billingClient?: BillingProviderClient;
   /**
    * Prefetched billing data, so the first render is complete (SSR). Rows
    * stamped with their session paint on the first render only if `session`

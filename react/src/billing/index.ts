@@ -1,4 +1,17 @@
-export * from "./contract";
+// The resource unions (`BillingResourceName` and the maps keyed by it) stay
+// internal: they say which slice of schematic-js's contract this package
+// serves, and a host reads that through the hooks rather than the type.
+export {
+  DEFAULT_INVOICE_QUERY,
+  InvoiceStatus,
+  normalizeInvoiceQuery,
+  type BillingData,
+  type BillingProviderClient,
+  type Invoice,
+  type InvoicePage,
+  type InvoiceQuery,
+  type ResourceState,
+} from "./contract";
 export {
   INVOICE_PAGE_SIZE,
   type AccessToken,
