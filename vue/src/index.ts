@@ -58,4 +58,5 @@ export type {
   SchematicOptions,
   StoragePersister,
   Traits,
+  WarningTier,
 } from "@schematichq/schematic-js";

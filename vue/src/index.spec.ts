@@ -338,6 +338,81 @@ describe("useSchematicEntitlement", () => {
     });
   });
 
+  it("surfaces the usage warning fields of an entitlement", () => {
+    const client = createFakeClient();
+    client.__emitCheck({
+      flag: "my-flag-key",
+      reason: "Matched plan entitlement",
+      value: true,
+      featureAllocation: 120,
+      featureUsage: 104,
+      softLimit: 100,
+      warningTiers: [{ key: "default", value: 100 }],
+    });
+
+    const result: Record<string, unknown> = {};
+
+    const TestComponent = defineComponent({
+      setup() {
+        const { softLimit, warningTiers } =
+          useSchematicEntitlement("my-flag-key");
+        return () => {
+          result.softLimit = softLimit.value;
+          result.warningTiers = warningTiers.value;
+          return h("div");
+        };
+      },
+    });
+
+    mount(TestComponent, {
+      global: {
+        plugins: [
+          [SchematicPlugin, { client: client as unknown as Schematic }],
+        ],
+      },
+    });
+
+    expect(result).toEqual({
+      softLimit: 100,
+      warningTiers: [{ key: "default", value: 100 }],
+    });
+  });
+
+  it("leaves the usage warning fields undefined when none are configured", () => {
+    const client = createFakeClient();
+    client.__emitCheck({
+      flag: "my-flag-key",
+      reason: "Matched plan entitlement",
+      value: true,
+      featureAllocation: 100,
+      featureUsage: 10,
+    });
+
+    const result: Record<string, unknown> = {};
+
+    const TestComponent = defineComponent({
+      setup() {
+        const { softLimit, warningTiers } =
+          useSchematicEntitlement("my-flag-key");
+        return () => {
+          result.softLimit = softLimit.value;
+          result.warningTiers = warningTiers.value;
+          return h("div");
+        };
+      },
+    });
+
+    mount(TestComponent, {
+      global: {
+        plugins: [
+          [SchematicPlugin, { client: client as unknown as Schematic }],
+        ],
+      },
+    });
+
+    expect(result).toEqual({ softLimit: undefined, warningTiers: undefined });
+  });
+
   it("leaves the credit fields undefined for a non-credit entitlement", () => {
     const client = createFakeClient();
     client.__emitCheck({

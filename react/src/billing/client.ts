@@ -2,7 +2,6 @@ import {
   INVOICE_MAX_PAGE_SIZE,
   INVOICE_PAGE_SIZE,
   sessionKey,
-  type BillingClient,
   type InvoicesResult,
   type SessionInput,
   type SessionStatus,
@@ -10,6 +9,7 @@ import {
 
 import type {
   BillingData,
+  BillingProviderClient,
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
@@ -30,7 +30,7 @@ interface SessionClaim {
   key: string | undefined;
 }
 
-function claimOf(client: BillingClient): SessionClaim {
+function claimOf(client: BillingProviderClient): SessionClaim {
   return { status: client.sessionStatus, key: client.sessionKey };
 }
 
@@ -84,7 +84,6 @@ const READINESS: Record<SessionStatus, Readiness> = {
 export type {
   AccessToken,
   AccessTokenProvider,
-  BillingClient,
   Session,
   SessionEvent,
   SessionInput,
@@ -117,7 +116,7 @@ interface HeldSeed {
 
 /**
  * The store for one session: a `KeyedResource` per billing resource, built
- * over a `BillingClient`. The session is the client's credential — the store
+ * over a `BillingProviderClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
  * resource. This release carries the invoices resource; the others join it
  * with their elements.
@@ -140,7 +139,7 @@ export class BillingStore {
   private _held: HeldSeed | undefined;
 
   constructor(
-    private readonly _client: BillingClient,
+    private readonly _client: BillingProviderClient,
     initialData: BillingData = {},
     options: BillingStoreOptions = {},
   ) {

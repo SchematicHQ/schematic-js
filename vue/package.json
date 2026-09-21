@@ -1,6 +1,6 @@
 {
   "name": "@schematichq/schematic-vue",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "main": "dist/schematic-vue.cjs.js",
   "module": "dist/schematic-vue.esm.js",
   "types": "dist/schematic-vue.d.ts",
@@ -31,7 +31,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@microsoft/api-extractor": "^7.59.1",
-    "@schematichq/schematic-js": "^1.7.0",
+    "@schematichq/schematic-js": "^1.8.0",
     "@testing-library/dom": "^10.4.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.5.1",

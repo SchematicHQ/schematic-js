@@ -4,7 +4,7 @@ import { sessionKey } from "@schematichq/schematic-js";
 
 import { SchematicI18nProvider, type SchematicI18nConfig } from "../i18n";
 
-import { BillingStore, type BillingClient, type SessionInput } from "./client";
+import { BillingStore, type SessionInput } from "./client";
 import {
   BillingDataContext,
   type BillingDataSource,
@@ -12,6 +12,7 @@ import {
 } from "./context";
 import type {
   BillingData,
+  BillingProviderClient,
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
@@ -26,7 +27,7 @@ interface BillingProviderDataProps {
    * `SchematicProvider` constructs one from its publishable key and renders
    * this underneath, which is the usual path.
    */
-  billingClient?: BillingClient;
+  billingClient?: BillingProviderClient;
   /**
    * Read once, at mount. A prefetch stamped with its session paints on the
    * first render only if `session` is stated on that render; under
@@ -65,7 +66,7 @@ export const SESSION_REPLACED_MESSAGE =
   "BillingProvider is moving its billingClient from one session to another. A client holds one session: if another provider shares this client, each will keep installing its own and show the other's data. Give each provider its own client.";
 
 /**
- * Provides the billing hooks from a `BillingStore` over a `BillingClient`.
+ * Provides the billing hooks from a `BillingStore` over a `BillingProviderClient`.
  * Rendered by `SchematicProvider`; usable on its own with a client.
  */
 export function BillingProvider({
