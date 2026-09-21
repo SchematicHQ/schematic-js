@@ -236,6 +236,52 @@ export class CreditFeatureComponent {
 
 These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, pipe `creditId` into [`creditBalance$`](#credit-balances) instead.
 
+### Usage warnings
+
+If a usage warning is configured on the entitlement, the emitted entitlement carries it as `warningTiers`, so you can warn a customer before they hit the limit rather than after:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `warningTiers` | `WarningTier[] \| undefined` | The usage warning thresholds configured on the entitlement, each a `{ key, value }` pair in the entitlement's usage units. `undefined` when none are configured |
+| `softLimit` | `number \| undefined` | For usage-based pricing, the soft limit for overage charges or the next tier boundary |
+
+The dashboard writes a single tier under the key `default`.
+
+```typescript
+import { Component, inject } from "@angular/core";
+import { AsyncPipe } from "@angular/common";
+import { map } from "rxjs";
+import { SchematicService } from "@schematichq/schematic-angular";
+
+@Component({
+  selector: "app-usage-warning",
+  standalone: true,
+  imports: [AsyncPipe],
+  template: `
+    @if (approachingLimit$ | async) {
+      <app-approaching-limit />
+    }
+    <app-feature />
+  `,
+})
+export class UsageWarningComponent {
+  private schematic = inject(SchematicService);
+  entitlement$ = this.schematic.entitlement$("my-flag-key");
+  approachingLimit$ = this.entitlement$.pipe(
+    map((entitlement) => {
+      const warning = entitlement.warningTiers?.find(
+        (tier) => tier.key === "default",
+      );
+      return (
+        typeof entitlement.featureUsage === "number" &&
+        typeof warning?.value === "number" &&
+        entitlement.featureUsage >= warning.value
+      );
+    }),
+  );
+}
+```
+
 ### Checking plans
 
 Use `plan$` to get an Observable of the current plan information:

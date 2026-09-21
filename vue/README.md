@@ -164,6 +164,41 @@ const { creditSettled, value: isFeatureEnabled } =
 
 These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, pass `creditId` to [`useSchematicCreditBalance`](#credit-balances) instead.
 
+### Usage warnings
+
+If a usage warning is configured on the entitlement, the composable exposes it as `warningTiers`, so you can warn a customer before they hit the limit rather than after:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `warningTiers` | `ComputedRef<WarningTier[] \| undefined>` | The usage warning thresholds configured on the entitlement, each a `{ key, value }` pair in the entitlement's usage units. Unwraps to `undefined` when none are configured |
+| `softLimit` | `ComputedRef<number \| undefined>` | For usage-based pricing, the soft limit for overage charges or the next tier boundary |
+
+The dashboard writes a single tier under the key `default`.
+
+```vue
+<script setup lang="ts">
+import { computed } from "vue";
+import { useSchematicEntitlement } from "@schematichq/schematic-vue";
+
+const { featureUsage, warningTiers } = useSchematicEntitlement("my-flag-key");
+
+const warning = computed(() =>
+  warningTiers.value?.find((tier) => tier.key === "default"),
+);
+const approachingLimit = computed(
+  () =>
+    typeof featureUsage.value === "number" &&
+    typeof warning.value?.value === "number" &&
+    featureUsage.value >= warning.value.value,
+);
+</script>
+
+<template>
+  <ApproachingLimit v-if="approachingLimit" :limit="warning!.value" />
+  <Feature />
+</template>
+```
+
 ### Company plan information
 
 To access the current company's plan and trial status, you can use the `useSchematicPlan` composable:

@@ -165,6 +165,40 @@ const MyComponent = () => {
 
 These values refresh with each flag check. For a balance that also updates on the credit partials arriving between checks, pass `creditId` to [`useSchematicCreditBalance`](#credit-balances) instead.
 
+### Usage warnings
+
+If a usage warning is configured on the entitlement, the hook returns it as `warningTiers`, so you can warn a customer before they hit the limit rather than after:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `warningTiers` | `WarningTier[] \| undefined` | The usage warning thresholds configured on the entitlement, each a `{ key, value }` pair in the entitlement's usage units. `undefined` when none are configured |
+| `softLimit` | `number \| undefined` | For usage-based pricing, the soft limit for overage charges or the next tier boundary |
+
+The dashboard writes a single tier under the key `default`.
+
+```tsx
+import { useSchematicEntitlement } from "@schematichq/schematic-react";
+import { Feature, ApproachingLimit } from "./components";
+
+const MyComponent = () => {
+    const { featureUsage, warningTiers } =
+        useSchematicEntitlement("my-flag-key");
+
+    const warning = warningTiers?.find((tier) => tier.key === "default");
+    const approachingLimit =
+        typeof featureUsage === "number" &&
+        typeof warning?.value === "number" &&
+        featureUsage >= warning.value;
+
+    return (
+        <>
+            {approachingLimit && <ApproachingLimit limit={warning.value} />}
+            <Feature />
+        </>
+    );
+};
+```
+
 ### Company plan information
 
 To access the current company's plan and trial status, you can use the `useSchematicPlan` hook:
