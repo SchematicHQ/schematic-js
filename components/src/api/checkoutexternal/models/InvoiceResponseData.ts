@@ -149,6 +149,12 @@ export interface InvoiceResponseData {
    */
   subtotal: number;
   /**
+   * Amount after discounts and tax, before applying the customer balance. Null when the provider has not reported it: rows synced before the column existed, or pushed without one.
+   * @type {number}
+   * @memberof InvoiceResponseData
+   */
+  total?: number | null;
+  /**
    *
    * @type {Date}
    * @memberof InvoiceResponseData
@@ -236,6 +242,7 @@ export function InvoiceResponseDataFromJSONTyped(
         ? undefined
         : json["subscription_external_id"],
     subtotal: json["subtotal"],
+    total: json["total"] == null ? undefined : json["total"],
     updatedAt: new Date(json["updated_at"]),
     url: json["url"] == null ? undefined : json["url"],
   };
@@ -276,6 +283,7 @@ export function InvoiceResponseDataToJSONTyped(
     status: InvoiceStatusToJSON(value["status"]),
     subscription_external_id: value["subscriptionExternalId"],
     subtotal: value["subtotal"],
+    total: value["total"],
     updated_at: value["updatedAt"].toISOString(),
     url: value["url"],
   };

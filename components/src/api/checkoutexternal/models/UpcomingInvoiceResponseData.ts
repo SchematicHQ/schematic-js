@@ -143,6 +143,12 @@ export interface UpcomingInvoiceResponseData {
    */
   subtotal: number;
   /**
+   * Amount after discounts and tax, before applying the customer balance. Null when the provider has not reported it.
+   * @type {number}
+   * @memberof UpcomingInvoiceResponseData
+   */
+  total?: number | null;
+  /**
    *
    * @type {Date}
    * @memberof UpcomingInvoiceResponseData
@@ -230,6 +236,7 @@ export function UpcomingInvoiceResponseDataFromJSONTyped(
         ? undefined
         : json["subscription_external_id"],
     subtotal: json["subtotal"],
+    total: json["total"] == null ? undefined : json["total"],
     updatedAt: new Date(json["updated_at"]),
     url: json["url"] == null ? undefined : json["url"],
   };
@@ -271,6 +278,7 @@ export function UpcomingInvoiceResponseDataToJSONTyped(
     status: InvoiceStatusToJSON(value["status"]),
     subscription_external_id: value["subscriptionExternalId"],
     subtotal: value["subtotal"],
+    total: value["total"],
     updated_at: value["updatedAt"].toISOString(),
     url: value["url"],
   };
