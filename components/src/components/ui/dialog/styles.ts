@@ -40,10 +40,10 @@ export const Dialog = styled.dialog<DialogProps>(
         0px 1px 20px 0px #1018280f,
         0px 1px 3px 0px #1018281a;
       scrollbar-color: ${
-        isLightColor(theme.card.background)
-          ? "hsla(0, 0%, 0%, 0.15)"
-          : "hsla(0, 0%, 100%, 0.15)"
-      }
+          isLightColor(theme.card.background)
+            ? "hsla(0, 0%, 0%, 0.15)"
+            : "hsla(0, 0%, 100%, 0.15)"
+        }
         transparent;
 
       &:focus-visible {
