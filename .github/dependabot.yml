@@ -18,6 +18,9 @@ updates:
       - "npm"
       - "Dependabot"
     groups:
+      # Dependabot puts a dependency in the first group it matches, so the
+      # vendor lockstep sets stay above the catch-all.
+      #
       # @angular/core peer-depends on an exact @angular/compiler version, and
       # ng-packagr peer-depends on @angular/compiler-cli. Bumping any of them
       # alone builds green against a skewed compiler.
@@ -31,6 +34,16 @@ updates:
           - "react-dom"
           - "@types/react"
           - "@types/react-dom"
+      # The same tooling (eslint, typescript-eslint, prettier, vitest,
+      # happy-dom, api-extractor) lives in every package, so one upstream
+      # release used to land as four or five PRs. One group across every
+      # directory takes it as a single PR per run. Majors still arrive alone,
+      # and @schematichq/* stays out so our own SDK bumps arrive on their own.
+      dev-dependencies:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+        exclude-patterns:
+          - "@schematichq/*"
     ignore:
       - dependency-name: "react-i18next"
         update-types:
