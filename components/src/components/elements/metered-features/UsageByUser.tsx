@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import type {
   CreditUserUsageResponseData,
   FeatureUserUsageResponseData,
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import {
   ERROR_UNKNOWN,
   formatNumber,
@@ -139,7 +139,7 @@ const InitialAvatar = ({ label }: { label: string }) => {
 };
 
 export const UsageByUser = ({ source, unit }: UsageByUserProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const isLightBackground = useIsLightBackground();
   const { getCreditUsageByUser, getFeatureUsageByUser } = useEmbed();
   const [expanded, setExpanded] = useState(false);
@@ -217,7 +217,7 @@ export const UsageByUser = ({ source, unit }: UsageByUserProps) => {
   // Every amount is denominated in `unit`, pluralized against its own value:
   // "1 token", "1,200 tokens".
   const formatAmount = (amount: number) =>
-    `${formatNumber(amount)} ${getFeatureName(unit, amount)}`;
+    `${formatNumber(amount, { locale })} ${getFeatureName(unit, amount)}`;
 
   // A failed fetch should not take the surrounding meter down with it: report
   // it in place, offer a retry, and leave the rest of the element intact.

@@ -29,11 +29,11 @@ function makeInvoice(
 
 describe("formatInvoices", () => {
   test("returns empty array for undefined input", () => {
-    expect(formatInvoices(undefined)).toEqual([]);
+    expect(formatInvoices(undefined, "en-US")).toEqual([]);
   });
 
   test("returns empty array for empty input", () => {
-    expect(formatInvoices([])).toEqual([]);
+    expect(formatInvoices([], "en-US")).toEqual([]);
   });
 
   test("includes paid invoice with null due date", () => {
@@ -44,7 +44,7 @@ describe("formatInvoices", () => {
         externalId: "in_abc",
       }),
     ];
-    const result = formatInvoices(invoices);
+    const result = formatInvoices(invoices, "en-US");
     expect(result).toHaveLength(1);
     expect(result[0].date).toBeDefined();
   });
@@ -58,7 +58,7 @@ describe("formatInvoices", () => {
         externalId: "in_abc",
       }),
     ];
-    const result = formatInvoices(invoices);
+    const result = formatInvoices(invoices, "en-US");
     expect(result[0].date).toContain("December");
   });
 
@@ -66,14 +66,14 @@ describe("formatInvoices", () => {
     const invoices = [
       makeInvoice({ status: InvoiceStatus.Draft, externalId: "in_abc" }),
     ];
-    expect(formatInvoices(invoices)).toHaveLength(0);
+    expect(formatInvoices(invoices, "en-US")).toHaveLength(0);
   });
 
   test("excludes void invoices", () => {
     const invoices = [
       makeInvoice({ status: InvoiceStatus.Void, externalId: "in_abc" }),
     ];
-    expect(formatInvoices(invoices)).toHaveLength(0);
+    expect(formatInvoices(invoices, "en-US")).toHaveLength(0);
   });
 
   test("excludes uncollectible invoices", () => {
@@ -83,7 +83,7 @@ describe("formatInvoices", () => {
         externalId: "in_abc",
       }),
     ];
-    expect(formatInvoices(invoices)).toHaveLength(0);
+    expect(formatInvoices(invoices, "en-US")).toHaveLength(0);
   });
 
   test("excludes invoices with upcoming_ prefix", () => {
@@ -94,7 +94,7 @@ describe("formatInvoices", () => {
         dueDate: new Date("2020-01-01"),
       }),
     ];
-    expect(formatInvoices(invoices)).toHaveLength(0);
+    expect(formatInvoices(invoices, "en-US")).toHaveLength(0);
   });
 
   test("excludes zero amount invoices", () => {
@@ -105,7 +105,7 @@ describe("formatInvoices", () => {
         externalId: "in_abc",
       }),
     ];
-    expect(formatInvoices(invoices)).toHaveLength(0);
+    expect(formatInvoices(invoices, "en-US")).toHaveLength(0);
   });
 
   test("excludes future due date invoices when hideUpcoming is true", () => {
@@ -118,7 +118,7 @@ describe("formatInvoices", () => {
         externalId: "in_abc",
       }),
     ];
-    expect(formatInvoices(invoices)).toHaveLength(0);
+    expect(formatInvoices(invoices, "en-US")).toHaveLength(0);
   });
 
   test("includes future due date invoices when hideUpcoming is false", () => {
@@ -131,7 +131,7 @@ describe("formatInvoices", () => {
         externalId: "in_abc",
       }),
     ];
-    const result = formatInvoices(invoices, { hideUpcoming: false });
+    const result = formatInvoices(invoices, "en-US", { hideUpcoming: false });
     expect(result).toHaveLength(1);
   });
 
@@ -146,7 +146,7 @@ describe("formatInvoices", () => {
         dueDate: new Date("2025-06-15T12:00:00"),
       }),
     ];
-    const result = formatInvoices(invoices);
+    const result = formatInvoices(invoices, "en-US");
     expect(result[0].date).toContain("June");
     expect(result[1].date).toContain("January");
   });
@@ -164,7 +164,7 @@ describe("formatInvoices", () => {
         createdAt: new Date("2025-06-15T12:00:00"),
       }),
     ];
-    const result = formatInvoices(invoices);
+    const result = formatInvoices(invoices, "en-US");
     expect(result[0].date).toContain("June");
     expect(result[1].date).toContain("January");
   });
@@ -177,7 +177,7 @@ describe("formatInvoices", () => {
         externalId: "in_abc",
       }),
     ];
-    const result = formatInvoices(invoices);
+    const result = formatInvoices(invoices, "en-US");
     expect(result).toHaveLength(1);
     expect(result[0].amount).toBe("($15.00)");
   });
@@ -190,7 +190,7 @@ describe("formatInvoices", () => {
         externalId: "in_abc",
       }),
     ];
-    const result = formatInvoices(invoices);
+    const result = formatInvoices(invoices, "en-US");
     expect(result).toHaveLength(1);
   });
 });

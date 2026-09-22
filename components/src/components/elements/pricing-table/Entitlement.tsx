@@ -1,5 +1,3 @@
-import { useTranslation } from "react-i18next";
-
 import {
   BillingProductPriceInterval,
   EntitlementPriceBehavior,
@@ -8,6 +6,10 @@ import {
   type PlanEntitlementResponseData,
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useTranslation,
+  type SchematicTranslationKey,
+} from "../../../localization";
 import type { Credit } from "../../../types";
 import {
   entitlementHasHardLimit,
@@ -56,7 +58,7 @@ export const Entitlement = ({
 }: EntitlementProps) => {
   const { layout } = sharedProps;
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { settings, warningThresholdConfig } = useEmbed();
   const showWarningThresholdAsLimit =
@@ -121,10 +123,13 @@ export const Entitlement = ({
                 entitlement.priceBehavior ===
                   EntitlementPriceBehavior.PayAsYouGo) ? (
                 <>
-                  {formatCurrency(entitlementPrice, entitlementCurrency)}{" "}
+                  {formatCurrency(entitlementPrice, {
+                    locale,
+                    currency: entitlementCurrency,
+                  })}{" "}
                   {t("per")}{" "}
                   {entitlementPackageSize > 1 && (
-                    <>{formatNumber(entitlementPackageSize)} </>
+                    <>{formatNumber(entitlementPackageSize, { locale })} </>
                   )}
                   {getFeatureName(entitlement.feature, entitlementPackageSize)}
                   {entitlement.priceBehavior ===
@@ -147,7 +152,7 @@ export const Entitlement = ({
                 entitlement.valueCredit &&
                 entitlement.consumptionRate ? (
                 <>
-                  {formatConsumptionRate(entitlement.consumptionRate)}{" "}
+                  {formatConsumptionRate(entitlement.consumptionRate, locale)}{" "}
                   {getFeatureName(
                     entitlement.valueCredit,
                     entitlement.consumptionRate,
@@ -160,7 +165,10 @@ export const Entitlement = ({
                 <>
                   {creditBasedEntitlementLimit?.period
                     ? t("Up to X units per period", {
-                        amount: formatNumber(creditBasedEntitlementLimit.limit),
+                        amount: formatNumber(
+                          creditBasedEntitlementLimit.limit,
+                          { locale },
+                        ),
                         units: getFeatureName(
                           entitlement.feature,
                           creditBasedEntitlementLimit.limit,
@@ -168,7 +176,10 @@ export const Entitlement = ({
                         period: creditBasedEntitlementLimit.period,
                       })
                     : t("Up to X units", {
-                        amount: formatNumber(creditBasedEntitlementLimit.limit),
+                        amount: formatNumber(
+                          creditBasedEntitlementLimit.limit,
+                          { locale },
+                        ),
                         units: getFeatureName(
                           entitlement.feature,
                           creditBasedEntitlementLimit.limit,
@@ -186,7 +197,9 @@ export const Entitlement = ({
                     })
                   ) : (
                     <>
-                      {typeof limit === "number" && <>{formatNumber(limit)} </>}
+                      {typeof limit === "number" && (
+                        <>{formatNumber(limit, { locale })} </>
+                      )}
                       {getFeatureName(entitlement.feature, limit)}
                     </>
                   )}
@@ -194,7 +207,8 @@ export const Entitlement = ({
                   {metricPeriodName && (
                     <>
                       {" "}
-                      {t("per")} {t(metricPeriodName)}
+                      {t("per")}{" "}
+                      {t(metricPeriodName as SchematicTranslationKey)}
                     </>
                   )}
                 </>
@@ -212,9 +226,13 @@ export const Entitlement = ({
                     $color={`color-mix(in oklch, ${settings.theme.typography.text.color}, ${settings.theme.card.background})`}
                   >
                     {t("then")}{" "}
-                    {formatCurrency(entitlementPrice, entitlementCurrency)}/
+                    {formatCurrency(entitlementPrice, {
+                      locale,
+                      currency: entitlementCurrency,
+                    })}
+                    /
                     {entitlementPackageSize > 1 && (
-                      <>{formatNumber(entitlementPackageSize)} </>
+                      <>{formatNumber(entitlementPackageSize, { locale })} </>
                     )}
                     {getFeatureName(
                       entitlement.feature,

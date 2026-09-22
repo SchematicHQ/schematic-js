@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 
 import { MAXIMUM_FRACTION_DIGITS, TEXT_BASE_SIZE } from "../../../const";
+import { useTranslation } from "../../../localization";
 import { formatNumber } from "../../../utils";
 import { Box, Flex, Text } from "../../ui";
 
@@ -37,6 +38,8 @@ export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
     },
     ref,
   ) => {
+    const { locale } = useTranslation();
+
     const barColorMap = {
       gray: "#9CA3AF",
       blue: "#2563EB",
@@ -77,10 +80,12 @@ export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
               rounding down to `0`. Integer counts are unaffected.
             */}
             {formatNumber(value, {
+              locale,
               maximumFractionDigits: MAXIMUM_FRACTION_DIGITS,
             })}
             /
             {formatNumber(total, {
+              locale,
               maximumFractionDigits: MAXIMUM_FRACTION_DIGITS,
             })}
           </Text>

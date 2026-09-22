@@ -1,6 +1,5 @@
-import type { TFunction } from "i18next";
-
 import type { PreviewSubscriptionDiscountResponseData } from "../api/checkoutexternal";
+import type { Translate } from "../localization";
 
 import { getMonthName } from "./date";
 import { formatCurrency, formatOrdinal } from "./string";
@@ -23,7 +22,8 @@ export interface SubscriptionDiscountPreview {
 export function getSubscriptionDiscount(
   discounts: PreviewSubscriptionDiscountResponseData[] | undefined,
   subscriptionTotal: number,
-  subscriptionCurrency?: string | null,
+  subscriptionCurrency: string | null | undefined,
+  locale: string,
 ): SubscriptionDiscountPreview | undefined {
   const activeDiscounts = (discounts || []).filter(
     (discount) =>
@@ -70,6 +70,7 @@ export function getSubscriptionDiscount(
     // $19.99); format at the currency's standard precision so they round
     // away instead of rendering (e.g. "$11.994").
     discountedPrice: formatCurrency(discountedTotal, {
+      locale,
       currency: subscriptionCurrency ?? undefined,
       testSignificantDigits: false,
     }),
@@ -82,6 +83,7 @@ export interface BillingPreviewParams {
   periodStart?: Date | null;
   hasUsageBasedCosts: boolean;
   discount?: SubscriptionDiscountPreview;
+  locale: string;
 }
 
 /**
@@ -97,8 +99,9 @@ export function getBillingPreviewText(
     periodStart,
     hasUsageBasedCosts,
     discount,
+    locale,
   }: BillingPreviewParams,
-  t: TFunction,
+  t: Translate,
 ): string | null {
   if (!subscriptionPrice) {
     return null;
@@ -110,11 +113,13 @@ export function getBillingPreviewText(
   const scheduleParts: string[] = [];
   if (periodStart) {
     scheduleParts.push(
-      t("on the day", { day: formatOrdinal(periodStart.getDate()) }),
+      t("on the day", { day: formatOrdinal(periodStart.getDate(), t) }),
     );
   }
   if (planPeriod === "year" && periodStart) {
-    scheduleParts.push(t("of month", { month: getMonthName(periodStart) }));
+    scheduleParts.push(
+      t("of month", { month: getMonthName(periodStart, { locale }) }),
+    );
   }
   const schedule =
     scheduleParts.length > 0 ? `${scheduleParts.join(" ")} ` : "";

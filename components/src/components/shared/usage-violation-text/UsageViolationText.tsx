@@ -1,7 +1,6 @@
-import { useTranslation } from "react-i18next";
-
 import { FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { Text } from "../../ui";
 
 export interface UsageViolationsProps {

@@ -1,5 +1,3 @@
-import { useTranslation } from "react-i18next";
-
 import {
   EntitlementPriceBehavior,
   FeatureType,
@@ -7,6 +5,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import {
   darken,
   formatCurrency,
@@ -30,7 +29,7 @@ export const PriceDetails = ({
   usageDetails,
   period,
 }: PriceDetailsProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { settings } = useEmbed();
 
@@ -78,7 +77,8 @@ export const PriceDetails = ({
     >
       {priceBehavior === EntitlementPriceBehavior.Overage ? (
         <Text>
-          {t("Additional")}: {formatCurrency(currentTierPerUnitPrice, currency)}
+          {t("Additional")}:{" "}
+          {formatCurrency(currentTierPerUnitPrice, { locale, currency })}
           <Box as="sub" $whiteSpace="nowrap">
             /{packageSize > 1 && <>{packageSize} </>}
             {getFeatureName(feature, packageSize)}
@@ -110,9 +110,13 @@ export const PriceDetails = ({
         <>
           {priceBehavior === EntitlementPriceBehavior.Overage ? (
             <Text>
-              {formatNumber(amount)} {getFeatureName(feature, amount)}
+              {formatNumber(amount, { locale })}{" "}
+              {getFeatureName(feature, amount)}
               {" · "}
-              {formatCurrency(currentTierPerUnitPrice * amount, currency)}
+              {formatCurrency(currentTierPerUnitPrice * amount, {
+                locale,
+                currency,
+              })}
               {feature.featureType === FeatureType.Trait &&
                 typeof period === "string" && (
                   <Box as="sub" $whiteSpace="nowrap">
@@ -124,7 +128,7 @@ export const PriceDetails = ({
             priceBehavior === EntitlementPriceBehavior.Tier &&
             typeof cost === "number" && (
               <Text>
-                {formatCurrency(cost, currency)}
+                {formatCurrency(cost, { locale, currency })}
                 {feature.featureType === FeatureType.Trait &&
                   typeof period === "string" && (
                     <Box as="sub" $whiteSpace="nowrap">

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { type PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { SelectedPlan } from "../../../types";
 import { formatCurrency } from "../../../utils";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -14,7 +14,7 @@ type ProrationProps = {
 };
 
 export const Proration = ({ currency, charges }: ProrationProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { settings } = useEmbed();
 
@@ -40,7 +40,7 @@ export const Proration = ({ currency, charges }: ProrationProps) => {
                 <Flex key={index} $gap="1rem">
                   <Text>{description}</Text>
                   <Box $whiteSpace="nowrap">
-                    <Text>{formatCurrency(amount, currency)}</Text>
+                    <Text>{formatCurrency(amount, { locale, currency })}</Text>
                   </Box>
                 </Flex>
               );
@@ -64,7 +64,12 @@ export const Proration = ({ currency, charges }: ProrationProps) => {
           </Flex>
 
           <Flex>
-            <Text>{formatCurrency(charges.proration, currency)}</Text>
+            <Text>
+              {formatCurrency(charges.proration, {
+                locale,
+                currency,
+              })}
+            </Text>
           </Flex>
         </Flex>
       </Flex>

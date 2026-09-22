@@ -1,6 +1,5 @@
-import { useTranslation } from "react-i18next";
-
 import { type FontStyle } from "../../../context";
+import { useTranslation } from "../../../localization";
 import { createKeyboardExecutionHandler } from "../../../utils";
 import { Flex, Icon, Text, type BoxProps } from "../../ui";
 

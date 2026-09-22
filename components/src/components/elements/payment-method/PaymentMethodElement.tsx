@@ -1,6 +1,4 @@
-import { t } from "i18next";
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   type CheckoutFieldWithValue,
@@ -8,6 +6,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { createKeyboardExecutionHandler } from "../../../utils";
 import { Box, Flex, Icon, Text, type IconNames } from "../../ui";
 
@@ -80,6 +79,8 @@ const PaymentElement = ({
 };
 
 const EmptyPaymentElement = () => {
+  const { t } = useTranslation();
+
   return (
     <Text>
       <Flex $flexDirection="row" $alignItems="center">
@@ -287,6 +288,8 @@ export const PaymentListElement = ({
   setDefault,
   handleDelete,
 }: PaymentElementListProps) => {
+  const { t } = useTranslation();
+
   const { settings } = useEmbed();
 
   const isLightBackground = useIsLightBackground();

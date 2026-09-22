@@ -1,6 +1,8 @@
-import { useTranslation } from "react-i18next";
-
 import { useEmbed } from "../../../hooks";
+import {
+  useTranslation,
+  type SchematicTranslationKey,
+} from "../../../localization";
 import type { Credit, PerLicenseCreditGrant } from "../../../types";
 import {
   findLicenseSource,
@@ -52,7 +54,7 @@ export const PlanCreditText = ({
         {credit.period && (
           <>
             {" "}
-            {t("per")} {t(credit.period)}
+            {t("per")} {t(credit.period as SchematicTranslationKey)}
           </>
         )}
         {children}
@@ -80,7 +82,7 @@ export const PlanCreditText = ({
                 amount: grant.amount,
                 creditName: getFeatureName(credit, grant.amount),
                 licenseName: resolveLicenseName(grant),
-                period: t(credit.period),
+                period: t(credit.period as SchematicTranslationKey),
               })
             : t("X credits per license", {
                 amount: grant.amount,
@@ -100,7 +102,7 @@ export const PlanCreditText = ({
           {t("Plus X credits per period for your company", {
             amount: credit.fixedQuantity,
             creditName: getFeatureName(credit, credit.fixedQuantity),
-            period: t(credit.period),
+            period: t(credit.period as SchematicTranslationKey),
           })}
         </Text>
       )}

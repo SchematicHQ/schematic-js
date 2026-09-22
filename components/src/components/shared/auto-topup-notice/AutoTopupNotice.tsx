@@ -1,6 +1,5 @@
-import { useTranslation } from "react-i18next";
-
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { Icon, Text, Tooltip } from "../../ui";
 
 interface AutoTopupNoticeProps {

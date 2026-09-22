@@ -1,7 +1,10 @@
 import { forwardRef, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import { useEmbed } from "../../../hooks";
+import {
+  useTranslation,
+  type SchematicTranslationKey,
+} from "../../../localization";
 import { ComponentStyle, DeepPartial, ElementProps } from "../../../types";
 import { Element } from "../../layout";
 import {
@@ -99,7 +102,7 @@ export const UnsubscribeButton = forwardRef<
         $alignment={props.button.alignment}
         $fullWidth={props.button.fullWidth}
       >
-        {t(props.button.text) ?? t("Unsubscribe")}
+        {t(props.button.text as SchematicTranslationKey) ?? t("Unsubscribe")}
       </Button>
     </Element>
   );

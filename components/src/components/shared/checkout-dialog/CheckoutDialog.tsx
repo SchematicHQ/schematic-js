@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   BillingProductPriceInterval,
@@ -33,6 +32,7 @@ import {
   useIsLightBackground,
   useSubscriptionCurrency,
 } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type {
   AutoTopupConfig,
   CreditBundle,

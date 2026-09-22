@@ -1,5 +1,4 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   InvoiceStatus,
@@ -8,6 +7,7 @@ import {
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useTruncatedList } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
@@ -72,7 +72,8 @@ interface FormatInvoiceOptions {
 }
 
 export function formatInvoices(
-  invoices?: InvoiceResponseData[],
+  invoices: InvoiceResponseData[] | undefined,
+  locale: string,
   options?: FormatInvoiceOptions,
 ) {
   const { hideUpcoming = true } = options || {};
@@ -104,11 +105,14 @@ export function formatInvoices(
       return +dateB - +dateA;
     })
     .map(({ amountDue, dueDate, createdAt, url, currency }) => {
-      const formatted = formatCurrency(Math.abs(amountDue), currency);
+      const formatted = formatCurrency(Math.abs(amountDue), {
+        locale,
+        currency,
+      });
       return {
         amount: amountDue < 0 ? `(${formatted})` : formatted,
         amountDue,
-        date: toPrettyDate(dueDate ?? createdAt),
+        date: toPrettyDate(dueDate ?? createdAt, { locale }),
         url: url || undefined,
       };
     });
@@ -127,18 +131,20 @@ export const Invoices = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, listInvoices, settings } = useEmbed();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error>();
-  const [invoices, setInvoices] = useState(() =>
-    formatInvoices(
-      data && "invoices" in data
-        ? (data.invoices as InvoiceResponseData[])
-        : rest.data,
-    ),
+  const [rawInvoices, setInvoices] = useState(() =>
+    data && "invoices" in data
+      ? (data.invoices as InvoiceResponseData[])
+      : rest.data,
+  );
+  const invoices = useMemo(
+    () => formatInvoices(rawInvoices, locale),
+    [rawInvoices, locale],
   );
   // Expanding reveals at most `MAX_VISIBLE_INVOICE_COUNT`, so cap the list
   // before truncating it: the toggle then counts what expanding can actually
@@ -159,7 +165,7 @@ export const Invoices = forwardRef<
       const response = await listInvoices();
 
       if (response) {
-        setInvoices(formatInvoices(response.data));
+        setInvoices(response.data);
       }
     } catch (err) {
       setError(isError(err) ? err : ERROR_UNKNOWN);
@@ -175,7 +181,7 @@ export const Invoices = forwardRef<
   // this should be how the below TODO will set invoices
   useEffect(() => {
     if (rest.data) {
-      setInvoices(formatInvoices(rest.data));
+      setInvoices(rest.data);
     }
   }, [rest.data]);
 
@@ -185,7 +191,7 @@ export const Invoices = forwardRef<
   useEffect(() => {
     if (data && "invoices" in data) {
       const invoicesPreviewData = data.invoices as InvoiceResponseData[];
-      setInvoices(formatInvoices(invoicesPreviewData));
+      setInvoices(invoicesPreviewData);
     }
   }, [data]);
 

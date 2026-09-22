@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { SelectedPlan } from "../../../types";
 import { adjectify, getPlanPrice } from "../../../utils";
 import { Button, Flex, Text, Tooltip } from "../../ui";

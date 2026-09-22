@@ -1,5 +1,4 @@
 import { forwardRef, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import { BillingCreditGrantReason } from "../../../api/checkoutexternal";
 import { VISIBLE_CREDIT_COUNT } from "../../../const";
@@ -11,6 +10,10 @@ import {
   useTrialEnd,
   useTruncatedList,
 } from "../../../hooks";
+import {
+  useTranslation,
+  type SchematicTranslationKey,
+} from "../../../localization";
 import type {
   CreditWithCompanyContext,
   DeepPartial,
@@ -110,7 +113,7 @@ export const PlanManager = forwardRef<
 >(({ children, className, portal, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, settings, setCheckoutState, setLayout } = useEmbed();
 
@@ -349,6 +352,7 @@ export const PlanManager = forwardRef<
                 plan: currentPlan?.name || "plan",
                 date: toPrettyDate(
                   new Date(billingSubscription.cancelAt * 1000),
+                  { locale },
                 ),
               })}
             </Text>
@@ -374,18 +378,18 @@ export const PlanManager = forwardRef<
                 })
               : t("Custom plan payment due", {
                   plan: customPlanBilling.planName ?? t("your plan"),
-                  date: toPrettyDate(customPlanBilling.deadline),
+                  date: toPrettyDate(customPlanBilling.deadline, { locale }),
                 })}
           </Text>
 
           <Text as="p" $size={0.8125 * settings.theme.typography.text.fontSize}>
             {customPlanBilling.isAwaitingActivation
               ? t("Custom plan awaiting payment description", {
-                  date: toPrettyDate(customPlanBilling.deadline),
+                  date: toPrettyDate(customPlanBilling.deadline, { locale }),
                 })
               : t("Custom plan payment due description", {
                   plan: customPlanBilling.planName ?? t("your plan"),
-                  date: toPrettyDate(customPlanBilling.deadline),
+                  date: toPrettyDate(customPlanBilling.deadline, { locale }),
                 })}
           </Text>
 
@@ -431,6 +435,7 @@ export const PlanManager = forwardRef<
                   plan: data.company.scheduledDowngrade.fromPlanName,
                   date: toPrettyDate(
                     new Date(billingSubscription.periodEnd * 1000),
+                    { locale },
                   ),
                 })}
               </Text>
@@ -479,10 +484,10 @@ export const PlanManager = forwardRef<
                       ? t("Usage-based")
                       : isFreePlan && showZeroPriceAsFree
                         ? t("Free")
-                        : formatCurrency(
-                            currentPlan.planPrice,
-                            subscriptionCurrency,
-                          )}
+                        : formatCurrency(currentPlan.planPrice, {
+                            locale,
+                            currency: subscriptionCurrency,
+                          })}
                   </Text>
 
                   {!isFreePlan && currentPlanPeriod && (
@@ -643,7 +648,9 @@ export const PlanManager = forwardRef<
                                         group,
                                         composition.fixedQuantity,
                                       ),
-                                      period: t(creditPeriod),
+                                      period: t(
+                                        creditPeriod as SchematicTranslationKey,
+                                      ),
                                     })}
                                   </>
                                 )}
@@ -654,7 +661,10 @@ export const PlanManager = forwardRef<
                               {getFeatureName(group, group.total.value)}{" "}
                               {subscriptionInterval && (
                                 <>
-                                  {t("per")} {t(subscriptionInterval)}
+                                  {t("per")}{" "}
+                                  {t(
+                                    subscriptionInterval as SchematicTranslationKey,
+                                  )}
                                 </>
                               )}
                             </>
@@ -756,7 +766,7 @@ export const PlanManager = forwardRef<
                 >
                   <Flex $flexDirection="column" $gap="0.5rem">
                     <Text display={props.addOns.fontStyle}>
-                      {t("Auto top-up")}
+                      {t("Auto Top-up")}
                     </Text>
                     {currentPlan?.includedCreditGrants.reduce(
                       (acc: React.ReactNode[], grant) => {

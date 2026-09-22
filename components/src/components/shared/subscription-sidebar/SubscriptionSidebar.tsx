@@ -7,7 +7,6 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { useTranslation } from "react-i18next";
 
 import {
   CheckoutBundlePurchaseBehavior,
@@ -17,6 +16,7 @@ import {
   type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type {
   AutoTopupConfig,
   CreditBundle,
@@ -146,7 +146,7 @@ export const SubscriptionSidebar = forwardRef<
   ) => {
     const resolvedPortal = portal || document.body;
 
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
 
     const {
       data,
@@ -299,7 +299,10 @@ export const SubscriptionSidebar = forwardRef<
         total += addOnPayInAdvanceCost;
 
         return {
-          subscriptionPrice: formatCurrency(total, resolvedCurrency),
+          subscriptionPrice: formatCurrency(total, {
+            locale,
+            currency: resolvedCurrency,
+          }),
           subscriptionTotal: total,
           subscriptionCurrency: resolvedCurrency,
         };
@@ -311,6 +314,7 @@ export const SubscriptionSidebar = forwardRef<
         payInAdvanceEntitlements,
         addOnPayInAdvanceEntitlements,
         currency,
+        locale,
       ]);
 
     const {
@@ -406,7 +410,7 @@ export const SubscriptionSidebar = forwardRef<
               {deferredDelta && renewDate
                 ? t("Plus X credits on the day", {
                     amount: addedCredits,
-                    day: formatOrdinal(renewDate.getDate()),
+                    day: formatOrdinal(renewDate.getDate(), t),
                   })
                 : t("Plus X credits today", {
                     amount: addedCredits,
@@ -583,8 +587,9 @@ export const SubscriptionSidebar = forwardRef<
           charges?.discounts,
           subscriptionTotal,
           subscriptionCurrency,
+          locale,
         ),
-      [charges?.discounts, subscriptionTotal, subscriptionCurrency],
+      [charges?.discounts, subscriptionTotal, subscriptionCurrency, locale],
     );
 
     const handleCheckout = useCallback(async () => {
@@ -920,6 +925,7 @@ export const SubscriptionSidebar = forwardRef<
               periodStart: renewDate,
               hasUsageBasedCosts: usageBasedEntitlements.length > 0,
               discount: subscriptionDiscount,
+              locale,
             },
             t,
           );
@@ -928,7 +934,9 @@ export const SubscriptionSidebar = forwardRef<
       willScheduleDowngrade && selectedPlan?.name && billingSubscription
         ? t("You will be downgraded at the end of your billing period.", {
             plan: selectedPlan.name,
-            date: toPrettyDate(new Date(billingSubscription.periodEnd * 1000)),
+            date: toPrettyDate(new Date(billingSubscription.periodEnd * 1000), {
+              locale,
+            }),
           })
         : billingPreviewText;
 
@@ -1012,10 +1020,10 @@ export const SubscriptionSidebar = forwardRef<
                 {typeof currentPlan.planPrice === "number" && (
                   <Box $whiteSpace="nowrap">
                     <Text>
-                      {formatCurrency(
-                        currentPlan.planPrice,
-                        billingSubscription?.currency,
-                      )}
+                      {formatCurrency(currentPlan.planPrice, {
+                        locale,
+                        currency: billingSubscription?.currency,
+                      })}
                       <sub>
                         /
                         {shortenPeriod(
@@ -1059,10 +1067,10 @@ export const SubscriptionSidebar = forwardRef<
 
                   <Flex $whiteSpace="nowrap">
                     <Text>
-                      {formatCurrency(
-                        selectedPlanPrice ?? 0,
-                        selectedPlanCurrency,
-                      )}
+                      {formatCurrency(selectedPlanPrice ?? 0, {
+                        locale,
+                        currency: selectedPlanCurrency,
+                      })}
                       <sub>/{shortenPeriod(planPeriod)}</sub>
                     </Text>
                   </Flex>
@@ -1191,16 +1199,18 @@ export const SubscriptionSidebar = forwardRef<
               >
                 <Flex>
                   <Text display="heading4">
-                    {t("Ends on", { date: toPrettyDate(trialEndsOn) })}
+                    {t("Ends on", {
+                      date: toPrettyDate(trialEndsOn, { locale }),
+                    })}
                   </Text>
                 </Flex>
                 <Flex>
                   <Text>
                     -
-                    {formatCurrency(
-                      selectedPlanPrice ?? 0,
-                      selectedPlanCurrency,
-                    )}
+                    {formatCurrency(selectedPlanPrice ?? 0, {
+                      locale,
+                      currency: selectedPlanCurrency,
+                    })}
                     /<sub>{shortenPeriod(planPeriod)}</sub>
                   </Text>
                 </Flex>
@@ -1233,10 +1243,10 @@ export const SubscriptionSidebar = forwardRef<
                       addOn.planPeriod && (
                         <Box $whiteSpace="nowrap">
                           <Text>
-                            {formatCurrency(
-                              addOn.planPrice,
-                              selectedPlanCurrency,
-                            )}
+                            {formatCurrency(addOn.planPrice, {
+                              locale,
+                              currency: selectedPlanCurrency,
+                            })}
                             {addOn.planPeriod !== "one-time" && (
                               <sub>/{shortenPeriod(planPeriod)}</sub>
                             )}
@@ -1264,7 +1274,10 @@ export const SubscriptionSidebar = forwardRef<
 
                     <Box $whiteSpace="nowrap">
                       <Text>
-                        {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
+                        {formatCurrency(addOnPrice ?? 0, {
+                          locale,
+                          currency: addOnCurrency,
+                        })}
                         {addOn.chargeType !== ChargeType.oneTime && (
                           <sub>/{shortenPeriod(planPeriod)}</sub>
                         )}
@@ -1313,7 +1326,7 @@ export const SubscriptionSidebar = forwardRef<
 
                           <Box>
                             <Text>
-                              {formatNumber(amount)}{" "}
+                              {formatNumber(amount, { locale })}{" "}
                               {getFeatureName(bundle, amount)}
                               {expiry && ` · ${expiry}`}
                             </Text>
@@ -1323,10 +1336,10 @@ export const SubscriptionSidebar = forwardRef<
                         {bundle.count > 0 && (
                           <Box $whiteSpace="nowrap">
                             <Text>
-                              {formatCurrency(
-                                price * bundle.count,
-                                currency || bundle.price?.currency,
-                              )}{" "}
+                              {formatCurrency(price * bundle.count, {
+                                locale,
+                                currency: currency || bundle.price?.currency,
+                              })}{" "}
                               <sub>{t("one time")}</sub>
                             </Text>
                           </Box>
@@ -1365,7 +1378,10 @@ export const SubscriptionSidebar = forwardRef<
 
                     <Box $whiteSpace="nowrap">
                       <Text>
-                        {formatCurrency(addOnPrice ?? 0, addOnCurrency)}{" "}
+                        {formatCurrency(addOnPrice ?? 0, {
+                          locale,
+                          currency: addOnCurrency,
+                        })}{" "}
                         <sub>{t("one time")}</sub>
                       </Text>
                     </Box>
@@ -1457,6 +1473,7 @@ export const SubscriptionSidebar = forwardRef<
                       ? discountAmount
                       : (newCharges / 100) * percentOff,
                     {
+                      locale,
                       currency: selectedPlanCurrency,
                       testSignificantDigits: false,
                     },
@@ -1475,17 +1492,21 @@ export const SubscriptionSidebar = forwardRef<
               <Box $opacity="0.625" $lineHeight={1.15}>
                 <Text>
                   {t("X off", {
-                    amount: formatCurrency(
-                      Math.abs(amountOff),
-                      selectedPlanCurrency,
-                    ),
+                    amount: formatCurrency(Math.abs(amountOff), {
+                      locale,
+                      currency: selectedPlanCurrency,
+                    }),
                   })}
                 </Text>
               </Box>
 
               <Box>
                 <Text>
-                  -{formatCurrency(Math.abs(amountOff), selectedPlanCurrency)}
+                  -
+                  {formatCurrency(Math.abs(amountOff), {
+                    locale,
+                    currency: selectedPlanCurrency,
+                  })}
                 </Text>
               </Box>
             </Flex>
@@ -1532,7 +1553,12 @@ export const SubscriptionSidebar = forwardRef<
               </Box>
 
               <Box>
-                <Text>{formatCurrency(taxAmount, selectedPlanCurrency)}</Text>
+                <Text>
+                  {formatCurrency(taxAmount, {
+                    locale,
+                    currency: selectedPlanCurrency,
+                  })}
+                </Text>
               </Box>
             </Flex>
           )}
@@ -1549,7 +1575,10 @@ export const SubscriptionSidebar = forwardRef<
 
               <Box>
                 <Text>
-                  {formatCurrency(Math.max(0, dueNow), selectedPlanCurrency)}
+                  {formatCurrency(Math.max(0, dueNow), {
+                    locale,
+                    currency: selectedPlanCurrency,
+                  })}
                 </Text>
               </Box>
             </Flex>
@@ -1563,7 +1592,10 @@ export const SubscriptionSidebar = forwardRef<
 
               <Box>
                 <Text>
-                  {formatCurrency(Math.abs(dueNow), selectedPlanCurrency)}
+                  {formatCurrency(Math.abs(dueNow), {
+                    locale,
+                    currency: selectedPlanCurrency,
+                  })}
                 </Text>
               </Box>
             </Flex>

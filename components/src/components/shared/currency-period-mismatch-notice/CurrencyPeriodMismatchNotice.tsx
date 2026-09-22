@@ -1,6 +1,5 @@
-import { useTranslation } from "react-i18next";
-
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { Flex, Icon, Text } from "../../ui";
 
 interface CurrencyPeriodMismatchNoticeProps {

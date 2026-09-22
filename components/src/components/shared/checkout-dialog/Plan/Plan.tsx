@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { BillingProductPriceInterval } from "../../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../../const";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../../hooks";
+import {
+  useTranslation,
+  type SchematicTranslationKey,
+} from "../../../../localization";
 import type { SelectedPlan } from "../../../../types";
 import {
   formatCurrency,
@@ -51,7 +54,7 @@ export const Plan = ({
   shouldTrial,
   currency,
 }: PlanProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, settings } = useEmbed();
 
@@ -181,15 +184,20 @@ export const Plan = ({
                         : showAsMonthlyPrices &&
                             planPeriod === BillingProductPriceInterval.Year
                           ? formatCurrency((planPrice ?? 0) / 12, {
+                              locale,
                               currency: planCurrency,
                               testSignificantDigits: false,
                             })
                           : showAsMonthlyPrices && planPeriod === "quarter"
                             ? formatCurrency((planPrice ?? 0) / 3, {
+                                locale,
                                 currency: planCurrency,
                                 testSignificantDigits: false,
                               })
-                            : formatCurrency(planPrice ?? 0, planCurrency)}
+                            : formatCurrency(planPrice ?? 0, {
+                                locale,
+                                currency: planCurrency,
+                              })}
                 </Text>
 
                 {!plan.custom && !isFreePlan && (
@@ -205,7 +213,7 @@ export const Plan = ({
                       ? t("month, billed yearly")
                       : showAsMonthlyPrices && planPeriod === "quarter"
                         ? t("month, billed quarterly")
-                        : t(planPeriod)}
+                        : t(planPeriod as SchematicTranslationKey)}
                   </Text>
                 )}
               </Box>

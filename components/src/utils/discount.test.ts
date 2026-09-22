@@ -33,6 +33,7 @@ describe("getSubscriptionDiscount", () => {
       ],
       20000,
       "usd",
+      "en-US",
     );
 
     expect(result).toEqual({
@@ -47,6 +48,7 @@ describe("getSubscriptionDiscount", () => {
       [makeDiscount({ percentOff: 50, duration: "forever" })],
       20000,
       "usd",
+      "en-US",
     );
 
     expect(result?.discountedPrice).toBe("$100.00");
@@ -60,6 +62,7 @@ describe("getSubscriptionDiscount", () => {
       [makeDiscount({ percentOff: 40, duration: "forever" })],
       1999,
       "usd",
+      "en-US",
     );
 
     expect(result?.discountedPrice).toBe("$11.99");
@@ -70,6 +73,7 @@ describe("getSubscriptionDiscount", () => {
       [makeDiscount({ percentOff: 40, duration: "forever" })],
       1999,
       "jpy",
+      "en-US",
     );
 
     expect(result?.discountedPrice).toBe("¥1,199");
@@ -81,6 +85,7 @@ describe("getSubscriptionDiscount", () => {
         [makeDiscount({ amountOff: 10000, currency: "usd", isActive: false })],
         20000,
         "usd",
+        "en-US",
       ),
     ).toBeUndefined();
   });
@@ -91,6 +96,7 @@ describe("getSubscriptionDiscount", () => {
         [makeDiscount({ percentOff: 0, amountOff: 0 })],
         20000,
         "usd",
+        "en-US",
       ),
     ).toBeUndefined();
   });
@@ -104,6 +110,7 @@ describe("getSubscriptionDiscount", () => {
         ],
         20000,
         "usd",
+        "en-US",
       ),
     ).toBeUndefined();
   });
@@ -114,6 +121,7 @@ describe("getSubscriptionDiscount", () => {
         [makeDiscount({ amountOff: 10000, currency: "eur" })],
         20000,
         "usd",
+        "en-US",
       ),
     ).toBeUndefined();
   });
@@ -123,6 +131,7 @@ describe("getSubscriptionDiscount", () => {
       [makeDiscount({ percentOff: 25, currency: "eur", duration: "forever" })],
       20000,
       "usd",
+      "en-US",
     );
 
     expect(result?.discountedPrice).toBe("$150.00");
@@ -134,6 +143,7 @@ describe("getSubscriptionDiscount", () => {
         [makeDiscount({ amountOff: 10000, currency: "usd" })],
         0,
         "usd",
+        "en-US",
       ),
     ).toBeUndefined();
   });
@@ -150,6 +160,7 @@ describe("getBillingPreviewText", () => {
           planPeriod: "month",
           periodStart: JAN_3,
           hasUsageBasedCosts: false,
+          locale: "en-US",
         },
         t,
       ),
@@ -164,6 +175,7 @@ describe("getBillingPreviewText", () => {
           planPeriod: "month",
           periodStart: JAN_3,
           hasUsageBasedCosts: false,
+          locale: "en-US",
         },
         t,
       ),
@@ -179,6 +191,7 @@ describe("getBillingPreviewText", () => {
         planPeriod: "month",
         periodStart: JAN_3,
         hasUsageBasedCosts: true,
+        locale: "en-US",
       },
       t,
     );
@@ -193,6 +206,7 @@ describe("getBillingPreviewText", () => {
         planPeriod: "year",
         periodStart: JAN_3,
         hasUsageBasedCosts: false,
+        locale: "en-US",
       },
       t,
     );
@@ -208,6 +222,7 @@ describe("getBillingPreviewText", () => {
           planPeriod: "month",
           periodStart: JAN_3,
           hasUsageBasedCosts: false,
+          locale: "en-US",
           discount: {
             duration: "repeating",
             durationInMonths: 6,
@@ -228,6 +243,7 @@ describe("getBillingPreviewText", () => {
         planPeriod: "month",
         periodStart: JAN_3,
         hasUsageBasedCosts: false,
+        locale: "en-US",
         discount: {
           duration: "repeating",
           durationInMonths: 1,
@@ -248,6 +264,7 @@ describe("getBillingPreviewText", () => {
         planPeriod: "month",
         periodStart: JAN_3,
         hasUsageBasedCosts: false,
+        locale: "en-US",
         discount: {
           duration: "forever",
           discountedPrice: "$100.00",
@@ -270,6 +287,7 @@ describe("getBillingPreviewText", () => {
           planPeriod: "month",
           periodStart: JAN_3,
           hasUsageBasedCosts: false,
+          locale: "en-US",
           discount: {
             duration: "once",
             discountedPrice: "$100.00",

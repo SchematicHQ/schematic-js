@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import { type PlanEntitlementResponseData } from "../../../api/checkoutexternal";
+import { useTranslation } from "../../../localization";
 import {
   formatCurrency,
   getEntitlementPrice,
@@ -19,7 +19,7 @@ export const TieredPricingDetails = ({
   period,
   currency: selectedCurrency,
 }: TieredPricingDetailsProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { currency, flatAmount, perUnitPrice, upTo } = useMemo(() => {
     const { currency, priceTier } =
@@ -54,7 +54,7 @@ export const TieredPricingDetails = ({
     return t("Up to X units at $Y/unit", {
       X: upTo,
       units: getFeatureName(entitlement.feature, upTo),
-      Y: formatCurrency(perUnitPrice, currency),
+      Y: formatCurrency(perUnitPrice, { locale, currency }),
       unit: getFeatureName(entitlement.feature, 1),
     });
   }
@@ -63,7 +63,7 @@ export const TieredPricingDetails = ({
     return t("Up to X units for $Y/period", {
       X: upTo,
       units: getFeatureName(entitlement.feature, upTo),
-      Y: formatCurrency(flatAmount, currency),
+      Y: formatCurrency(flatAmount, { locale, currency }),
       period,
     });
   }
@@ -72,9 +72,9 @@ export const TieredPricingDetails = ({
     return t("Up to X units at $Y/unit + $Z/period", {
       X: upTo,
       units: getFeatureName(entitlement.feature, upTo),
-      Y: formatCurrency(perUnitPrice, currency),
+      Y: formatCurrency(perUnitPrice, { locale, currency }),
       unit: getFeatureName(entitlement.feature, 1),
-      Z: formatCurrency(flatAmount, currency),
+      Z: formatCurrency(flatAmount, { locale, currency }),
       period,
     });
   }

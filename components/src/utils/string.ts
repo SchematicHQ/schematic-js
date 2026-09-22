@@ -3,6 +3,7 @@ import {
   MAXIMUM_FRACTION_DIGITS,
   MAXIMUM_SIGNIFICANT_DIGITS,
 } from "../const";
+import type { Translate } from "../localization";
 
 /**
  * Zero-decimal currencies where amounts are already in the smallest unit
@@ -35,8 +36,16 @@ export function camelToHyphen(str: string) {
   return str.replace(/([a-z][A-Z])/g, (g) => `${g[0]}-${g[1].toLowerCase()}`);
 }
 
-export function formatNumber(num: number, options?: Intl.NumberFormatOptions) {
-  return new Intl.NumberFormat("en-US", options).format(num);
+/** `locale` is the BCP 47 tag from `useTranslation`. */
+export interface NumberFormatOptions extends Intl.NumberFormatOptions {
+  locale: string;
+}
+
+export function formatNumber(
+  num: number,
+  { locale, ...options }: NumberFormatOptions,
+) {
+  return new Intl.NumberFormat(locale, options).format(num);
 }
 
 /**
@@ -47,47 +56,28 @@ export function formatNumber(num: number, options?: Intl.NumberFormatOptions) {
  * `MAXIMUM_FRACTION_DIGITS` fraction digits keeps very small rates readable
  * (e.g. `0.0000000001`) while still grouping larger values.
  */
-export function formatConsumptionRate(rate: number) {
+export function formatConsumptionRate(rate: number, locale: string) {
   return formatNumber(rate, {
+    locale,
     maximumFractionDigits: MAXIMUM_FRACTION_DIGITS,
   });
 }
 
 interface FormatCurrencyOptions {
+  /** BCP 47 tag from `useTranslation`. */
+  locale: string;
   currency?: string;
   testSignificantDigits?: boolean;
 }
 
 export function formatCurrency(
   amount: number,
-  options?:
-    | FormatCurrencyOptions
-    | FormatCurrencyOptions["currency"]
-    | FormatCurrencyOptions["testSignificantDigits"],
+  {
+    locale,
+    currency = DEFAULT_CURRENCY,
+    testSignificantDigits = true,
+  }: FormatCurrencyOptions,
 ) {
-  let currency = DEFAULT_CURRENCY;
-  let testSignificantDigits = true;
-
-  switch (typeof options) {
-    case "string":
-      currency = options;
-      break;
-    case "boolean":
-      testSignificantDigits = options;
-      break;
-    case "object": {
-      if (typeof options.currency === "string") {
-        currency = options.currency;
-      }
-
-      if (typeof options.testSignificantDigits === "boolean") {
-        testSignificantDigits = options.testSignificantDigits;
-      }
-
-      break;
-    }
-  }
-
   const resolvedCurrency = currency.toUpperCase();
   const divisor = ZERO_DECIMAL_CURRENCIES.has(resolvedCurrency) ? 1 : 100;
 
@@ -98,7 +88,7 @@ export function formatCurrency(
       testSignificantDigits &&
       /[1-9]/.test((amount % 1.0).toFixed(MAXIMUM_SIGNIFICANT_DIGITS));
 
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: resolvedCurrency,
       ...(hasManySignificantDigits && {
@@ -109,7 +99,7 @@ export function formatCurrency(
   } catch (err) {
     console.error("Error formatting currency", err);
 
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       minimumFractionDigits: 2,
       maximumSignificantDigits: 12,
@@ -118,18 +108,9 @@ export function formatCurrency(
   }
 }
 
-export function formatOrdinal(n: number) {
-  const enOrdinalRules = new Intl.PluralRules("en-US", { type: "ordinal" });
-  const suffixes = new Map([
-    ["one", "st"],
-    ["two", "nd"],
-    ["few", "rd"],
-    ["other", "th"],
-  ]);
-  const rule = enOrdinalRules.select(n);
-  const suffix = suffixes.get(rule);
-
-  return `${n}${suffix}`;
+/** The suffixes are ordinal plurals in the bundle, so a translation owns them. */
+export function formatOrdinal(n: number, t: Translate) {
+  return t("Ordinal", { count: n, ordinal: true });
 }
 
 export function adjectify(str: string) {
@@ -185,9 +166,9 @@ export function getCurrencyFlag(currency: string): string {
   return CURRENCY_FLAGS[currency.toLowerCase()] ?? "";
 }
 
-export function getCurrencySymbol(currency: string): string {
+export function getCurrencySymbol(currency: string, locale: string): string {
   try {
-    const parts = new Intl.NumberFormat("en-US", {
+    const parts = new Intl.NumberFormat(locale, {
       style: "currency",
       currency: currency.toUpperCase(),
       currencyDisplay: "narrowSymbol",

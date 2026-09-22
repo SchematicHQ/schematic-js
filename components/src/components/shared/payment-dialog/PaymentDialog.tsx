@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { PaymentMethodDetails } from "../../elements";
 import { Dialog, DialogContent, DialogHeader, Flex, Text } from "../../ui";
 import { EditableCustomCheckoutFields } from "../checkout-dialog/EditableCustomCheckoutFields";

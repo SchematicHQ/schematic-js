@@ -1,5 +1,4 @@
 import { Fragment, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   EntitlementPriceBehavior,
@@ -9,6 +8,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import {
   entitlementHasHardLimit,
   formatConsumptionRate,
@@ -54,7 +54,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     metricResetAt,
   } = entitlement;
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, warningThresholdConfig } = useEmbed();
   const showWarningThresholdAsLimit =
@@ -121,7 +121,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       typeof allocation === "number"
     ) {
       return t("X units", {
-        amount: formatNumber(allocation),
+        amount: formatNumber(allocation, { locale }),
         units: getFeatureName(feature, allocation),
       });
     }
@@ -130,7 +130,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       priceBehavior === EntitlementPriceBehavior.PayAsYouGo &&
       typeof price === "number"
     ) {
-      const formattedCost = formatCurrency(price, currency);
+      const formattedCost = formatCurrency(price, { locale, currency });
       const featureName = getFeatureName(feature, packageSize);
 
       return packageSize > 1
@@ -147,7 +147,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       typeof softLimit === "number"
     ) {
       return t("X units", {
-        amount: formatNumber(softLimit),
+        amount: formatNumber(softLimit, { locale }),
         units: getFeatureName(feature, softLimit),
       });
     }
@@ -160,7 +160,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
               feature: getFeatureName(feature),
             })
           : t("Up to X units in this tier", {
-              amount: formatNumber(currentTier.to),
+              amount: formatNumber(currentTier.to, { locale }),
               feature: getFeatureName(feature, currentTier.to),
             }))
       );
@@ -173,7 +173,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       typeof planEntitlement?.consumptionRate === "number"
     ) {
       return t("X units per use", {
-        amount: formatConsumptionRate(planEntitlement.consumptionRate),
+        amount: formatConsumptionRate(planEntitlement.consumptionRate, locale),
         units: getFeatureName(
           planEntitlement.valueCredit,
           planEntitlement.consumptionRate,
@@ -186,7 +186,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       typeof limit === "number"
     ) {
       return t("X units remaining", {
-        amount: formatNumber(limit),
+        amount: formatNumber(limit, { locale }),
         units: getFeatureName(feature, limit),
       });
     }
@@ -197,7 +197,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       // allocation (the hard limit).
       const numericLimit = limit ?? allocation;
       return t("X units", {
-        amount: formatNumber(numericLimit),
+        amount: formatNumber(numericLimit, { locale }),
         units: getFeatureName(feature, numericLimit),
       });
     }
@@ -207,6 +207,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     }
   }, [
     t,
+    locale,
     allocation,
     allocationType,
     feature,
@@ -244,13 +245,13 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         <Fragment key={index}>
           {packageSize > 1
             ? t("$X/Y units/period", {
-                cost: formatCurrency(price, currency),
+                cost: formatCurrency(price, { locale, currency }),
                 size: packageSize,
                 units: getFeatureName(feature, packageSize),
                 period: shortenPeriod(period),
               })
             : t("$X/unit/period", {
-                cost: formatCurrency(price, currency),
+                cost: formatCurrency(price, { locale, currency }),
                 unit: getFeatureName(feature, packageSize),
                 period: shortenPeriod(period),
               })}
@@ -282,7 +283,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       acc.push(
         <Fragment key={index}>
           {acc.length > 0 && <> • </>}
-          {formatCurrency(cost, currency)}
+          {formatCurrency(cost, { locale, currency })}
         </Fragment>,
       );
 
@@ -304,6 +305,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
           {acc.length > 0 && <> • </>}
           {t("Resets", {
             date: toPrettyDate(metricResetAt, {
+              locale,
               month: "short",
               year: undefined,
             }),
@@ -319,15 +321,16 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     if (typeof usage === "number") {
       return typeof allocation === "number"
         ? t("usage.limited", {
-            amount: formatNumber(usage),
-            allocation: formatNumber(limit ?? allocation),
+            amount: formatNumber(usage, { locale }),
+            allocation: formatNumber(limit ?? allocation, { locale }),
           })
         : t("usage.unlimited", {
-            amount: formatNumber(usage),
+            amount: formatNumber(usage, { locale }),
           });
     }
   }, [
     t,
+    locale,
     period,
     feature,
     currency,

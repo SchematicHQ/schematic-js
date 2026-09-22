@@ -1,6 +1,6 @@
 import { RefObject } from "react";
-import { useTranslation } from "react-i18next";
 
+import { useTranslation } from "../../../localization";
 import { Button, Flex, Icon, Text } from "../../ui";
 import { type CheckoutStage } from "../checkout-dialog";
 

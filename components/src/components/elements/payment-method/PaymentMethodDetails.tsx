@@ -5,7 +5,6 @@ import {
   type StripeConstructorOptions,
 } from "@stripe/stripe-js";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   type PaymentMethodResponseData,
@@ -18,6 +17,7 @@ import {
   useIsLightBackground,
   usePaymentConfirmation,
 } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type {
   CreditBundle,
   SelectedPlan,
@@ -86,7 +86,7 @@ export const PaymentMethodDetails = ({
   // TODO: I think we do not support edit in overlays at the moment
   const props = resolveDesignProps();
 
-  const { i18n, t } = useTranslation();
+  const { t, locale: language } = useTranslation();
 
   const {
     data,
@@ -166,7 +166,7 @@ export const PaymentMethodDetails = ({
     setShowDifferentPaymentMethods((prev) => !prev);
   };
 
-  const locale = useMemo(() => stripeLocale(i18n.language), [i18n.language]);
+  const locale = useMemo(() => stripeLocale(language), [language]);
 
   const initializeStripe = useCallback(() => {
     if (stripe || !setupIntent) {

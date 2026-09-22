@@ -1,6 +1,5 @@
-import { useTranslation } from "react-i18next";
-
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { formatCurrency } from "../../../utils";
 import { Icon, Text, Tooltip } from "../../ui";
 
@@ -13,7 +12,7 @@ export const BillingThresholdTooltip = ({
   portal,
   billingThreshold,
 }: BillingThresholdTooltipProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { settings } = useEmbed();
 
@@ -27,7 +26,7 @@ export const BillingThresholdTooltip = ({
           {t(
             "An invoice is created when charges reach $X; the rest is billed monthly.",
             {
-              amount: formatCurrency(billingThreshold),
+              amount: formatCurrency(billingThreshold, { locale }),
             },
           )}
         </Text>

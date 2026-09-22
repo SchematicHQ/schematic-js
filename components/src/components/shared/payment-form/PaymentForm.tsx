@@ -5,10 +5,10 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import type { PreviewSubscriptionFinanceResponseData } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { shouldCollectBillingAddress } from "../../../utils";
 import { Box, Button, Flex, Text, TransitionBox } from "../../ui";
 

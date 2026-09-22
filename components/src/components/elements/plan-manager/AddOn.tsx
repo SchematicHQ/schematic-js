@@ -1,5 +1,6 @@
 import { type CompanyPlanWithBillingSubView } from "../../../api/checkoutexternal";
 import { FontStyle } from "../../../context";
+import { useTranslation } from "../../../localization";
 import { formatCurrency, shortenPeriod } from "../../../utils";
 import { Flex, Text } from "../../ui";
 
@@ -17,6 +18,8 @@ interface AddOnProps {
 }
 
 export const AddOn = ({ addOn, currency, period, layout }: AddOnProps) => {
+  const { locale } = useTranslation();
+
   const resolvedPeriod =
     addOn.planPeriod === "one-time"
       ? addOn.planPeriod
@@ -33,7 +36,7 @@ export const AddOn = ({ addOn, currency, period, layout }: AddOnProps) => {
 
       {typeof addOn.planPrice === "number" && resolvedPeriod && (
         <Text>
-          {formatCurrency(addOn.planPrice, currency)}
+          {formatCurrency(addOn.planPrice, { locale, currency })}
           <sub>
             {resolvedPeriod === "one-time"
               ? shortenPeriod(resolvedPeriod)
