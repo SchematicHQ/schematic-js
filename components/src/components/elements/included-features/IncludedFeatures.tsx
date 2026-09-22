@@ -9,8 +9,8 @@ import {
   useTruncatedList,
 } from "../../../hooks";
 import {
-  type SchematicTranslationKey,
   useTranslation,
+  type SchematicTranslationKey,
 } from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
