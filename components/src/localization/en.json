@@ -107,6 +107,7 @@
     "Error saving custom field values. Please try again.": "Error saving custom field values. Please try again.",
     "Pay now": "Pay now",
     "Payment Details": "Payment Details",
+    "Payment due": "Payment due {{date}}",
     "Percent off": "{{percent}}% off",
     "Plan selected": "Plan selected",
     "Please accept the agreement to continue.": "Please accept the agreement to continue.",
