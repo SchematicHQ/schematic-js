@@ -35,7 +35,7 @@ const { initializeWithPlan } = useEmbed();
 This function allows developers to create their own button that
 
 * Pre-selects a Plan
-* Pre-selects Add-ons (if available)
+* Pre-selects Add ons (if available)
 * Skips and hides plan selection stages
 
 The `initializeWithPlan` function can be called with a Schematic plan ID, or
@@ -48,13 +48,13 @@ selection stage.
 initializeWithPlan('plan_VBXv4bHjSf3');
 ```
 
-Passing a config object allows pre-selecting Add-ons and pay-in-advance
+Passing a config object allows pre-selecting Add ons and pay-in-advance
 quantities, as well as hiding specific stages.
 
 ```ts
 const config = {
   planId: 'plan_VBXv4bHjSf3',      // pre-select a Plan
-  addOnIds: ['plan_AWv7bPjSx2'],   // pre-select 1 or more Add-ons
+  addOnIds: ['plan_AWv7bPjSx2'],   // pre-select 1 or more Add ons
   period: 'month',                 // pre-select 'month' or 'year' for the billing period (optional)
   payInAdvanceQuantities: {        // pre-fill pay-in-advance quantities, keyed by feature id (optional)
     feat_cns2asuKAG2: 3,           // "feat_cns2asuKAG2" is a feature id, 3 is the quantity
@@ -65,7 +65,7 @@ const config = {
     planStage: true,               // if true, skip Plan selection
     addOnStage: true,              // if true, skip Add-on selection
     usageStage: true,              // if true, skip the pay-in-advance Quantity stage
-    addOnUsageStage: true,         // if true, skip the add-on Quantity stage
+    addOnUsageStage: true,         // if true, skip the Add on Quantity stage
   },
   hideSkipped: true,               // if true, hide skipped stages from breadcrumb navigation
 };
@@ -90,7 +90,7 @@ you unsubscribe." It is shown by default; set it to `false` when your own UI
 states the billing terms. Hiding it does not affect the scheduled-downgrade
 notice that appears in the same spot.
 
-The Plans and Add-ons available to the checkout flows must be live in your
+The Plans and Add ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).
 
 ## Programmatic Unsubscribe
@@ -118,6 +118,64 @@ the request is ignored and a warning is logged to the console.
 The unsubscribe flow is rendered by the embed itself, so a Schematic embed (the
 `Viewport` that hosts it) must be mounted on the page where you call
 `requestUnsubscribe`. This is the same requirement as `initializeWithPlan`.
+
+## Localization
+
+The components render in English by default. `EmbedProvider` takes three props
+to change that:
+
+```tsx
+<EmbedProvider
+  accessToken={accessToken}
+  i18n={i18next}
+  translations={{ it: schematicIt }}
+  locale="it-IT"
+>
+```
+
+- `locale` is a BCP 47 tag. It picks the language the components read from and
+  formats every number, currency, and date. Without it, the components use the
+  `i18n` instance's current language, else `en-US`.
+- `i18n` is your own i18next instance, v21 or later. The components read their
+  strings from its `schematic` namespace in its current language, and re-render
+  when you call `changeLanguage`. Nothing is fetched from your backend: the
+  components look keys up and fall back to English for any they do not find.
+- `translations` is a map of language to bundle, for an app without i18next. Any
+  key a bundle leaves out falls back to English.
+
+Keys are the English strings themselves, and the English bundle is exported as
+`schematicTranslationsEn` to translate from. The `SchematicTranslations` type
+checks a bundle's keys. A plural takes i18next's suffixes, looked up by the bare
+key and a `count`:
+
+```ts
+import type { SchematicTranslations } from '@schematichq/schematic-components';
+
+export const schematicIt: SchematicTranslations = {
+  'Cancel subscription': 'Annulla abbonamento',
+  'Discount for months_one': '{{discount}} per il prossimo mese',
+  'Discount for months_other': '{{discount}} per i prossimi {{count, number}} mesi',
+};
+```
+
+With an `i18n` instance, register the same bundle under the `schematic`
+namespace:
+
+```ts
+i18next.addResourceBundle('it', 'schematic', schematicIt);
+```
+
+Passing both `i18n` and `translations` is unusual. If you do, the instance
+answers first, including through its own `fallbackLng`, so a key its English
+bundle has is never read from `translations`.
+
+Numbers interpolated into a string are formatted for the locale before they
+reach it, so `{{amount}}` reads `20,000` or `20.000` on its own. A plural's
+`count` is the exception: it stays a number so i18next can pick the form, and
+the bundle formats it with `{{count, number}}`.
+
+Feature names and their plural forms come from your Schematic account, not the
+bundle, so set them there in the language you need.
 
 ## License
 

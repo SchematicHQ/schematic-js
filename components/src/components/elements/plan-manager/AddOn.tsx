@@ -18,7 +18,7 @@ interface AddOnProps {
 }
 
 export const AddOn = ({ addOn, currency, period, layout }: AddOnProps) => {
-  const { locale } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const resolvedPeriod =
     addOn.planPeriod === "one-time"
@@ -39,8 +39,8 @@ export const AddOn = ({ addOn, currency, period, layout }: AddOnProps) => {
           {formatCurrency(addOn.planPrice, { locale, currency })}
           <sub>
             {resolvedPeriod === "one-time"
-              ? shortenPeriod(resolvedPeriod)
-              : `/${shortenPeriod(resolvedPeriod)}`}
+              ? shortenPeriod(resolvedPeriod, t)
+              : `/${shortenPeriod(resolvedPeriod, t)}`}
           </sub>
         </Text>
       )}

@@ -83,7 +83,7 @@ export const PriceDetails = ({
             /{packageSize > 1 && <>{packageSize} </>}
             {getFeatureName(feature, packageSize)}
             {feature.featureType === FeatureType.Trait && period && (
-              <>/{shortenPeriod(period)}</>
+              <>/{shortenPeriod(period, t)}</>
             )}
           </Box>
         </Text>
@@ -120,7 +120,7 @@ export const PriceDetails = ({
               {feature.featureType === FeatureType.Trait &&
                 typeof period === "string" && (
                   <Box as="sub" $whiteSpace="nowrap">
-                    /{shortenPeriod(period)}
+                    /{shortenPeriod(period, t)}
                   </Box>
                 )}
             </Text>
@@ -132,7 +132,7 @@ export const PriceDetails = ({
                 {feature.featureType === FeatureType.Trait &&
                   typeof period === "string" && (
                     <Box as="sub" $whiteSpace="nowrap">
-                      /{shortenPeriod(period)}
+                      /{shortenPeriod(period, t)}
                     </Box>
                   )}
               </Text>

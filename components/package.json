@@ -73,7 +73,6 @@
     "i18next": "^26.4.2",
     "lodash": "^4.18.1",
     "pako": "^3.0.2",
-    "react-i18next": "16.1.6",
     "styled-components": "^6.5.3",
     "uuid": "^14.0.2"
   },
@@ -113,10 +112,10 @@
     "vitest": "^5.0.1"
   },
   "peerDependencies": {
+    "@schematichq/schematic-react": "^1.6.0",
     "@stripe/react-stripe-js": ">=3",
     "react": ">=18",
-    "react-dom": ">=18",
-    "@schematichq/schematic-react": "^1.6.0"
+    "react-dom": ">=18"
   },
   "peerDependenciesMeta": {
     "@schematichq/schematic-react": {

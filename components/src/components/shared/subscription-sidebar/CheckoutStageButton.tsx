@@ -120,9 +120,9 @@ export const CheckoutStageButton = ({
       case "usage":
         return t("Quantity");
       case "addons":
-        return t("Add-ons");
+        return t("Add ons");
       case "addonsUsage":
-        return t("Add-ons Quantity");
+        return t("Add ons Quantity");
       case "credits":
         return t("Credits");
       case "checkout":

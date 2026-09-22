@@ -22,7 +22,7 @@ export const PriceText = ({
   perUnitPrice = 0,
 }: PriceTextProps) => {
   const { settings } = useEmbed();
-  const { locale } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const text = useMemo(() => {
     if (!flatAmount && perUnitPrice) {
@@ -38,7 +38,7 @@ export const PriceText = ({
       return (
         <>
           {formatCurrency(flatAmount, { locale, currency })}
-          {period && <sub>/{shortenPeriod(period)}</sub>}
+          {period && <sub>/{shortenPeriod(period, t)}</sub>}
         </>
       );
     }
@@ -49,10 +49,10 @@ export const PriceText = ({
         <sub>/{getFeatureName(feature, 1)}</sub>
         {" + "}
         {formatCurrency(flatAmount, { locale, currency })}
-        {period && <sub>/{shortenPeriod(period)}</sub>}
+        {period && <sub>/{shortenPeriod(period, t)}</sub>}
       </>
     );
-  }, [feature, period, currency, flatAmount, perUnitPrice, locale]);
+  }, [t, feature, period, currency, flatAmount, perUnitPrice, locale]);
 
   return (
     <Text

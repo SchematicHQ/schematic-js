@@ -11,23 +11,22 @@ const en = {
   "Add new payment method": "Add new payment method",
   "Add More": "Add More",
   "Additional information": "Additional information",
-  "Add-ons": "Add-ons",
-  "Add-ons Quantity": "Add-ons Quantity",
+  "Add ons": "Add ons",
+  "Add ons Quantity": "Add ons Quantity",
   "Additional": "Additional",
   "Adds X tokens when Y remaining in balance":
     "Adds {{amount}} {{unit}} when {{threshold}} remaining in balance",
   "After the trial, cancel no default":
-    "After the trial, you will be lose access to {{planName}} plan and your subscription will be cancelled. You will not be charged unless you subscribe to a paid plan during the trial.",
+    "After the trial, you will lose access to the {{planName}} plan and your subscription will be cancelled. You will not be charged unless you subscribe to a paid plan during the trial.",
   "After the trial, cancel":
     "After the trial, you will be downgraded to the {{postTrialPlanName}} plan and your subscription will be cancelled. You will not be charged unless you subscribe to a paid plan during the trial.",
   "After the trial, subscribe":
     "After the trial, subscription starts and you will be billed.",
   "Agreement": "Agreement",
-  "Amount off": "{{amount}} off",
   "Applied balance towards next invoice":
     "Applied balance towards next invoice",
   "Discount for months_one": "{{discount}} for next month",
-  "Discount for months_other": "{{discount}} for next {{count}} months",
+  "Discount for months_other": "{{discount}} for next {{count, number}} months",
   "Auto Top-up": "Auto top-up",
   "Auto top-up enabled": "Auto top-up enabled",
   "Auto top-up disabled": "Auto top-up disabled",
@@ -51,11 +50,11 @@ const en = {
   "Cannot downgrade entitlement":
     "Cannot downgrade to a quantity lower than current usage.",
   "Card ending in": "💳 Card ending in {{value}}",
-  "Change add-on": "Change add-on",
+  "Change add on": "Change add on",
   "Change payment method": "Change payment method",
   "Change plan": "Change plan",
   "Checkout": "Checkout",
-  "Choose add-on": "Choose add-on",
+  "Choose add on": "Choose add on",
   "Choose bundle": "Choose bundle",
   "Choose plan": "Choose plan",
   "Choose your base plan": "Choose your base plan",
@@ -122,7 +121,7 @@ const en = {
   "No upcoming invoice": "No upcoming invoice",
   "Not ready to cancel?": "Not ready to cancel?",
   "On demand": "On demand",
-  "One time ": "One time",
+  "One time": "One time",
   "One-time charges": "One-time charges",
   "Optionally add features to your subscription":
     "Optionally add features to your subscription",
@@ -134,7 +133,6 @@ const en = {
     "Error saving custom field values. Please try again.",
   "Pay now": "Pay now",
   "Payment Details": "Payment Details",
-  "Percent off": "{{percent}}% off",
   "Plan selected": "Plan selected",
   "Please accept the agreement to continue.":
     "Please accept the agreement to continue.",
@@ -151,7 +149,7 @@ const en = {
   "Remaining balance after next invoice":
     "Remaining balance after next invoice",
   "Remove": "Remove",
-  "Remove add-on": "Remove add-on",
+  "Remove add on": "Remove add on",
   "Resets": "Resets {{date}}",
   "Save changes": "Save changes",
   "Save payment method": "Save payment method",
@@ -169,12 +167,12 @@ const en = {
   "See balance details": "See balance details",
   "See less": "See less",
   "See more": "See more",
-  "Select add-ons": "Select add-ons",
+  "Select add ons": "Select add ons",
   "Select existing payment method": "Select existing payment method",
   "Select payment method": "Select payment method",
   "Select plan": "Select plan",
   "Select quantity": "Select quantity",
-  "Select quantities for add-ons": "Select quantities for add-ons",
+  "Select quantities for add ons": "Select quantities for add ons",
   "Selected": "Selected",
   "Selected plan or associated price is missing.":
     "Selected plan or associated price is missing.",
@@ -283,7 +281,7 @@ const en = {
   "on the day": "on the {{day}}",
   "of month": "of {{month}}",
   "for the next months_one": "for the next month",
-  "for the next months_other": "for the next {{count}} months",
+  "for the next months_other": "for the next {{count, number}} months",
   "You will be downgraded at the end of your billing period.":
     "You will be downgraded to the {{plan}} plan at the end of your billing period on {{date}}.",
   "You will retain access to your plan until the end of the billing period, on":
@@ -298,6 +296,9 @@ const en = {
   "month": "month",
   "quarter": "quarter",
   "year": "year",
+  "mo": "mo",
+  "qtr": "qtr",
+  "yr": "yr",
   "one time": "one time",
   "billing period": "billing period",
 
@@ -308,10 +309,10 @@ const en = {
     "expires at the end of the next billing period",
   "expires at the end of the trial": "expires at the end of the trial",
 
-  "Ordinal_ordinal_one": "{{count}}st",
-  "Ordinal_ordinal_two": "{{count}}nd",
-  "Ordinal_ordinal_few": "{{count}}rd",
-  "Ordinal_ordinal_other": "{{count}}th",
+  "Ordinal_ordinal_one": "{{count, number}}st",
+  "Ordinal_ordinal_two": "{{count, number}}nd",
+  "Ordinal_ordinal_few": "{{count, number}}rd",
+  "Ordinal_ordinal_other": "{{count, number}}th",
 
   "per": "per",
   "then": "then",
@@ -325,17 +326,17 @@ const en = {
 
   "Usage by user": "Usage by user",
   "X used by your team this period": "{{amount}} used by your team this period",
-  "Show all X users_one": "Show all {{count}} user",
-  "Show all X users_other": "Show all {{count}} users",
-  "Show top X users_one": "Show top {{count}} user",
-  "Show top X users_other": "Show top {{count}} users",
+  "Show all X users_one": "Show all {{count, number}} user",
+  "Show all X users_other": "Show all {{count, number}} users",
+  "Show top X users_one": "Show top {{count, number}} user",
+  "Show top X users_other": "Show top {{count, number}} users",
   "Show all": "Show all",
   "Show fewer": "Show fewer",
   "Unattributed": "Unattributed",
   "There was a problem retrieving usage by user.":
     "There was a problem retrieving usage by user.",
-  "plus X more_one": "plus {{count}} more",
-  "plus X more_other": "plus {{count}} more",
+  "plus X more_one": "plus {{count, number}} more",
+  "plus X more_other": "plus {{count, number}} more",
 
   "usage.limited": "{{amount}} of {{allocation}} used",
   "usage.unlimited": "{{amount}} used",

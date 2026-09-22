@@ -17,13 +17,16 @@ export const schematicTranslationsEn: Readonly<SchematicTranslations> = en;
 
 /**
  * Our keys are English sentences, so a `.` or `:` inside one must not be read
- * as a nested path or a namespace. Passed on every lookup, since a host's
- * instance may be configured otherwise.
+ * as a nested path or a namespace. React escapes text itself, so a host
+ * instance's default `escapeValue` would turn a plan named `R&D` into
+ * `R&amp;D`. Passed on every lookup, since a host's instance may be configured
+ * otherwise.
  */
 export const LOOKUP_OPTIONS = {
   ns: SCHEMATIC_NAMESPACE,
   keySeparator: false,
   nsSeparator: false,
+  interpolation: { escapeValue: false },
 } as const;
 
 /**

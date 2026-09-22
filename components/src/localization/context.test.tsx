@@ -1,6 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { createInstance, type i18n as I18n } from "i18next";
-import { describe, expect, test } from "vitest";
+import { useState } from "react";
+import { describe, expect, test, vi } from "vitest";
 
 import { formatCurrency } from "../utils";
 
@@ -21,6 +22,10 @@ const Probe = () => {
       <p data-testid="number">
         {t("X item bundle", { amount: 20000, item: "token", createdAt: "" })}
       </p>
+      <p data-testid="count">{t("Show all X users", { count: 20000 })}</p>
+      <p data-testid="interpolated">
+        {t("Everything in", { plan: "Ryan's R&D <Pro>" })}
+      </p>
       <p data-testid="price">
         {formatCurrency(123456, { locale, currency: "eur" })}
       </p>
@@ -34,6 +39,11 @@ const it: SchematicTranslations = {
   "Discount for months_other": "{{discount}} per i prossimi {{count}} mesi",
 };
 
+/**
+ * A host instance on i18next's defaults, which HTML-escape interpolation.
+ * Typed as i18next's own `i18n`, so passing it as the prop also checks that
+ * the real instance satisfies `SchematicI18nInstance`.
+ */
 function hostInstance(): I18n {
   const host = createInstance();
   void host.init({
@@ -41,6 +51,11 @@ function hostInstance(): I18n {
     fallbackLng: "en",
     initAsync: false,
     resources: {
+      en: {
+        [SCHEMATIC_NAMESPACE]: {
+          "Everything in": "Everything in {{plan}}, plus",
+        },
+      },
       it: { [SCHEMATIC_NAMESPACE]: it },
     },
   });
@@ -68,6 +83,11 @@ describe("useTranslation", () => {
     expect(text("number")).toMatch(/^20\.000 token bundle/);
   });
 
+  test("formats a plural's count like any other number", () => {
+    render(<Probe />);
+    expect(text("count")).toBe("Show all 20,000 users");
+  });
+
   test("uses the translations for the given locale", () => {
     render(
       <LocalizationProvider translations={{ it }} locale="it-IT">
@@ -77,7 +97,7 @@ describe("useTranslation", () => {
 
     expect(text("text")).toBe("Aggiungi un nuovo metodo di pagamento");
     expect(text("plural")).toBe("10% per i prossimi 3 mesi");
-    expect(text("price")).toBe("1234,56 €");
+    expect(text("price")).toBe("1234,56\u00a0€");
   });
 
   test("falls back to English for a key the translations lack", () => {
@@ -106,7 +126,7 @@ describe("useTranslation", () => {
     expect(text("text")).toBe("Aggiungi un nuovo metodo di pagamento");
     expect(text("plural")).toBe("10% per i prossimi 3 mesi");
     expect(text("fallback")).toBe("Cancel subscription");
-    expect(text("price")).toBe("1234,56 €");
+    expect(text("price")).toBe("1234,56\u00a0€");
   });
 
   test("prefers an explicit locale over the host's language", () => {
@@ -118,5 +138,51 @@ describe("useTranslation", () => {
     );
 
     expect(text("text")).toBe("Aggiungi un nuovo metodo di pagamento");
+  });
+
+  test("does not HTML-escape values the host's instance interpolates", () => {
+    render(
+      <LocalizationProvider i18n={hostInstance()}>
+        <Probe />
+      </LocalizationProvider>,
+    );
+
+    expect(text("interpolated")).toBe("Everything in Ryan's R&D <Pro>, plus");
+  });
+
+  test("does not load namespaces from the host's instance", () => {
+    const host = hostInstance();
+    const loadNamespaces = vi.spyOn(host, "loadNamespaces");
+    render(
+      <LocalizationProvider i18n={host}>
+        <Probe />
+      </LocalizationProvider>,
+    );
+
+    expect(loadNamespaces).not.toHaveBeenCalled();
+  });
+
+  test("keeps one instance for translations written inline", () => {
+    const seen = new Set<unknown>();
+    const Spy = () => {
+      const { t } = useTranslation();
+      seen.add(t);
+      return null;
+    };
+    const Host = () => {
+      const [, rerender] = useState(0);
+      return (
+        <LocalizationProvider translations={{ it: { ...it } }} locale="it-IT">
+          <Spy />
+          <button onClick={() => rerender((n) => n + 1)}>rerender</button>
+        </LocalizationProvider>
+      );
+    };
+    render(<Host />);
+
+    act(() => screen.getByText("rerender").click());
+    act(() => screen.getByText("rerender").click());
+
+    expect(seen.size).toBe(1);
   });
 });

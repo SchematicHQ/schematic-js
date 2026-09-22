@@ -126,13 +126,13 @@ describe("`CheckoutStageButton` component", () => {
           checkoutStage="plan"
           checkoutStages={[
             { id: "plan", name: "Plan" },
-            { id: "addons", name: "Add-ons" },
+            { id: "addons", name: "Add ons" },
             { id: "checkout", name: "Checkout" },
           ]}
         />,
       );
 
-      expect(screen.getByText(/Add-ons/)).toBeInTheDocument();
+      expect(screen.getByText(/Add ons/)).toBeInTheDocument();
     });
   });
 

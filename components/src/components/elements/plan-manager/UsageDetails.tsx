@@ -91,7 +91,7 @@ export const UsageDetails = ({
             /{packageSize > 1 && <>{packageSize} </>}
             {getFeatureName(entitlement.feature, packageSize)}
             {entitlement.feature.featureType === FeatureType.Trait && (
-              <>/{shortenPeriod(period)}</>
+              <>/{shortenPeriod(period, t)}</>
             )}
           </sub>
         </Fragment>,
@@ -185,7 +185,7 @@ export const UsageDetails = ({
                 currency: billingPrice?.currency,
               })}
               {entitlement.feature.featureType === FeatureType.Trait && (
-                <sub>/{shortenPeriod(period)}</sub>
+                <sub>/{shortenPeriod(period, t)}</sub>
               )}
             </>
           )

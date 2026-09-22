@@ -763,8 +763,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     if (addOns.length > 0 && (!isSelectedPlanTrialable || !shouldTrial)) {
       stages.push({
         id: "addons",
-        name: t("Add-ons"),
-        label: t("Select add-ons"),
+        name: t("Add ons"),
+        label: t("Select add ons"),
         description: t("Optionally add features to your subscription"),
       });
     }
@@ -783,8 +783,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     if (hasUsageBasedAddOnSelected) {
       stages.push({
         id: "addonsUsage",
-        name: t("Add-ons Quantity"),
-        label: t("Select quantities for add-ons"),
+        name: t("Add ons Quantity"),
+        label: t("Select quantities for add ons"),
         description: t("Quantity to pay for in advance"),
       });
     }

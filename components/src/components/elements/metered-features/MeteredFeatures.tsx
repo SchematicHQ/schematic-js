@@ -645,7 +645,7 @@ export const MeteredFeatures = forwardRef<
                           {t("Your plan includes credits", {
                             total,
                             creditName: getFeatureName(credit, total),
-                            period: shortenPeriod(composition.period),
+                            period: shortenPeriod(composition.period, t),
                             composition: ` — ${parts.join(" + ")}`,
                           })}
                           {renewalDate && (

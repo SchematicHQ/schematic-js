@@ -465,10 +465,10 @@ export const AddOn = ({
                 $fullWidth
               >
                 {isActiveAddOn
-                  ? t("Remove add-on")
+                  ? t("Remove add on")
                   : addOn.current
-                    ? t("Change add-on")
-                    : t("Choose add-on")}
+                    ? t("Change add on")
+                    : t("Choose add on")}
               </Button>
             </Flex>
           )}

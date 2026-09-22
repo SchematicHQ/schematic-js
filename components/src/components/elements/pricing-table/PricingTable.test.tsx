@@ -153,7 +153,7 @@ describe("`PricingTable`", () => {
       const plansText = within(wrapper).queryByText("Plans");
       expect(plansText).toBeInTheDocument();
 
-      const addOnsText = within(wrapper).queryByText("Add-ons");
+      const addOnsText = within(wrapper).queryByText("Add ons");
       expect(addOnsText).not.toBeInTheDocument();
     });
 

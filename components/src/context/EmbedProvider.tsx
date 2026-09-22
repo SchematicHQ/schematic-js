@@ -1,5 +1,4 @@
 import { IconStyles } from "@schematichq/schematic-icons";
-import type { i18n as I18n } from "i18next";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
@@ -21,6 +20,7 @@ import {
 import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
 import {
   LocalizationProvider,
+  type SchematicI18nInstance,
   type SchematicTranslations,
 } from "../localization";
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
@@ -69,7 +69,7 @@ export interface EmbedProviderProps {
    * its `schematic` namespace in its current language, and fall back to
    * `translations`, then English, for any key it lacks.
    */
-  i18n?: I18n;
+  i18n?: SchematicI18nInstance;
   /**
    * Translation bundles keyed by language (e.g. `{ it: {...} }`), for a host
    * without its own i18next instance. Any key left out falls back to English.

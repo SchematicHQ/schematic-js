@@ -248,12 +248,12 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
                 cost: formatCurrency(price, { locale, currency }),
                 size: packageSize,
                 units: getFeatureName(feature, packageSize),
-                period: shortenPeriod(period),
+                period: shortenPeriod(period, t),
               })
             : t("$X/unit/period", {
                 cost: formatCurrency(price, { locale, currency }),
                 unit: getFeatureName(feature, packageSize),
-                period: shortenPeriod(period),
+                period: shortenPeriod(period, t),
               })}
         </Fragment>,
       );
@@ -293,7 +293,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         feature.featureType === FeatureType.Trait &&
         typeof period === "string"
       ) {
-        acc.push(<Fragment key={index}>/{shortenPeriod(period)}</Fragment>);
+        acc.push(<Fragment key={index}>/{shortenPeriod(period, t)}</Fragment>);
 
         index += 1;
       }

@@ -398,7 +398,7 @@ export const SubscriptionSidebar = forwardRef<
             {t("Includes X credits per period", {
               total: includedCredits,
               creditName: getFeatureName(credit, includedCredits),
-              period: shortenPeriod(credit.period),
+              period: shortenPeriod(credit.period, t),
             })}
           </Text>
 
@@ -1030,6 +1030,7 @@ export const SubscriptionSidebar = forwardRef<
                           getSubscriptionPeriod(billingSubscription) ||
                             currentPlan.planPeriod ||
                             planPeriod,
+                          t,
                         )}
                       </sub>
                     </Text>
@@ -1071,7 +1072,7 @@ export const SubscriptionSidebar = forwardRef<
                         locale,
                         currency: selectedPlanCurrency,
                       })}
-                      <sub>/{shortenPeriod(planPeriod)}</sub>
+                      <sub>/{shortenPeriod(planPeriod, t)}</sub>
                     </Text>
                   </Flex>
                 </Flex>
@@ -1211,7 +1212,7 @@ export const SubscriptionSidebar = forwardRef<
                       locale,
                       currency: selectedPlanCurrency,
                     })}
-                    /<sub>{shortenPeriod(planPeriod)}</sub>
+                    /<sub>{shortenPeriod(planPeriod, t)}</sub>
                   </Text>
                 </Flex>
               </Flex>
@@ -1221,7 +1222,7 @@ export const SubscriptionSidebar = forwardRef<
           {(willAddOnsChange || selectedAddOnsWithPrice.length > 0) && (
             <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
               <Box $opacity="0.625">
-                <Text $size={14}>{t("Add-ons")}</Text>
+                <Text $size={14}>{t("Add ons")}</Text>
               </Box>
 
               {removedAddOns.map((addOn, index) => {
@@ -1248,7 +1249,7 @@ export const SubscriptionSidebar = forwardRef<
                               currency: selectedPlanCurrency,
                             })}
                             {addOn.planPeriod !== "one-time" && (
-                              <sub>/{shortenPeriod(planPeriod)}</sub>
+                              <sub>/{shortenPeriod(planPeriod, t)}</sub>
                             )}
                           </Text>
                         </Box>
@@ -1279,7 +1280,7 @@ export const SubscriptionSidebar = forwardRef<
                           currency: addOnCurrency,
                         })}
                         {addOn.chargeType !== ChargeType.oneTime && (
-                          <sub>/{shortenPeriod(planPeriod)}</sub>
+                          <sub>/{shortenPeriod(planPeriod, t)}</sub>
                         )}
                       </Text>
                     </Box>
@@ -1532,7 +1533,7 @@ export const SubscriptionSidebar = forwardRef<
               <Box $whiteSpace="nowrap">
                 <Text>
                   {subscriptionPrice}
-                  <sub>/{shortenPeriod(planPeriod)}</sub>
+                  <sub>/{shortenPeriod(planPeriod, t)}</sub>
                 </Text>
               </Box>
             </Flex>
