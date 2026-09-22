@@ -424,7 +424,7 @@ describe("`PricingTable`", () => {
       await screen.findByText("Professional");
 
       expect(
-        screen.getByText("7000 Credits per Seat per month"),
+        screen.getByText("7,000 Credits per Seat per month"),
       ).toBeInTheDocument();
       expect(
         screen.getByText("+ 500 Credits per month for your company"),

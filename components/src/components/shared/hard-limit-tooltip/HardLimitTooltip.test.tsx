@@ -61,7 +61,7 @@ describe("`HardLimitTooltip` component", () => {
     fireEvent.pointerEnter(trigger);
 
     expect(
-      screen.getByText("Up to a limit of 1000 API Calls"),
+      screen.getByText("Up to a limit of 1,000 API Calls"),
     ).toBeInTheDocument();
   });
 

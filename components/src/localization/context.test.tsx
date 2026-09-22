@@ -18,6 +18,9 @@ const Probe = () => {
         {t("Discount for months", { count: 3, discount: "10%" })}
       </p>
       <p data-testid="fallback">{t("Cancel subscription")}</p>
+      <p data-testid="number">
+        {t("X item bundle", { amount: 20000, item: "token", createdAt: "" })}
+      </p>
       <p data-testid="price">
         {formatCurrency(123456, { locale, currency: "eur" })}
       </p>
@@ -53,6 +56,16 @@ describe("useTranslation", () => {
     expect(text("text")).toBe("Add new payment method");
     expect(text("plural")).toBe("10% for next 3 months");
     expect(text("price")).toBe("€1,234.56");
+  });
+
+  test("formats numbers interpolated into copy", () => {
+    render(
+      <LocalizationProvider translations={{ it }} locale="it-IT">
+        <Probe />
+      </LocalizationProvider>,
+    );
+
+    expect(text("number")).toMatch(/^20\.000 token bundle/);
   });
 
   test("uses the translations for the given locale", () => {

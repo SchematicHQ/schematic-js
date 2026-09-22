@@ -364,6 +364,9 @@ const en = {
     "This plan is not available in the selected currency and period.",
   "Tier": "Tier",
   "your plan": "your plan",
+
+  "Included features": "Included features",
+  "Next bill due": "Next bill due",
 };
 
 export default en;

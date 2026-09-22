@@ -3,7 +3,10 @@ import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { type UpcomingInvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
-import { useTranslation } from "../../../localization";
+import {
+  type SchematicTranslationKey,
+  useTranslation,
+} from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
@@ -193,7 +196,7 @@ export const UpcomingBill = forwardRef<
               <Flex $flexDirection="column" $gap="1rem">
                 {props.header.isVisible && upcomingInvoice.dueDate && (
                   <Text display={props.header.fontStyle}>
-                    {props.header.prefix}{" "}
+                    {t(props.header.prefix as SchematicTranslationKey)}{" "}
                     {toPrettyDate(upcomingInvoice.dueDate, { locale })}
                   </Text>
                 )}

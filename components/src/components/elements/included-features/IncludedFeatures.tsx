@@ -8,7 +8,10 @@ import {
   useIsLightBackground,
   useTruncatedList,
 } from "../../../hooks";
-import { useTranslation } from "../../../localization";
+import {
+  type SchematicTranslationKey,
+  useTranslation,
+} from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   getFeatureName,
@@ -146,7 +149,9 @@ export const IncludedFeatures = forwardRef<
     <Element ref={ref} className={className} $containerType="inline-size">
       {props.header.isVisible && (
         <Box $marginBottom="1.5rem">
-          <Text display={props.header.fontStyle}>{props.header.text}</Text>
+          <Text display={props.header.fontStyle}>
+            {t(props.header.text as SchematicTranslationKey)}
+          </Text>
         </Box>
       )}
 

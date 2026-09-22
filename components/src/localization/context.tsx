@@ -11,7 +11,11 @@ import {
   createSchematicI18n,
   i18n as defaultI18n,
 } from "./i18n";
-import type { SchematicTranslations, Translate } from "./types";
+import type {
+  SchematicTranslations,
+  Translate,
+  TranslationOptions,
+} from "./types";
 
 interface LocalizationContextValue {
   /** The host's own instance, consulted first. */
@@ -78,10 +82,15 @@ export function useTranslation(): UseTranslationResult {
   });
 
   const language = locale ?? host?.resolvedLanguage ?? host?.language;
+  const resolvedLocale = resolveLocale(language);
 
   const t = useCallback<Translate>(
     (key, options) => {
-      const lookup = { ...options, ...LOOKUP_OPTIONS, lng: language };
+      const lookup = {
+        ...formatNumbers(options, resolvedLocale),
+        ...LOOKUP_OPTIONS,
+        lng: language,
+      };
       if (host?.exists(key, lookup)) {
         return host.t(key, lookup);
       }
@@ -91,8 +100,35 @@ export function useTranslation(): UseTranslationResult {
         lng: language ?? DEFAULT_LANGUAGE,
       });
     },
-    [host, fallback, language],
+    [host, fallback, language, resolvedLocale],
   );
 
-  return { t, locale: resolveLocale(language) };
+  return { t, locale: resolvedLocale };
+}
+
+/**
+ * Numbers interpolated into copy are formatted for the locale, so a quantity
+ * reads `20,000` or `20.000` rather than `20000`. `count` stays a number:
+ * i18next picks the plural form from it.
+ */
+function formatNumbers(
+  options: TranslationOptions | undefined,
+  locale: string,
+): TranslationOptions | undefined {
+  if (!options) {
+    return options;
+  }
+
+  let formatter: Intl.NumberFormat | undefined;
+  const formatted: TranslationOptions = {};
+  for (const [name, value] of Object.entries(options)) {
+    if (typeof value === "number" && name !== "count") {
+      formatter ??= new Intl.NumberFormat(locale);
+      formatted[name] = formatter.format(value);
+    } else {
+      formatted[name] = value;
+    }
+  }
+
+  return formatted;
 }
