@@ -7,6 +7,8 @@ import { paymentMethodsCss } from "./payment-methods";
 import { withTokenDefaults } from "./tokens";
 import { upcomingBillCss } from "./upcoming-bill";
 
+export { iconsCss } from "./icons";
+
 export { SCHEMATIC_TOKENS, schematicTokensCss } from "./tokens";
 
 /**
