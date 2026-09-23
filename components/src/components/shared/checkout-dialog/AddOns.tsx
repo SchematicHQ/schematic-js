@@ -1,11 +1,10 @@
-import { useTranslation } from "react-i18next";
-
 import {
   EntitlementPriceBehavior,
   type FeatureResponseData,
 } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { SelectedPlan } from "../../../types";
 import {
   ChargeType,
@@ -40,21 +39,24 @@ interface MeteredEntitlementPricingProps {
   isTiered: boolean;
 }
 
-function renderMeteredEntitlementPricing({
-  priceBehavior,
-  softLimit,
-  price,
-  currency,
-  packageSize,
-  feature,
-  featureName,
-  isTiered,
-}: MeteredEntitlementPricingProps): React.ReactNode {
+function renderMeteredEntitlementPricing(
+  {
+    priceBehavior,
+    softLimit,
+    price,
+    currency,
+    packageSize,
+    feature,
+    featureName,
+    isTiered,
+  }: MeteredEntitlementPricingProps,
+  locale: string,
+): React.ReactNode {
   // Overage pricing
   if (priceBehavior === EntitlementPriceBehavior.Overage && softLimit) {
     return (
       <>
-        Additional: {formatCurrency(price, currency)}/
+        Additional: {formatCurrency(price, { locale, currency })}/
         {feature
           ? getFeatureName(
               feature as Pick<
@@ -80,7 +82,7 @@ function renderMeteredEntitlementPricing({
   ) {
     return (
       <>
-        {formatCurrency(price, currency)}/
+        {formatCurrency(price, { locale, currency })}/
         {packageSize > 1 && <>{packageSize} </>}
         {feature
           ? getFeatureName(
@@ -118,7 +120,7 @@ export const AddOns = ({
   period,
   currency,
 }: AddOnsProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { settings, warningThresholdConfig } = useEmbed();
   const showWarningThresholdAsLimit =
@@ -257,7 +259,10 @@ export const AddOns = ({
                   ) : (
                     <>
                       <Text display="heading2">
-                        {formatCurrency(price ?? 0, addOnCurrency)}
+                        {formatCurrency(price ?? 0, {
+                          locale,
+                          currency: addOnCurrency,
+                        })}
                       </Text>
 
                       <Text
@@ -409,7 +414,10 @@ export const AddOns = ({
                           }
                           $color={settings.theme.typography.text.color}
                         >
-                          {renderMeteredEntitlementPricing(meteredEntitlement)}
+                          {renderMeteredEntitlementPricing(
+                            meteredEntitlement,
+                            locale,
+                          )}
                         </Text>
                       </Flex>
                     );

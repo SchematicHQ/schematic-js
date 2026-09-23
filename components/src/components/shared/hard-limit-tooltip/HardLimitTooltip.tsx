@@ -1,7 +1,6 @@
-import { useTranslation } from "react-i18next";
-
 import { type FeatureResponseData } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { getFeatureName } from "../../../utils";
 import { Icon, Text, Tooltip } from "../../ui";
 

@@ -1,10 +1,9 @@
-import { useTranslation } from "react-i18next";
-
 import {
   EntitlementPriceBehavior,
   FeatureType,
 } from "../../../api/checkoutexternal";
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import {
   type CurrentUsageBasedEntitlement,
   type UsageBasedEntitlement,
@@ -27,7 +26,7 @@ export const EntitlementRow = (
     currency?: string;
   },
 ) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { settings } = useEmbed();
 
@@ -100,7 +99,7 @@ export const EntitlementRow = (
               <Text>
                 {formatCurrency(
                   calculateQuantityCost(entitlementPrice, quantity),
-                  currency,
+                  { locale, currency },
                 )}
                 <sub>/{shortenPeriod(planPeriod)}</sub>
               </Text>
@@ -113,7 +112,7 @@ export const EntitlementRow = (
               {priceBehavior === EntitlementPriceBehavior.Overage && (
                 <>{t("then")} </>
               )}
-              {formatCurrency(price ?? 0, currency)}
+              {formatCurrency(price ?? 0, { locale, currency })}
               <sub>
                 /{packageSize > 1 && <>{packageSize} </>}
                 {getFeatureName(feature, packageSize)}

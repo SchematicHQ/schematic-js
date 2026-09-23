@@ -1,6 +1,5 @@
-import "../localization";
-
 import { IconStyles } from "@schematichq/schematic-icons";
+import type { i18n as I18n } from "i18next";
 import debounce from "lodash/debounce";
 import merge from "lodash/merge";
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
@@ -20,6 +19,10 @@ import {
   Configuration as PublicConfiguration,
 } from "../api/componentspublic";
 import { FETCH_DEBOUNCE_TIMEOUT, LEADING_DEBOUNCE_SETTINGS } from "../const";
+import {
+  LocalizationProvider,
+  type SchematicTranslations,
+} from "../localization";
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
 import { ERROR_UNKNOWN, debounceByKey, isError } from "../utils";
 
@@ -61,6 +64,22 @@ export interface EmbedProviderProps {
    */
   warningThresholdConfig?: WarningThresholdConfig;
   checkoutPrefill?: CheckoutPrefill;
+  /**
+   * The host's own i18next instance (v21 or later). The components read from
+   * its `schematic` namespace in its current language, and fall back to
+   * `translations`, then English, for any key it lacks.
+   */
+  i18n?: I18n;
+  /**
+   * Translation bundles keyed by language (e.g. `{ it: {...} }`), for a host
+   * without its own i18next instance. Any key left out falls back to English.
+   */
+  translations?: Record<string, SchematicTranslations>;
+  /**
+   * BCP 47 tag for the components' language and for number, currency, and
+   * date formatting. Defaults to the `i18n` instance's language, else `en-US`.
+   */
+  locale?: string;
 }
 
 const normalizeCurrencyFilter = (
@@ -96,6 +115,9 @@ export const EmbedProvider = ({
   currencyFilter,
   warningThresholdConfig,
   checkoutPrefill,
+  i18n,
+  translations,
+  locale,
   ...options
 }: EmbedProviderProps) => {
   const sessionId = useMemo(() => uuidv4(), []);
@@ -792,10 +814,16 @@ export const EmbedProvider = ({
         debug,
       }}
     >
-      <ThemeProvider theme={state.settings.theme}>
-        <IconStyles />
-        {children}
-      </ThemeProvider>
+      <LocalizationProvider
+        i18n={i18n}
+        translations={translations}
+        locale={locale}
+      >
+        <ThemeProvider theme={state.settings.theme}>
+          <IconStyles />
+          {children}
+        </ThemeProvider>
+      </LocalizationProvider>
     </EmbedContext.Provider>
   );
 };

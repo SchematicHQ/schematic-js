@@ -1,7 +1,6 @@
-import { useTranslation } from "react-i18next";
-
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { CreditBundle } from "../../../types";
 import { formatCurrency, formatNumber, getFeatureName } from "../../../utils";
 import { cardBoxShadow } from "../../layout";
@@ -24,7 +23,7 @@ export const Credits = ({
   toggle,
   currency,
 }: CreditsProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { settings } = useEmbed();
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
@@ -72,7 +71,7 @@ export const Credits = ({
                 </Box>
                 <Box>
                   <Text display="heading6">
-                    {formatNumber(bundle.quantity ?? 0)}{" "}
+                    {formatNumber(bundle.quantity ?? 0, { locale })}{" "}
                     {getFeatureName(bundle)}
                   </Text>
                 </Box>
@@ -81,7 +80,10 @@ export const Credits = ({
               {typeof price === "number" && (
                 <Box $marginBottom="0.5rem">
                   <Text>
-                    {formatCurrency(price, currency || bundle.price?.currency)}
+                    {formatCurrency(price, {
+                      locale,
+                      currency: currency || bundle.price?.currency,
+                    })}
                   </Text>
                 </Box>
               )}

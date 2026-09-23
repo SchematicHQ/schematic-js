@@ -1,4 +1,4 @@
-import { type TFunction } from "i18next";
+import type { Translate } from "../../localization";
 
 import {
   BillingCreditAutoTopupAvailability,
@@ -503,7 +503,7 @@ export function formatBundleExpiry(
     BillingCreditBundleView,
     "expiryType" | "expiryUnit" | "expiryUnitCount"
   >,
-  t: TFunction,
+  t: Translate,
 ): string | undefined {
   switch (bundle.expiryType) {
     case BillingCreditExpiryType.Duration: {

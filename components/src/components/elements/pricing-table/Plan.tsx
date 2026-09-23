@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { BillingProductPriceInterval } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE, VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
 import { useEmbed, useIsLightBackground, useTrialEnd } from "../../../hooks";
+import {
+  useTranslation,
+  type SchematicTranslationKey,
+} from "../../../localization";
 import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
@@ -48,7 +51,7 @@ export const Plan = ({
 }: PlanProps) => {
   const { layout } = sharedProps;
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, settings, setCheckoutState } = useEmbed();
 
@@ -174,15 +177,20 @@ export const Plan = ({
                   : showAsMonthlyPrices &&
                       selectedPeriod === BillingProductPriceInterval.Year
                     ? formatCurrency((planPrice ?? 0) / 12, {
+                        locale,
                         currency: planCurrency,
                         testSignificantDigits: false,
                       })
                     : showAsMonthlyPrices && selectedPeriod === "quarter"
                       ? formatCurrency((planPrice ?? 0) / 3, {
+                          locale,
                           currency: planCurrency,
                           testSignificantDigits: false,
                         })
-                      : formatCurrency(planPrice ?? 0, planCurrency)}
+                      : formatCurrency(planPrice ?? 0, {
+                          locale,
+                          currency: planCurrency,
+                        })}
             {!plan.custom && !isFreePlan && (
               <sub>
                 /
@@ -191,7 +199,7 @@ export const Plan = ({
                   ? t("month, billed yearly")
                   : showAsMonthlyPrices && selectedPeriod === "quarter"
                     ? t("month, billed quarterly")
-                    : t(selectedPeriod)}
+                    : t(selectedPeriod as SchematicTranslationKey)}
               </sub>
             )}
           </Text>

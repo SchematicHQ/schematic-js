@@ -1,5 +1,4 @@
 import { Fragment, forwardRef, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import { type FeatureUsageResponseData } from "../../../api/checkoutexternal";
 import { VISIBLE_ENTITLEMENT_COUNT } from "../../../const";
@@ -9,6 +8,10 @@ import {
   useIsLightBackground,
   useTruncatedList,
 } from "../../../hooks";
+import {
+  useTranslation,
+  type SchematicTranslationKey,
+} from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   getFeatureName,
@@ -92,7 +95,7 @@ export const IncludedFeatures = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, settings } = useEmbed();
 
@@ -146,7 +149,9 @@ export const IncludedFeatures = forwardRef<
     <Element ref={ref} className={className} $containerType="inline-size">
       {props.header.isVisible && (
         <Box $marginBottom="1.5rem">
-          <Text display={props.header.fontStyle}>{props.header.text}</Text>
+          <Text display={props.header.fontStyle}>
+            {t(props.header.text as SchematicTranslationKey)}
+          </Text>
         </Box>
       )}
 
@@ -228,6 +233,7 @@ export const IncludedFeatures = forwardRef<
                         date: toPrettyDate(
                           entitlement.entitlementExpirationDate,
                           {
+                            locale,
                             month: "short",
                           },
                         ),

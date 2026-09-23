@@ -1,5 +1,4 @@
 import { Fragment, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   EntitlementPriceBehavior,
@@ -9,6 +8,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import {
   entitlementHasHardLimit,
   formatConsumptionRate,
@@ -42,7 +42,7 @@ export const UsageDetails = ({
   showCredits,
   layout,
 }: UsageDetailsProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { settings, warningThresholdConfig } = useEmbed();
   const showWarningThresholdAsLimit =
@@ -86,7 +86,7 @@ export const UsageDetails = ({
       const packageSize = billingPrice?.packageSize ?? 1;
       acc.push(
         <Fragment key={index}>
-          {formatCurrency(price, billingPrice?.currency)}
+          {formatCurrency(price, { locale, currency: billingPrice?.currency })}
           <sub>
             /{packageSize > 1 && <>{packageSize} </>}
             {getFeatureName(entitlement.feature, packageSize)}
@@ -108,7 +108,10 @@ export const UsageDetails = ({
     ) {
       acc.push(
         <Fragment key={index}>
-          {formatConsumptionRate(entitlement.planEntitlement.consumptionRate)}{" "}
+          {formatConsumptionRate(
+            entitlement.planEntitlement.consumptionRate,
+            locale,
+          )}{" "}
           {getFeatureName(
             entitlement.planEntitlement.valueCredit,
             entitlement.planEntitlement.consumptionRate,
@@ -121,6 +124,7 @@ export const UsageDetails = ({
     return acc;
   }, [
     t,
+    locale,
     period,
     currency,
     showCredits,
@@ -176,7 +180,10 @@ export const UsageDetails = ({
             EntitlementPriceBehavior.PayInAdvance && (
             <>
               {" "}
-              {formatCurrency(cost, billingPrice?.currency)}
+              {formatCurrency(cost, {
+                locale,
+                currency: billingPrice?.currency,
+              })}
               {entitlement.feature.featureType === FeatureType.Trait && (
                 <sub>/{shortenPeriod(period)}</sub>
               )}

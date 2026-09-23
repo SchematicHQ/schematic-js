@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import { ProrationBehavior } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { SelectedPlan, UsageBasedEntitlement } from "../../../types";
 import {
   adjectify,
@@ -40,7 +40,7 @@ export const Quantity = ({
 }: QuantityProps) => {
   const { data, settings } = useEmbed();
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const isLightBackground = useIsLightBackground();
 
@@ -183,7 +183,7 @@ export const Quantity = ({
                           entitlementBillingPrice,
                           entitlement.quantity,
                         ),
-                        currency,
+                        { locale, currency },
                       )}
                       <sub>/{shortenPeriod(period)}</sub>
                     </Text>
@@ -214,7 +214,10 @@ export const Quantity = ({
                         $size={unitPriceFontSize}
                         $color={settings.theme.typography.text.color}
                       >
-                        {formatCurrency(price ?? 0, currency)}
+                        {formatCurrency(price ?? 0, {
+                          locale,
+                          currency,
+                        })}
                         <sub>
                           /{packageSize > 1 && <>{packageSize} </>}
                           {getFeatureName(entitlement.feature, packageSize)}/
@@ -278,7 +281,7 @@ export const Quantity = ({
                           <>
                             {t("Your credit grant increases on the day", {
                               total: includedCredits,
-                              day: formatOrdinal(renewalDate.getDate()),
+                              day: formatOrdinal(renewalDate.getDate(), t),
                             })}
                           </>
                         )
@@ -306,7 +309,7 @@ export const Quantity = ({
                                   includedCredits,
                                 ),
                                 cadence: adjectify(licenseCredit.period),
-                                day: formatOrdinal(renewalDate.getDate()),
+                                day: formatOrdinal(renewalDate.getDate(), t),
                               })}
                             </>
                           )}

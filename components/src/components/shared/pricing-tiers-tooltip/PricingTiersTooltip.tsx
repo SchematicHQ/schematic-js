@@ -1,11 +1,11 @@
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   BillingTiersMode,
   type BillingProductPriceTierResponseData,
 } from "../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { Feature } from "../../../types";
 import { Box, Flex, Icon, Text, Tooltip, type TooltipProps } from "../../ui";
 

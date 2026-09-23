@@ -6,7 +6,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   BillingProductPriceInterval,
@@ -20,6 +19,7 @@ import {
   useAvailablePlans,
   useEmbed,
 } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
 import { getSubscriptionPeriod, planSupportsCurrency } from "../../../utils";
 import { Container, FussyChild } from "../../layout";

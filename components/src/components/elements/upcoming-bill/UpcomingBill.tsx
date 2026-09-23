@@ -1,9 +1,12 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { type UpcomingInvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useTranslation,
+  type SchematicTranslationKey,
+} from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   ERROR_UNKNOWN,
@@ -58,7 +61,7 @@ export const UpcomingBill = forwardRef<
 >(({ className, ...rest }, ref) => {
   const props = resolveDesignProps(rest);
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, settings, getUpcomingInvoice } = useEmbed();
 
@@ -193,8 +196,8 @@ export const UpcomingBill = forwardRef<
               <Flex $flexDirection="column" $gap="1rem">
                 {props.header.isVisible && upcomingInvoice.dueDate && (
                   <Text display={props.header.fontStyle}>
-                    {props.header.prefix}{" "}
-                    {toPrettyDate(upcomingInvoice.dueDate)}
+                    {t(props.header.prefix as SchematicTranslationKey)}{" "}
+                    {toPrettyDate(upcomingInvoice.dueDate, { locale })}
                   </Text>
                 )}
 
@@ -205,10 +208,10 @@ export const UpcomingBill = forwardRef<
                 >
                   {props.price.isVisible && (
                     <Text display={props.price.fontStyle} $leading="none">
-                      {formatCurrency(
-                        upcomingInvoice.amountDue,
-                        upcomingInvoice.currency,
-                      )}
+                      {formatCurrency(upcomingInvoice.amountDue, {
+                        locale,
+                        currency: upcomingInvoice.currency,
+                      })}
                     </Text>
                   )}
 
@@ -230,7 +233,9 @@ export const UpcomingBill = forwardRef<
                       {t("Applied balance towards next invoice")}
                     </Text>
 
-                    <Text>{formatCurrency(-applied, currency)}</Text>
+                    <Text>
+                      {formatCurrency(-applied, { locale, currency })}
+                    </Text>
                   </Flex>
                 )}
 
@@ -245,7 +250,9 @@ export const UpcomingBill = forwardRef<
                       {t("Remaining balance after next invoice")}
                     </Text>
 
-                    <Text>{formatCurrency(remaining, currency)}</Text>
+                    <Text>
+                      {formatCurrency(remaining, { locale, currency })}
+                    </Text>
                   </Flex>
                 )}
 
@@ -272,7 +279,7 @@ export const UpcomingBill = forwardRef<
                             : t("Amount off", {
                                 amount: formatCurrency(
                                   discount.amountOff as number, // active discounts always carry a positive amount or percent
-                                  discount?.currency,
+                                  { locale, currency: discount?.currency },
                                 ),
                               });
 

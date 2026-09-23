@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import { styled } from "styled-components";
 
 import { useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { TaxIdValues } from "../../../utils";
 import {
   isStripeTestTaxId,
@@ -44,14 +44,11 @@ export const TaxIdField = ({
   onChange,
   onValueBlur,
 }: TaxIdFieldProps) => {
-  const { t, i18n } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const isLightBackground = useIsLightBackground();
 
-  const countryOptions = useMemo(
-    () => taxIdCountryOptions(i18n.language),
-    [i18n.language],
-  );
+  const countryOptions = useMemo(() => taxIdCountryOptions(locale), [locale]);
 
   const jurisdictions = taxIdJurisdictionsForCountry(value.country);
 

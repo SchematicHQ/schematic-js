@@ -1,5 +1,4 @@
 import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   BillingCreditGrantReason,
@@ -19,6 +18,7 @@ import {
   useIsLightBackground,
   useWrapChildren,
 } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
 import {
   aggregateActiveGrantsByCredit,
@@ -57,7 +57,7 @@ interface LimitProps {
 }
 
 const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data } = useEmbed();
 
@@ -82,14 +82,14 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
       : priceBehavior === EntitlementPriceBehavior.Overage &&
           typeof limit === "number"
         ? t("X included", {
-            amount: formatNumber(limit),
+            amount: formatNumber(limit, { locale }),
           })
         : priceBehavior === EntitlementPriceBehavior.PayInAdvance &&
             typeof usage === "number"
-          ? `${formatNumber(usage)} ${t("used")}`
+          ? `${formatNumber(usage, { locale })} ${t("used")}`
           : priceBehavior === EntitlementPriceBehavior.PayAsYouGo &&
               typeof cost === "number"
-            ? formatCurrency(cost, billingPrice?.currency)
+            ? formatCurrency(cost, { locale, currency: billingPrice?.currency })
             : data?.displaySettings?.showCredits &&
                 priceBehavior === EntitlementPriceBehavior.CreditBurndown &&
                 typeof planEntitlement?.valueCredit !== "undefined" &&
@@ -97,6 +97,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
               ? t("X units per use", {
                   amount: formatConsumptionRate(
                     planEntitlement.consumptionRate,
+                    locale,
                   ),
                   units: getFeatureName(
                     planEntitlement.valueCredit,
@@ -107,12 +108,12 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
                   typeof feature !== "undefined" &&
                   typeof limit === "number"
                 ? t("X units remaining", {
-                    amount: formatNumber(limit),
+                    amount: formatNumber(limit, { locale }),
                     units: getFeatureName(feature, limit),
                   })
                 : typeof limit === "number"
                   ? t("Limit of", {
-                      amount: formatNumber(limit),
+                      amount: formatNumber(limit, { locale }),
                     })
                   : t("No limit"),
   );
@@ -120,7 +121,11 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
   if (metricResetAt) {
     acc.push(
       t("Resets", {
-        date: toPrettyDate(metricResetAt, { month: "short", year: undefined }),
+        date: toPrettyDate(metricResetAt, {
+          locale,
+          month: "short",
+          year: undefined,
+        }),
       }),
     );
   }
@@ -205,7 +210,7 @@ export const MeteredFeatures = forwardRef<
   const elementsRef = useRef<HTMLElement[]>([]);
   const shouldWrapChildren = useWrapChildren(elementsRef);
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, settings, setCheckoutState, warningThresholdConfig } =
     useEmbed();
@@ -412,14 +417,14 @@ export const MeteredFeatures = forwardRef<
                           EntitlementPriceBehavior.PayInAdvance ? (
                             <>
                               {typeof limit === "number" && (
-                                <>{formatNumber(limit)} </>
+                                <>{formatNumber(limit, { locale })} </>
                               )}
                               {getFeatureName(feature, limit)}
                             </>
                           ) : (
                             typeof usage === "number" && (
                               <>
-                                {formatNumber(usage)}{" "}
+                                {formatNumber(usage, { locale })}{" "}
                                 {getFeatureName(feature, usage)} {t("used")}
                               </>
                             )
@@ -549,6 +554,7 @@ export const MeteredFeatures = forwardRef<
                             // Balances burn at rates with up to 10 decimal
                             // places, so a small remainder must not round to 0.
                             amount: formatNumber(credit.total.remaining, {
+                              locale,
                               maximumFractionDigits: MAXIMUM_FRACTION_DIGITS,
                             }),
                             units: getFeatureName(
@@ -646,7 +652,7 @@ export const MeteredFeatures = forwardRef<
                             <>
                               {" "}
                               {t("Renews on the day", {
-                                day: formatOrdinal(renewalDate.getDate()),
+                                day: formatOrdinal(renewalDate.getDate(), t),
                               })}
                             </>
                           )}
@@ -701,7 +707,7 @@ export const MeteredFeatures = forwardRef<
                                     {t("Resets", {
                                       date: toPrettyDate(
                                         modifyDate(grant.expiresAt, 1),
-                                        { month: "short" },
+                                        { locale, month: "short" },
                                       ),
                                     })}
                                   </Text>
@@ -720,7 +726,7 @@ export const MeteredFeatures = forwardRef<
                                         item: getFeatureName(credit, 1),
                                         createdAt: toPrettyDate(
                                           grant.createdAt,
-                                          { month: "short" },
+                                          { locale, month: "short" },
                                         ),
                                       })}
                                     </>
@@ -735,7 +741,7 @@ export const MeteredFeatures = forwardRef<
                                         ),
                                         createdAt: toPrettyDate(
                                           grant.createdAt,
-                                          { month: "short" },
+                                          { locale, month: "short" },
                                         ),
                                       })}
                                     </>
@@ -749,7 +755,7 @@ export const MeteredFeatures = forwardRef<
                                         ),
                                         createdAt: toPrettyDate(
                                           grant.createdAt,
-                                          { month: "short" },
+                                          { locale, month: "short" },
                                         ),
                                       })}
                                     </>
@@ -768,7 +774,7 @@ export const MeteredFeatures = forwardRef<
                                     {t("Expires", {
                                       date: toPrettyDate(
                                         modifyDate(grant.expiresAt, 1),
-                                        { month: "short" },
+                                        { locale, month: "short" },
                                       ),
                                     })}
                                   </Text>

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { Feature } from "../../../types";
 import { formatCurrency, getFeatureName, shortenPeriod } from "../../../utils";
 import { Text } from "../../ui";
@@ -21,12 +22,13 @@ export const PriceText = ({
   perUnitPrice = 0,
 }: PriceTextProps) => {
   const { settings } = useEmbed();
+  const { locale } = useTranslation();
 
   const text = useMemo(() => {
     if (!flatAmount && perUnitPrice) {
       return (
         <>
-          {formatCurrency(perUnitPrice, currency)}
+          {formatCurrency(perUnitPrice, { locale, currency })}
           <sub>/{getFeatureName(feature, 1)}</sub>
         </>
       );
@@ -35,7 +37,7 @@ export const PriceText = ({
     if (flatAmount && !perUnitPrice) {
       return (
         <>
-          {formatCurrency(flatAmount, currency)}
+          {formatCurrency(flatAmount, { locale, currency })}
           {period && <sub>/{shortenPeriod(period)}</sub>}
         </>
       );
@@ -43,14 +45,14 @@ export const PriceText = ({
 
     return (
       <>
-        {formatCurrency(perUnitPrice, currency)}
+        {formatCurrency(perUnitPrice, { locale, currency })}
         <sub>/{getFeatureName(feature, 1)}</sub>
         {" + "}
-        {formatCurrency(flatAmount, currency)}
+        {formatCurrency(flatAmount, { locale, currency })}
         {period && <sub>/{shortenPeriod(period)}</sub>}
       </>
     );
-  }, [feature, period, currency, flatAmount, perUnitPrice]);
+  }, [feature, period, currency, flatAmount, perUnitPrice, locale]);
 
   return (
     <Text

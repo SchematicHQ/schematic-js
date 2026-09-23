@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { createKeyboardExecutionHandler } from "../../../utils";
 import { Box, Button, Flex, Text } from "../../ui";
 

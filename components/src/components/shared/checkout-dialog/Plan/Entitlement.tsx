@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   EntitlementPriceBehavior,
@@ -8,6 +7,10 @@ import {
   type PlanEntitlementResponseData,
 } from "../../../../api/checkoutexternal";
 import { useEmbed, useIsLightBackground } from "../../../../hooks";
+import {
+  useTranslation,
+  type SchematicTranslationKey,
+} from "../../../../localization";
 import type { Credit } from "../../../../types";
 import {
   entitlementHasHardLimit,
@@ -45,7 +48,7 @@ export const Entitlement = ({
   credits,
   currency: selectedCurrency,
 }: EntitlementProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, settings, warningThresholdConfig } = useEmbed();
   const showWarningThresholdAsLimit =
@@ -112,7 +115,7 @@ export const Entitlement = ({
     ) {
       return (
         <>
-          {formatCurrency(price, currency)} {t("per")}{" "}
+          {formatCurrency(price, { locale, currency })} {t("per")}{" "}
           {packageSize > 1 && <>{packageSize} </>}
           {getFeatureName(entitlement.feature, packageSize)}
           {entitlement.priceBehavior ===
@@ -144,7 +147,7 @@ export const Entitlement = ({
       return (
         <>
           {typeof entitlement.consumptionRate === "number"
-            ? formatConsumptionRate(entitlement.consumptionRate)
+            ? formatConsumptionRate(entitlement.consumptionRate, locale)
             : entitlement.consumptionRate}{" "}
           {getFeatureName(
             entitlement.valueCredit,
@@ -191,7 +194,7 @@ export const Entitlement = ({
               })
             : typeof limit === "number" && (
                 <>
-                  {formatNumber(limit)}{" "}
+                  {formatNumber(limit, { locale })}{" "}
                   {getFeatureName(entitlement.feature, limit)}
                 </>
               )}
@@ -199,7 +202,7 @@ export const Entitlement = ({
           {metricPeriodName && (
             <>
               {" "}
-              {t("per")} {t(metricPeriodName)}
+              {t("per")} {t(metricPeriodName as SchematicTranslationKey)}
             </>
           )}
         </>
@@ -209,6 +212,7 @@ export const Entitlement = ({
     return entitlement.feature.name;
   }, [
     t,
+    locale,
     entitlement,
     period,
     credits,
@@ -232,7 +236,7 @@ export const Entitlement = ({
     ) {
       return (
         <>
-          {t("then")} {formatCurrency(price, currency)}/
+          {t("then")} {formatCurrency(price, { locale, currency })}/
           {packageSize > 1 && <>{packageSize} </>}
           {getFeatureName(entitlement.feature, packageSize)}
           {entitlement.feature.featureType === FeatureType.Trait && (
@@ -245,7 +249,7 @@ export const Entitlement = ({
     if (entitlement.priceBehavior === EntitlementPriceBehavior.Tier || tiered) {
       return t("Tier-based");
     }
-  }, [t, entitlement, period, price, currency, packageSize, tiered]);
+  }, [t, locale, entitlement, period, price, currency, packageSize, tiered]);
 
   return (
     <Flex

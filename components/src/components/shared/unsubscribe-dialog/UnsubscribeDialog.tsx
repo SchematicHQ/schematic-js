@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { useAvailablePlans, useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { getSubscriptionPeriod, toPrettyDate } from "../../../utils";
 import {
   Button,
@@ -19,7 +19,7 @@ interface UnsubscribeDialogProps {
 }
 
 export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, layout, setLayout, setCheckoutState, clearCheckoutState } =
     useEmbed();
@@ -147,7 +147,7 @@ export const UnsubscribeDialog = ({ top }: UnsubscribeDialogProps) => {
               {t(
                 "You will retain access to your plan until the end of the billing period, on",
               )}{" "}
-              {toPrettyDate(cancelDate)}
+              {toPrettyDate(cancelDate, { locale })}
             </Text>
           </Flex>
 

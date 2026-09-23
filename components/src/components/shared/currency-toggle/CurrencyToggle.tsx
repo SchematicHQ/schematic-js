@@ -1,4 +1,5 @@
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { getCurrencyFlag, getCurrencySymbol } from "../../../utils";
 import { Flex, Text } from "../../ui";
 
@@ -16,6 +17,7 @@ export const CurrencyToggle = ({
   disabled = false,
 }: CurrencyToggleProps) => {
   const { settings } = useEmbed();
+  const { locale } = useTranslation();
 
   const isLightBackground = useIsLightBackground();
 
@@ -49,7 +51,8 @@ export const CurrencyToggle = ({
           $weight={600}
         >
           {getCurrencyFlag(selectedCurrency)}{" "}
-          {getCurrencySymbol(selectedCurrency)} {selectedCurrency.toUpperCase()}
+          {getCurrencySymbol(selectedCurrency, locale)}{" "}
+          {selectedCurrency.toUpperCase()}
         </Text>
 
         <select
@@ -69,7 +72,7 @@ export const CurrencyToggle = ({
         >
           {currencies.map((currency) => (
             <option key={currency} value={currency}>
-              {getCurrencyFlag(currency)} {getCurrencySymbol(currency)}{" "}
+              {getCurrencyFlag(currency)} {getCurrencySymbol(currency, locale)}{" "}
               {currency.toUpperCase()}
             </option>
           ))}

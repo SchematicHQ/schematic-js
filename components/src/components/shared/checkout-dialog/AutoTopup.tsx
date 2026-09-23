@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import { PlanCreditGrantView } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import { AutoTopupConfig } from "../../../types";
 import {
   getFeatureName,

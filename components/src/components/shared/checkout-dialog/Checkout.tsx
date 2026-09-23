@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import type {
   CheckoutFieldWithValue,
   PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
 import { useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type {
   CreditBundle,
   SelectedPlan,

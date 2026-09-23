@@ -1,7 +1,6 @@
-import { useTranslation } from "react-i18next";
-
 import { CompanyPlanInvalidReason } from "../../../../api/checkoutexternal";
 import { useEmbed } from "../../../../hooks";
+import { useTranslation } from "../../../../localization";
 import { SelectedPlan } from "../../../../types";
 import { UsageViolationText } from "../../../shared";
 import { Button, Flex } from "../../../ui";

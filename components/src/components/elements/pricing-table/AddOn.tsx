@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 
 import {
   EntitlementPriceBehavior,
@@ -7,6 +6,7 @@ import {
 } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
 import { useEmbed, useIsLightBackground } from "../../../hooks";
+import { useTranslation } from "../../../localization";
 import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
@@ -48,20 +48,23 @@ interface MeteredEntitlementPricingProps {
   isTiered: boolean;
 }
 
-function renderMeteredEntitlementPricing({
-  priceBehavior,
-  softLimit,
-  price,
-  currency,
-  packageSize,
-  feature,
-  featureName,
-  isTiered,
-}: MeteredEntitlementPricingProps): React.ReactNode {
+function renderMeteredEntitlementPricing(
+  {
+    priceBehavior,
+    softLimit,
+    price,
+    currency,
+    packageSize,
+    feature,
+    featureName,
+    isTiered,
+  }: MeteredEntitlementPricingProps,
+  locale: string,
+): React.ReactNode {
   if (priceBehavior === EntitlementPriceBehavior.Overage && softLimit) {
     return (
       <>
-        Additional: {formatCurrency(price, currency)}/
+        Additional: {formatCurrency(price, { locale, currency })}/
         {feature
           ? getFeatureName(
               feature as Pick<
@@ -87,7 +90,7 @@ function renderMeteredEntitlementPricing({
   ) {
     return (
       <>
-        {formatCurrency(price, currency)}/
+        {formatCurrency(price, { locale, currency })}/
         {packageSize > 1 && <>{packageSize} </>}
         {feature
           ? getFeatureName(
@@ -126,7 +129,7 @@ export const AddOn = ({
 }: AddOnProps) => {
   const { layout } = sharedProps;
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data, settings, setCheckoutState, warningThresholdConfig } =
     useEmbed();
@@ -268,7 +271,10 @@ export const AddOn = ({
               t("Usage-based")
             ) : (
               <>
-                {formatCurrency(addOnPrice ?? 0, addOnCurrency)}
+                {formatCurrency(addOnPrice ?? 0, {
+                  locale,
+                  currency: addOnCurrency,
+                })}
                 <sub>/{selectedPeriod}</sub>
               </>
             )}
@@ -413,7 +419,10 @@ export const AddOn = ({
                       $size={0.875 * settings.theme.typography.text.fontSize}
                       $color={settings.theme.typography.text.color}
                     >
-                      {renderMeteredEntitlementPricing(meteredEntitlement)}
+                      {renderMeteredEntitlementPricing(
+                        meteredEntitlement,
+                        locale,
+                      )}
                     </Text>
                   </Flex>
                 );
