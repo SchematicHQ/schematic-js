@@ -194,7 +194,7 @@ describe("`SubscriptionSidebar` one-time add-ons", () => {
   it("keeps recurring add-ons in the add-ons section", () => {
     renderSidebar(buildAddOns());
 
-    expect(screen.getByText("Add ons")).toBeInTheDocument();
+    expect(screen.getByText("Add-ons")).toBeInTheDocument();
     expect(screen.getByText("Simple Add-on")).toBeInTheDocument();
   });
 

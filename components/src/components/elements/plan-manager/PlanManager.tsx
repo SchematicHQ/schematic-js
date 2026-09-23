@@ -511,7 +511,7 @@ export const PlanManager = forwardRef<
                 }
                 $leading="none"
               >
-                {t("Add ons")}
+                {t("Add-ons")}
               </Text>
             )}
 

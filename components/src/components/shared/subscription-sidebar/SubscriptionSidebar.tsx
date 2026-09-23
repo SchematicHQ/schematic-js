@@ -1222,7 +1222,7 @@ export const SubscriptionSidebar = forwardRef<
           {(willAddOnsChange || selectedAddOnsWithPrice.length > 0) && (
             <Flex $flexDirection="column" $gap="0.5rem" $marginBottom="1.5rem">
               <Box $opacity="0.625">
-                <Text $size={14}>{t("Add ons")}</Text>
+                <Text $size={14}>{t("Add-ons")}</Text>
               </Box>
 
               {removedAddOns.map((addOn, index) => {

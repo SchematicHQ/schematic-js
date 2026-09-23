@@ -384,7 +384,7 @@ export const PricingTable = forwardRef<
                     display={props.header.fontStyle}
                     style={{ margin: 0 }}
                   >
-                    {t("Add ons")}
+                    {t("Add-ons")}
                   </Text>
                 </Flex>
               )}

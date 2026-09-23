@@ -35,7 +35,7 @@ const { initializeWithPlan } = useEmbed();
 This function allows developers to create their own button that
 
 * Pre-selects a Plan
-* Pre-selects Add ons (if available)
+* Pre-selects add-ons (if available)
 * Skips and hides plan selection stages
 
 The `initializeWithPlan` function can be called with a Schematic plan ID, or
@@ -48,13 +48,13 @@ selection stage.
 initializeWithPlan('plan_VBXv4bHjSf3');
 ```
 
-Passing a config object allows pre-selecting Add ons and pay-in-advance
+Passing a config object allows pre-selecting add-ons and pay-in-advance
 quantities, as well as hiding specific stages.
 
 ```ts
 const config = {
   planId: 'plan_VBXv4bHjSf3',      // pre-select a Plan
-  addOnIds: ['plan_AWv7bPjSx2'],   // pre-select 1 or more Add ons
+  addOnIds: ['plan_AWv7bPjSx2'],   // pre-select 1 or more add-ons
   period: 'month',                 // pre-select 'month' or 'year' for the billing period (optional)
   payInAdvanceQuantities: {        // pre-fill pay-in-advance quantities, keyed by feature id (optional)
     feat_cns2asuKAG2: 3,           // "feat_cns2asuKAG2" is a feature id, 3 is the quantity
@@ -65,7 +65,7 @@ const config = {
     planStage: true,               // if true, skip Plan selection
     addOnStage: true,              // if true, skip Add-on selection
     usageStage: true,              // if true, skip the pay-in-advance Quantity stage
-    addOnUsageStage: true,         // if true, skip the Add on Quantity stage
+    addOnUsageStage: true,         // if true, skip the add-on Quantity stage
   },
   hideSkipped: true,               // if true, hide skipped stages from breadcrumb navigation
 };
@@ -90,7 +90,7 @@ you unsubscribe." It is shown by default; set it to `false` when your own UI
 states the billing terms. Hiding it does not affect the scheduled-downgrade
 notice that appears in the same spot.
 
-The Plans and Add ons available to the checkout flows must be live in your
+The Plans and add-ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).
 
 ## Programmatic Unsubscribe

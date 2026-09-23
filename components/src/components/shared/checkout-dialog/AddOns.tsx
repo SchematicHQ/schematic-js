@@ -435,7 +435,7 @@ export const AddOns = ({
                   $variant="outline"
                   $fullWidth
                 >
-                  {t("Choose add on")}
+                  {t("Choose add-on")}
                 </Button>
               ) : (
                 <Button
@@ -448,7 +448,7 @@ export const AddOns = ({
                   $fullWidth
                 >
                   {addOn.current ? (
-                    t("Remove add on")
+                    t("Remove add-on")
                   ) : (
                     <>
                       <Icon name="check-rounded" size="sm" />

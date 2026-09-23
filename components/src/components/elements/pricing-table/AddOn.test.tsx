@@ -161,7 +161,7 @@ describe("`AddOn` component", () => {
     // expect(screen.getByText("10,000 Extra API Calls")).toBeInTheDocument();
     // expect(screen.getByText("Priority Support")).toBeInTheDocument();
 
-    const ctaButton = screen.getByText("Choose add on");
+    const ctaButton = screen.getByText("Choose add-on");
     expect(ctaButton).toBeInTheDocument();
     expect(ctaButton).toHaveAttribute("href", "/checkout");
   });
@@ -178,7 +178,7 @@ describe("`AddOn` component", () => {
     );
 
     expect(screen.getByText("Active")).toBeInTheDocument();
-    expect(screen.getByText("Remove add on")).toBeInTheDocument();
+    expect(screen.getByText("Remove add-on")).toBeInTheDocument();
   });
 
   test("renders yearly pricing when selected", () => {
@@ -204,7 +204,7 @@ describe("`AddOn` component", () => {
       />,
     );
 
-    expect(screen.getByText("Change add on")).toBeInTheDocument();
+    expect(screen.getByText("Change add-on")).toBeInTheDocument();
   });
 
   test("hides features when `showEntitlements` is 'false'", () => {
