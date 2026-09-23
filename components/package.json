@@ -58,6 +58,7 @@
     "build:types": "pnpm exec tsc && pnpm exec api-extractor run && pnpm exec api-extractor run -c api-extractor-elements.json",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "icons": "node scripts/inline-icons.mjs",
     "lint": "eslint src",
     "openapi": "./generate_openapi.sh -c ./src/api/config_checkoutexternal.yml && ./generate_openapi.sh -c ./src/api/config_componentspublic.yml",
     "test": "./test.sh && pnpm run tsc:check",
