@@ -114,9 +114,9 @@ export const paymentMethodsCss = `
   border-radius: 9999px;
   color: var(--schematic-muted);
   cursor: pointer;
-  font-size: 1.25rem;
+  font-size: 0.875rem;
   line-height: 1;
-  padding: 0 0.25rem;
+  padding: 0.25rem;
 }
 
 .schematic-payment-methods__remove:hover:not(:disabled) {
