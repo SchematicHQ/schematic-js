@@ -52,101 +52,95 @@ import {
 /**
  *
  * @export
- * @interface ChangeSubscriptionRequestBody
+ * @interface CheckoutSelectionsResponseData
  */
-export interface ChangeSubscriptionRequestBody {
+export interface CheckoutSelectionsResponseData {
   /**
    *
    * @type {Array<UpdateAddOnRequestBody>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   addOnIds: Array<UpdateAddOnRequestBody>;
   /**
    *
    * @type {Array<UpdateAutoTopupOverrideRequestBody>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   autoTopupOverrides: Array<UpdateAutoTopupOverrideRequestBody>;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   billingEntityId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   couponExternalId?: string | null;
   /**
    *
    * @type {Array<UpdateCreditBundleRequestBody>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   creditBundles: Array<UpdateCreditBundleRequestBody>;
   /**
-   * ISO 4217 currency this cart is being built in. Prices are still selected by id; this records the intent, and a cart that prices in another currency is reported as a problem.
-   * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
-   */
-  currency?: string | null;
-  /**
    *
    * @type {Array<CheckoutFieldValue>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   customFieldValues: Array<CheckoutFieldValue>;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
-  newPlanId: string;
+  newPlanId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
-  newPriceId: string;
+  newPriceId?: string | null;
   /**
    *
    * @type {boolean}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   optInAccepted?: boolean | null;
   /**
    *
    * @type {Array<UpdatePayInAdvanceRequestBody>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   payInAdvance: Array<UpdatePayInAdvanceRequestBody>;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   paymentMethodId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   promoCode?: string | null;
   /**
    *
    * @type {boolean}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof CheckoutSelectionsResponseData
    */
   skipTrial: boolean;
 }
 
 /**
- * Check if a given object implements the ChangeSubscriptionRequestBody interface.
+ * Check if a given object implements the CheckoutSelectionsResponseData interface.
  */
-export function instanceOfChangeSubscriptionRequestBody(
+export function instanceOfCheckoutSelectionsResponseData(
   value: object,
-): value is ChangeSubscriptionRequestBody {
+): value is CheckoutSelectionsResponseData {
   if (!("addOnIds" in value) || value["addOnIds"] === undefined) return false;
   if (
     !("autoTopupOverrides" in value) ||
@@ -160,25 +154,22 @@ export function instanceOfChangeSubscriptionRequestBody(
     value["customFieldValues"] === undefined
   )
     return false;
-  if (!("newPlanId" in value) || value["newPlanId"] === undefined) return false;
-  if (!("newPriceId" in value) || value["newPriceId"] === undefined)
-    return false;
   if (!("payInAdvance" in value) || value["payInAdvance"] === undefined)
     return false;
   if (!("skipTrial" in value) || value["skipTrial"] === undefined) return false;
   return true;
 }
 
-export function ChangeSubscriptionRequestBodyFromJSON(
+export function CheckoutSelectionsResponseDataFromJSON(
   json: any,
-): ChangeSubscriptionRequestBody {
-  return ChangeSubscriptionRequestBodyFromJSONTyped(json, false);
+): CheckoutSelectionsResponseData {
+  return CheckoutSelectionsResponseDataFromJSONTyped(json, false);
 }
 
-export function ChangeSubscriptionRequestBodyFromJSONTyped(
+export function CheckoutSelectionsResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): ChangeSubscriptionRequestBody {
+): CheckoutSelectionsResponseData {
   if (json == null) {
     return json;
   }
@@ -198,12 +189,11 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
     creditBundles: (json["credit_bundles"] as Array<any>).map(
       UpdateCreditBundleRequestBodyFromJSON,
     ),
-    currency: json["currency"] == null ? undefined : json["currency"],
     customFieldValues: (json["custom_field_values"] as Array<any>).map(
       CheckoutFieldValueFromJSON,
     ),
-    newPlanId: json["new_plan_id"],
-    newPriceId: json["new_price_id"],
+    newPlanId: json["new_plan_id"] == null ? undefined : json["new_plan_id"],
+    newPriceId: json["new_price_id"] == null ? undefined : json["new_price_id"],
     optInAccepted:
       json["opt_in_accepted"] == null ? undefined : json["opt_in_accepted"],
     payInAdvance: (json["pay_in_advance"] as Array<any>).map(
@@ -216,14 +206,14 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
   };
 }
 
-export function ChangeSubscriptionRequestBodyToJSON(
+export function CheckoutSelectionsResponseDataToJSON(
   json: any,
-): ChangeSubscriptionRequestBody {
-  return ChangeSubscriptionRequestBodyToJSONTyped(json, false);
+): CheckoutSelectionsResponseData {
+  return CheckoutSelectionsResponseDataToJSONTyped(json, false);
 }
 
-export function ChangeSubscriptionRequestBodyToJSONTyped(
-  value?: ChangeSubscriptionRequestBody | null,
+export function CheckoutSelectionsResponseDataToJSONTyped(
+  value?: CheckoutSelectionsResponseData | null,
   ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
@@ -242,7 +232,6 @@ export function ChangeSubscriptionRequestBodyToJSONTyped(
     credit_bundles: (value["creditBundles"] as Array<any>).map(
       UpdateCreditBundleRequestBodyToJSON,
     ),
-    currency: value["currency"],
     custom_field_values: (value["customFieldValues"] as Array<any>).map(
       CheckoutFieldValueToJSON,
     ),

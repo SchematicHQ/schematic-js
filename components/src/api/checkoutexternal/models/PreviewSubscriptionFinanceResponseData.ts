@@ -41,6 +41,12 @@ export interface PreviewSubscriptionFinanceResponseData {
    */
   amountOff: number;
   /**
+   * ISO 4217 currency every amount in this block is denominated in.
+   * @type {string}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  currency: string;
+  /**
    *
    * @type {number}
    * @memberof PreviewSubscriptionFinanceResponseData
@@ -145,6 +151,7 @@ export function instanceOfPreviewSubscriptionFinanceResponseData(
   value: object,
 ): value is PreviewSubscriptionFinanceResponseData {
   if (!("amountOff" in value) || value["amountOff"] === undefined) return false;
+  if (!("currency" in value) || value["currency"] === undefined) return false;
   if (!("discountAmount" in value) || value["discountAmount"] === undefined)
     return false;
   if (!("discounts" in value) || value["discounts"] === undefined) return false;
@@ -192,6 +199,7 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
   }
   return {
     amountOff: json["amount_off"],
+    currency: json["currency"],
     discountAmount: json["discount_amount"],
     discounts: (json["discounts"] as Array<any>).map(
       PreviewSubscriptionDiscountResponseDataFromJSON,
@@ -236,6 +244,7 @@ export function PreviewSubscriptionFinanceResponseDataToJSONTyped(
 
   return {
     amount_off: value["amountOff"],
+    currency: value["currency"],
     discount_amount: value["discountAmount"],
     discounts: (value["discounts"] as Array<any>).map(
       PreviewSubscriptionDiscountResponseDataToJSON,
