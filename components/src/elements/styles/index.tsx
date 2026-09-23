@@ -2,6 +2,7 @@ import React from "react";
 
 import { invoicesCss } from "./invoices";
 import { withTokenDefaults } from "./tokens";
+import { upcomingBillCss } from "./upcoming-bill";
 
 export { SCHEMATIC_TOKENS, schematicTokensCss } from "./tokens";
 
@@ -49,6 +50,12 @@ const rulesCss = `
   align-items: center;
   display: flex;
   gap: var(--schematic-space);
+}
+
+/* The message may run long; the action beside it stays one line. */
+.schematic-status__retry {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* Visually hidden, still read by assistive technology. */
@@ -317,6 +324,22 @@ const rulesCss = `
   margin: 0 0 calc(var(--schematic-space) / 2);
 }
 
+/* A label on the left, its value on the right. */
+.schematic-row {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--schematic-space);
+  justify-content: space-between;
+}
+
+.schematic-row__label {
+  font-weight: 600;
+}
+
+.schematic-row__value {
+  text-align: end;
+}
+
 .schematic-feature-list {
   display: flex;
   flex-direction: column;
@@ -503,6 +526,7 @@ const rulesCss = `
 }
 
 ${invoicesCss}
+${upcomingBillCss}
 `;
 
 /**

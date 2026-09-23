@@ -5,6 +5,7 @@ import {
 import { render } from "@testing-library/react";
 
 import { Invoices } from "../Invoices";
+import { UpcomingBill } from "../UpcomingBill";
 import { invoice, invoicePage } from "../fixtures/builders";
 import { SCENARIOS } from "../fixtures/scenarios";
 
@@ -21,11 +22,11 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped.
  */
 const SHIPPED =
-  /schematic-(invoices|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own.
- * Invoices passes one, so nothing here can match it.
+ * Every shipped element passes one, so nothing here can match it.
  */
 const UNREACHABLE = new Set([".schematic-skeleton:empty"]);
 
@@ -88,6 +89,18 @@ function everyCard() {
     } as never),
     tree(<Invoices locale="en-US" />, SCENARIOS.pro(), {
       invoices: { error: boom },
+    } as never),
+    tree(<UpcomingBill locale="en-US" />, SCENARIOS.pro()),
+    tree(<UpcomingBill locale="en-US" />, SCENARIOS.trialing()),
+    tree(<UpcomingBill locale="en-US" />, SCENARIOS.unbilled()),
+    tree(<UpcomingBill locale="en-US" />, {}, {
+      upcomingInvoice: { isPending: true },
+    } as never),
+    tree(<UpcomingBill locale="en-US" />, {}, {
+      upcomingInvoice: { error: boom },
+    } as never),
+    tree(<UpcomingBill locale="en-US" />, SCENARIOS.pro(), {
+      upcomingInvoice: { error: boom },
     } as never),
   ];
 }
