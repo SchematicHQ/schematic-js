@@ -98,6 +98,7 @@ function buildPreviewResponse(): PreviewCheckoutResponse {
       dueNow: 1000,
       finance: {
         amountOff: 0,
+        currency: "usd",
         discountAmount: 0,
         discounts: [],
         dueNow: 1000,
