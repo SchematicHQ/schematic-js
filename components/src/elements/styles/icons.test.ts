@@ -1,6 +1,5 @@
-import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
+import { iconsList } from "@schematichq/schematic-icons";
+import packageCss from "@schematichq/schematic-icons/styles.css?raw";
 
 import { iconsCss } from "./icons";
 
@@ -10,16 +9,11 @@ import { schematicStylesCss } from ".";
  * icons.ts is generated from the installed `@schematichq/schematic-icons`
  * by scripts/inline-icons.mjs. These tests hold the generated file to the
  * package it was cut from, so a bump without `pnpm run icons` fails here.
+ * `iconsList` is the package's glyph map, the same data as its
+ * schematic-icons.json.
  */
 
-const require = createRequire(import.meta.url);
-// `styles.css` is the only file path the package exports; the glyph map
-// sits beside it.
-const cssPath = require.resolve("@schematichq/schematic-icons/styles.css");
-const packageCss = readFileSync(cssPath, "utf8");
-const glyphs: Record<string, number> = JSON.parse(
-  readFileSync(join(dirname(cssPath), "schematic-icons.json"), "utf8"),
-);
+const glyphs: Record<string, number> = iconsList;
 
 function base64Of(css: string): string {
   const match = css.match(/base64,([A-Za-z0-9+/=]+)/);
@@ -28,6 +22,9 @@ function base64Of(css: string): string {
   }
   return match[1];
 }
+
+const glyphRule = (name: string, codepoint: number) =>
+  `.schematic-icon--${name}::before {\n  content: "\\${codepoint.toString(16)}";\n}`;
 
 describe("the inlined icon font", () => {
   test("is the one the installed package ships", () => {
@@ -50,10 +47,7 @@ describe("the inlined icon font", () => {
     const names = Object.keys(glyphs);
     expect(names.length).toBeGreaterThan(0);
     for (const name of names) {
-      const codepoint = glyphs[name].toString(16);
-      expect(iconsCss).toContain(
-        `.schematic-icon--${name}::before {\n  content: "\\${codepoint}";\n}`,
-      );
+      expect(iconsCss).toContain(glyphRule(name, glyphs[name]));
     }
     expect(
       iconsCss.match(/\.schematic-icon--[a-z0-9-]+::before/g),
@@ -62,9 +56,7 @@ describe("the inlined icon font", () => {
 
   test("puts the Visa mark where the package does", () => {
     expect(glyphs.visa).toBeDefined();
-    expect(iconsCss).toContain(
-      `.schematic-icon--visa::before {\n  content: "\\${glyphs.visa.toString(16)}";\n}`,
-    );
+    expect(iconsCss).toContain(glyphRule("visa", glyphs.visa));
   });
 
   test("reaches the packaged stylesheet once, after the token pass", () => {
