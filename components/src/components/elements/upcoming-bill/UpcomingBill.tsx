@@ -273,10 +273,10 @@ export const UpcomingBill = forwardRef<
                         const label =
                           typeof discount.percentOff === "number" &&
                           discount.percentOff > 0
-                            ? t("Percent off", {
+                            ? t("X% off", {
                                 percent: discount.percentOff,
                               })
-                            : t("Amount off", {
+                            : t("X off", {
                                 amount: formatCurrency(
                                   discount.amountOff as number, // active discounts always carry a positive amount or percent
                                   { locale, currency: discount?.currency },

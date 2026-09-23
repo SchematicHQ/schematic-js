@@ -1,17 +1,22 @@
-import type { i18n as I18n } from "i18next";
-import { createContext, useCallback, useContext, useMemo } from "react";
-import { useTranslation as useI18nextTranslation } from "react-i18next";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 
 import { resolveLocale } from "../elements/model/format";
 
 import {
   DEFAULT_LANGUAGE,
   LOOKUP_OPTIONS,
-  SCHEMATIC_NAMESPACE,
   createSchematicI18n,
   i18n as defaultI18n,
 } from "./i18n";
 import type {
+  SchematicI18nInstance,
   SchematicTranslations,
   Translate,
   TranslationOptions,
@@ -19,9 +24,9 @@ import type {
 
 interface LocalizationContextValue {
   /** The host's own instance, consulted first. */
-  host?: I18n;
+  host?: SchematicI18nInstance;
   /** Ours: the English bundle plus any `translations` the host supplied. */
-  fallback: I18n;
+  fallback: SchematicI18nInstance;
   locale?: string;
 }
 
@@ -31,7 +36,7 @@ const LocalizationContext = createContext<LocalizationContextValue>({
 
 export interface LocalizationProviderProps {
   children: React.ReactNode;
-  i18n?: I18n;
+  i18n?: SchematicI18nInstance;
   translations?: Record<string, SchematicTranslations>;
   locale?: string;
 }
@@ -42,9 +47,13 @@ export const LocalizationProvider = ({
   translations,
   locale,
 }: LocalizationProviderProps) => {
+  // Keyed on content, not identity: `translations={{ it }}` written inline is
+  // a new object every render, and must not build a new instance each time.
+  const serialized = translations ? JSON.stringify(translations) : undefined;
   const fallback = useMemo(
-    () => (translations ? createSchematicI18n(translations) : defaultI18n),
-    [translations],
+    () =>
+      serialized ? createSchematicI18n(JSON.parse(serialized)) : defaultI18n,
+    [serialized],
   );
 
   const value = useMemo(
@@ -74,12 +83,7 @@ export interface UseTranslationResult {
 export function useTranslation(): UseTranslationResult {
   const { host, fallback, locale } = useContext(LocalizationContext);
 
-  // Subscribes to the active instance's language changes. Suspense is off:
-  // a host instance loading the namespace from a backend must not suspend us.
-  useI18nextTranslation(SCHEMATIC_NAMESPACE, {
-    i18n: host ?? fallback,
-    useSuspense: false,
-  });
+  useHostChanges(host);
 
   const language = locale ?? host?.resolvedLanguage ?? host?.language;
   const resolvedLocale = resolveLocale(language);
@@ -107,9 +111,57 @@ export function useTranslation(): UseTranslationResult {
 }
 
 /**
+ * The host instance's events that can change what a key resolves to. Its
+ * store's `added` covers a backend delivering our namespace after mount.
+ *
+ * Subscribed to directly rather than through react-i18next, whose hook loads
+ * the namespace it is given: a host with a backend would fetch a `schematic`
+ * bundle it may not have.
+ */
+const HOST_EVENTS = ["initialized", "languageChanged", "loaded"] as const;
+
+function useHostChanges(host: SchematicI18nInstance | undefined): void {
+  // Each change bumps the version, so `useSyncExternalStore` sees a new
+  // snapshot. Nothing reads the number itself.
+  const version = useRef(0);
+
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      if (!host) {
+        return () => {};
+      }
+
+      const handler = () => {
+        version.current += 1;
+        onChange();
+      };
+      for (const event of HOST_EVENTS) {
+        host.on(event, handler);
+      }
+      host.store?.on("added", handler);
+
+      return () => {
+        for (const event of HOST_EVENTS) {
+          host.off(event, handler);
+        }
+        host.store?.off("added", handler);
+      };
+    },
+    [host],
+  );
+
+  useSyncExternalStore(
+    subscribe,
+    () => version.current,
+    () => version.current,
+  );
+}
+
+/**
  * Numbers interpolated into copy are formatted for the locale, so a quantity
  * reads `20,000` or `20.000` rather than `20000`. `count` stays a number:
- * i18next picks the plural form from it.
+ * i18next picks the plural form from it, and the bundle formats it with
+ * `{{count, number}}`.
  */
 function formatNumbers(
   options: TranslationOptions | undefined,

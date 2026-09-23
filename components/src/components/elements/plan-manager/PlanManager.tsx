@@ -492,7 +492,7 @@ export const PlanManager = forwardRef<
 
                   {!isFreePlan && currentPlanPeriod && (
                     <Text display={props.header.price.fontStyle}>
-                      <sub>/{shortenPeriod(currentPlanPeriod)}</sub>
+                      <sub>/{shortenPeriod(currentPlanPeriod, t)}</sub>
                     </Text>
                   )}
                 </Box>
@@ -719,7 +719,7 @@ export const PlanManager = forwardRef<
                                     group,
                                     resolvedTotal,
                                   ),
-                                  period: shortenPeriod(creditPeriod),
+                                  period: shortenPeriod(creditPeriod, t),
                                 })
                               : t("X licenses times Y credits", {
                                   quantity: licenseQuantity,
@@ -733,7 +733,7 @@ export const PlanManager = forwardRef<
                                     group,
                                     resolvedTotal,
                                   ),
-                                  period: shortenPeriod(creditPeriod),
+                                  period: shortenPeriod(creditPeriod, t),
                                 })}
                           </Text>
                         )}

@@ -4,6 +4,7 @@ export * from "./hooks";
 export {
   SCHEMATIC_NAMESPACE,
   schematicTranslationsEn,
+  type SchematicI18nInstance,
   type SchematicTranslationKey,
   type SchematicTranslations,
 } from "./localization";

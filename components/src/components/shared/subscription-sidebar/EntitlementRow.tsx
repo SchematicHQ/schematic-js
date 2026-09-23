@@ -101,7 +101,7 @@ export const EntitlementRow = (
                   calculateQuantityCost(entitlementPrice, quantity),
                   { locale, currency },
                 )}
-                <sub>/{shortenPeriod(planPeriod)}</sub>
+                <sub>/{shortenPeriod(planPeriod, t)}</sub>
               </Text>
 
               {tiered && tierLabel}
@@ -117,7 +117,7 @@ export const EntitlementRow = (
                 /{packageSize > 1 && <>{packageSize} </>}
                 {getFeatureName(feature, packageSize)}
                 {feature.featureType === FeatureType.Trait && (
-                  <>/{shortenPeriod(planPeriod)}</>
+                  <>/{shortenPeriod(planPeriod, t)}</>
                 )}
               </sub>
             </Text>

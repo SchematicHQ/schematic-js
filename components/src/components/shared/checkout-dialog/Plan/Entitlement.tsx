@@ -240,7 +240,7 @@ export const Entitlement = ({
           {packageSize > 1 && <>{packageSize} </>}
           {getFeatureName(entitlement.feature, packageSize)}
           {entitlement.feature.featureType === FeatureType.Trait && (
-            <>/{shortenPeriod(period)}</>
+            <>/{shortenPeriod(period, t)}</>
           )}
         </>
       );

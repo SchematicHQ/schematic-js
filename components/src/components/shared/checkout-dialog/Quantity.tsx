@@ -185,7 +185,7 @@ export const Quantity = ({
                         ),
                         { locale, currency },
                       )}
-                      <sub>/{shortenPeriod(period)}</sub>
+                      <sub>/{shortenPeriod(period, t)}</sub>
                     </Text>
                   </Box>
 
@@ -221,7 +221,7 @@ export const Quantity = ({
                         <sub>
                           /{packageSize > 1 && <>{packageSize} </>}
                           {getFeatureName(entitlement.feature, packageSize)}/
-                          {shortenPeriod(period)}
+                          {shortenPeriod(period, t)}
                         </sub>
                       </Text>
                     )}
@@ -264,7 +264,7 @@ export const Quantity = ({
                           licenseCredit,
                           includedCredits,
                         ),
-                        period: shortenPeriod(licenseCredit.period),
+                        period: shortenPeriod(licenseCredit.period, t),
                       })}
                     </Text>
                   </Flex>

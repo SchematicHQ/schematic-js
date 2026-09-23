@@ -1,3 +1,5 @@
+import type { Translate } from "../localization";
+
 /** `locale` is the BCP 47 tag from `useTranslation`. */
 export interface DateFormatOptions extends Intl.DateTimeFormatOptions {
   locale: string;
@@ -25,14 +27,15 @@ export function getMonthName(
   }).format(new Date(date));
 }
 
-export function shortenPeriod(period: string) {
+/** The abbreviations are bundle keys, so a translation owns them. */
+export function shortenPeriod(period: string, t: Translate) {
   switch (period) {
     case "month":
-      return "mo";
+      return t("mo");
     case "quarter":
-      return "qtr";
+      return t("qtr");
     case "year":
-      return "yr";
+      return t("yr");
   }
 }
 
