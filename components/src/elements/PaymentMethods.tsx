@@ -324,7 +324,10 @@ function PaymentMethodsDialog({
                           type="button"
                           onClick={() => onRemove(row)}
                         >
-                          ×
+                          <i
+                            aria-hidden="true"
+                            className="schematic-icon schematic-icon--close"
+                          />
                         </button>
                       )}
                     </li>
