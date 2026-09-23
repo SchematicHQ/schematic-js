@@ -39,15 +39,19 @@ export const dialogCss = `
   margin: 0;
 }
 
+/* Holds the close glyph; its font-size is the glyph's. */
 .schematic-dialog__close {
+  align-items: center;
   background: none;
   border: none;
   border-radius: 9999px;
   color: var(--schematic-muted);
   cursor: pointer;
-  font-size: 1.5rem;
+  display: inline-flex;
+  font-size: 1.25rem;
+  justify-content: center;
   line-height: 1;
-  padding: 0.125rem 0.375rem;
+  padding: calc(var(--schematic-space) / 4);
 }
 
 .schematic-dialog__close:hover {

@@ -321,7 +321,10 @@ export const Dialog: React.FC<{
           type="button"
           onClick={onClose}
         >
-          ×
+          <i
+            aria-hidden="true"
+            className="schematic-icon schematic-icon--close"
+          />
         </button>
       </div>
       <div className="schematic-dialog__body">{children}</div>

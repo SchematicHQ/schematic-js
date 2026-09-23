@@ -38,6 +38,14 @@ export const paymentMethodsCss = `
   gap: 0.25em;
 }
 
+/* The brand's mark before the label, in the label's colour. */
+.schematic-payment-methods__icon {
+  color: currentColor;
+  flex-shrink: 0;
+  font-size: 1.25em;
+  margin-inline-end: calc(var(--schematic-space) / 4);
+}
+
 .schematic-payment-methods__last4 {
   font-variant-numeric: tabular-nums;
 }
@@ -51,22 +59,17 @@ export const paymentMethodsCss = `
   white-space: nowrap;
 }
 
-/* The toggle that reveals the other methods, with its chevron. */
+/* The toggle that reveals the other methods, with its chevron: down while
+   folded, up while unfolded, each its own glyph. */
 .schematic-payment-methods__choose {
   align-items: center;
   align-self: flex-start;
   display: inline-flex;
-  gap: 0.5rem;
+  gap: calc(var(--schematic-space) / 4);
 }
 
 .schematic-payment-methods__chevron {
-  display: inline-block;
-  font-size: 0.75em;
-  transition: transform 0.15s;
-}
-
-.schematic-payment-methods__choose[aria-expanded="true"] .schematic-payment-methods__chevron {
-  transform: rotate(180deg);
+  font-size: 1em;
 }
 
 .schematic-payment-methods__list {
