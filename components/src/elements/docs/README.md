@@ -152,6 +152,13 @@ custom properties: `accent`, `accent-contrast`, `backdrop`, `background`,
 `primary`, `primary-contrast`, `radius`, `shadow`, `space`, `surface`,
 `text`, `warning`.
 
+The same sheet carries the schematic-icons font, inlined as a `data:` URL,
+and its glyph rules: the brand marks on payment methods, the dialog's close
+control, the chevrons. A host whose Content Security Policy sets a
+`font-src` directive needs `data:` in it, or the browser refuses the font
+and every glyph renders empty. Each glyph is `aria-hidden` and sits beside
+its text, so nothing is lost but the mark.
+
 ### Light and dark
 
 The elements follow `color-scheme`. Declare it wherever your theme is
@@ -199,7 +206,11 @@ Overriding `background` and `text` alone leaves a card looking half-themed —
 `border`, `card-divider`, and `shadow` carry the rest.
 
 Or skip the stylesheet and write your own against the class names below —
-they are API, and each element's doc shows the tree it renders.
+they are API, and each element's doc shows the tree it renders. A sheet of
+your own has to bring the icon font too: import
+`@schematichq/schematic-icons/styles.css` (the package is a dependency of
+this one) and give `.schematic-icon` its `font-family`, or the glyphs render
+empty. The sheet `<SchematicStyles />` injects does both.
 
 | Class                         | Where                                                      |
 | ----------------------------- | ---------------------------------------------------------- |
@@ -212,6 +223,8 @@ they are API, and each element's doc shows the tree it renders.
 | `schematic-badge`             | A filled pill.                                             |
 | `schematic-cta`               | Filled action; `--outline` and `--small` modifiers.        |
 | `schematic-link-button`       | Inline text action ("See more", "Try again", "Load more"). |
+| `schematic-icon`              | A glyph from the icon font, always `aria-hidden`.          |
+| `schematic-icon--<name>`      | Which glyph: a brand mark, `close`, `chevron-down`, …      |
 | `schematic-status`            | The error row that replaces a card's content.              |
 | `schematic-status__message`   | The message within it.                                     |
 | `schematic-status__retry`     | Its retry action.                                          |

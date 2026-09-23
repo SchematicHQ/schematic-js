@@ -46,6 +46,7 @@ describe("derivePaymentMethods", () => {
       kind: "card",
       type: "card",
       label: { key: "paymentMethodsCardEndingIn" },
+      icon: "visa",
       brand: "visa",
       last4: "4444",
       expiresShort: "8/27",
@@ -60,6 +61,43 @@ describe("derivePaymentMethods", () => {
     expect(one({ cardBrand: "MasterCard" }).brand).toBe("mastercard");
     expect(one({ cardBrand: null }).brand).toBe("card");
     expect(one({ cardBrand: "" }).brand).toBe("card");
+  });
+
+  describe("the icon, as the embed maps it", () => {
+    test.each([
+      ["visa", "visa"],
+      ["mastercard", "mastercard"],
+      ["MasterCard", "mastercard"],
+      ["amex", "amex"],
+    ])("a %s card wears the network's mark", (cardBrand, icon) => {
+      expect(one({ cardBrand }).icon).toBe(icon);
+    });
+
+    test("a card of any other network, or none, is a generic card", () => {
+      expect(one({ cardBrand: "discover" }).icon).toBe("credit");
+      expect(one({ cardBrand: null }).icon).toBe("credit");
+      expect(one({ cardBrand: "" }).icon).toBe("credit");
+    });
+
+    test("a bank account of any kind is a bank", () => {
+      expect(typed("us_bank_account").icon).toBe("bank");
+      expect(typed("sepa_debit").icon).toBe("bank");
+    });
+
+    test.each([
+      ["apple_pay", "applepay"],
+      ["google_pay", "google"],
+      ["cashapp", "cashapp"],
+      ["paypal", "paypal"],
+      ["link", "link"],
+      ["amazon_pay", "amazonpay"],
+    ])("%s wears its own mark, %s", (type, icon) => {
+      expect(typed(type).icon).toBe(icon);
+    });
+
+    test("a type nobody mapped wears the generic mark", () => {
+      expect(typed("wechat_pay").icon).toBe("generic-payment");
+    });
   });
 
   test("a card with no digits has nothing to end in, so it is a generic method", () => {

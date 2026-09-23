@@ -46,12 +46,34 @@ export type PaymentMethodLabel =
   | { key: PaymentMethodLabelKey; text?: undefined }
   | { text: string; key?: undefined };
 
+/**
+ * The glyph beside a row's label, by its name in the schematic-icons font:
+ * the card network where the font has its mark, a generic card otherwise,
+ * the wallet's own mark, a bank for any account, and `generic-payment` for
+ * a type nobody mapped. The element renders it as
+ * `schematic-icon schematic-icon--<icon>`.
+ */
+export type PaymentMethodIcon =
+  | "visa"
+  | "mastercard"
+  | "amex"
+  | "credit"
+  | "bank"
+  | "applepay"
+  | "google"
+  | "cashapp"
+  | "paypal"
+  | "link"
+  | "amazonpay"
+  | "generic-payment";
+
 export interface PaymentMethodRow {
   id: string;
   /** The provider's id, which is what "set default" is asked with. */
   externalId: string;
   kind: PaymentMethodKind;
   label: PaymentMethodLabel;
+  icon: PaymentMethodIcon;
   /** The raw card brand, else the raw type; for `[data-brand]`. */
   brand: string;
   /** The wire type as sent: `card`, `us_bank_account`, `link`, … */
@@ -205,6 +227,38 @@ function kindOf(type: string): PaymentMethodKind {
   return WALLETS[type] === undefined ? "other" : "wallet";
 }
 
+/** The card networks the font has a mark for; any other card is `credit`. */
+const CARD_ICONS: Record<string, PaymentMethodIcon> = {
+  amex: "amex",
+  mastercard: "mastercard",
+  visa: "visa",
+};
+
+const WALLET_ICONS: Record<string, PaymentMethodIcon> = {
+  amazon_pay: "amazonpay",
+  apple_pay: "applepay",
+  cashapp: "cashapp",
+  google_pay: "google",
+  link: "link",
+  paypal: "paypal",
+};
+
+/** The embed's icon map, keyed the same way: brand for a card, type for
+ * the rest. */
+function iconOf(
+  type: string,
+  kind: PaymentMethodKind,
+  brand: string,
+): PaymentMethodIcon {
+  if (kind === "card") {
+    return CARD_ICONS[brand] ?? "credit";
+  }
+  if (kind === "bank") {
+    return "bank";
+  }
+  return WALLET_ICONS[type] ?? "generic-payment";
+}
+
 function last4Of(
   method: PaymentMethod,
   kind: PaymentMethodKind,
@@ -223,15 +277,17 @@ function deriveRow(method: PaymentMethod, now: Date): PaymentMethodRow {
   const { cardExpMonth: month, cardExpYear: year } = method;
   const hasExpiry = isMonth(month) && isYear(year);
   const monthsToExpiration = hasExpiry ? monthsUntil(month, year, now) : null;
+  const brand =
+    kind === "card" && cardBrand !== null
+      ? cardBrand.toLowerCase()
+      : method.type;
   return {
     id: method.id,
     externalId: method.externalId,
     kind,
     label: labelOf(method, kind, last4),
-    brand:
-      kind === "card" && cardBrand !== null
-        ? cardBrand.toLowerCase()
-        : method.type,
+    icon: iconOf(method.type, kind, brand),
+    brand,
     type: method.type,
     last4,
     expiresShort: hasExpiry ? shortExpiry(month, year) : null,

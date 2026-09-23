@@ -17,7 +17,7 @@ Four rules hold across the list, and the server applies them, not the element:
 
 `derivePaymentMethods` turns the wire rows into what the element shows. It returns the `rows`, the `current` one — the default, which is what the pill shows, or `null` when none is — and the `others`, which is every row but the default (all of them when there is no default). Alongside sit `monthsToExpiration` and `expiryWarning` for the header: `soon` when the default card has fewer than four months left, `expired` once its month has arrived, `none` otherwise. The months are whole calendar months from the current month to the card's, as the embed counts them; `now` fixes the moment they are counted from, for a test or a server render.
 
-Each row has a `kind` (`card`, `bank`, `wallet`, `other`), the `last4` digits that follow its label, `expiresShort` ("8/27", the embed's form, for a card), its own `monthsToExpiration` and `expiry`, and a `label`. The label is either `{ key }` — copy to resolve through the translator, such as `paymentMethodsCardEndingIn` for "Card ending in" — or `{ text }`, a value the provider supplied: the bank's name, the email behind a Link account, the account name behind PayPal or Cash App, or a wallet's own name when it supplied nothing. That split keeps the derivation pure and the translatable words in the string catalogue.
+Each row has a `kind` (`card`, `bank`, `wallet`, `other`), an `icon` (the glyph's name in the schematic-icons font, mapped as the embed maps it: `visa`, `mastercard`, or `amex` where the card's brand matches, `credit` for any other card, `bank` for an account, the wallet's own mark — `applepay`, `google`, `cashapp`, `paypal`, `link`, `amazonpay` — and `generic-payment` for a type nobody mapped), the `last4` digits that follow its label, `expiresShort` ("8/27", the embed's form, for a card), its own `monthsToExpiration` and `expiry`, and a `label`. The label is either `{ key }` — copy to resolve through the translator, such as `paymentMethodsCardEndingIn` for "Card ending in" — or `{ text }`, a value the provider supplied: the bank's name, the email behind a Link account, the account name behind PayPal or Cash App, or a wallet's own name when it supplied nothing. That split keeps the derivation pure and the translatable words in the string catalogue.
 
 ```tsx
 import {
@@ -85,8 +85,24 @@ does — "Card ending in 4444", "Apple Pay ending in 1881", the bank's name and
 the account's digits, a Link account by its email — with Edit on the right,
 or "No payment method added yet" with Add when nothing is on file. The pill
 shows the default only; the other methods live in the dialog. It carries
-`data-kind` and `data-brand` for a host that wants a brand mark before the
-label; the element draws none itself.
+`data-kind` and `data-brand` for a host that wants to style by either.
+
+### Icons
+
+Each method wears its brand's mark before the label — Visa, Mastercard,
+Amex, a generic card, a bank, or the wallet's own — and the dialog's close
+control and the chevron on "Choose different payment method" are glyphs of
+the same set. The glyphs come from the schematic-icons font, which
+`<SchematicStyles />` inlines, so nothing else has to be loaded. The class
+contract is `schematic-icon schematic-icon--<name>`, with the row's `icon`
+as the name; the method's mark also carries
+`schematic-payment-methods__icon`. Every glyph is `aria-hidden`, and the
+label stays beside it, so a host that blocks the font degrades to the text
+rather than to nothing.
+
+The font is a `data:` URL. A host whose Content Security Policy sets a
+`font-src` directive needs `data:` in it, or the browser refuses the font
+and the glyphs render empty.
 
 The pill offers no Remove. The server refuses to remove the default while
 other methods exist, and the last method on an active subscription, so a
@@ -192,6 +208,11 @@ tell them apart. The dialog renders inside the root while it is open.
       data-kind="card"
       data-brand="visa"
     >
+      <!-- the brand's mark; the name is the row's icon -->
+      <i
+        class="schematic-icon schematic-icon--visa schematic-payment-methods__icon"
+        aria-hidden="true"
+      ></i>
       <span class="schematic-payment-methods__label">Card ending in</span>
       <!-- omitted for a method with no digits -->
       <span class="schematic-payment-methods__last4">4444</span>
@@ -214,7 +235,9 @@ tell them apart. The dialog renders inside the root while it is open.
   >
     <div class="schematic-dialog__header">
       <h2 class="schematic-dialog__title" id="…">Edit payment details</h2>
-      <button class="schematic-dialog__close" aria-label="Close">×</button>
+      <button class="schematic-dialog__close" aria-label="Close">
+        <i class="schematic-icon schematic-icon--close" aria-hidden="true"></i>
+      </button>
     </div>
     <div class="schematic-dialog__body">
       <!-- the pill again, without Edit -->
@@ -225,9 +248,11 @@ tell them apart. The dialog renders inside the root while it is open.
         aria-expanded="true"
       >
         Choose different payment method
-        <span class="schematic-payment-methods__chevron" aria-hidden="true"
-          >▼</span
-        >
+        <!-- chevron-down while folded -->
+        <i
+          class="schematic-icon schematic-icon--chevron-up schematic-payment-methods__chevron"
+          aria-hidden="true"
+        ></i>
       </button>
 
       <!-- while unfolded; the list is omitted when there are no others -->
@@ -239,6 +264,10 @@ tell them apart. The dialog renders inside the root while it is open.
           data-testid="schematic-payment-method"
         >
           <span class="schematic-payment-methods__method" …>
+            <i
+              class="schematic-icon schematic-icon--bank schematic-payment-methods__icon"
+              aria-hidden="true"
+            ></i>
             <span class="schematic-payment-methods__label">Chase</span>
             <span class="schematic-payment-methods__last4">6789</span>
           </span>

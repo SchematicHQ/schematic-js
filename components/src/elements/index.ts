@@ -61,6 +61,7 @@ export {
   type InvoiceRow,
   type PaymentMethodExpiry,
   type PaymentMethodExpiryWarning,
+  type PaymentMethodIcon,
   type PaymentMethodKind,
   type PaymentMethodLabel,
   type PaymentMethodLabelKey,

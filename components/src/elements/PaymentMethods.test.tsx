@@ -208,6 +208,60 @@ describe("PaymentMethods", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
+  describe("the brand's mark", () => {
+    /** The glyph inside a method, and only it, as a decorative node. */
+    const mark = (scope: HTMLElement) =>
+      scope.querySelector(
+        ".schematic-payment-methods__method > .schematic-payment-methods__icon",
+      );
+
+    test("a Visa card wears the Visa glyph before its label, hidden from readers", () => {
+      renderCard();
+      const icon = mark(pill());
+      expect(icon).toHaveClass("schematic-icon", "schematic-icon--visa");
+      expect(icon).toHaveAttribute("aria-hidden", "true");
+      expect(icon?.tagName).toBe("I");
+      expect(icon?.nextElementSibling).toHaveClass(
+        "schematic-payment-methods__label",
+      );
+      expect(pill()).toHaveTextContent("Card ending in 4444");
+    });
+
+    test("a card of a network the font lacks wears the generic card", () => {
+      renderCard({
+        paymentMethods: [
+          cardPaymentMethod({ isDefault: true, cardBrand: "discover" }),
+        ],
+      });
+      expect(mark(pill())).toHaveClass("schematic-icon--credit");
+    });
+
+    test("a card with no brand wears the generic card", () => {
+      renderCard({
+        paymentMethods: [
+          cardPaymentMethod({ isDefault: true, cardBrand: null }),
+        ],
+      });
+      expect(mark(pill())).toHaveClass("schematic-icon--credit");
+    });
+
+    test("each row in the dialog wears its own", () => {
+      renderCard();
+      chooseDifferent();
+      const [bank, wallet] = rows();
+      expect(mark(bank)).toHaveClass("schematic-icon--bank");
+      expect(mark(wallet)).toHaveClass("schematic-icon--link");
+      for (const icon of document.querySelectorAll(".schematic-icon")) {
+        expect(icon).toHaveAttribute("aria-hidden", "true");
+      }
+    });
+
+    test("the empty pill wears none", () => {
+      renderCard(SCENARIOS.paymentMethodsEmpty());
+      expect(pill().querySelector(".schematic-icon")).toBeNull();
+    });
+  });
+
   test("with no default, the pill is empty and offers Add, whatever else is on file", () => {
     renderCard(SCENARIOS.paymentMethodsNoDefault());
     expect(pill()).toHaveTextContent("No payment method added yet");
@@ -341,6 +395,40 @@ describe("PaymentMethods", () => {
       const modal = openDialog();
       fireEvent.click(within(modal).getByRole("button", { name: "Close" }));
       expect(document.querySelector("dialog")).toBeNull();
+    });
+
+    test("the header's control is a glyph that keeps its name", () => {
+      renderCard();
+      const modal = openDialog();
+      const close = within(modal).getByRole("button", { name: "Close" });
+      expect(close).toHaveClass("schematic-dialog__close");
+      expect(close).toHaveTextContent("");
+      const glyph = close.querySelector("i");
+      expect(glyph).toHaveClass("schematic-icon", "schematic-icon--close");
+      expect(glyph).toHaveAttribute("aria-hidden", "true");
+    });
+
+    test("the chevron points down while folded and up while unfolded, and the toggle keeps its name", () => {
+      renderCard();
+      openDialog();
+      const toggle = screen.getByRole("button", {
+        name: "Choose different payment method",
+      });
+      const chevron = toggle.querySelector(
+        ".schematic-payment-methods__chevron",
+      );
+      expect(chevron).toHaveClass(
+        "schematic-icon",
+        "schematic-icon--chevron-down",
+      );
+      expect(chevron).toHaveAttribute("aria-hidden", "true");
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute("aria-expanded", "true");
+      expect(chevron).toHaveClass("schematic-icon--chevron-up");
+      expect(chevron).not.toHaveClass("schematic-icon--chevron-down");
+      expect(
+        screen.getByRole("button", { name: "Choose different payment method" }),
+      ).toBe(toggle);
     });
 
     test("Escape closes it", () => {

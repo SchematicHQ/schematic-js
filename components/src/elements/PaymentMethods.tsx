@@ -274,12 +274,16 @@ function PaymentMethodsDialog({
             onClick={onChoose}
           >
             {t("paymentMethodsChooseDifferent")}
-            <span
+            <i
               aria-hidden="true"
-              className="schematic-payment-methods__chevron"
-            >
-              ▼
-            </span>
+              className={cx(
+                "schematic-icon",
+                choosing
+                  ? "schematic-icon--chevron-up"
+                  : "schematic-icon--chevron-down",
+                "schematic-payment-methods__chevron",
+              )}
+            />
           </button>
           {choosing && (
             <>
@@ -393,7 +397,11 @@ function MethodPill({
   );
 }
 
-/** "Card ending in 4444": the label and the digits that follow it. */
+/**
+ * "Card ending in 4444": the brand's mark, the label, and the digits that
+ * follow it. The mark is decorative — the label already names the method —
+ * so a host that blocks the font loses nothing but the glyph.
+ */
 function Method({ row, t }: { row: PaymentMethodRow; t: Translator }) {
   return (
     <span
@@ -401,6 +409,10 @@ function Method({ row, t }: { row: PaymentMethodRow; t: Translator }) {
       data-brand={row.brand}
       data-kind={row.kind}
     >
+      <i
+        aria-hidden="true"
+        className={`schematic-icon schematic-icon--${row.icon} schematic-payment-methods__icon`}
+      />
       <span className="schematic-payment-methods__label">
         {labelText(row.label, t)}
       </span>
