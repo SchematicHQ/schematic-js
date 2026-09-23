@@ -38,6 +38,14 @@ const UNREACHABLE = new Set([
   ".schematic-payment-methods__select-existing",
 ]);
 
+/**
+ * The icon font's own rules: the base class and one `--<name>` per glyph in
+ * the package. Only a handful of the glyphs are rendered by any element, so
+ * the family is left out of the walk; icons.test.ts checks it against the
+ * package instead.
+ */
+const ICON_FAMILY = /^\.schematic-icon(--[a-z0-9-]+)?(::before)?$/;
+
 function shippedSelectors(): string[] {
   const stripped = schematicStylesCss
     .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -49,6 +57,7 @@ function shippedSelectors(): string[] {
       if (
         selector.startsWith(".schematic-") &&
         SHIPPED.test(selector) &&
+        !ICON_FAMILY.test(selector) &&
         !UNREACHABLE.has(selector)
       ) {
         out.add(selector);
