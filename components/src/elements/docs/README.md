@@ -207,10 +207,11 @@ Overriding `background` and `text` alone leaves a card looking half-themed —
 
 Or skip the stylesheet and write your own against the class names below —
 they are API, and each element's doc shows the tree it renders. A sheet of
-your own has to bring the icon font too: import
-`@schematichq/schematic-icons/styles.css` (the package is a dependency of
-this one) and give `.schematic-icon` its `font-family`, or the glyphs render
-empty. The sheet `<SchematicStyles />` injects does both.
+your own has to bring the icon font too: render `<style>{iconsCss}</style>`
+once (exported beside `SchematicStyles`; the font face and one
+`.schematic-icon--<name>` rule per glyph), or the glyphs render empty. The
+package's own `@schematichq/schematic-icons/styles.css` is not a substitute:
+it names its rules `.icon-<name>`, which the elements never use.
 
 | Class                         | Where                                                      |
 | ----------------------------- | ---------------------------------------------------------- |
