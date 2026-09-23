@@ -52,101 +52,107 @@ import {
 /**
  *
  * @export
- * @interface ChangeSubscriptionRequestBody
+ * @interface UpdateCheckoutRequest
  */
-export interface ChangeSubscriptionRequestBody {
+export interface UpdateCheckoutRequest {
   /**
    *
    * @type {Array<UpdateAddOnRequestBody>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   addOnIds: Array<UpdateAddOnRequestBody>;
   /**
    *
    * @type {Array<UpdateAutoTopupOverrideRequestBody>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   autoTopupOverrides: Array<UpdateAutoTopupOverrideRequestBody>;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   billingEntityId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   couponExternalId?: string | null;
   /**
    *
    * @type {Array<UpdateCreditBundleRequestBody>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   creditBundles: Array<UpdateCreditBundleRequestBody>;
   /**
    * ISO 4217 currency this cart is being built in. Prices are still selected by id; this records the intent, and a cart that prices in another currency is reported as a problem.
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   currency?: string | null;
   /**
    *
    * @type {Array<CheckoutFieldValue>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   customFieldValues: Array<CheckoutFieldValue>;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   newPlanId: string;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   newPriceId: string;
   /**
    *
    * @type {boolean}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   optInAccepted?: boolean | null;
   /**
    *
    * @type {Array<UpdatePayInAdvanceRequestBody>}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   payInAdvance: Array<UpdatePayInAdvanceRequestBody>;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   paymentMethodId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   promoCode?: string | null;
   /**
    *
    * @type {boolean}
-   * @memberof ChangeSubscriptionRequestBody
+   * @memberof UpdateCheckoutRequest
    */
   skipTrial: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof UpdateCheckoutRequest
+   */
+  version: number;
 }
 
 /**
- * Check if a given object implements the ChangeSubscriptionRequestBody interface.
+ * Check if a given object implements the UpdateCheckoutRequest interface.
  */
-export function instanceOfChangeSubscriptionRequestBody(
+export function instanceOfUpdateCheckoutRequest(
   value: object,
-): value is ChangeSubscriptionRequestBody {
+): value is UpdateCheckoutRequest {
   if (!("addOnIds" in value) || value["addOnIds"] === undefined) return false;
   if (
     !("autoTopupOverrides" in value) ||
@@ -166,19 +172,20 @@ export function instanceOfChangeSubscriptionRequestBody(
   if (!("payInAdvance" in value) || value["payInAdvance"] === undefined)
     return false;
   if (!("skipTrial" in value) || value["skipTrial"] === undefined) return false;
+  if (!("version" in value) || value["version"] === undefined) return false;
   return true;
 }
 
-export function ChangeSubscriptionRequestBodyFromJSON(
+export function UpdateCheckoutRequestFromJSON(
   json: any,
-): ChangeSubscriptionRequestBody {
-  return ChangeSubscriptionRequestBodyFromJSONTyped(json, false);
+): UpdateCheckoutRequest {
+  return UpdateCheckoutRequestFromJSONTyped(json, false);
 }
 
-export function ChangeSubscriptionRequestBodyFromJSONTyped(
+export function UpdateCheckoutRequestFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): ChangeSubscriptionRequestBody {
+): UpdateCheckoutRequest {
   if (json == null) {
     return json;
   }
@@ -213,17 +220,16 @@ export function ChangeSubscriptionRequestBodyFromJSONTyped(
       json["payment_method_id"] == null ? undefined : json["payment_method_id"],
     promoCode: json["promo_code"] == null ? undefined : json["promo_code"],
     skipTrial: json["skip_trial"],
+    version: json["version"],
   };
 }
 
-export function ChangeSubscriptionRequestBodyToJSON(
-  json: any,
-): ChangeSubscriptionRequestBody {
-  return ChangeSubscriptionRequestBodyToJSONTyped(json, false);
+export function UpdateCheckoutRequestToJSON(json: any): UpdateCheckoutRequest {
+  return UpdateCheckoutRequestToJSONTyped(json, false);
 }
 
-export function ChangeSubscriptionRequestBodyToJSONTyped(
-  value?: ChangeSubscriptionRequestBody | null,
+export function UpdateCheckoutRequestToJSONTyped(
+  value?: UpdateCheckoutRequest | null,
   ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
@@ -255,5 +261,6 @@ export function ChangeSubscriptionRequestBodyToJSONTyped(
     payment_method_id: value["paymentMethodId"],
     promo_code: value["promoCode"],
     skip_trial: value["skipTrial"],
+    version: value["version"],
   };
 }
