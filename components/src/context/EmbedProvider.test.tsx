@@ -1,8 +1,11 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { HttpResponse, http } from "msw";
 import { vi } from "vitest";
 
 import { SchematicEmbed } from "../components/embed";
 import { useEmbed } from "../hooks";
+import hydrate from "../test/mocks/handlers/response/hydrate.json";
+import { server } from "../test/mocks/node";
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
 
 import { EmbedProvider } from "./EmbedProvider";
@@ -64,6 +67,127 @@ describe("requestUnsubscribe", () => {
 
     expect(result.current.layout).toBe("portal");
     expect(warn).toHaveBeenCalled();
+
+    warn.mockRestore();
+  });
+});
+
+describe("initializeWithPlan with includeAddOnIds", () => {
+  const accessToken = "token_abc12345678901234567890123456";
+  const adHocAddOnId = "plan_adHocAddOn1";
+
+  // Hydrates a component the way `SchematicEmbed` does, without rendering the
+  // embed, so opening the checkout doesn't mount the real dialog.
+  const renderHydrated = async () => {
+    const rendered = renderHook(() => useEmbed(), { wrapper });
+    act(() => {
+      rendered.result.current.setAccessToken(accessToken);
+    });
+    await act(async () => {
+      await rendered.result.current.hydrateComponent("comp_test");
+    });
+    await waitFor(() => expect(rendered.result.current.data).toBeDefined());
+    return rendered;
+  };
+
+  // Serves the fixture, adding the ad-hoc add-on when the request includes it.
+  const serveIncludedAddOn = () => {
+    const requested: string[][] = [];
+    server.use(
+      http.get(
+        "https://api.schematichq.com/components/:id/hydrate",
+        ({ request }) => {
+          const included = new URL(request.url).searchParams.getAll(
+            "include_add_on_ids",
+          );
+          requested.push(included);
+          const [addOn] = hydrate.data.active_add_ons;
+          const activeAddOns = included.includes(adHocAddOnId)
+            ? [
+                ...hydrate.data.active_add_ons,
+                { ...addOn, id: adHocAddOnId, name: "Ad-hoc service" },
+              ]
+            : hydrate.data.active_add_ons;
+          return HttpResponse.json({
+            ...hydrate,
+            data: { ...hydrate.data, active_add_ons: activeAddOns },
+          });
+        },
+      ),
+    );
+    return requested;
+  };
+
+  test("re-fetches with the included add-ons, then opens the checkout with them selected", async () => {
+    const requested = serveIncludedAddOn();
+    const { result } = await renderHydrated();
+
+    await act(async () => {
+      await result.current.initializeWithPlan({
+        includeAddOnIds: [adHocAddOnId],
+      });
+    });
+
+    expect(requested[requested.length - 1]).toEqual([adHocAddOnId]);
+    expect(result.current.layout).toBe("checkout");
+    expect(result.current.checkoutState?.addOnIds).toEqual([adHocAddOnId]);
+    expect(
+      result.current.data?.activeAddOns.map((addOn) => addOn.id),
+    ).toContain(adHocAddOnId);
+  });
+
+  test("warns about an included ID the response left out", async () => {
+    serveIncludedAddOn();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { result } = await renderHydrated();
+
+    await act(async () => {
+      await result.current.initializeWithPlan({
+        includeAddOnIds: ["plan_notAnAddOn"],
+      });
+    });
+
+    expect(result.current.layout).toBe("checkout");
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("plan_notAnAddOn"),
+    );
+
+    warn.mockRestore();
+  });
+
+  test("rejects and stays closed when the fetch fails", async () => {
+    const { result } = await renderHydrated();
+    server.use(
+      http.get("https://api.schematichq.com/components/:id/hydrate", () =>
+        HttpResponse.json({ error: "boom" }, { status: 500 }),
+      ),
+    );
+
+    await act(async () => {
+      await expect(
+        result.current.initializeWithPlan({
+          includeAddOnIds: [adHocAddOnId],
+        }),
+      ).rejects.toBeDefined();
+    });
+
+    expect(result.current.layout).toBe("portal");
+  });
+
+  test("warns and opens the checkout without a mounted embed", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { result } = renderHook(() => useEmbed(), { wrapper });
+
+    await act(async () => {
+      await result.current.initializeWithPlan({
+        includeAddOnIds: [adHocAddOnId],
+      });
+    });
+
+    expect(result.current.layout).toBe("checkout");
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("SchematicEmbed"),
+    );
 
     warn.mockRestore();
   });

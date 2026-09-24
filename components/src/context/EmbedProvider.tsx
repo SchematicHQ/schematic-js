@@ -653,9 +653,47 @@ export const EmbedProvider = ({
     dispatch({ type: "CLEAR_CHECKOUT_STATE" });
   }, []);
 
-  const initializeWithPlan = useCallback((config: string | BypassConfig) => {
-    dispatch({ type: "SET_PLANID_BYPASS", config });
-  }, []);
+  const initializeWithPlan = useCallback(
+    async (config: string | BypassConfig) => {
+      const includeAddOnIds =
+        typeof config === "string" ? [] : (config.includeAddOnIds ?? []);
+      // Only a component hydrate carries `component`, so this also means a
+      // `SchematicEmbed` is mounted to show the checkout.
+      const componentId = state.data?.component?.id;
+
+      if (includeAddOnIds.length > 0 && !componentId) {
+        console.warn(
+          "[Schematic] `includeAddOnIds` needs a mounted `SchematicEmbed`; opening the checkout without them.",
+        );
+      } else if (componentId && includeAddOnIds.length > 0) {
+        // Skip `HYDRATE_STARTED`: it swaps the whole embed for its loading
+        // state. A failed fetch rejects before the checkout opens.
+        const response = await checkoutApi?.hydrateComponent({
+          componentId,
+          includeAddOnIds,
+        });
+
+        if (response) {
+          const returnedIds = new Set(
+            response.data.activeAddOns.map((addOn) => addOn.id),
+          );
+          const missingIds = includeAddOnIds.filter(
+            (id) => !returnedIds.has(id),
+          );
+          if (missingIds.length > 0) {
+            console.warn(
+              `[Schematic] These included add-ons were left out because each must be an add-on with a billing product: ${missingIds.join(", ")}`,
+            );
+          }
+
+          dispatch({ type: "HYDRATE_COMPONENT", data: response.data });
+        }
+      }
+
+      dispatch({ type: "SET_PLANID_BYPASS", config });
+    },
+    [checkoutApi, state.data?.component?.id],
+  );
 
   const requestUnsubscribe = useCallback(() => {
     // Mirror the guard the built-in `UnsubscribeButton` applies before it

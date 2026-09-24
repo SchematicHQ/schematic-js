@@ -338,6 +338,13 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
         bypassAddOnUsageSelection = false;
       }
 
+      // Included add-ons are only there to be bought, so they're pre-selected.
+      const addOnIds = config.includeAddOnIds?.length
+        ? Array.from(
+            new Set([...(config.addOnIds ?? []), ...config.includeAddOnIds]),
+          )
+        : config.addOnIds;
+
       return {
         ...state,
         layout: "checkout",
@@ -349,7 +356,7 @@ export const reducer = (state: EmbedState, action: EmbedAction): EmbedState => {
           bypassCreditsSelection,
           bypassUsageSelection,
           bypassAddOnUsageSelection,
-          ...(config.addOnIds && { addOnIds: config.addOnIds }),
+          ...(addOnIds && { addOnIds }),
           ...(config.payInAdvanceQuantities && {
             payInAdvanceQuantities: config.payInAdvanceQuantities,
           }),

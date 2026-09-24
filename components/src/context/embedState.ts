@@ -278,6 +278,17 @@ export interface BypassConfig {
    */
   addOnIds?: string[];
   /**
+   * Add-on IDs to offer in this checkout even when they aren't live in the
+   * catalog, such as an add-on created for a single purchase. They are
+   * pre-selected along with `addOnIds`.
+   *
+   * The embed re-fetches its data to include them before the checkout opens,
+   * so `initializeWithPlan` resolves once the checkout is showing and rejects
+   * if that fetch fails. Requires a mounted `SchematicEmbed`. An ID that isn't
+   * an add-on with a billing product is left out, with a console warning.
+   */
+  includeAddOnIds?: string[];
+  /**
    * Explicit skip configuration for stages.
    * - If not provided: stages are shown with pre-selected values (review mode)
    * - If provided: you control exactly which stages to skip

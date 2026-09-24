@@ -85,7 +85,7 @@ export interface EmbedContextProps extends Omit<EmbedState, SettingsLayer> {
   setLayout: (layout: EmbedLayout) => void;
   setCheckoutState: (state: CheckoutState) => void;
   clearCheckoutState: () => void;
-  initializeWithPlan: (config: string | BypassConfig) => void;
+  initializeWithPlan: (config: string | BypassConfig) => Promise<void>;
   requestUnsubscribe: () => void;
   setData: (data: HydrateDataWithCompanyContext) => void;
   /**

@@ -93,6 +93,24 @@ notice that appears in the same spot.
 The Plans and add-ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).
 
+To sell an add-on that isn't live, such as one your backend creates for a
+single purchase, pass its ID in `includeAddOnIds`. The checkout offers it
+alongside the live add-ons and pre-selects it.
+
+```ts
+await initializeWithPlan({
+  includeAddOnIds: ['plan_BQx8kWjSx4'],
+});
+```
+
+The embed fetches its data again to include those add-ons before the checkout
+opens, so `initializeWithPlan` returns a promise that resolves once the
+checkout is showing and rejects if that fetch fails. This needs a mounted
+`SchematicEmbed`. An ID that isn't an add-on with a billing product is left
+out, with a console warning. The add-on still has to be compatible with the
+selected plan and priced in the checkout's currency and billing period to
+appear.
+
 ## Programmatic Unsubscribe
 
 We provide a function `requestUnsubscribe` for starting the unsubscribe flow
