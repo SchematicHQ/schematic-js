@@ -17,7 +17,7 @@ Four rules hold across the list, and the server applies them, not the element:
 
 `derivePaymentMethods` turns the wire rows into what the element shows. It returns the `rows`, the `current` one — the default, which is what the pill shows, or `null` when none is — and the `others`, which is every row but the default (all of them when there is no default). Alongside sit `monthsToExpiration` and `expiryWarning` for the header: `soon` when the default card has fewer than four months left, `expired` once its month has arrived, `none` otherwise. The months are whole calendar months from the current month to the card's, as the embed counts them; `now` fixes the moment they are counted from, for a test or a server render.
 
-Each row has a `kind` (`card`, `bank`, `wallet`, `other`), an `icon` (the glyph's name in the schematic-icons font, mapped as the embed maps it: `visa`, `mastercard`, or `amex` where the card's brand matches, `credit` for any other card, `bank` for an account, the wallet's own mark — `applepay`, `google`, `cashapp`, `paypal`, `link`, `amazonpay` — and `generic-payment` for a type nobody mapped), the `last4` digits that follow its label, `expiresShort` ("8/27", the embed's form, for a card), its own `monthsToExpiration` and `expiry`, and a `label`. The label is either `{ key }` — copy to resolve through the translator, such as `paymentMethodsCardEndingIn` for "Card ending in" — or `{ text }`, a value the provider supplied: the bank's name, the email behind a Link account, the account name behind PayPal or Cash App, or a wallet's own name when it supplied nothing. That split keeps the derivation pure and the translatable words in the string catalogue.
+Each row has a `kind` (`card`, `bank`, `wallet`, `other`), an `icon` (the glyph's name in the schematic-icons font, mapped as the embed maps it: `visa`, `mastercard`, or `amex` where the card's brand matches, `credit` for any other card, `bank` for a US bank account, the wallet's own mark — `applepay`, `google`, `cashapp`, `paypal`, `link`, `amazonpay` — and `generic-payment` for a type nobody mapped), the `last4` digits that follow its label, `expiresShort` ("8/27", the embed's form, for a card), its own `monthsToExpiration` and `expiry`, and a `label`. The label is either `{ key }` — copy to resolve through the translator, such as `paymentMethodsCardEndingIn` for "Card ending in" — or `{ text }`, a value the provider supplied: the bank's name, the email behind a Link account, the account name behind PayPal or Cash App. A wallet that supplied nothing is named by its own key, in the embed's words: "PayPal account", "CashApp account", "Link account", "Amazon Pay account", or "Apple Pay" and "Google Pay" when no card digits came with them. Only US bank accounts are banks, and only cards, Apple Pay, and Google Pay carry digits; any other type, a debit scheme included, is named by whatever the provider supplied. That split keeps the derivation pure and the translatable words in the string catalogue.
 
 ```tsx
 import {
@@ -67,7 +67,7 @@ Every row carries its raw fields beside the text — `brand`, `type`, `isDefault
 
 | Prop                  | Default | Effect                                                             |
 | --------------------- | ------- | ------------------------------------------------------------------ |
-| `showHeader`          | `true`  | The "Payment details" heading, and the expiry warning beside it.   |
+| `showHeader`          | `true`  | The "Payment Details" heading, and the expiry warning beside it.   |
 | `showExpiration`      | `true`  | The warning when the default card has fewer than four months left. |
 | `allowEdit`           | `true`  | The Edit (or Add) action on the pill, and the dialog behind it.    |
 | `headingLevel`        | `2`     | The heading's level, to fit the host's outline.                    |
@@ -77,9 +77,9 @@ Every row carries its raw fields beside the text — `brand`, `type`, `isDefault
 `locale` falls back to the one configured on the provider, then to the
 viewer's language; see [Localizing it](#localizing-it) for the copy.
 
-The card is the embed's. The heading reads "Payment details", and when the
+The card is the embed's. The heading reads "Payment Details", and when the
 default card has fewer than four months left the right of the header says
-"Expires in 2 months", or "Expired" once its month has arrived, in the
+"Expires in 2 mo", or "Expired" once its month has arrived, in the
 danger colour. Below it one pill names the default method the way the embed
 does — "Card ending in 4444", "Apple Pay ending in 1881", the bank's name and
 the account's digits, a Link account by its email — with Edit on the right,
@@ -116,21 +116,27 @@ other methods: each row names the method, says when a card expires ("Expires
 8/27"), and offers Set default and a remove control where the server allows
 it. Under the rows a full-width "Add new payment method" opens the form. The
 actions are disabled while a write is on the wire; a write that lands leaves
-the dialog open on the refreshed method with the rows folded away, and one
-that fails is reported at the foot of the dialog with "Try again", which
-re-runs it.
+the dialog as it was, the rows still unfolded over the refreshed list, and
+one that fails is reported at the foot of the dialog in the embed's words —
+"Error updating payment method. Please try again." or "Error deleting
+payment method. Please try again." — with "Try again", which re-runs it.
 
 The form is loaded on first use, and the Stripe packages with it, so a page
 that only shows the method on file never downloads Stripe. It mints a setup
 intent, mounts Stripe's `PaymentElement` on it, and on Save confirms the
 setup in place; the saved method is then made the default and the dialog
-returns to it. "Select existing payment method" beneath the form goes back
-without saving, as Cancel does. With nothing on file the dialog opens
-straight onto the form, and Cancel closes it, since there is nothing to go
-back to. Stripe's own wording shows for a declined card. A missing client
-secret, a Stripe that fails to load, or a host without the Stripe packages
-installed each show "Could not load payment methods" in place of the form,
-with Cancel as the way out.
+returns to it with the rows folded away. "Save payment method" waits until
+Stripe calls the fields complete, and reads "Loading" while it saves.
+"Select existing payment method" beneath the form goes back without saving.
+With nothing on file the dialog opens straight onto the form, and the
+dialog's close control is the way out. Stripe's own wording shows for a
+declined card or an invalid field; any other failure reads "A problem
+occurred while saving your payment method." A setup intent the API refused
+reads "Error initializing payment method change. Please try again." A
+missing client secret, a Stripe that fails to load, a host without the
+Stripe packages installed, or fields that do not come up within ten seconds
+read as the embed's "Unable to load payment form." message, which suggests
+the browser's privacy settings may be blocking it.
 
 Stripe's fields render in an iframe, where the host's CSS reaches nothing,
 so the form hands Stripe an `appearance` resolved from the tokens: the body
@@ -158,22 +164,23 @@ The keys this element renders are `paymentMethodsHeader`,
 `paymentMethodsEmpty`, `paymentMethodsEdit`, `paymentMethodsAdd`,
 `paymentMethodsExpiresInMonths`, `paymentMethodsExpired`,
 `paymentMethodsCardEndingIn`, `paymentMethodsApplePayEndingIn`,
-`paymentMethodsGooglePayEndingIn`, `paymentMethodsBankAccount`,
+`paymentMethodsGooglePayEndingIn`, `paymentMethodsApplePay`,
+`paymentMethodsGooglePay`, `paymentMethodsAmazonPayAccount`,
+`paymentMethodsCashAppAccount`, `paymentMethodsPayPalAccount`,
+`paymentMethodsLinkAccount`, `paymentMethodsBankAccount`,
 `paymentMethodsGeneric`, `paymentMethodsDialogTitle`, `paymentMethodsClose`,
 `paymentMethodsChooseDifferent`, `paymentMethodsExpires`,
 `paymentMethodsSetDefault`, `paymentMethodsRemove`, `paymentMethodsAddNew`,
 `paymentMethodsSelectExisting`, `paymentMethodsFormLoading`,
-`paymentMethodsSave`, `paymentMethodsSaveError`, `paymentMethodsCancel`,
-and `retry`. `strings.test.ts` freezes the list, so a rename is a
+`paymentMethodsFormError`, `paymentMethodsSetupError`, `paymentMethodsSave`,
+`paymentMethodsSaving`, `paymentMethodsSaveError`,
+`paymentMethodsSetDefaultError`, `paymentMethodsRemoveError`, and `retry`. `strings.test.ts` freezes the list, so a rename is a
 deliberate, breaking change.
 
 Two of them take values. `paymentMethodsExpires` interpolates `{{date}}`, the
-embed's short form. `paymentMethodsExpiresInMonths` interpolates `{{months}}`
-and varies by `{{count}}` — so its catalogue entries are the suffixed
-`paymentMethodsExpiresInMonths_one` and `_other`, i18next's convention, while
-the element asks for the bare name. A host's `translate` receives the same
-`count`, so its own catalogue picks the form for languages English has no
-category for.
+embed's short form, and `paymentMethodsExpiresInMonths` interpolates
+`{{months}}` into the embed's abbreviated "Expires in {{months}} mo", which
+needs no plural forms.
 
 The labels are not assembled from fragments: "Card ending in" is one string,
 and the digits follow it in their own node, so a translator owns the words
@@ -189,13 +196,13 @@ tell them apart. The dialog renders inside the root while it is open.
 <div class="schematic-card schematic-payment-methods" data-state="ready">
   <!-- omitted by showHeader={false}, and the warning with it -->
   <div class="schematic-header">
-    <h2 class="schematic-header__title">Payment details</h2>
+    <h2 class="schematic-header__title">Payment Details</h2>
     <!-- when the default card has fewer than four months left;
          data-expiry is soon or expired -->
     <span
       class="schematic-small schematic-payment-methods__expiry-warning"
       data-expiry="soon"
-      >Expires in 2 months</span
+      >Expires in 2 mo</span
     >
   </div>
 
@@ -283,7 +290,10 @@ tell them apart. The dialog renders inside the root while it is open.
           </button>
           <!-- rows the server lets go -->
           <button class="schematic-payment-methods__remove" aria-label="Remove">
-            ×
+            <i
+              class="schematic-icon schematic-icon--close"
+              aria-hidden="true"
+            ></i>
           </button>
         </li>
       </ul>
@@ -295,18 +305,18 @@ tell them apart. The dialog renders inside the root while it is open.
            its fields are Stripe's -->
       <form class="schematic-payment-methods__form" data-state="ready">
         <div class="schematic-payment-methods__fields">…</div>
-        <div class="schematic-payment-methods__form-actions">
-          <button
-            class="schematic-cta schematic-cta--small schematic-payment-methods__save"
-          >
-            Save
-          </button>
-          <button
-            class="schematic-link-button schematic-payment-methods__cancel"
-          >
-            Cancel
-          </button>
-        </div>
+        <!-- a save that failed, or fields that did not load -->
+        <p
+          class="schematic-error schematic-small schematic-payment-methods__form-error"
+          role="alert"
+        >
+          …
+        </p>
+        <!-- disabled until Stripe calls the fields complete; "Loading"
+             while it saves -->
+        <button class="schematic-cta schematic-payment-methods__save">
+          Save payment method
+        </button>
         <!-- omitted with nothing on file -->
         <button
           class="schematic-link-button schematic-payment-methods__select-existing"
@@ -314,6 +324,9 @@ tell them apart. The dialog renders inside the root while it is open.
           Select existing payment method
         </button>
       </form>
+      <!-- or, when the setup intent or Stripe itself failed, the same error
+           line and "Select existing payment method" in
+           <div class="schematic-payment-methods__form" data-state="error"> -->
 
       <!-- a write that failed -->
       <p

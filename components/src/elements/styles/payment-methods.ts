@@ -132,7 +132,8 @@ export const paymentMethodsCss = `
   cursor: not-allowed;
 }
 
-.schematic-payment-methods__add-new {
+.schematic-payment-methods__add-new,
+.schematic-payment-methods__save {
   width: 100%;
 }
 
@@ -156,12 +157,6 @@ export const paymentMethodsCss = `
 .schematic-payment-methods__form {
   display: flex;
   flex-direction: column;
-  gap: var(--schematic-space);
-}
-
-.schematic-payment-methods__form-actions {
-  align-items: center;
-  display: flex;
   gap: var(--schematic-space);
 }
 

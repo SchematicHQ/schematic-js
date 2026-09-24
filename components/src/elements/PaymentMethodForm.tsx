@@ -22,8 +22,6 @@ import { withTokenDefaults } from "./styles/tokens";
 export interface PaymentMethodFormProps {
   locale: string;
   t: Translator;
-  /** Cancel: back to whatever the form replaced. */
-  onClose: () => void;
   /** The saved method's provider id; resolves once the list has taken it. */
   onSaved: (paymentMethodId: string) => Promise<void>;
   /** The "Select existing payment method" link; omitted when there is none
@@ -38,8 +36,11 @@ type StripeUi = Pick<
 
 type FormState =
   | { status: "loading" }
-  /** `message` is Stripe's own wording, or `null` for the element's copy. */
-  | { status: "failed"; message: string | null }
+  /** Which step failed: minting the setup intent, or loading Stripe. */
+  | {
+      status: "failed";
+      errorKey: "paymentMethodsSetupError" | "paymentMethodsFormError";
+    }
   | {
       status: "ready";
       appearance: Appearance;
@@ -68,6 +69,10 @@ const PROBE_CSS = withTokenDefaults(
     "visibility: hidden",
   ].join("; "),
 );
+
+/** How long Stripe's fields get to come up before the form reports them
+ * blocked, as the embed waits. */
+const READY_TIMEOUT_MS = 10_000;
 
 /** A computed value the browser resolved; jsdom hands back the `var()`. */
 function resolved(value: string): boolean {
@@ -106,7 +111,6 @@ export function resolveAppearance(host: Element): Appearance {
 
 export function PaymentMethodForm({
   locale,
-  onClose,
   onSaved,
   onSelectExisting,
   t,
@@ -119,8 +123,12 @@ export function PaymentMethodForm({
 
   useEffect(() => {
     let cancelled = false;
+    let setupFailed = false;
     Promise.all([
-      create(),
+      create().catch((error: unknown) => {
+        setupFailed = true;
+        throw error;
+      }),
       import("@stripe/stripe-js"),
       import("@stripe/react-stripe-js"),
     ])
@@ -153,7 +161,12 @@ export function PaymentMethodForm({
       })
       .catch(() => {
         if (!cancelled) {
-          setState({ status: "failed", message: null });
+          setState({
+            status: "failed",
+            errorKey: setupFailed
+              ? "paymentMethodsSetupError"
+              : "paymentMethodsFormError",
+          });
         }
       });
     return () => {
@@ -185,18 +198,15 @@ export function PaymentMethodForm({
   if (state.status === "failed") {
     return (
       <div className="schematic-payment-methods__form" data-state="error">
-        <div className="schematic-status" role="alert">
-          <span className="schematic-error schematic-status__message">
-            {state.message ?? t("paymentMethodsError")}
-          </span>
-          <button
-            className="schematic-link-button schematic-payment-methods__cancel"
-            type="button"
-            onClick={onClose}
-          >
-            {t("paymentMethodsCancel")}
-          </button>
-        </div>
+        <p
+          className="schematic-error schematic-small schematic-payment-methods__form-error"
+          role="alert"
+        >
+          {t(state.errorKey)}
+        </p>
+        {onSelectExisting !== undefined && (
+          <SelectExisting t={t} onSelectExisting={onSelectExisting} />
+        )}
       </div>
     );
   }
@@ -213,7 +223,6 @@ export function PaymentMethodForm({
       <Fields
         t={t}
         ui={state.ui}
-        onClose={onClose}
         onSaved={onSaved}
         onSelectExisting={onSelectExisting}
       />
@@ -226,13 +235,11 @@ export function PaymentMethodForm({
  * module loaded above, so they are called off `ui` rather than imported.
  */
 function Fields({
-  onClose,
   onSaved,
   onSelectExisting,
   t,
   ui,
 }: {
-  onClose: () => void;
   onSaved: (paymentMethodId: string) => Promise<void>;
   onSelectExisting?: () => void;
   t: Translator;
@@ -243,6 +250,20 @@ function Fields({
   const elements = useElements();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  // Save waits for fields Stripe calls complete, as the embed's does.
+  const [complete, setComplete] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  // A blocked iframe never reports ready or failed, so a quiet one is taken
+  // as blocked once the embed's wait runs out.
+  useEffect(() => {
+    if (ready) {
+      return;
+    }
+    const timer = setTimeout(() => setLoadFailed(true), READY_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [ready]);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -260,7 +281,15 @@ function Fields({
         redirect: "if_required",
       });
       if (result.error !== undefined) {
-        setMessage(result.error.message ?? t("paymentMethodsSaveError"));
+        // Stripe's wording where it speaks to the customer, the embed's
+        // otherwise.
+        const { message: stripeMessage, type } = result.error;
+        setMessage(
+          (type === "card_error" || type === "validation_error") &&
+            stripeMessage !== undefined
+            ? stripeMessage
+            : t("paymentMethodsSaveError"),
+        );
         return;
       }
       const method = result.setupIntent.payment_method;
@@ -284,8 +313,23 @@ function Fields({
       onSubmit={(event) => void submit(event)}
     >
       <div className="schematic-payment-methods__fields">
-        <PaymentElement />
+        <PaymentElement
+          onChange={(event) => setComplete(event.complete)}
+          onLoadError={() => setLoadFailed(true)}
+          onReady={() => {
+            setReady(true);
+            setLoadFailed(false);
+          }}
+        />
       </div>
+      {loadFailed && (
+        <p
+          className="schematic-error schematic-small schematic-payment-methods__form-error"
+          role="alert"
+        >
+          {t("paymentMethodsFormError")}
+        </p>
+      )}
       {message !== null && (
         <p
           className="schematic-error schematic-small schematic-payment-methods__form-error"
@@ -294,34 +338,43 @@ function Fields({
           {message}
         </p>
       )}
-      <div className="schematic-payment-methods__form-actions">
-        <button
-          className="schematic-cta schematic-cta--small schematic-payment-methods__save"
-          disabled={stripe === null || elements === null || saving}
-          type="submit"
-        >
-          {t("paymentMethodsSave")}
-        </button>
-        <button
-          className="schematic-link-button schematic-payment-methods__cancel"
-          disabled={saving}
-          type="button"
-          onClick={onClose}
-        >
-          {t("paymentMethodsCancel")}
-        </button>
-      </div>
+      <button
+        className="schematic-cta schematic-payment-methods__save"
+        disabled={stripe === null || elements === null || saving || !complete}
+        type="submit"
+      >
+        {saving ? t("paymentMethodsSaving") : t("paymentMethodsSave")}
+      </button>
       {onSelectExisting !== undefined && (
-        <button
-          className="schematic-link-button schematic-payment-methods__select-existing"
+        <SelectExisting
           disabled={saving}
-          type="button"
-          onClick={onSelectExisting}
-        >
-          {t("paymentMethodsSelectExisting")}
-        </button>
+          t={t}
+          onSelectExisting={onSelectExisting}
+        />
       )}
     </form>
+  );
+}
+
+/** Back to the method on file; offered only when there is one. */
+function SelectExisting({
+  disabled = false,
+  onSelectExisting,
+  t,
+}: {
+  disabled?: boolean;
+  onSelectExisting: () => void;
+  t: Translator;
+}) {
+  return (
+    <button
+      className="schematic-link-button schematic-payment-methods__select-existing"
+      disabled={disabled}
+      type="button"
+      onClick={onSelectExisting}
+    >
+      {t("paymentMethodsSelectExisting")}
+    </button>
   );
 }
 

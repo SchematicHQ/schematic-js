@@ -32,6 +32,12 @@ export type PaymentMethodLabelKey = Extract<
   | "paymentMethodsCardEndingIn"
   | "paymentMethodsApplePayEndingIn"
   | "paymentMethodsGooglePayEndingIn"
+  | "paymentMethodsApplePay"
+  | "paymentMethodsGooglePay"
+  | "paymentMethodsAmazonPayAccount"
+  | "paymentMethodsCashAppAccount"
+  | "paymentMethodsPayPalAccount"
+  | "paymentMethodsLinkAccount"
   | "paymentMethodsBankAccount"
   | "paymentMethodsGeneric"
 >;
@@ -39,8 +45,7 @@ export type PaymentMethodLabelKey = Extract<
 /**
  * What names a method. A `key` is copy to resolve through the translator
  * ("Card ending in"); `text` is a value the provider supplied — a bank's
- * name, the email behind a Link account — or a brand name, which is not
- * translated.
+ * name, the email behind a Link account.
  */
 export type PaymentMethodLabel =
   | { key: PaymentMethodLabelKey; text?: undefined }
@@ -49,7 +54,7 @@ export type PaymentMethodLabel =
 /**
  * The glyph beside a row's label, by its name in the schematic-icons font:
  * the card network where the font has its mark, a generic card otherwise,
- * the wallet's own mark, a bank for any account, and `generic-payment` for
+ * the wallet's own mark, a bank for a US bank account, and `generic-payment` for
  * a type nobody mapped. The element renders it as
  * `schematic-icon schematic-icon--<icon>`.
  */
@@ -114,22 +119,19 @@ export interface DerivePaymentMethodsOptions {
 /** Fewer than this many months left is the warning window. */
 const SOON_MONTHS = 4;
 
-const WALLETS: Record<string, string> = {
-  amazon_pay: "Amazon Pay",
-  apple_pay: "Apple Pay",
-  cashapp: "Cash App",
-  google_pay: "Google Pay",
-  link: "Link",
-  paypal: "PayPal",
+/** Each wallet's label when its provider supplied nothing to name it by. */
+const WALLETS: Record<string, PaymentMethodLabelKey> = {
+  amazon_pay: "paymentMethodsAmazonPayAccount",
+  apple_pay: "paymentMethodsApplePay",
+  cashapp: "paymentMethodsCashAppAccount",
+  google_pay: "paymentMethodsGooglePay",
+  link: "paymentMethodsLinkAccount",
+  paypal: "paymentMethodsPayPalAccount",
 };
 
 /** A missing value arrives as null, undefined, or an empty string. */
 function orNull(value: string | null | undefined): string | null {
   return value === undefined || value === null || value === "" ? null : value;
-}
-
-function isBank(type: string): boolean {
-  return type === "us_bank_account" || type.endsWith("_debit");
 }
 
 function isMonth(value: number | null | undefined): value is number {
@@ -181,10 +183,9 @@ function labelOf(
   const billingEmail = orNull(method.billingEmail);
   const billingName = orNull(method.billingName);
 
+  // The embed labels every card this way, digits or not.
   if (kind === "card") {
-    return last4 === null
-      ? { key: "paymentMethodsGeneric" }
-      : { key: "paymentMethodsCardEndingIn" };
+    return { key: "paymentMethodsCardEndingIn" };
   }
   if (kind === "bank") {
     const name = bankName ?? billingEmail;
@@ -194,11 +195,17 @@ function labelOf(
   }
   if (kind === "wallet") {
     const wallet = WALLETS[type];
-    if (type === "apple_pay" && last4 !== null) {
-      return { key: "paymentMethodsApplePayEndingIn" };
+    // Apple Pay and Google Pay are named by the card they wrap, never by
+    // the account behind them.
+    if (type === "apple_pay") {
+      return last4 === null
+        ? { key: wallet }
+        : { key: "paymentMethodsApplePayEndingIn" };
     }
-    if (type === "google_pay" && last4 !== null) {
-      return { key: "paymentMethodsGooglePayEndingIn" };
+    if (type === "google_pay") {
+      return last4 === null
+        ? { key: wallet }
+        : { key: "paymentMethodsGooglePayEndingIn" };
     }
     // The account behind a wallet is what tells two of them apart: the
     // Link email, the PayPal account name. Link is known by its email
@@ -209,7 +216,7 @@ function labelOf(
         : type === "amazon_pay"
           ? (billingName ?? billingEmail)
           : (accountName ?? billingEmail);
-    return { text: detail ?? wallet };
+    return detail === null ? { key: wallet } : { text: detail };
   }
   const generic = billingName ?? billingEmail ?? accountName ?? bankName;
   return generic === null
@@ -221,7 +228,9 @@ function kindOf(type: string): PaymentMethodKind {
   if (type === "card") {
     return "card";
   }
-  if (isBank(type)) {
+  // The embed's only bank type; a debit scheme such as `sepa_debit` falls
+  // through to the generic label, as it does there.
+  if (type === "us_bank_account") {
     return "bank";
   }
   return WALLETS[type] === undefined ? "other" : "wallet";
@@ -263,8 +272,13 @@ function last4Of(
   method: PaymentMethod,
   kind: PaymentMethodKind,
 ): string | null {
-  // Apple Pay and Google Pay wrap a card, and report its digits.
-  if (kind === "card" || kind === "wallet") {
+  // Apple Pay and Google Pay wrap a card, and report its digits; the other
+  // wallets show none.
+  if (
+    kind === "card" ||
+    method.type === "apple_pay" ||
+    method.type === "google_pay"
+  ) {
     return orNull(method.cardLast4);
   }
   return kind === "bank" ? orNull(method.accountLast4) : null;

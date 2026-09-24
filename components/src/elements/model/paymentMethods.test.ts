@@ -79,9 +79,9 @@ describe("derivePaymentMethods", () => {
       expect(one({ cardBrand: "" }).icon).toBe("credit");
     });
 
-    test("a bank account of any kind is a bank", () => {
+    test("a US bank account is a bank; a debit scheme the embed never mapped is not", () => {
       expect(typed("us_bank_account").icon).toBe("bank");
-      expect(typed("sepa_debit").icon).toBe("bank");
+      expect(typed("sepa_debit").icon).toBe("generic-payment");
     });
 
     test.each([
@@ -100,9 +100,9 @@ describe("derivePaymentMethods", () => {
     });
   });
 
-  test("a card with no digits has nothing to end in, so it is a generic method", () => {
+  test("a card with no digits keeps the embed's label", () => {
     expect(one({ cardLast4: null })).toMatchObject({
-      label: { key: "paymentMethodsGeneric" },
+      label: { key: "paymentMethodsCardEndingIn" },
       last4: null,
     });
     expect(one({ cardLast4: "" }).last4).toBeNull();
@@ -132,11 +132,14 @@ describe("derivePaymentMethods", () => {
       });
     });
 
-    test("a debit of any kind is a bank account", () => {
-      const row = typed("sepa_debit", { accountLast4: "3000" });
-      expect(row.kind).toBe("bank");
-      expect(row.label).toEqual({ key: "paymentMethodsBankAccount" });
-      expect(row.last4).toBe("3000");
+    test("a debit scheme is named as any unmapped type is, without digits", () => {
+      const row = typed("sepa_debit", {
+        accountLast4: "3000",
+        bankName: "Deutsche Bank",
+      });
+      expect(row.kind).toBe("other");
+      expect(row.label).toEqual({ text: "Deutsche Bank" });
+      expect(row.last4).toBeNull();
     });
 
     test.each([
@@ -152,13 +155,20 @@ describe("derivePaymentMethods", () => {
     });
 
     test.each([
-      ["apple_pay", "Apple Pay"],
-      ["google_pay", "Google Pay"],
-    ])("%s with no card behind it is named %s", (type, name) => {
-      expect(typed(type)).toMatchObject({
-        label: { text: name },
+      ["apple_pay", "paymentMethodsApplePay"],
+      ["google_pay", "paymentMethodsGooglePay"],
+    ])("%s with no card behind it is named by its own copy", (type, key) => {
+      expect(
+        typed(type, { accountName: "Jo", billingEmail: "jo@example.com" }),
+      ).toMatchObject({
+        label: { key },
         last4: null,
       });
+    });
+
+    test("only Apple Pay and Google Pay show a card's digits", () => {
+      expect(typed("paypal", { cardLast4: "1881" }).last4).toBeNull();
+      expect(typed("link", { cardLast4: "1881" }).last4).toBeNull();
     });
 
     test("Link is known by its email, then its account name", () => {
@@ -169,13 +179,13 @@ describe("derivePaymentMethods", () => {
       expect(typed("link", { accountName: "Jo" }).label).toEqual({
         text: "Jo",
       });
-      expect(typed("link").label).toEqual({ text: "Link" });
+      expect(typed("link").label).toEqual({ key: "paymentMethodsLinkAccount" });
     });
 
     test.each([
-      ["paypal", "PayPal"],
-      ["cashapp", "Cash App"],
-    ])("%s is known by its account name, then its email", (type, name) => {
+      ["paypal", "paymentMethodsPayPalAccount"],
+      ["cashapp", "paymentMethodsCashAppAccount"],
+    ])("%s is known by its account name, then its email", (type, key) => {
       expect(
         typed(type, { accountName: "Jo", billingEmail: "jo@example.com" })
           .label,
@@ -183,7 +193,7 @@ describe("derivePaymentMethods", () => {
       expect(typed(type, { billingEmail: "jo@example.com" }).label).toEqual({
         text: "jo@example.com",
       });
-      expect(typed(type).label).toEqual({ text: name });
+      expect(typed(type).label).toEqual({ key });
     });
 
     test("Amazon Pay is known by its billing name, then its email", () => {
@@ -196,7 +206,9 @@ describe("derivePaymentMethods", () => {
       expect(
         typed("amazon_pay", { billingEmail: "jo@example.com" }).label,
       ).toEqual({ text: "jo@example.com" });
-      expect(typed("amazon_pay").label).toEqual({ text: "Amazon Pay" });
+      expect(typed("amazon_pay").label).toEqual({
+        key: "paymentMethodsAmazonPayAccount",
+      });
     });
 
     test("a type nobody mapped has no digits", () => {
