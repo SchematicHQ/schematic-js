@@ -50,7 +50,7 @@ export interface CompanyPaymentMethodResponseData {
    */
   billingName?: string | null;
   /**
-   * Whether DELETE /checkout/paymentmethod/:id would succeed. False for the default while other methods remain, and for the only method while an active paid subscription needs it.
+   * Whether DELETE /checkout/paymentmethod/:id would succeed. False only for the sole method while an active paid subscription needs it; the default can be removed like any other.
    * @type {boolean}
    * @memberof CompanyPaymentMethodResponseData
    */
