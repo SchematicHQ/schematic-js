@@ -19,6 +19,7 @@ import { cardBoxShadow } from "../../layout";
 import {
   ExpandListToggle,
   PlanCreditText,
+  PlanEstimatedTotal,
   UsageViolationText,
 } from "../../shared";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -204,6 +205,13 @@ export const Plan = ({
             )}
           </Text>
         </Box>
+
+        <PlanEstimatedTotal
+          plan={plan}
+          period={selectedPeriod}
+          planPrice={planPrice}
+          currency={planCurrency}
+        />
 
         {showCredits && credits.length > 0 && (
           <Flex
