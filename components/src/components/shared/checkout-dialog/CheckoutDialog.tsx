@@ -51,6 +51,7 @@ import {
   filterCreditBundles,
   getPlanPrice,
   getSubscriptionPeriod,
+  getUnlistedCurrentPlan,
   isAddOnCompatibleWithLookup,
   isCreditOnlyCheckout,
   isError,
@@ -324,6 +325,26 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     useSelectedPeriod: showPeriodToggle,
   });
 
+  // The company's own plan when `activePlans` leaves it out (a custom plan, or
+  // one no longer live), so the company can keep it while changing something
+  // else. It is only priced for the period it is billed on.
+  const unlistedCurrentPlan = useMemo(() => {
+    const plan = getUnlistedCurrentPlan(data);
+    if (plan && showPeriodToggle && !getPlanPrice(plan, planPeriod)) {
+      return undefined;
+    }
+
+    return plan;
+  }, [data, showPeriodToggle, planPeriod]);
+
+  const selectablePlans = useMemo(
+    () =>
+      unlistedCurrentPlan
+        ? [unlistedCurrentPlan, ...availablePlans]
+        : availablePlans,
+    [unlistedCurrentPlan, availablePlans],
+  );
+
   const [selectedPlanId, setSelectedPlanId] = useState<
     string | null | undefined
   >(undefined);
@@ -334,20 +355,33 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
 
     if (selectedPlanId) {
-      return availablePlans.find((p) => p.id === selectedPlanId);
+      return selectablePlans.find((p) => p.id === selectedPlanId);
     }
 
     if (checkoutState?.planId) {
-      return availablePlans.find((plan) => plan.id === checkoutState.planId);
+      return selectablePlans.find((plan) => plan.id === checkoutState.planId);
     }
 
-    return availablePlans.find(
+    const currentPlan = availablePlans.find(
       (plan) =>
         plan.current &&
         // do not initially set the current plan for a trial
         (!plan.isTrialable || !plan.companyCanTrial),
     );
-  }, [availablePlans, checkoutState, selectedPlanId]);
+    if (currentPlan) {
+      return currentPlan;
+    }
+
+    // Opened to buy credits, leave the unlisted plan unselected so the bundles
+    // are bought standalone and the subscription is not touched.
+    return checkoutState?.credits ? undefined : unlistedCurrentPlan;
+  }, [
+    availablePlans,
+    selectablePlans,
+    unlistedCurrentPlan,
+    checkoutState,
+    selectedPlanId,
+  ]);
 
   const [shouldTrial, setShouldTrial] = useState(false);
 
@@ -418,6 +452,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [data?.addOnCompatibilities],
   );
 
+  // Before a plan is chosen, add-ons are gated on the company's current plan,
+  // the same way `bundleGatingPlanId` gates credit bundles.
+  const addOnGatingPlanId = selectedPlan?.id ?? data?.company?.plan?.id;
+
   const addOns = useMemo(() => {
     return availableAddOns
       .filter((availAddOn) => {
@@ -434,14 +472,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           return false;
         }
 
-        if (!selectedPlan) {
+        if (!addOnGatingPlanId) {
           return true;
         }
 
         return isAddOnCompatibleWithLookup(
           addOnCompatibilityLookup,
           availAddOn.id,
-          selectedPlan.id,
+          addOnGatingPlanId,
         );
       })
       .map((addOn) => ({
@@ -451,7 +489,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   }, [
     addOnCompatibilityLookup,
     availableAddOns,
-    selectedPlan,
+    addOnGatingPlanId,
     hasCurrency,
     effectiveCurrency,
     selectedAddOnIds,
@@ -494,8 +532,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   // A purchase of credit bundles and nothing else: there is no subscription to
   // create or change, so the backend charges for the credits standalone. This
-  // covers a company on a free plan and a company whose plan is no longer live,
-  // which has a subscription but no plan the dialog can select.
+  // covers a company on a free plan and a company whose plan is not listed,
+  // which has a subscription but opened the dialog to buy credits, leaving its
+  // plan unselected.
   const isCreditOnlyPurchase = useMemo(
     () =>
       isCreditOnlyCheckout({
@@ -720,7 +759,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     const hasCustomCheckoutFields =
       (data?.customCheckoutFields ?? []).length > 0 || collectTaxId;
 
-    if (availablePlans.length > 0) {
+    if (selectablePlans.length > 0) {
       stages.push({
         id: "plan",
         name: t("Plan"),
@@ -817,7 +856,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     t,
     data?.customCheckoutFields,
     collectTaxId,
-    availablePlans,
+    selectablePlans,
     selectedPlan?.includedCreditGrants,
     willTrialWithoutPaymentMethod,
     payInAdvanceEntitlements,
@@ -1993,6 +2032,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
               isLoading={isLoading}
               period={planPeriod}
               plans={availablePlans}
+              unlistedCurrentPlan={unlistedCurrentPlan}
               selectedPlan={selectedPlan}
               selectPlan={selectPlan}
               shouldTrial={shouldTrial}

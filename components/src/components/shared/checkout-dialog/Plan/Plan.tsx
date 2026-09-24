@@ -27,12 +27,15 @@ import {
 import { Box, Flex, Icon, Text } from "../../../ui";
 
 import { ButtonGroup } from "./ButtonGroup";
+import { CurrentPlan } from "./CurrentPlan";
 import { Entitlement } from "./Entitlement";
 
 interface PlanProps {
   portal?: HTMLElement | null;
   isLoading: boolean;
   plans: SelectedPlan[];
+  /** The company's plan when it is not one of `plans`, offered to keep. */
+  unlistedCurrentPlan?: SelectedPlan;
   selectedPlan?: SelectedPlan;
   period: string;
   selectPlan: (updates: {
@@ -48,6 +51,7 @@ export const Plan = ({
   portal,
   isLoading,
   plans,
+  unlistedCurrentPlan,
   selectedPlan,
   period,
   selectPlan,
@@ -94,6 +98,15 @@ export const Plan = ({
       $gap="1rem"
       $flexGrow={1}
     >
+      {unlistedCurrentPlan && (
+        <CurrentPlan
+          plan={unlistedCurrentPlan}
+          isLoading={isLoading}
+          isSelected={unlistedCurrentPlan.id === selectedPlan?.id}
+          onSelect={selectPlan}
+        />
+      )}
+
       {plans.map((plan, planIndex) => {
         const planPeriod = showPeriodToggle
           ? period

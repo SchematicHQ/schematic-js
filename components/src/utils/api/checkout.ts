@@ -1,6 +1,13 @@
 import {
+  BillingStrategy,
+  ChargeType,
   PlanCreditGrantView,
+  PlanIcon,
+  PlanType,
+  type BillingPriceResponseData,
+  type BillingProductPriceInterval,
   type CompatiblePlans,
+  type PlanEntitlementResponseData,
   type UpdateAddOnRequestBody,
   type UpdateAutoTopupOverrideRequestBody,
   type UpdateCreditBundleRequestBody,
@@ -9,10 +16,11 @@ import {
 import type {
   AutoTopupConfig,
   CreditBundle,
+  HydrateDataWithCompanyContext,
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../types";
-import { getAddOnPrice, getEntitlementPrice } from "./billing";
+import { derivePeriod, getAddOnPrice, getEntitlementPrice } from "./billing";
 import { isAutoTopupOff } from "./credit";
 
 export function buildAutoTopupRequestBody(options: {
@@ -186,4 +194,104 @@ export function isCreditOnlyCheckout(options: {
   return !addOns.some(
     (addOn) => addOn.isSelected && !!getAddOnPrice(addOn, period, currency)?.id,
   );
+}
+
+/**
+ * The company's current plan in a form checkout can select, for a company
+ * whose plan is missing from `activePlans`. Custom plans are never listed
+ * there, and a legacy plan drops out once it is no longer live. Without this
+ * the dialog has no plan to send, and every purchase other than a credit-only
+ * one dead-ends.
+ *
+ * A subscription change needs the final plan id and a recurring price id, and
+ * sending the company's existing pair keeps it on its plan. The price comes
+ * from the subscription item for the plan's billing product. `company.plan`
+ * carries no entitlements, so they are recovered from feature usage, keeping
+ * only those whose plan entitlement belongs to this plan; an add-on's
+ * entitlements carry the add-on's id and are left to the add-on.
+ *
+ * Returns undefined when the plan is already listed, or when the subscription
+ * has no recurring price for it.
+ */
+export function getUnlistedCurrentPlan(
+  data?: HydrateDataWithCompanyContext,
+): SelectedPlan | undefined {
+  const companyPlan = data?.company?.plan;
+  const billingSubscription = data?.company?.billingSubscription;
+  if (!companyPlan?.billingProductId || !billingSubscription) {
+    return undefined;
+  }
+
+  if ((data?.activePlans ?? []).some((plan) => plan.id === companyPlan.id)) {
+    return undefined;
+  }
+
+  const product = billingSubscription.products.find(
+    (product) =>
+      product.id === companyPlan.billingProductId &&
+      product.interval !== "one-time",
+  );
+  const period = derivePeriod(product?.interval, product?.intervalCount);
+  if (!product || !period) {
+    return undefined;
+  }
+
+  const price: BillingPriceResponseData = {
+    currency: product.currency,
+    externalPriceId: product.priceExternalId,
+    id: product.priceId,
+    interval: product.interval as BillingProductPriceInterval,
+    intervalCount: product.intervalCount ?? 1,
+    price: product.price,
+    priceDecimal: product.priceDecimal,
+    providerType: product.providerType,
+    scheme: product.billingScheme,
+  };
+
+  const entitlements = (data?.featureUsage?.features ?? []).reduce(
+    (acc: PlanEntitlementResponseData[], usage) => {
+      if (usage.planEntitlement?.planId === companyPlan.id) {
+        acc.push(usage.planEntitlement);
+      }
+
+      return acc;
+    },
+    [],
+  );
+
+  return {
+    availablePeriods: [],
+    billingStrategy: BillingStrategy.SchematicManaged,
+    chargeType: ChargeType.Recurring,
+    companyCanTrial: false,
+    companyCount: 0,
+    compatiblePlanIds: [],
+    controlledBy: product.providerType,
+    createdAt: product.createdAt,
+    credits: [],
+    currencyPrices: [],
+    current: true,
+    custom: false,
+    description: companyPlan.description ?? "",
+    entitlements,
+    features: [],
+    icon: PlanIcon.Gray,
+    id: companyPlan.id,
+    includedCreditGrants: companyPlan.includedCreditGrants,
+    isCustom: false,
+    isDefault: false,
+    isSelected: false,
+    isTrialable: false,
+    name: companyPlan.name,
+    planType: PlanType.Plan,
+    updatedAt: product.updatedAt,
+    usageViolations: [],
+    valid: true,
+    versions: [],
+    ...(period === "year"
+      ? { yearlyPrice: price }
+      : period === "quarter"
+        ? { quarterlyPrice: price }
+        : { monthlyPrice: price }),
+  };
 }

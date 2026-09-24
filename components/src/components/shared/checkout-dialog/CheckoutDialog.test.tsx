@@ -6,7 +6,11 @@ import {
   type PreviewCheckoutResponse,
 } from "../../../api/checkoutexternal";
 import { FETCH_DEBOUNCE_TIMEOUT } from "../../../const";
-import { EmbedContext, initialContext } from "../../../context";
+import {
+  EmbedContext,
+  initialContext,
+  type CheckoutState,
+} from "../../../context";
 import hydrateResponse from "../../../test/mocks/handlers/response/hydrate.json";
 import { render } from "../../../test/setup";
 import type { HydrateDataWithCompanyContext } from "../../../types";
@@ -126,13 +130,79 @@ function buildPreviewResponse(): PreviewCheckoutResponse {
   };
 }
 
+const LEGACY_PRICE_ID = "bilpp_QjMiemTYNz1";
+const SEAT_PRICE_ID = "bilpp_seat";
+
+/**
+ * `buildLegacyPlanData`, with the legacy plan granting a pay-in-advance seat
+ * entitlement the company holds 5 of.
+ */
+function buildLegacyPlanWithSeatsData(): HydrateDataWithCompanyContext {
+  const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+
+  raw.active_plans = (raw.active_plans as Json[]).map((plan) => ({
+    ...plan,
+    current: false,
+  }));
+
+  const company = raw.company as Json;
+  company.plan = {
+    ...(company.plan as Json),
+    id: LEGACY_PLAN_ID,
+    name: "Legacy Pro",
+  };
+
+  const featureUsage = raw.feature_usage as { features: Json[] };
+  const [usage] = featureUsage.features;
+  const seatPrice = {
+    billing_scheme: "per_unit",
+    created_at: "2025-10-01T15:45:30.539441Z",
+    currency: "usd",
+    id: SEAT_PRICE_ID,
+    interval: "month",
+    is_active: true,
+    package_size: 1,
+    price: 1000,
+    price_decimal: "1000",
+    price_external_id: "price_seat",
+    price_id: SEAT_PRICE_ID,
+    price_tier: [],
+    product_external_id: "prod_seat",
+    product_id: "bilp_seat",
+    product_name: "Seats",
+    provider_type: "stripe",
+    updated_at: "2025-10-01T15:45:31.123933Z",
+    usage_type: "licensed",
+  };
+  featureUsage.features = [
+    {
+      ...usage,
+      allocation: 5,
+      price_behavior: "pay_in_advance",
+      monthly_usage_based_price: seatPrice,
+      plan_entitlement: {
+        ...(usage.plan_entitlement as Json),
+        plan_id: LEGACY_PLAN_ID,
+        price_behavior: "pay_in_advance",
+        metered_monthly_price: seatPrice,
+        metered_yearly_price: null,
+        value_numeric: 5,
+      },
+    },
+  ];
+
+  return ComponentHydrateResponseDataFromJSON(raw);
+}
+
 function renderCheckoutDialog({
   behavior = CheckoutBundlePurchaseBehavior.Individual,
   data,
+  checkoutState = { credits: true },
   previewCheckout,
 }: {
   behavior?: CheckoutBundlePurchaseBehavior;
   data?: HydrateDataWithCompanyContext;
+  checkoutState?: CheckoutState;
   previewCheckout: () => Promise<PreviewCheckoutResponse | undefined>;
 }) {
   return render(
@@ -141,7 +211,7 @@ function renderCheckoutDialog({
         ...initialContext,
         data: data ?? buildCreditOnlyData(behavior),
         layout: "checkout",
-        checkoutState: { credits: true },
+        checkoutState,
         previewCheckout,
         setLayout: () => {},
         setCheckoutState: () => {},
@@ -163,45 +233,43 @@ async function flushDebounce() {
   });
 }
 
+// jsdom implements neither of these, and the dialog reaches for both on mount.
+beforeAll(() => {
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    },
+  );
+
+  HTMLDialogElement.prototype.show = function show(this: HTMLDialogElement) {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.showModal = function showModal(
+    this: HTMLDialogElement,
+  ) {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+    this.open = false;
+  };
+  Element.prototype.scrollTo = function scrollTo() {};
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("`CheckoutDialog` credit-only purchases", () => {
-  // jsdom implements neither of these, and the dialog reaches for both on mount.
-  beforeAll(() => {
-    vi.stubGlobal(
-      "IntersectionObserver",
-      class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-        takeRecords() {
-          return [];
-        }
-      },
-    );
-
-    HTMLDialogElement.prototype.show = function show(this: HTMLDialogElement) {
-      this.open = true;
-    };
-    HTMLDialogElement.prototype.showModal = function showModal(
-      this: HTMLDialogElement,
-    ) {
-      this.open = true;
-    };
-    HTMLDialogElement.prototype.close = function close(
-      this: HTMLDialogElement,
-    ) {
-      this.open = false;
-    };
-    Element.prototype.scrollTo = function scrollTo() {};
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  afterAll(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("buys credits for a company whose plan is no longer live", async () => {
     const previewCheckout = vi.fn(async () => buildPreviewResponse());
     renderCheckoutDialog({
@@ -312,5 +380,72 @@ describe("`CheckoutDialog` credit-only purchases", () => {
 
     // The superseded response must not repopulate the cleared sidebar.
     expect(dueToday()).not.toBeInTheDocument();
+  });
+});
+
+describe("`CheckoutDialog` for a company on an unlisted plan", () => {
+  it("keeps the plan while adding an add-on", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildLegacyPlanData(CheckoutBundlePurchaseBehavior.Individual),
+      checkoutState: {},
+      previewCheckout,
+    });
+
+    // The plan is offered first and starts selected, as a listed current plan
+    // would, so the company has a plan to send without choosing another.
+    expect(await screen.findByText("Current plan")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(previewCheckout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newPlanId: LEGACY_PLAN_ID,
+          newPriceId: LEGACY_PRICE_ID,
+        }),
+      );
+    });
+
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /Next: Add-ons/ })[0],
+    );
+    fireEvent.click((await screen.findAllByText("Choose add-on"))[0]);
+
+    await waitFor(() => {
+      expect(previewCheckout).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          newPlanId: LEGACY_PLAN_ID,
+          newPriceId: LEGACY_PRICE_ID,
+          addOnIds: [expect.objectContaining({ addOnId: "plan_aDevbC1pNVr" })],
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByRole("button", { name: /Next: Credits/ })[0],
+      ).toBeEnabled();
+    });
+  });
+
+  it("keeps the plan while changing seats, sending the current quantity", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildLegacyPlanWithSeatsData(),
+      checkoutState: { usage: true },
+      previewCheckout,
+    });
+
+    // The API rejects a plan's seat entitlement missing from the request, so
+    // the quantity the company already holds goes out with the kept plan.
+    await waitFor(() => {
+      expect(previewCheckout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newPlanId: LEGACY_PLAN_ID,
+          newPriceId: LEGACY_PRICE_ID,
+          payInAdvance: [{ priceId: SEAT_PRICE_ID, quantity: 5 }],
+        }),
+      );
+    });
+
+    expect(await screen.findByRole("spinbutton")).toHaveValue(5);
   });
 });

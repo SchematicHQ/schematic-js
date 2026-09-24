@@ -108,6 +108,7 @@ const en = {
     "Credit — this amount was returned to your account, typically due to a plan change or proration",
   "Invoice charge tooltip": "Charge — you were billed this amount",
   "Invoices": "Invoices",
+  "Keep current plan": "Keep current plan",
   "Limit of": "Limit of {{amount}}",
   "Loading": "Loading",
   "Manage plan": "Manage plan",

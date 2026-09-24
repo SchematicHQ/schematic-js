@@ -4,11 +4,14 @@ import type {
 } from "../../api/checkoutexternal";
 import {
   BillingCreditAutoTopupAvailability,
+  ComponentHydrateResponseDataFromJSON,
   PlanIcon,
 } from "../../api/checkoutexternal";
+import hydrateResponse from "../../test/mocks/handlers/response/hydrate.json";
 import type {
   AutoTopupConfig,
   CreditBundle,
+  HydrateDataWithCompanyContext,
   SelectedPlan,
   UsageBasedEntitlement,
 } from "../../types";
@@ -18,6 +21,7 @@ import {
   buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
   buildPayInAdvanceRequestBody,
+  getUnlistedCurrentPlan,
   isAddOnCompatibleWithLookup,
   isScheduledCheckoutConflictMessage,
 } from "./checkout";
@@ -808,5 +812,107 @@ describe("isScheduledCheckoutConflictMessage", () => {
         message: "scheduled downgrade pending",
       }),
     ).toBe(false);
+  });
+});
+
+describe("getUnlistedCurrentPlan", () => {
+  const UNLISTED_PLAN_ID = "plan_unlisted";
+
+  type Json = Record<string, unknown>;
+
+  function buildData(
+    mutate: (raw: Json) => void = () => {},
+  ): HydrateDataWithCompanyContext {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    const company = raw.company as Json;
+    company.plan = { ...(company.plan as Json), id: UNLISTED_PLAN_ID };
+    mutate(raw);
+
+    return ComponentHydrateResponseDataFromJSON(raw);
+  }
+
+  function subscriptionProduct(raw: Json) {
+    const company = raw.company as Json;
+    const subscription = company.billing_subscription as { products: Json[] };
+
+    return subscription.products[0];
+  }
+
+  it("returns undefined when the company's plan is listed", () => {
+    const data = ComponentHydrateResponseDataFromJSON(
+      structuredClone(hydrateResponse.data),
+    );
+
+    expect(getUnlistedCurrentPlan(data)).toBeUndefined();
+  });
+
+  it("returns undefined without a billing subscription", () => {
+    const data = buildData((raw) => {
+      (raw.company as Json).billing_subscription = null;
+    });
+
+    expect(getUnlistedCurrentPlan(data)).toBeUndefined();
+  });
+
+  it("prices the plan from its subscription item", () => {
+    const plan = getUnlistedCurrentPlan(buildData());
+
+    expect(plan).toMatchObject({
+      id: UNLISTED_PLAN_ID,
+      name: "Basic",
+      current: true,
+      custom: false,
+      isSelected: false,
+      monthlyPrice: {
+        id: "bilpp_QjMiemTYNz1",
+        price: 500,
+        currency: "usd",
+      },
+    });
+    expect(plan?.yearlyPrice).toBeUndefined();
+  });
+
+  it("files a yearly price under the yearly slot", () => {
+    const plan = getUnlistedCurrentPlan(
+      buildData((raw) => {
+        subscriptionProduct(raw).interval = "year";
+      }),
+    );
+
+    expect(plan?.yearlyPrice?.id).toBe("bilpp_QjMiemTYNz1");
+    expect(plan?.monthlyPrice).toBeUndefined();
+  });
+
+  it("files a three-month price under the quarterly slot", () => {
+    const plan = getUnlistedCurrentPlan(
+      buildData((raw) => {
+        subscriptionProduct(raw).interval_count = 3;
+      }),
+    );
+
+    expect(plan?.quarterlyPrice?.id).toBe("bilpp_QjMiemTYNz1");
+    expect(plan?.monthlyPrice).toBeUndefined();
+  });
+
+  it("returns undefined when no subscription item is for the plan's product", () => {
+    const data = buildData((raw) => {
+      subscriptionProduct(raw).id = "bilp_other";
+    });
+
+    expect(getUnlistedCurrentPlan(data)).toBeUndefined();
+  });
+
+  it("keeps only entitlements that belong to the plan", () => {
+    const data = buildData((raw) => {
+      const features = (raw.feature_usage as { features: Json[] }).features;
+      const [forPlan, forAddOn] = features;
+      (forPlan.plan_entitlement as Json).plan_id = UNLISTED_PLAN_ID;
+      (forAddOn.plan_entitlement as Json).plan_id = "plan_addon";
+    });
+
+    const plan = getUnlistedCurrentPlan(data);
+
+    expect(plan?.entitlements).toHaveLength(1);
+    expect(plan?.entitlements?.[0].planId).toBe(UNLISTED_PLAN_ID);
   });
 });
