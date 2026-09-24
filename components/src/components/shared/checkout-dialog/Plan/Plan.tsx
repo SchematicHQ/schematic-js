@@ -23,6 +23,7 @@ import {
   AutoTopupNotice,
   ExpandListToggle,
   PlanCreditText,
+  PlanEstimatedTotal,
 } from "../../../shared";
 import { Box, Flex, Icon, Text } from "../../../ui";
 
@@ -217,6 +218,13 @@ export const Plan = ({
                   </Text>
                 )}
               </Box>
+
+              <PlanEstimatedTotal
+                plan={plan}
+                period={planPeriod}
+                planPrice={planPrice}
+                currency={planCurrency}
+              />
 
               {showCredits && credits.length > 0 && (
                 <Flex
