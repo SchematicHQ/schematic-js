@@ -380,12 +380,16 @@ describe("PaymentMethods", () => {
         name: "Edit payment details",
       });
       expect(modal).toHaveAttribute("aria-labelledby", title.id);
-      // The pill again, without Edit: the dialog is where editing happens.
+      // The pill again, with Remove in place of Edit.
       const current = within(modal).getByTestId(
         "schematic-payment-method-current",
       );
       expect(current).toHaveTextContent("Card ending in 4444");
-      expect(within(current).queryByRole("button")).toBeNull();
+      expect(
+        within(current)
+          .getAllByRole("button")
+          .map((button) => button.textContent),
+      ).toEqual(["Remove"]);
       expect(
         within(modal).getByRole("button", {
           name: "Choose different payment method",
@@ -546,6 +550,41 @@ describe("PaymentMethods", () => {
       await waitFor(() =>
         expect(removePaymentMethod).toHaveBeenCalledWith("pm_link"),
       );
+    });
+
+    test("the pill offers Remove in the dialog, as the embed's does, and asks the provider with the default's id", async () => {
+      const removePaymentMethod = vi.fn().mockResolvedValue(undefined);
+      renderCard(
+        SCENARIOS.paymentMethods(),
+        {},
+        { actions: { removePaymentMethod } },
+      );
+      expect(
+        within(pill()).queryByRole("button", { name: "Remove" }),
+      ).toBeNull();
+      openDialog();
+      const current = within(dialog()).getByTestId(
+        "schematic-payment-method-current",
+      );
+      expect(
+        within(current).queryByRole("button", { name: "Edit" }),
+      ).toBeNull();
+      const remove = within(current).getByRole("button", { name: "Remove" });
+      expect(remove).toHaveClass("schematic-payment-methods__remove-current");
+      fireEvent.click(remove);
+      await waitFor(() =>
+        expect(removePaymentMethod).toHaveBeenCalledWith("pm_card"),
+      );
+    });
+
+    test("the pill offers no Remove where the server refuses it", () => {
+      renderCard({ paymentMethods: [defaultCard(8, 2027)] });
+      openDialog();
+      expect(
+        within(
+          within(dialog()).getByTestId("schematic-payment-method-current"),
+        ).queryByRole("button", { name: "Remove" }),
+      ).toBeNull();
     });
 
     test("offers Remove only where the server allows it", () => {

@@ -46,11 +46,10 @@ imports them when the form first opens, so a page that only shows the method
 on file never loads Stripe, and a host without them still shows it — the
 form reports that it could not load rather than crashing.
 
-The server also refuses to remove the default payment method while others
-exist, and the last method on an active subscription. That is why the
-`PaymentMethods` pill offers no Remove: it names the default, and a Remove on
-it would fail every time. Removal is offered in the dialog on the other
-methods, and only where the server's `canRemove` allows it.
+The server refuses to remove the last payment method on an active paid
+subscription, and nothing else. `PaymentMethods` offers Remove in its dialog,
+on the pill and the other rows, only where the server's `canRemove` allows
+it.
 
 ## Setup
 

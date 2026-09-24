@@ -54,7 +54,8 @@ export const paymentMethodsCss = `
   flex-grow: 1;
 }
 
-.schematic-payment-methods__edit {
+.schematic-payment-methods__edit,
+.schematic-payment-methods__remove-current {
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -102,7 +103,8 @@ export const paymentMethodsCss = `
 }
 
 .schematic-payment-methods__set-default:disabled,
-.schematic-payment-methods__edit:disabled {
+.schematic-payment-methods__edit:disabled,
+.schematic-payment-methods__remove-current:disabled {
   color: var(--schematic-muted);
   cursor: not-allowed;
   text-decoration: none;
