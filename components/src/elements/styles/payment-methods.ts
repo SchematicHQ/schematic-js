@@ -160,6 +160,30 @@ export const paymentMethodsCss = `
   gap: var(--schematic-space);
 }
 
+/* The fields the checkout settings add beside Stripe's own. */
+.schematic-payment-methods__field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--schematic-space) / 2);
+}
+
+.schematic-payment-methods__input {
+  background: var(--schematic-background);
+  border: 1px solid var(--schematic-border);
+  border-radius: var(--schematic-radius);
+  box-sizing: border-box;
+  color: var(--schematic-text);
+  font: inherit;
+  padding: 0.75rem;
+  width: 100%;
+}
+
+.schematic-payment-methods__input:focus-visible {
+  border-color: var(--schematic-accent);
+  outline: 2px solid var(--schematic-accent);
+  outline-offset: 0;
+}
+
 .schematic-payment-methods .schematic-skeleton__cell[data-column="method"] {
   width: 10rem;
 }

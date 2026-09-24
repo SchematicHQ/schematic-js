@@ -6,8 +6,12 @@ import type {
   StripeConstructorOptions,
   StripeElementLocale,
 } from "@stripe/stripe-js";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 
+import type {
+  PaymentMethodsCheckoutPrefill,
+  PaymentMethodsCheckoutSettings,
+} from "./PaymentMethods";
 import type { Translator } from "./strings";
 import { withTokenDefaults } from "./styles/tokens";
 
@@ -20,6 +24,8 @@ import { withTokenDefaults } from "./styles/tokens";
  */
 
 export interface PaymentMethodFormProps {
+  checkoutPrefill?: PaymentMethodsCheckoutPrefill;
+  checkoutSettings?: PaymentMethodsCheckoutSettings;
   locale: string;
   t: Translator;
   /** The saved method's provider id; resolves once the list has taken it. */
@@ -31,7 +37,7 @@ export interface PaymentMethodFormProps {
 
 type StripeUi = Pick<
   typeof ReactStripe,
-  "Elements" | "PaymentElement" | "useElements" | "useStripe"
+  "AddressElement" | "Elements" | "PaymentElement" | "useElements" | "useStripe"
 >;
 
 type FormState =
@@ -74,6 +80,18 @@ const PROBE_CSS = withTokenDefaults(
  * blocked, as the embed waits. */
 const READY_TIMEOUT_MS = 10_000;
 
+/**
+ * What a browser accepts in `<input type="email">`, per the HTML standard,
+ * so Save and the field's own validation agree.
+ */
+const VALID_EMAIL =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+/** A missing value arrives as undefined or an empty string. */
+function orUndefined(value: string | undefined): string | undefined {
+  return value === undefined || value === "" ? undefined : value;
+}
+
 /** A computed value the browser resolved; jsdom hands back the `var()`. */
 function resolved(value: string): boolean {
   return value !== "" && !value.includes("var(");
@@ -110,6 +128,8 @@ export function resolveAppearance(host: Element): Appearance {
 }
 
 export function PaymentMethodForm({
+  checkoutPrefill,
+  checkoutSettings,
   locale,
   onSaved,
   onSelectExisting,
@@ -221,6 +241,8 @@ export function PaymentMethodForm({
       }}
     >
       <Fields
+        checkoutPrefill={checkoutPrefill}
+        checkoutSettings={checkoutSettings}
         t={t}
         ui={state.ui}
         onSaved={onSaved}
@@ -235,17 +257,29 @@ export function PaymentMethodForm({
  * module loaded above, so they are called off `ui` rather than imported.
  */
 function Fields({
+  checkoutPrefill,
+  checkoutSettings,
   onSaved,
   onSelectExisting,
   t,
   ui,
 }: {
+  checkoutPrefill: PaymentMethodsCheckoutPrefill | undefined;
+  checkoutSettings: PaymentMethodsCheckoutSettings | undefined;
   onSaved: (paymentMethodId: string) => Promise<void>;
   onSelectExisting?: () => void;
   t: Translator;
   ui: StripeUi;
 }) {
-  const { PaymentElement, useElements, useStripe } = ui;
+  const { AddressElement, PaymentElement, useElements, useStripe } = ui;
+  const collectEmail = checkoutSettings?.collectEmail ?? false;
+  const collectAddress = checkoutSettings?.collectAddress ?? false;
+  const collectPhone = checkoutSettings?.collectPhone ?? false;
+  // Phone is one of Stripe's address fields, so asking for it shows them.
+  const showAddress = collectAddress || collectPhone;
+  const prefill = checkoutPrefill?.billingDetails;
+  const prefillName = orUndefined(prefill?.name);
+  const emailId = useId();
   const stripe = useStripe();
   const elements = useElements();
   const [saving, setSaving] = useState(false);
@@ -254,6 +288,12 @@ function Fields({
   const [complete, setComplete] = useState(false);
   const [ready, setReady] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
+  // A phone-only form shows the address fields without requiring them.
+  const [addressComplete, setAddressComplete] = useState(!collectAddress);
+  // The prefill fills the field, arriving late or not, until someone types.
+  const [typedEmail, setTypedEmail] = useState<string | null>(null);
+  const email = typedEmail ?? orUndefined(prefill?.email) ?? "";
+  const emailValid = !collectEmail || VALID_EMAIL.test(email);
 
   // A blocked iframe never reports ready or failed, so a quiet one is taken
   // as blocked once the embed's wait runs out.
@@ -273,9 +313,19 @@ function Fields({
     setSaving(true);
     setMessage(null);
     try {
+      const billingDetails: { email?: string; name?: string } = {};
+      if (collectEmail && email !== "") {
+        billingDetails.email = email;
+      }
+      if (showAddress && prefillName !== undefined) {
+        billingDetails.name = prefillName;
+      }
       const result = await stripe.confirmSetup({
         elements,
-        confirmParams: { return_url: window.location.href },
+        confirmParams: {
+          payment_method_data: { billing_details: billingDetails },
+          return_url: window.location.href,
+        },
         // Most methods confirm in place; one that must redirect comes back
         // to this page, where the list refetches on its own.
         redirect: "if_required",
@@ -322,6 +372,43 @@ function Fields({
           }}
         />
       </div>
+      {collectEmail && (
+        <div className="schematic-payment-methods__field">
+          <label
+            className="schematic-payment-methods__field-label"
+            htmlFor={emailId}
+          >
+            {t("paymentMethodsEmail")}
+          </label>
+          <input
+            autoComplete="email"
+            className="schematic-payment-methods__input"
+            id={emailId}
+            placeholder={t("paymentMethodsEmailPlaceholder")}
+            required
+            type="email"
+            value={email}
+            onChange={(event) => setTypedEmail(event.target.value)}
+          />
+        </div>
+      )}
+      {showAddress && (
+        <div className="schematic-payment-methods__address">
+          <AddressElement
+            // Stripe reads `defaultValues` on mount only, so a new name
+            // remounts the fields.
+            key={prefillName ?? ""}
+            options={{
+              fields: { phone: collectPhone ? "always" : "never" },
+              mode: "billing",
+              ...(prefillName !== undefined && {
+                defaultValues: { name: prefillName },
+              }),
+            }}
+            onChange={(event) => setAddressComplete(event.complete)}
+          />
+        </div>
+      )}
       {loadFailed && (
         <p
           className="schematic-error schematic-small schematic-payment-methods__form-error"
@@ -340,7 +427,14 @@ function Fields({
       )}
       <button
         className="schematic-cta schematic-payment-methods__save"
-        disabled={stripe === null || elements === null || saving || !complete}
+        disabled={
+          stripe === null ||
+          elements === null ||
+          saving ||
+          !complete ||
+          !addressComplete ||
+          !emailValid
+        }
         type="submit"
       >
         {saving ? t("paymentMethodsSaving") : t("paymentMethodsSave")}

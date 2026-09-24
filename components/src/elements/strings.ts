@@ -73,6 +73,8 @@ export type ElementStrings = {
   paymentMethodsSelectExisting: string;
   paymentMethodsFormLoading: string;
   paymentMethodsFormError: string;
+  paymentMethodsEmail: string;
+  paymentMethodsEmailPlaceholder: string;
   paymentMethodsSetupError: string;
   paymentMethodsSave: string;
   paymentMethodsSaving: string;
@@ -180,6 +182,8 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   paymentMethodsFormLoading: "Loading payment form",
   paymentMethodsFormError:
     "Unable to load payment form. Your browser's security or privacy settings may be blocking it. Please try a different browser or adjust your privacy settings.",
+  paymentMethodsEmail: "Email",
+  paymentMethodsEmailPlaceholder: "Enter email address",
   paymentMethodsSetupError:
     "Error initializing payment method change. Please try again.",
   paymentMethodsSave: "Save payment method",

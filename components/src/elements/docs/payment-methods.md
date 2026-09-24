@@ -71,6 +71,8 @@ Every row carries its raw fields beside the text — `brand`, `type`, `isDefault
 | `showExpiration`      | `true`  | The warning when the default card has fewer than four months left. |
 | `allowEdit`           | `true`  | The Edit (or Add) action on the pill, and the dialog behind it.    |
 | `headingLevel`        | `2`     | The heading's level, to fit the host's outline.                    |
+| `checkoutSettings`    | —       | What the Add form collects beyond the payment fields; see below.   |
+| `checkoutPrefill`     | —       | Values the Add form starts with; see below.                        |
 | `className`, `locale` | —       | Root class; BCP 47 tag for formatting and Stripe's UI.             |
 | `strings`             | —       | Copy for this card by key; wins over the provider's.               |
 
@@ -138,6 +140,26 @@ Stripe packages installed, or fields that do not come up within ten seconds
 read as the embed's "Unable to load payment form." message, which suggests
 the browser's privacy settings may be blocking it.
 
+`checkoutSettings` and `checkoutPrefill` take the embed's names and shapes,
+so a host can pass the account's checkout settings through as they come:
+
+```tsx
+<PaymentMethods
+  checkoutSettings={{ collectEmail: true, collectAddress: true }}
+  checkoutPrefill={{ billingDetails: { email: user.email, name: user.name } }}
+/>
+```
+
+`collectEmail` adds a required "Email" field under Stripe's, filled from
+`checkoutPrefill.billingDetails.email` until the customer types, and sends it
+as the method's billing email. `collectAddress` adds Stripe's billing
+address fields, with their name filled from `billingDetails.name`, and Save
+waits for them to be complete. `collectPhone` shows the same fields with a
+phone number among them but, as in the embed, does not require them. The
+prefilled name is sent as the billing name whenever the address fields
+show. Each setting defaults to false, which leaves Stripe's payment fields
+alone.
+
 Stripe's fields render in an iframe, where the host's CSS reaches nothing,
 so the form hands Stripe an `appearance` resolved from the tokens: the body
 font, the text, background, accent, and danger colours, and the radius, each
@@ -172,7 +194,8 @@ The keys this element renders are `paymentMethodsHeader`,
 `paymentMethodsChooseDifferent`, `paymentMethodsExpires`,
 `paymentMethodsSetDefault`, `paymentMethodsRemove`, `paymentMethodsAddNew`,
 `paymentMethodsSelectExisting`, `paymentMethodsFormLoading`,
-`paymentMethodsFormError`, `paymentMethodsSetupError`, `paymentMethodsSave`,
+`paymentMethodsFormError`, `paymentMethodsEmail`,
+`paymentMethodsEmailPlaceholder`, `paymentMethodsSetupError`, `paymentMethodsSave`,
 `paymentMethodsSaving`, `paymentMethodsSaveError`,
 `paymentMethodsSetDefaultError`, `paymentMethodsRemoveError`, and `retry`. `strings.test.ts` freezes the list, so a rename is a
 deliberate, breaking change.
@@ -305,6 +328,21 @@ tell them apart. The dialog renders inside the root while it is open.
            its fields are Stripe's -->
       <form class="schematic-payment-methods__form" data-state="ready">
         <div class="schematic-payment-methods__fields">…</div>
+        <!-- checkoutSettings.collectEmail -->
+        <div class="schematic-payment-methods__field">
+          <label class="schematic-payment-methods__field-label" for="…">
+            Email
+          </label>
+          <input
+            class="schematic-payment-methods__input"
+            id="…"
+            type="email"
+            required
+            placeholder="Enter email address"
+          />
+        </div>
+        <!-- collectAddress or collectPhone; its fields are Stripe's -->
+        <div class="schematic-payment-methods__address">…</div>
         <!-- a save that failed, or fields that did not load -->
         <p
           class="schematic-error schematic-small schematic-payment-methods__form-error"

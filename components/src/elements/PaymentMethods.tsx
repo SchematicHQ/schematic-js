@@ -25,6 +25,31 @@ import type { Translator } from "./strings";
  */
 const PaymentMethodForm = lazy(() => import("./PaymentMethodForm"));
 
+/**
+ * What the Add form collects beyond Stripe's payment fields, under the
+ * embed's names for the account's checkout settings. Each defaults to false.
+ */
+export interface PaymentMethodsCheckoutSettings {
+  /** An email field, sent to Stripe as the method's billing email. */
+  collectEmail?: boolean;
+  /** Stripe's billing address fields. */
+  collectAddress?: boolean;
+  /** A phone field; brings Stripe's address fields with it, as the embed
+   * does, without requiring the address to be complete. */
+  collectPhone?: boolean;
+}
+
+/** Values the Add form starts with, in the embed's `checkoutPrefill` shape. */
+export interface PaymentMethodsCheckoutPrefill {
+  billingDetails?: {
+    /** Fills the email field until the customer edits it. */
+    email?: string;
+    /** Fills the address fields' name, and is sent as the billing name
+     * whenever those fields are shown. */
+    name?: string;
+  };
+}
+
 export interface PaymentMethodsProps extends ElementProps {
   /** The Edit (or Add) action and the dialog behind it. Default true. */
   allowEdit?: boolean;
@@ -34,6 +59,10 @@ export interface PaymentMethodsProps extends ElementProps {
   headingLevel?: HeadingLevel;
   /** The header's warning when the default card is about to expire. Default true. */
   showExpiration?: boolean;
+  /** What the Add form collects beyond the payment fields. */
+  checkoutSettings?: PaymentMethodsCheckoutSettings;
+  /** Values the Add form starts with. */
+  checkoutPrefill?: PaymentMethodsCheckoutPrefill;
 }
 
 /** What the dialog shows: the method on file, or the form for a new one. */
@@ -59,6 +88,8 @@ interface Write {
  */
 export function PaymentMethods({
   allowEdit = true,
+  checkoutPrefill,
+  checkoutSettings,
   className,
   headingLevel = 2,
   locale: localeProp,
@@ -188,6 +219,8 @@ export function PaymentMethods({
           </MethodPill>
           {dialog !== null && (
             <PaymentMethodsDialog
+              checkoutPrefill={checkoutPrefill}
+              checkoutSettings={checkoutSettings}
               choosing={choosing}
               derived={derived}
               isMutating={isMutating}
@@ -227,6 +260,8 @@ export function PaymentMethods({
 }
 
 function PaymentMethodsDialog({
+  checkoutPrefill,
+  checkoutSettings,
   choosing,
   derived,
   isMutating,
@@ -242,6 +277,8 @@ function PaymentMethodsDialog({
   t,
   view,
 }: {
+  checkoutPrefill: PaymentMethodsCheckoutPrefill | undefined;
+  checkoutSettings: PaymentMethodsCheckoutSettings | undefined;
   choosing: boolean;
   derived: DerivedPaymentMethods;
   isMutating: boolean;
@@ -277,6 +314,8 @@ function PaymentMethodsDialog({
           fallback={<FormSkeleton label={t("paymentMethodsFormLoading")} />}
         >
           <PaymentMethodForm
+            checkoutPrefill={checkoutPrefill}
+            checkoutSettings={checkoutSettings}
             locale={locale}
             t={t}
             onSaved={onSaved}
