@@ -5,6 +5,7 @@ import {
   type BillingPriceView,
   type BillingProductPriceTierResponseData,
   type BillingSubscriptionView,
+  type EstimatedPlanTotal,
   type FeatureUsageResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../api/checkoutexternal";
@@ -121,6 +122,34 @@ export function getPlanPrice(
   if (billingPrice) {
     return { ...billingPrice, price: getPriceValue(billingPrice) };
   }
+}
+
+const ESTIMATE_PERIODS: Record<string, string> = {
+  month: "monthly",
+  quarter: "quarterly",
+  year: "yearly",
+};
+
+/**
+ * The server's estimate of what the company would pay per period on a plan at
+ * its current usage, in the currency's minor unit. Present only when the plan
+ * group turns on show_estimated_total; standalone renders never have one.
+ */
+export function getPlanEstimatedTotal(
+  plan: Plan,
+  period = "month",
+  currency?: string,
+): EstimatedPlanTotal | undefined {
+  const cadence = ESTIMATE_PERIODS[period];
+  if (!cadence || !Array.isArray(plan.estimatedTotals)) {
+    return undefined;
+  }
+
+  return plan.estimatedTotals.find(
+    (estimate) =>
+      estimate.period === cadence &&
+      (!currency || estimate.currency.toLowerCase() === currency.toLowerCase()),
+  );
 }
 
 /**

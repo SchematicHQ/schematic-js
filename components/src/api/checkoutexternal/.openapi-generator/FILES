@@ -119,6 +119,7 @@ models/EntityTraitDefinitionResponseData.ts
 models/EntityTraitDetailResponseData.ts
 models/EntityTraitResponseData.ts
 models/EntityType.ts
+models/EstimatedPlanTotal.ts
 models/EventSummaryResponseData.ts
 models/FeatureEntitlement.ts
 models/FeatureInPlanResponseData.ts

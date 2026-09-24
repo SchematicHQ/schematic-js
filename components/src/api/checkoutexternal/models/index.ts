@@ -117,6 +117,7 @@ export * from "./EntityTraitDefinitionResponseData";
 export * from "./EntityTraitDetailResponseData";
 export * from "./EntityTraitResponseData";
 export * from "./EntityType";
+export * from "./EstimatedPlanTotal";
 export * from "./EventSummaryResponseData";
 export * from "./FeatureEntitlement";
 export * from "./FeatureInPlanResponseData";
