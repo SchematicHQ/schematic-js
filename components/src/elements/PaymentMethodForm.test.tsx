@@ -12,7 +12,11 @@ import {
 } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { PaymentMethodForm, resolveAppearance } from "./PaymentMethodForm";
+import {
+  PaymentMethodForm,
+  resolveAppearance,
+  type PaymentMethodFormProps,
+} from "./PaymentMethodForm";
 import { defaultString } from "./strings";
 
 /**
@@ -26,6 +30,8 @@ const stripe = vi.hoisted(() => ({
   confirmSetup: vi.fn(),
   elements: { kind: "elements" },
   elementsProps: vi.fn(),
+  addressProps: vi.fn(),
+  addressComplete: false,
   instance: { kind: "stripe" },
   loadStripe: vi.fn(),
   fields: "complete" as "complete" | "incomplete" | "loadError" | "silent",
@@ -60,6 +66,21 @@ vi.mock("@stripe/react-stripe-js", async () => {
       }, []);
       return <div data-testid="payment-element" />;
     },
+    AddressElement: (props: {
+      onChange: (event: { complete: boolean }) => void;
+      options: unknown;
+    }) => {
+      stripe.addressProps(props.options);
+      return (
+        <button
+          data-testid="address-element"
+          type="button"
+          onClick={() => props.onChange({ complete: stripe.addressComplete })}
+        >
+          fake address
+        </button>
+      );
+    },
     useElements: () => stripe.elements,
     useStripe: () => ({ confirmSetup: stripe.confirmSetup }),
   };
@@ -80,11 +101,16 @@ function renderForm(
   actions: Partial<BillingActions>,
   locale = L,
   onSelectExisting?: () => void,
+  checkout: Pick<
+    PaymentMethodFormProps,
+    "checkoutPrefill" | "checkoutSettings"
+  > = {},
 ) {
   const onSaved = vi.fn().mockResolvedValue(undefined);
   render(
     <BillingDataProvider actions={actions} data={{}}>
       <PaymentMethodForm
+        {...checkout}
         locale={locale}
         t={defaultString}
         onSaved={onSaved}
@@ -95,17 +121,27 @@ function renderForm(
   return { onSaved };
 }
 
+/** A form over a minted intent and a loaded Stripe, not yet waited on. */
+function renderStripe(
+  checkout: Parameters<typeof renderForm>[3] = {},
+  overrides: Partial<SetupIntent> = {},
+  onSelectExisting?: () => void,
+) {
+  stripe.loadStripe.mockResolvedValue(stripe.instance);
+  return renderForm(
+    { createSetupIntent: vi.fn().mockResolvedValue(intent(overrides)) },
+    L,
+    onSelectExisting,
+    checkout,
+  );
+}
+
 /** A form that has minted its intent and loaded Stripe. */
 async function renderReady(
   overrides: Partial<SetupIntent> = {},
   onSelectExisting?: () => void,
 ) {
-  stripe.loadStripe.mockResolvedValue(stripe.instance);
-  const handlers = renderForm(
-    { createSetupIntent: vi.fn().mockResolvedValue(intent(overrides)) },
-    L,
-    onSelectExisting,
-  );
+  const handlers = renderStripe({}, overrides, onSelectExisting);
   const save = await screen.findByRole("button", {
     name: "Save payment method",
   });
@@ -148,6 +184,8 @@ describe("PaymentMethodForm", () => {
     stripe.elementsProps.mockReset();
     stripe.loadStripe.mockReset();
     stripe.fields = "complete";
+    stripe.addressProps.mockReset();
+    stripe.addressComplete = false;
   });
 
   test("holds a place while the intent and Stripe load", () => {
@@ -461,5 +499,113 @@ describe("PaymentMethodForm", () => {
       "A problem occurred while saving your payment method.",
     );
     expect(onSaved).not.toHaveBeenCalled();
+  });
+  describe("checkout settings", () => {
+    test("with none, the form is Stripe's payment fields alone", async () => {
+      await renderReady();
+      expect(screen.queryByLabelText("Email")).toBeNull();
+      expect(screen.queryByTestId("address-element")).toBeNull();
+    });
+
+    test("collectEmail adds a required email field, prefilled, and Save waits for a valid one", async () => {
+      stripe.confirmSetup.mockResolvedValue({
+        setupIntent: { payment_method: "pm_new" },
+      });
+      renderStripe({
+        checkoutPrefill: { billingDetails: { email: "jo@example.com" } },
+        checkoutSettings: { collectEmail: true },
+      });
+      const email = await screen.findByLabelText("Email");
+      expect(email).toHaveValue("jo@example.com");
+      expect(email).toBeRequired();
+      expect(email).toHaveAttribute("placeholder", "Enter email address");
+      const save = screen.getByRole("button", { name: "Save payment method" });
+      await waitFor(() => expect(save).toBeEnabled());
+
+      fireEvent.change(email, { target: { value: "not an email" } });
+      expect(save).toBeDisabled();
+      fireEvent.change(email, { target: { value: "typed@example.com" } });
+      await waitFor(() => expect(save).toBeEnabled());
+      fireEvent.click(save);
+      await waitFor(() =>
+        expect(stripe.confirmSetup).toHaveBeenCalledWith(
+          expect.objectContaining({
+            confirmParams: expect.objectContaining({
+              payment_method_data: {
+                billing_details: { email: "typed@example.com" },
+              },
+            }),
+          }),
+        ),
+      );
+    });
+
+    test("collectAddress adds Stripe's billing address, named from the prefill, and Save waits for it", async () => {
+      stripe.confirmSetup.mockResolvedValue({
+        setupIntent: { payment_method: "pm_new" },
+      });
+      renderStripe({
+        checkoutPrefill: { billingDetails: { name: "Jo Bloggs" } },
+        checkoutSettings: { collectAddress: true },
+      });
+      const address = await screen.findByTestId("address-element");
+      expect(stripe.addressProps).toHaveBeenLastCalledWith({
+        defaultValues: { name: "Jo Bloggs" },
+        fields: { phone: "never" },
+        mode: "billing",
+      });
+      const save = screen.getByRole("button", { name: "Save payment method" });
+      expect(save).toBeDisabled();
+      stripe.addressComplete = true;
+      fireEvent.click(address);
+      await waitFor(() => expect(save).toBeEnabled());
+      fireEvent.click(save);
+      await waitFor(() =>
+        expect(stripe.confirmSetup).toHaveBeenCalledWith(
+          expect.objectContaining({
+            confirmParams: expect.objectContaining({
+              payment_method_data: { billing_details: { name: "Jo Bloggs" } },
+            }),
+          }),
+        ),
+      );
+    });
+
+    test("collectPhone brings the address fields with the phone, without requiring them", async () => {
+      renderStripe({ checkoutSettings: { collectPhone: true } });
+      await screen.findByTestId("address-element");
+      expect(stripe.addressProps).toHaveBeenLastCalledWith({
+        fields: { phone: "always" },
+        mode: "billing",
+      });
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: "Save payment method" }),
+        ).toBeEnabled(),
+      );
+    });
+
+    test("the prefilled name is not sent when no address fields are shown", async () => {
+      stripe.confirmSetup.mockResolvedValue({
+        setupIntent: { payment_method: "pm_new" },
+      });
+      renderStripe({
+        checkoutPrefill: { billingDetails: { name: "Jo Bloggs" } },
+      });
+      const save = await screen.findByRole("button", {
+        name: "Save payment method",
+      });
+      await waitFor(() => expect(save).toBeEnabled());
+      fireEvent.click(save);
+      await waitFor(() =>
+        expect(stripe.confirmSetup).toHaveBeenCalledWith(
+          expect.objectContaining({
+            confirmParams: expect.objectContaining({
+              payment_method_data: { billing_details: {} },
+            }),
+          }),
+        ),
+      );
+    });
   });
 });

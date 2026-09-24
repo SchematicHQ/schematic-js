@@ -83,7 +83,12 @@ export {
 } from "./strings";
 export * from "./styles";
 export { Invoices, type InvoicesProps } from "./Invoices";
-export { PaymentMethods, type PaymentMethodsProps } from "./PaymentMethods";
+export {
+  PaymentMethods,
+  type PaymentMethodsCheckoutPrefill,
+  type PaymentMethodsCheckoutSettings,
+  type PaymentMethodsProps,
+} from "./PaymentMethods";
 export { UpcomingBill, type UpcomingBillProps } from "./UpcomingBill";
 export {
   billingResources,

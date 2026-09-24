@@ -45,6 +45,8 @@ const KEYS = [
   "paymentMethodsClose",
   "paymentMethodsDialogTitle",
   "paymentMethodsEdit",
+  "paymentMethodsEmail",
+  "paymentMethodsEmailPlaceholder",
   "paymentMethodsEmpty",
   "paymentMethodsError",
   "paymentMethodsExpired",

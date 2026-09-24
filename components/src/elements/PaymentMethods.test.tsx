@@ -22,8 +22,16 @@ import { SCENARIOS } from "./fixtures/scenarios";
 // The form is Stripe's; here it is a stand-in that reports what the element
 // asked of it. Its own behaviour is covered in PaymentMethodForm.test.tsx.
 vi.mock("./PaymentMethodForm", () => ({
-  default: ({ onSaved, onSelectExisting }: PaymentMethodFormProps) => (
-    <div data-testid="payment-method-form">
+  default: ({
+    checkoutPrefill,
+    checkoutSettings,
+    onSaved,
+    onSelectExisting,
+  }: PaymentMethodFormProps) => (
+    <div
+      data-checkout={JSON.stringify({ checkoutPrefill, checkoutSettings })}
+      data-testid="payment-method-form"
+    >
       <button type="button" onClick={() => void onSaved("pm_new")}>
         fake save
       </button>
@@ -696,6 +704,21 @@ describe("PaymentMethods", () => {
       ).toBeNull();
       fireEvent.click(screen.getByRole("button", { name: "Close" }));
       await waitFor(() => expect(document.querySelector("dialog")).toBeNull());
+    });
+
+    test("hands the checkout settings and prefill to the form", async () => {
+      const checkoutSettings = { collectAddress: true, collectEmail: true };
+      const checkoutPrefill = { billingDetails: { email: "jo@example.com" } };
+      renderCard(SCENARIOS.paymentMethodsEmpty(), {
+        checkoutPrefill,
+        checkoutSettings,
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Add" }));
+      const form = await screen.findByTestId("payment-method-form");
+      expect(JSON.parse(form.getAttribute("data-checkout") ?? "")).toEqual({
+        checkoutPrefill,
+        checkoutSettings,
+      });
     });
 
     test("a failed write from an earlier session is not shown again on reopening", async () => {

@@ -35,6 +35,9 @@ const SHIPPED =
 const UNREACHABLE = new Set([
   ".schematic-skeleton:empty",
   ".schematic-payment-methods__save",
+  ".schematic-payment-methods__field",
+  ".schematic-payment-methods__input",
+  ".schematic-payment-methods__input:focus-visible",
   ".schematic-payment-methods__select-existing",
 ]);
 
