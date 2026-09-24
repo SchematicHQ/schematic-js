@@ -3,7 +3,13 @@ import {
   type BillingActions,
   type SetupIntent,
 } from "@schematichq/schematic-react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { vi } from "vitest";
 
 import { PaymentMethodForm, resolveAppearance } from "./PaymentMethodForm";
@@ -12,7 +18,9 @@ import { defaultString } from "./strings";
 /**
  * Stripe is faked at the package boundary: `loadStripe` answers with a
  * stand-in, and `@stripe/react-stripe-js` renders plain nodes and hands the
- * form a `confirmSetup` it can drive.
+ * form a `confirmSetup` it can drive. The fake `PaymentElement` reports
+ * itself ready and its fields complete on mount unless `fields` says
+ * otherwise.
  */
 const stripe = vi.hoisted(() => ({
   confirmSetup: vi.fn(),
@@ -20,22 +28,42 @@ const stripe = vi.hoisted(() => ({
   elementsProps: vi.fn(),
   instance: { kind: "stripe" },
   loadStripe: vi.fn(),
+  fields: "complete" as "complete" | "incomplete" | "loadError" | "silent",
 }));
 
 vi.mock("@stripe/stripe-js", () => ({ loadStripe: stripe.loadStripe }));
-vi.mock("@stripe/react-stripe-js", () => ({
-  Elements: (props: {
-    children: React.ReactNode;
-    options: unknown;
-    stripe: unknown;
-  }) => {
-    stripe.elementsProps({ options: props.options, stripe: props.stripe });
-    return <div data-testid="elements">{props.children}</div>;
-  },
-  PaymentElement: () => <div data-testid="payment-element" />,
-  useElements: () => stripe.elements,
-  useStripe: () => ({ confirmSetup: stripe.confirmSetup }),
-}));
+vi.mock("@stripe/react-stripe-js", async () => {
+  const { useEffect } = await import("react");
+  return {
+    Elements: (props: {
+      children: React.ReactNode;
+      options: unknown;
+      stripe: unknown;
+    }) => {
+      stripe.elementsProps({ options: props.options, stripe: props.stripe });
+      return <div data-testid="elements">{props.children}</div>;
+    },
+    PaymentElement: (props: {
+      onChange: (event: { complete: boolean }) => void;
+      onLoadError: () => void;
+      onReady: () => void;
+    }) => {
+      useEffect(() => {
+        if (stripe.fields === "loadError") {
+          props.onLoadError();
+        } else if (stripe.fields !== "silent") {
+          props.onReady();
+          props.onChange({ complete: stripe.fields === "complete" });
+        }
+        // Once, on mount, as Stripe reports.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+      return <div data-testid="payment-element" />;
+    },
+    useElements: () => stripe.elements,
+    useStripe: () => ({ confirmSetup: stripe.confirmSetup }),
+  };
+});
 
 const L = "en-US";
 
@@ -53,20 +81,18 @@ function renderForm(
   locale = L,
   onSelectExisting?: () => void,
 ) {
-  const onClose = vi.fn();
   const onSaved = vi.fn().mockResolvedValue(undefined);
   render(
     <BillingDataProvider actions={actions} data={{}}>
       <PaymentMethodForm
         locale={locale}
         t={defaultString}
-        onClose={onClose}
         onSaved={onSaved}
         onSelectExisting={onSelectExisting}
       />
     </BillingDataProvider>,
   );
-  return { onClose, onSaved };
+  return { onSaved };
 }
 
 /** A form that has minted its intent and loaded Stripe. */
@@ -80,7 +106,11 @@ async function renderReady(
     L,
     onSelectExisting,
   );
-  await screen.findByRole("button", { name: "Save" });
+  const save = await screen.findByRole("button", {
+    name: "Save payment method",
+  });
+  // Enabled once the fake fields report complete.
+  await waitFor(() => expect(save).toBeEnabled());
   return handlers;
 }
 
@@ -117,6 +147,7 @@ describe("PaymentMethodForm", () => {
     stripe.confirmSetup.mockReset();
     stripe.elementsProps.mockReset();
     stripe.loadStripe.mockReset();
+    stripe.fields = "complete";
   });
 
   test("holds a place while the intent and Stripe load", () => {
@@ -126,7 +157,9 @@ describe("PaymentMethodForm", () => {
       .closest("[data-state]");
     expect(pending).toHaveAttribute("data-state", "pending");
     expect(pending).toHaveClass("schematic-payment-methods__form");
-    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Save payment method" }),
+    ).toBeNull();
   });
 
   test("loads Stripe with the account's key and mounts the element on the intent", async () => {
@@ -142,7 +175,6 @@ describe("PaymentMethodForm", () => {
       stripe: stripe.instance,
     });
     expect(screen.getByTestId("payment-element")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Select existing payment method" }),
     ).toBeNull();
@@ -208,12 +240,11 @@ describe("PaymentMethodForm", () => {
 
   test("offers the way back to the methods on file when there are any", async () => {
     const onSelectExisting = vi.fn();
-    const { onClose } = await renderReady({}, onSelectExisting);
+    await renderReady({}, onSelectExisting);
     fireEvent.click(
       screen.getByRole("button", { name: "Select existing payment method" }),
     );
     expect(onSelectExisting).toHaveBeenCalledTimes(1);
-    expect(onClose).not.toHaveBeenCalled();
     expect(stripe.confirmSetup).not.toHaveBeenCalled();
   });
 
@@ -238,7 +269,7 @@ describe("PaymentMethodForm", () => {
       { createSetupIntent: vi.fn().mockResolvedValue(intent()) },
       "de-DE",
     );
-    await screen.findByRole("button", { name: "Save" });
+    await screen.findByRole("button", { name: "Save payment method" });
     expect(stripe.loadStripe).toHaveBeenCalledWith("pk_account", {
       locale: "de-DE",
     });
@@ -252,9 +283,11 @@ describe("PaymentMethodForm", () => {
         .mockResolvedValue(intent({ setupIntentClientSecret: undefined })),
     });
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not load payment methods",
+      "Unable to load payment form.",
     );
-    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Save payment method" }),
+    ).toBeNull();
     expect(stripe.loadStripe).not.toHaveBeenCalled();
   });
 
@@ -262,19 +295,74 @@ describe("PaymentMethodForm", () => {
     stripe.loadStripe.mockResolvedValue(null);
     renderForm({ createSetupIntent: vi.fn().mockResolvedValue(intent()) });
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not load payment methods",
+      "Unable to load payment form. Your browser's security or privacy settings may be blocking it.",
     );
   });
 
-  test("a refused intent is an error, with Cancel as the way out", async () => {
-    const { onClose } = renderForm({
+  test("a refused intent reads as the embed words it, with the way back when there is one", async () => {
+    const onSelectExisting = vi.fn();
+    renderForm(
+      { createSetupIntent: vi.fn().mockRejectedValue(new Error("403")) },
+      L,
+      onSelectExisting,
+    );
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(
+      "Error initializing payment method change. Please try again.",
+    );
+    expect(alert).not.toHaveTextContent("403");
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Select existing payment method" }),
+    );
+    expect(onSelectExisting).toHaveBeenCalledTimes(1);
+  });
+
+  test("a refused intent with nothing on file offers no way back but the dialog's close", async () => {
+    renderForm({
       createSetupIntent: vi.fn().mockRejectedValue(new Error("403")),
     });
-    const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent("Could not load payment methods");
-    expect(alert).not.toHaveTextContent("403");
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(onClose).toHaveBeenCalledTimes(1);
+    await screen.findByRole("alert");
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  test("Save waits for Stripe to call the fields complete", async () => {
+    stripe.fields = "incomplete";
+    stripe.loadStripe.mockResolvedValue(stripe.instance);
+    renderForm({ createSetupIntent: vi.fn().mockResolvedValue(intent()) });
+    expect(
+      await screen.findByRole("button", { name: "Save payment method" }),
+    ).toBeDisabled();
+  });
+
+  test("fields Stripe could not load read as a blocked form", async () => {
+    stripe.fields = "loadError";
+    stripe.loadStripe.mockResolvedValue(stripe.instance);
+    renderForm({ createSetupIntent: vi.fn().mockResolvedValue(intent()) });
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Unable to load payment form.",
+    );
+  });
+
+  test("fields that never come up read as a blocked form once the embed's wait runs out", async () => {
+    stripe.fields = "silent";
+    stripe.loadStripe.mockResolvedValue(stripe.instance);
+    // Real time still passes, so the intent and Stripe resolve; the wait is
+    // what gets skipped.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      renderForm({ createSetupIntent: vi.fn().mockResolvedValue(intent()) });
+      await screen.findByTestId("payment-element");
+      expect(screen.queryByRole("alert")).toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(10_000);
+      });
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Unable to load payment form.",
+      );
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   test("Save confirms the setup in place and hands back the method", async () => {
@@ -282,7 +370,9 @@ describe("PaymentMethodForm", () => {
       setupIntent: { payment_method: "pm_new" },
     });
     const { onSaved } = await renderReady();
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save payment method" }),
+    );
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith("pm_new"));
     expect(stripe.confirmSetup).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -298,7 +388,9 @@ describe("PaymentMethodForm", () => {
       setupIntent: { payment_method: { id: "pm_expanded" } },
     });
     const { onSaved } = await renderReady();
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save payment method" }),
+    );
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith("pm_expanded"));
   });
 
@@ -306,22 +398,53 @@ describe("PaymentMethodForm", () => {
     stripe.confirmSetup.mockResolvedValue({
       error: { type: "card_error", message: "Your card was declined." },
     });
-    const { onClose, onSaved } = await renderReady();
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    const { onSaved } = await renderReady();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save payment method" }),
+    );
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Your card was declined.",
     );
     expect(onSaved).not.toHaveBeenCalled();
-    expect(onClose).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "Save payment method" }),
+    ).toBeEnabled();
+  });
+
+  test("any other Stripe error reads as a failed save, not Stripe's wording", async () => {
+    stripe.confirmSetup.mockResolvedValue({
+      error: { type: "api_error", message: "An internal error occurred." },
+    });
+    await renderReady();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save payment method" }),
+    );
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(
+      "A problem occurred while saving your payment method.",
+    );
+    expect(alert).not.toHaveTextContent("internal");
+  });
+
+  test("Save reads Loading while the setup confirms", async () => {
+    stripe.confirmSetup.mockReturnValue(new Promise(() => {}));
+    await renderReady();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save payment method" }),
+    );
+    expect(
+      await screen.findByRole("button", { name: "Loading" }),
+    ).toBeDisabled();
   });
 
   test("a confirmation that throws reads as a failed save", async () => {
     stripe.confirmSetup.mockRejectedValue(new Error("network"));
     const { onSaved } = await renderReady();
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save payment method" }),
+    );
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not save the payment method",
+      "A problem occurred while saving your payment method.",
     );
     expect(onSaved).not.toHaveBeenCalled();
   });
@@ -331,18 +454,12 @@ describe("PaymentMethodForm", () => {
       setupIntent: { payment_method: null },
     });
     const { onSaved } = await renderReady();
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Could not save the payment method",
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save payment method" }),
     );
-    expect(onSaved).not.toHaveBeenCalled();
-  });
-
-  test("Cancel closes without confirming anything", async () => {
-    const { onClose, onSaved } = await renderReady();
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(stripe.confirmSetup).not.toHaveBeenCalled();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "A problem occurred while saving your payment method.",
+    );
     expect(onSaved).not.toHaveBeenCalled();
   });
 });

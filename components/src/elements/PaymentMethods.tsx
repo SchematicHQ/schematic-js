@@ -28,7 +28,7 @@ const PaymentMethodForm = lazy(() => import("./PaymentMethodForm"));
 export interface PaymentMethodsProps extends ElementProps {
   /** The Edit (or Add) action and the dialog behind it. Default true. */
   allowEdit?: boolean;
-  /** The "Payment details" heading. Default true. */
+  /** The "Payment Details" heading. Default true. */
   showHeader?: boolean;
   /** Heading level, so the card fits the host's outline. Default 2. */
   headingLevel?: HeadingLevel;
@@ -38,6 +38,13 @@ export interface PaymentMethodsProps extends ElementProps {
 
 /** What the dialog shows: the method on file, or the form for a new one. */
 type DialogView = "current" | "add";
+
+/** A write the dialog made, kept so Retry can re-run it and its failure
+ * reads as the embed words it. */
+interface Write {
+  action: () => Promise<void>;
+  errorKey: "paymentMethodsSetDefaultError" | "paymentMethodsRemoveError";
+}
 
 /**
  * The company's payment method on file, the embed's way: a pill naming the
@@ -77,9 +84,7 @@ export function PaymentMethods({
   // The write that last failed, so Retry re-runs it rather than refetching;
   // also whether this dialog session has written at all, which is what
   // decides whether a `mutationError` is its to show.
-  const [lastWrite, setLastWrite] = useState<(() => Promise<void>) | null>(
-    null,
-  );
+  const [lastWrite, setLastWrite] = useState<Write | null>(null);
 
   const derived = useMemo(
     () =>
@@ -90,14 +95,13 @@ export function PaymentMethods({
   );
 
   // A rejected write also lands on `mutationError`, so the rejection here
-  // is already reported and only needs catching. A write that lands leaves
-  // the dialog on the refreshed method, the other rows folded away.
-  const write = useCallback(async (action: () => Promise<void>) => {
-    setLastWrite(() => action);
+  // is already reported and only needs catching. The dialog stays where it
+  // was, as the embed's does: Set default and remove leave the other rows
+  // unfolded.
+  const write = useCallback(async (next: Write) => {
+    setLastWrite(next);
     try {
-      await action();
-      setDialog("current");
-      setChoosing(false);
+      await next.action();
     } catch {
       // Reported through `mutationError`.
     }
@@ -105,10 +109,14 @@ export function PaymentMethods({
 
   // The method Stripe just saved becomes the default. Stripe has already
   // kept it, so a failure here is a failed write to retry from the method
-  // view, not a form to resubmit.
+  // view, not a form to resubmit. Either way the dialog returns to the
+  // method on file with the other rows folded away, as the embed's does.
   const saved = useCallback(
     async (paymentMethodId: string) => {
-      await write(() => setDefault(paymentMethodId));
+      await write({
+        action: () => setDefault(paymentMethodId),
+        errorKey: "paymentMethodsSetDefaultError",
+      });
       setDialog("current");
       setChoosing(false);
     },
@@ -184,18 +192,30 @@ export function PaymentMethods({
               derived={derived}
               isMutating={isMutating}
               locale={locale}
-              mutationError={lastWrite === null ? undefined : mutationError}
+              mutationError={
+                lastWrite === null || mutationError === undefined
+                  ? undefined
+                  : t(lastWrite.errorKey)
+              }
               t={t}
               view={dialog}
               onChoose={() => setChoosing((was) => !was)}
               onClose={close}
-              onRemove={(row) => void write(() => remove(row.id))}
+              onRemove={(row) =>
+                void write({
+                  action: () => remove(row.id),
+                  errorKey: "paymentMethodsRemoveError",
+                })
+              }
               onRetry={
                 lastWrite === null ? undefined : () => void write(lastWrite)
               }
               onSaved={saved}
               onSetDefault={(row) =>
-                void write(() => setDefault(row.externalId))
+                void write({
+                  action: () => setDefault(row.externalId),
+                  errorKey: "paymentMethodsSetDefaultError",
+                })
               }
               onView={setDialog}
             />
@@ -226,7 +246,8 @@ function PaymentMethodsDialog({
   derived: DerivedPaymentMethods;
   isMutating: boolean;
   locale: string;
-  mutationError: Error | undefined;
+  /** The failed write's copy; undefined when nothing this session failed. */
+  mutationError: string | undefined;
   onChoose: () => void;
   onClose: () => void;
   onRemove: (row: PaymentMethodRow) => void;
@@ -239,8 +260,7 @@ function PaymentMethodsDialog({
 }) {
   const { current, others, rows } = derived;
   // With nothing on file there is nothing to show but the form, as the
-  // embed does; Cancel then closes the dialog, since there is nowhere else
-  // to go.
+  // embed does; the dialog's close control is then the only way out.
   const hasMethods = rows.length > 0;
   const showForm = view === "add" || !hasMethods;
 
@@ -259,7 +279,6 @@ function PaymentMethodsDialog({
           <PaymentMethodForm
             locale={locale}
             t={t}
-            onClose={hasMethods ? () => onView("current") : onClose}
             onSaved={onSaved}
             onSelectExisting={hasMethods ? () => onView("current") : undefined}
           />
@@ -352,7 +371,7 @@ function PaymentMethodsDialog({
           role="alert"
         >
           <span className="schematic-payment-methods__error-message">
-            {mutationError.message}
+            {mutationError}
           </span>
           {onRetry !== undefined && (
             <button
@@ -433,7 +452,7 @@ function labelText(label: PaymentMethodLabel, t: Translator): string {
   return label.key === undefined ? label.text : t(label.key);
 }
 
-/** "Expires in 2 months", or "Expired". */
+/** "Expires in 2 mo", or "Expired". */
 function expiryWarningText(
   derived: DerivedPaymentMethods,
   t: Translator,
@@ -441,7 +460,7 @@ function expiryWarningText(
   const months = derived.monthsToExpiration ?? 0;
   return derived.expiryWarning === "expired"
     ? t("paymentMethodsExpired")
-    : t("paymentMethodsExpiresInMonths", { count: months, months });
+    : t("paymentMethodsExpiresInMonths", { months });
 }
 
 /**

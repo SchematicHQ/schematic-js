@@ -22,13 +22,10 @@ import { SCENARIOS } from "./fixtures/scenarios";
 // The form is Stripe's; here it is a stand-in that reports what the element
 // asked of it. Its own behaviour is covered in PaymentMethodForm.test.tsx.
 vi.mock("./PaymentMethodForm", () => ({
-  default: ({ onClose, onSaved, onSelectExisting }: PaymentMethodFormProps) => (
+  default: ({ onSaved, onSelectExisting }: PaymentMethodFormProps) => (
     <div data-testid="payment-method-form">
       <button type="button" onClick={() => void onSaved("pm_new")}>
         fake save
-      </button>
-      <button type="button" onClick={onClose}>
-        fake cancel
       </button>
       {onSelectExisting !== undefined && (
         <button type="button" onClick={onSelectExisting}>
@@ -189,7 +186,7 @@ describe("PaymentMethods", () => {
   test("shows the default method alone, as the embed's pill, with Edit", () => {
     renderCard();
     expect(
-      screen.getByRole("heading", { name: "Payment details" }),
+      screen.getByRole("heading", { name: "Payment Details" }),
     ).toBeInTheDocument();
     const current = pill();
     expect(current).toHaveTextContent("Card ending in 4444");
@@ -290,14 +287,14 @@ describe("PaymentMethods", () => {
     const warning = document.querySelector(
       ".schematic-payment-methods__expiry-warning",
     );
-    expect(warning).toHaveTextContent("Expires in 2 months");
+    expect(warning).toHaveTextContent("Expires in 2 mo");
     expect(warning).toHaveAttribute("data-expiry", "soon");
     expect(warning?.closest(".schematic-header")).not.toBeNull();
   });
 
-  test("says one month in the singular", () => {
+  test("says one month in the embed's short form", () => {
     renderCard({ paymentMethods: [defaultCard(9, 2026)] });
-    expect(screen.getByText("Expires in 1 month")).toBeInTheDocument();
+    expect(screen.getByText("Expires in 1 mo")).toBeInTheDocument();
   });
 
   test("says Expired once the default card's month has arrived", () => {
@@ -322,7 +319,7 @@ describe("PaymentMethods", () => {
     );
     expect(screen.queryByText("Expired")).toBeNull();
     expect(
-      screen.getByRole("heading", { name: "Payment details" }),
+      screen.getByRole("heading", { name: "Payment Details" }),
     ).toBeInTheDocument();
   });
 
@@ -504,7 +501,7 @@ describe("PaymentMethods", () => {
       ).toHaveLength(3);
     });
 
-    test("Set default asks the provider with the method's external id, and folds the list", async () => {
+    test("Set default asks the provider with the method's external id, and leaves the list unfolded", async () => {
       const setDefaultPaymentMethod = vi.fn().mockResolvedValue(undefined);
       renderCard(
         SCENARIOS.paymentMethods(),
@@ -518,9 +515,11 @@ describe("PaymentMethods", () => {
       await waitFor(() =>
         expect(setDefaultPaymentMethod).toHaveBeenCalledWith("pm_bank_ext"),
       );
-      await waitFor(() =>
-        expect(screen.queryByTestId("schematic-payment-method")).toBeNull(),
-      );
+      // The embed's dialog stays as it was after a write.
+      expect(rows()).toHaveLength(2);
+      expect(
+        screen.getByRole("button", { name: "Choose different payment method" }),
+      ).toHaveAttribute("aria-expanded", "true");
       expect(document.querySelector("dialog")).toHaveAttribute("open");
       expect(screen.queryByRole("alert")).toBeNull();
     });
@@ -579,7 +578,7 @@ describe("PaymentMethods", () => {
       });
     });
 
-    test("reports a failed write at the foot of the dialog, and Retry re-runs it", async () => {
+    test("reports a failed write at the foot of the dialog in the embed's words, and Retry re-runs it", async () => {
       const setDefaultPaymentMethod = vi
         .fn()
         .mockRejectedValue(new Error("The provider refused."));
@@ -594,7 +593,10 @@ describe("PaymentMethods", () => {
       );
       const note = await within(modal).findByRole("alert");
       expect(note).toHaveClass("schematic-payment-methods__error");
-      expect(note).toHaveTextContent("The provider refused.");
+      expect(note).toHaveTextContent(
+        "Error updating payment method. Please try again.",
+      );
+      expect(note).not.toHaveTextContent("The provider refused.");
       // The list stays unfolded: a failed write is reported, not undone.
       expect(rows()).toHaveLength(2);
 
@@ -661,28 +663,23 @@ describe("PaymentMethods", () => {
       expect(screen.queryByRole("alert")).toBeNull();
     });
 
-    test("Cancel on the form returns to the methods on file without a write", async () => {
-      const setDefaultPaymentMethod = vi.fn();
+    test("a failed remove reads as the embed words it", async () => {
+      const removePaymentMethod = vi
+        .fn()
+        .mockRejectedValue(new Error("The provider refused."));
       renderCard(
         SCENARIOS.paymentMethods(),
         {},
-        { actions: { setDefaultPaymentMethod } },
+        { actions: { removePaymentMethod } },
       );
       chooseDifferent();
-      fireEvent.click(
-        screen.getByRole("button", { name: "Add new payment method" }),
+      fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]);
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Error deleting payment method. Please try again.",
       );
-      fireEvent.click(
-        await screen.findByRole("button", { name: "fake cancel" }),
-      );
-      await waitFor(() =>
-        expect(screen.queryByTestId("payment-method-form")).toBeNull(),
-      );
-      expect(document.querySelector("dialog")).toHaveAttribute("open");
-      expect(setDefaultPaymentMethod).not.toHaveBeenCalled();
     });
 
-    test("with nothing on file, Add opens straight into the form, and Cancel closes the dialog", async () => {
+    test("with nothing on file, Add opens straight into the form, and the dialog's close is the way out", async () => {
       renderCard(SCENARIOS.paymentMethodsEmpty());
       fireEvent.click(screen.getByRole("button", { name: "Add" }));
       expect(
@@ -697,7 +694,7 @@ describe("PaymentMethods", () => {
       expect(
         screen.queryByRole("button", { name: "fake select existing" }),
       ).toBeNull();
-      fireEvent.click(screen.getByRole("button", { name: "fake cancel" }));
+      fireEvent.click(screen.getByRole("button", { name: "Close" }));
       await waitFor(() => expect(document.querySelector("dialog")).toBeNull());
     });
 

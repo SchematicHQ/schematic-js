@@ -55,6 +55,12 @@ export type ElementStrings = {
   paymentMethodsCardEndingIn: string;
   paymentMethodsApplePayEndingIn: string;
   paymentMethodsGooglePayEndingIn: string;
+  paymentMethodsApplePay: string;
+  paymentMethodsGooglePay: string;
+  paymentMethodsAmazonPayAccount: string;
+  paymentMethodsCashAppAccount: string;
+  paymentMethodsPayPalAccount: string;
+  paymentMethodsLinkAccount: string;
   paymentMethodsBankAccount: string;
   paymentMethodsGeneric: string;
   paymentMethodsDialogTitle: string;
@@ -66,9 +72,13 @@ export type ElementStrings = {
   paymentMethodsAddNew: string;
   paymentMethodsSelectExisting: string;
   paymentMethodsFormLoading: string;
+  paymentMethodsFormError: string;
+  paymentMethodsSetupError: string;
   paymentMethodsSave: string;
+  paymentMethodsSaving: string;
   paymentMethodsSaveError: string;
-  paymentMethodsCancel: string;
+  paymentMethodsSetDefaultError: string;
+  paymentMethodsRemoveError: string;
 };
 
 export type StringKey = keyof ElementStrings;
@@ -140,20 +150,23 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
     "{{value}} off for next {{count}} months",
 
   paymentMethodsLoading: "Loading payment methods",
-  paymentMethodsHeader: "Payment details",
+  paymentMethodsHeader: "Payment Details",
   paymentMethodsError: "Could not load payment methods",
   paymentMethodsUnavailable: "Payment methods are not available",
   paymentMethodsEmpty: "No payment method added yet",
   paymentMethodsEdit: "Edit",
   paymentMethodsAdd: "Add",
-  // Looked up by the bare key with `{ count }`; English has two forms.
-  paymentMethodsExpiresInMonths: "Expires in {{months}} months",
-  paymentMethodsExpiresInMonths_one: "Expires in {{months}} month",
-  paymentMethodsExpiresInMonths_other: "Expires in {{months}} months",
+  paymentMethodsExpiresInMonths: "Expires in {{months}} mo",
   paymentMethodsExpired: "Expired",
   paymentMethodsCardEndingIn: "Card ending in",
   paymentMethodsApplePayEndingIn: "Apple Pay ending in",
   paymentMethodsGooglePayEndingIn: "Google Pay ending in",
+  paymentMethodsApplePay: "Apple Pay",
+  paymentMethodsGooglePay: "Google Pay",
+  paymentMethodsAmazonPayAccount: "Amazon Pay account",
+  paymentMethodsCashAppAccount: "CashApp account",
+  paymentMethodsPayPalAccount: "PayPal account",
+  paymentMethodsLinkAccount: "Link account",
   paymentMethodsBankAccount: "Bank account",
   paymentMethodsGeneric: "Payment method",
   paymentMethodsDialogTitle: "Edit payment details",
@@ -165,9 +178,17 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   paymentMethodsAddNew: "Add new payment method",
   paymentMethodsSelectExisting: "Select existing payment method",
   paymentMethodsFormLoading: "Loading payment form",
-  paymentMethodsSave: "Save",
-  paymentMethodsSaveError: "Could not save the payment method",
-  paymentMethodsCancel: "Cancel",
+  paymentMethodsFormError:
+    "Unable to load payment form. Your browser's security or privacy settings may be blocking it. Please try a different browser or adjust your privacy settings.",
+  paymentMethodsSetupError:
+    "Error initializing payment method change. Please try again.",
+  paymentMethodsSave: "Save payment method",
+  paymentMethodsSaving: "Loading",
+  paymentMethodsSaveError:
+    "A problem occurred while saving your payment method.",
+  paymentMethodsSetDefaultError:
+    "Error updating payment method. Please try again.",
+  paymentMethodsRemoveError: "Error deleting payment method. Please try again.",
 };
 
 /**
