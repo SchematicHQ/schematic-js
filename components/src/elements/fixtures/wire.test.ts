@@ -57,7 +57,7 @@ describe("wire round trip", () => {
     expect(wire).toMatchObject({
       external_id: "pm_card_ext",
       is_default: true,
-      can_remove: false,
+      can_remove: true,
       card_brand: "visa",
       card_last4: "4444",
       card_exp_month: 8,

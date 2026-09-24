@@ -10,8 +10,8 @@ The handle carries the writes beside the read: `setDefault(externalId)` and `rem
 
 Four rules hold across the list, and the server applies them, not the element:
 
-- The default cannot be removed while other methods exist; `canRemove` is false on it.
-- The last method stays on an active subscription, so its `canRemove` is false too.
+- Any method can be removed, the default included, except the last one on an active paid subscription; `canRemove` is false only on that one.
+- Removing the default promotes nothing: the list has no default until someone sets one.
 - A method added through the form becomes the default. The form asks for that itself, with `setDefault`, once Stripe confirms the setup.
 - Nothing is promoted. A list with no default — which a provider allows — stays that way until someone chooses; the pill reads as empty and every method is offered in the dialog.
 
@@ -106,14 +106,15 @@ The font is a `data:` URL. A host whose Content Security Policy sets a
 `font-src` directive needs `data:` in it, or the browser refuses the font
 and the glyphs render empty.
 
-The pill offers no Remove. The server refuses to remove the default while
-other methods exist, and the last method on an active subscription, so a
-Remove on the default would fail every time; removal is offered on the other
-rows in the dialog, and only where the server's `canRemove` allows it.
+The card's pill offers no Remove. Inside the dialog it does, as the embed's
+does, beside the method it names, and the other rows each carry a remove
+control; both show only where the server's `canRemove` allows it. Removing
+the default leaves the pill reading "No payment method added yet" until
+another method is set as the default.
 
 Edit opens a modal dialog titled "Edit payment details", closed by Escape,
 the backdrop, or the control in its header. It opens on the pill again,
-without Edit, and beneath it "Choose different payment method" unfolds the
+with Remove in place of Edit, and beneath it "Choose different payment method" unfolds the
 other methods: each row names the method, says when a card expires ("Expires
 8/27"), and offers Set default and a remove control where the server allows
 it. Under the rows a full-width "Add new payment method" opens the form. The
@@ -270,8 +271,15 @@ tell them apart. The dialog renders inside the root while it is open.
       </button>
     </div>
     <div class="schematic-dialog__body">
-      <!-- the pill again, without Edit -->
-      <div class="schematic-payment-methods__current">…</div>
+      <!-- the pill again, with Remove where canRemove allows it -->
+      <div class="schematic-payment-methods__current">
+        …
+        <button
+          class="schematic-link-button schematic-payment-methods__remove-current"
+        >
+          Remove
+        </button>
+      </div>
 
       <button
         class="schematic-link-button schematic-payment-methods__choose"

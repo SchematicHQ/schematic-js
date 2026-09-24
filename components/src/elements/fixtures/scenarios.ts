@@ -17,9 +17,9 @@ import {
 } from "./builders";
 
 /**
- * Three methods of three kinds, the card the default. The default cannot be
- * removed while the others exist, which is what the server's `canRemove`
- * says.
+ * Three methods of three kinds, the card the default. Any of them can be
+ * removed while the others exist, the default included, which is what the
+ * server's `canRemove` says.
  */
 export function paymentMethodSet(): PaymentMethod[] {
   return [
@@ -27,7 +27,7 @@ export function paymentMethodSet(): PaymentMethod[] {
       id: "pm_card",
       externalId: "pm_card_ext",
       isDefault: true,
-      canRemove: false,
+      canRemove: true,
     }),
     bankPaymentMethod({ id: "pm_bank", externalId: "pm_bank_ext" }),
     walletPaymentMethod({ id: "pm_link", externalId: "pm_link_ext" }),

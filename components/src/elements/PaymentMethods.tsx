@@ -81,10 +81,10 @@ interface Write {
  * dialog where the other saved methods can be made the default or removed
  * and a new one added through Stripe.
  *
- * The pill offers no Remove. The server refuses to remove the default while
- * others exist and the last method on a subscription, so a Remove there
- * would always fail; removal lives on the other rows in the dialog, where
- * the server's `canRemove` decides which offer it.
+ * Inside the dialog the pill offers Remove, as the embed's does, and the
+ * other rows a remove control; each shows only where the server's
+ * `canRemove` allows it, which it refuses only for the last method on an
+ * active paid subscription.
  */
 export function PaymentMethods({
   allowEdit = true,
@@ -324,7 +324,18 @@ function PaymentMethodsDialog({
         </Suspense>
       ) : (
         <>
-          <MethodPill row={current} t={t} />
+          <MethodPill row={current} t={t}>
+            {current?.canRemove === true && (
+              <button
+                className="schematic-link-button schematic-payment-methods__remove-current"
+                disabled={isMutating}
+                type="button"
+                onClick={() => onRemove(current)}
+              >
+                {t("paymentMethodsRemove")}
+              </button>
+            )}
+          </MethodPill>
           <button
             aria-expanded={choosing}
             className="schematic-link-button schematic-payment-methods__choose"

@@ -400,6 +400,7 @@ describe("PaymentMethods markup contract", () => {
       "schematic-payment-methods__list",
       "schematic-payment-methods__method",
       "schematic-payment-methods__remove",
+      "schematic-payment-methods__remove-current",
       "schematic-payment-methods__row",
       "schematic-payment-methods__set-default",
       "schematic-small",
