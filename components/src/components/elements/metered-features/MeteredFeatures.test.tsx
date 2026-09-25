@@ -25,6 +25,7 @@ const state = vi.hoisted(() => ({
   includedCreditGrants: [] as unknown[],
   planId: undefined as string | undefined,
   canCheckout: false,
+  setCheckoutState: vi.fn(),
 }));
 
 vi.mock("../../../hooks", async (importOriginal) => {
@@ -46,7 +47,7 @@ vi.mock("../../../hooks", async (importOriginal) => {
         displaySettings: { showCredits: true },
       },
       settings: defaultSettings,
-      setCheckoutState: vi.fn(),
+      setCheckoutState: state.setCheckoutState,
       // `UsageByUser` fetches on mount; these tests assert on the credit
       // ledger, so resolve empty and let it render nothing.
       getCreditUsageByUser: vi.fn(() => Promise.resolve(undefined)),
@@ -226,6 +227,25 @@ describe("`MeteredFeatures` credit `Buy More`", () => {
     render(<MeteredFeatures />);
 
     expect(screen.getByText("Buy More")).toBeInTheDocument();
+  });
+
+  test("opens checkout on credits with the plan and add-on stages skipped", () => {
+    state.creditBundles = [createBundle(CREDIT_ID)];
+    state.setCheckoutState.mockClear();
+
+    render(<MeteredFeatures />);
+    fireEvent.click(screen.getByText("Buy More"));
+
+    // The dialog is for buying credits only, so the stages that would let the
+    // user change the subscription are skipped and hidden from the breadcrumb.
+    expect(state.setCheckoutState).toHaveBeenCalledWith({
+      credits: true,
+      bypassPlanSelection: true,
+      bypassUsageSelection: true,
+      bypassAddOnSelection: true,
+      bypassAddOnUsageSelection: true,
+      hideSkippedStages: true,
+    });
   });
 
   test("hides `Buy More` when the catalog has no bundle for the credit", () => {

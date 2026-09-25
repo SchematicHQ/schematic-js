@@ -870,14 +870,18 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     hasInitialPaymentMethod,
   ]);
 
-  // Track if we're in the initial bypass loading phase
+  // Track if we're in the initial bypass loading phase. The overlay waits for
+  // the preview of a pre-selected plan; opened to buy credits nothing is
+  // pre-selected (an unlisted plan is deliberately left unselected), so no
+  // preview runs on mount and the overlay would never clear.
   const [isBypassLoading, setIsBypassLoading] = useState(
     () =>
-      checkoutState?.bypassPlanSelection ||
-      checkoutState?.bypassAddOnSelection ||
-      checkoutState?.bypassCreditsSelection ||
-      checkoutState?.bypassUsageSelection ||
-      checkoutState?.bypassAddOnUsageSelection,
+      !checkoutState?.credits &&
+      (checkoutState?.bypassPlanSelection ||
+        checkoutState?.bypassAddOnSelection ||
+        checkoutState?.bypassCreditsSelection ||
+        checkoutState?.bypassUsageSelection ||
+        checkoutState?.bypassAddOnUsageSelection),
   );
 
   const [checkoutStage, setCheckoutStage] = useState(() => {
