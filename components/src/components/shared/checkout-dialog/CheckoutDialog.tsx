@@ -49,6 +49,7 @@ import {
   deriveCreditBundles,
   emptyTaxIdValues,
   filterCreditBundles,
+  getDefaultPlanPeriod,
   getPlanPrice,
   getSubscriptionPeriod,
   isAddOnCompatibleWithLookup,
@@ -242,7 +243,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       checkoutState?.period ||
       getSubscriptionPeriod(data?.company?.billingSubscription) ||
       data?.company?.plan?.planPeriod ||
-      "month";
+      getDefaultPlanPeriod(data?.activePlans);
 
     // If a specific plan is requested, validate the period against that plan's availability
     if (checkoutState?.planId) {

@@ -6,7 +6,11 @@ import {
   type PreviewCheckoutResponse,
 } from "../../../api/checkoutexternal";
 import { FETCH_DEBOUNCE_TIMEOUT } from "../../../const";
-import { EmbedContext, initialContext } from "../../../context";
+import {
+  EmbedContext,
+  initialContext,
+  type CheckoutState,
+} from "../../../context";
 import hydrateResponse from "../../../test/mocks/handlers/response/hydrate.json";
 import { render } from "../../../test/setup";
 import type { HydrateDataWithCompanyContext } from "../../../types";
@@ -88,6 +92,27 @@ function buildLegacyPlanData(
   return ComponentHydrateResponseDataFromJSON(raw);
 }
 
+/**
+ * A company with no subscription and no plan, shopping a catalog priced only
+ * yearly: nothing points the dialog at a period, and no plan offers monthly.
+ */
+function buildYearlyOnlyData(): HydrateDataWithCompanyContext {
+  const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+
+  raw.active_plans = (raw.active_plans as Json[]).map((plan) => ({
+    ...plan,
+    current: false,
+    monthly_price: null,
+  }));
+
+  const company = raw.company as Json;
+  company.billing_subscription = null;
+  company.plan = null;
+  raw.subscription = null;
+
+  return ComponentHydrateResponseDataFromJSON(raw);
+}
+
 /** $10.00 due now, matching the single bundle in the hydrate fixture. */
 function buildPreviewResponse(): PreviewCheckoutResponse {
   const now = new Date("2026-01-01T00:00:00Z");
@@ -129,10 +154,12 @@ function buildPreviewResponse(): PreviewCheckoutResponse {
 function renderCheckoutDialog({
   behavior = CheckoutBundlePurchaseBehavior.Individual,
   data,
+  checkoutState = { credits: true },
   previewCheckout,
 }: {
   behavior?: CheckoutBundlePurchaseBehavior;
   data?: HydrateDataWithCompanyContext;
+  checkoutState?: CheckoutState;
   previewCheckout: () => Promise<PreviewCheckoutResponse | undefined>;
 }) {
   return render(
@@ -141,7 +168,7 @@ function renderCheckoutDialog({
         ...initialContext,
         data: data ?? buildCreditOnlyData(behavior),
         layout: "checkout",
-        checkoutState: { credits: true },
+        checkoutState,
         previewCheckout,
         setLayout: () => {},
         setCheckoutState: () => {},
@@ -163,45 +190,43 @@ async function flushDebounce() {
   });
 }
 
+// jsdom implements neither of these, and the dialog reaches for both on mount.
+beforeAll(() => {
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    },
+  );
+
+  HTMLDialogElement.prototype.show = function show(this: HTMLDialogElement) {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.showModal = function showModal(
+    this: HTMLDialogElement,
+  ) {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+    this.open = false;
+  };
+  Element.prototype.scrollTo = function scrollTo() {};
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+afterAll(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("`CheckoutDialog` credit-only purchases", () => {
-  // jsdom implements neither of these, and the dialog reaches for both on mount.
-  beforeAll(() => {
-    vi.stubGlobal(
-      "IntersectionObserver",
-      class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-        takeRecords() {
-          return [];
-        }
-      },
-    );
-
-    HTMLDialogElement.prototype.show = function show(this: HTMLDialogElement) {
-      this.open = true;
-    };
-    HTMLDialogElement.prototype.showModal = function showModal(
-      this: HTMLDialogElement,
-    ) {
-      this.open = true;
-    };
-    HTMLDialogElement.prototype.close = function close(
-      this: HTMLDialogElement,
-    ) {
-      this.open = false;
-    };
-    Element.prototype.scrollTo = function scrollTo() {};
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  afterAll(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("buys credits for a company whose plan is no longer live", async () => {
     const previewCheckout = vi.fn(async () => buildPreviewResponse());
     renderCheckoutDialog({
@@ -312,5 +337,20 @@ describe("`CheckoutDialog` credit-only purchases", () => {
 
     // The superseded response must not repopulate the cleared sidebar.
     expect(dueToday()).not.toBeInTheDocument();
+  });
+});
+
+describe("`CheckoutDialog` default billing period", () => {
+  it("opens on a period the plans are priced in when nothing picks one", async () => {
+    renderCheckoutDialog({
+      data: buildYearlyOnlyData(),
+      checkoutState: {},
+      previewCheckout: vi.fn(async () => buildPreviewResponse()),
+    });
+
+    // Defaulting to monthly would filter out every plan, leaving the dialog on
+    // a Plan stage that was never built.
+    expect(await screen.findByText("Select plan")).toBeInTheDocument();
+    expect(screen.getAllByText("Standard").length).toBeGreaterThan(0);
   });
 });

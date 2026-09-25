@@ -1,4 +1,5 @@
 import type {
+  BillingPriceResponseData,
   BillingPriceView,
   EntitlementCurrencyPricesResponseData,
   PlanEntitlementResponseData,
@@ -10,7 +11,11 @@ import {
 
 import type { Plan } from "../../types";
 
-import { getEntitlementPrice, planOffersCurrencyForPeriod } from "./billing";
+import {
+  getDefaultPlanPeriod,
+  getEntitlementPrice,
+  planOffersCurrencyForPeriod,
+} from "./billing";
 
 // Minimal plan priced monthly+yearly in USD (legacy fields) but only yearly in
 // EUR (currencyPrices). Exercises the silent-fallback path getPlanPrice takes
@@ -190,5 +195,30 @@ describe("getEntitlementPrice", () => {
       const result = getEntitlementPrice(entitlement, "quarter", "USD");
       expect(result?.price).toBe(27);
     });
+  });
+});
+
+describe("getDefaultPlanPeriod", () => {
+  const usd = { currency: "USD", price: 1000 } as BillingPriceResponseData;
+
+  it("prefers monthly when any plan is priced monthly", () => {
+    expect(
+      getDefaultPlanPeriod([
+        { yearlyPrice: usd },
+        { monthlyPrice: usd, yearlyPrice: usd },
+      ]),
+    ).toBe("month");
+  });
+
+  it("falls back to the period the plans are priced in", () => {
+    expect(getDefaultPlanPeriod([{ yearlyPrice: usd }])).toBe("year");
+    expect(
+      getDefaultPlanPeriod([{ quarterlyPrice: usd }, { yearlyPrice: usd }]),
+    ).toBe("quarter");
+  });
+
+  it("returns monthly when no plan has a recurring price", () => {
+    expect(getDefaultPlanPeriod([])).toBe("month");
+    expect(getDefaultPlanPeriod([{}])).toBe("month");
   });
 });

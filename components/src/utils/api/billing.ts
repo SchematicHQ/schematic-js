@@ -5,6 +5,7 @@ import {
   type BillingPriceView,
   type BillingProductPriceTierResponseData,
   type BillingSubscriptionView,
+  type CompanyPlanDetailResponseData,
   type FeatureUsageResponseData,
   type PreviewSubscriptionFinanceResponseData,
 } from "../../api/checkoutexternal";
@@ -48,6 +49,24 @@ export function getSubscriptionPeriod(
     derivePeriod(product?.interval, product?.intervalCount) ??
     derivePeriod(billingSubscription.interval)
   );
+}
+
+/**
+ * Picks the period to open on when there is no subscription or company plan to
+ * take one from: monthly when any plan is priced monthly, otherwise the first
+ * period a plan is priced in. Plans are filtered by the selected period, so a
+ * catalog priced only yearly would otherwise open on an empty monthly view.
+ */
+export function getDefaultPlanPeriod(
+  plans: Pick<
+    CompanyPlanDetailResponseData,
+    "monthlyPrice" | "quarterlyPrice" | "yearlyPrice"
+  >[] = [],
+): string {
+  if (plans.some((plan) => plan.monthlyPrice)) return "month";
+  if (plans.some((plan) => plan.quarterlyPrice)) return "quarter";
+  if (plans.some((plan) => plan.yearlyPrice)) return "year";
+  return "month";
 }
 
 export const ChargeType = {
