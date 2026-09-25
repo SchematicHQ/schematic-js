@@ -25,6 +25,12 @@ export interface HydrateComponentParams {
    * @memberof HydrateComponentParams
    */
   catalogId?: string;
+  /**
+   * Add-on IDs (starting with plan_) to offer in checkout even when they aren't live
+   * @type {Array<string>}
+   * @memberof HydrateComponentParams
+   */
+  includeAddOnIds?: Array<string>;
 }
 
 /**
@@ -51,6 +57,10 @@ export function HydrateComponentParamsFromJSONTyped(
   }
   return {
     catalogId: json["catalog_id"] == null ? undefined : json["catalog_id"],
+    includeAddOnIds:
+      json["include_add_on_ids"] == null
+        ? undefined
+        : json["include_add_on_ids"],
   };
 }
 
@@ -70,5 +80,6 @@ export function HydrateComponentParamsToJSONTyped(
 
   return {
     catalog_id: value["catalogId"],
+    include_add_on_ids: value["includeAddOnIds"],
   };
 }
