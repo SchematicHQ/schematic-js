@@ -1,8 +1,13 @@
 import React from "react";
 
+import { dialogCss } from "./dialog";
+import { iconsCss } from "./icons";
 import { invoicesCss } from "./invoices";
+import { paymentMethodsCss } from "./payment-methods";
 import { withTokenDefaults } from "./tokens";
 import { upcomingBillCss } from "./upcoming-bill";
+
+export { iconsCss } from "./icons";
 
 export { SCHEMATIC_TOKENS, schematicTokensCss } from "./tokens";
 
@@ -197,39 +202,13 @@ const rulesCss = `
   border: none;
   color: var(--schematic-accent);
   cursor: pointer;
-  font-family: var(--schematic-font-body);
+  font-family: var(--schematic-font-link);
   font-size: 1rem;
   padding: 0;
 }
 
 .schematic-link-button:hover {
   text-decoration: underline;
-}
-
-.schematic-icon {
-  align-items: center;
-  background: color-mix(
-    in oklch,
-    var(--schematic-background) 87.5%,
-    var(--schematic-text)
-  );
-  border-radius: 9999px;
-  color: var(--schematic-primary);
-  display: inline-flex;
-  flex-shrink: 0;
-  font-size: 1.5rem;
-  font-style: normal;
-  height: 2.75rem;
-  justify-content: center;
-  line-height: 1;
-  width: 2.75rem;
-}
-
-.schematic-icon--bare {
-  background: none;
-  font-size: 1.25rem;
-  height: auto;
-  width: auto;
 }
 
 .schematic-meter {
@@ -316,10 +295,11 @@ const rulesCss = `
   margin-bottom: var(--schematic-space);
 }
 
+/* The embed's card heading: 18px at its heaviest weight. */
 .schematic-header__title {
   font-family: var(--schematic-font-heading);
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.125rem;
+  font-weight: 800;
   line-height: var(--schematic-line-height-heading);
   margin: 0 0 calc(var(--schematic-space) / 2);
 }
@@ -525,15 +505,20 @@ const rulesCss = `
   width: 100%;
 }
 
+${dialogCss}
 ${invoicesCss}
 ${upcomingBillCss}
+${paymentMethodsCss}
 `;
 
 /**
  * The stylesheet `<SchematicStyles />` injects: the rules above with every
- * token's default inlined as a `var()` fallback.
+ * token's default inlined as a `var()` fallback, then the icon font and its
+ * glyph rules (see ./icons.ts). The font is appended after the substitution
+ * rather than run through it: nothing in it takes a token, and the base64
+ * is not something to search.
  */
-export const schematicStylesCss = withTokenDefaults(rulesCss);
+export const schematicStylesCss = withTokenDefaults(rulesCss) + iconsCss;
 
 /**
  * Injects the default stylesheet. Render once, anywhere in the tree; omit

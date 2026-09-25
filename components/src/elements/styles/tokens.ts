@@ -18,6 +18,11 @@ const ld = (light: string, dark: string): string =>
 export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-accent": ld("#194bfb", "#6f92ff"),
   "--schematic-accent-contrast": ld("#ffffff", "#0a0a0a"),
+  // The embed's frosted backdrop: a pale grey (dark in dark mode) over a blur.
+  "--schematic-backdrop": ld(
+    "hsla(0, 0%, 87.5%, 0.9)",
+    "hsla(0, 0%, 12.5%, 0.9)",
+  ),
   "--schematic-background": ld("#ffffff", "#0e0e0e"),
   "--schematic-border": ld(
     "hsla(0, 0%, 0%, 0.125)",
@@ -31,6 +36,8 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-danger": ld("#d75a5c", "#ff6b6e"),
   "--schematic-font-body": '"Public Sans", system-ui, sans-serif',
   "--schematic-font-heading": '"Manrope", system-ui, sans-serif',
+  // The embed's link face: Edit, Set default, Try again, and the rest.
+  "--schematic-font-link": '"Inter", system-ui, sans-serif',
   "--schematic-line-height": "1.5",
   "--schematic-line-height-heading": "1.2",
   "--schematic-meter-track": ld("#f2f4f7", "#26282d"),
@@ -41,6 +48,11 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
   // `light-dark()` takes colours only, so it is applied per shadow layer.
   "--schematic-shadow": `0px 1px 20px 0px ${ld("#1018280f", "#00000099")}, 0px 1px 3px 0px ${ld("#1018281a", "#0000007a")}`,
   "--schematic-space": "1rem",
+  // A tint over the background: the payment method pill.
+  "--schematic-surface": ld(
+    "hsla(0, 0%, 0%, 0.0625)",
+    "hsla(0, 0%, 100%, 0.125)",
+  ),
   "--schematic-text": ld("#000000", "#ffffff"),
   "--schematic-warning": ld("#ffaa06", "#ffbb3d"),
 };

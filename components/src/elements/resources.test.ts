@@ -1,4 +1,5 @@
 import { Invoices } from "./Invoices";
+import { PaymentMethods } from "./PaymentMethods";
 import { UpcomingBill } from "./UpcomingBill";
 import { billingResources, type ReadsBillingResources } from "./common";
 
@@ -12,13 +13,13 @@ describe("what the elements read", () => {
   test("each element names its resources", () => {
     expect(Invoices.resources).toEqual(["invoices"]);
     expect(UpcomingBill.resources).toEqual(["upcomingInvoice"]);
+    expect(PaymentMethods.resources).toEqual(["paymentMethods"]);
   });
 
   test("billingResources collects them once each, in the order given", () => {
-    expect(billingResources(UpcomingBill, Invoices, UpcomingBill)).toEqual([
-      "upcomingInvoice",
-      "invoices",
-    ]);
+    expect(
+      billingResources(UpcomingBill, Invoices, PaymentMethods, UpcomingBill),
+    ).toEqual(["upcomingInvoice", "invoices", "paymentMethods"]);
     expect(billingResources()).toEqual([]);
     const custom: ReadsBillingResources = {
       resources: ["invoices", "upcomingInvoice"],

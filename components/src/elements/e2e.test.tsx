@@ -8,6 +8,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { Invoices } from "./Invoices";
+import { PaymentMethods } from "./PaymentMethods";
 import { UpcomingBill } from "./UpcomingBill";
 import { billingResources } from "./common";
 import { invoice } from "./fixtures/builders";
@@ -20,9 +21,10 @@ import { SCENARIOS } from "./fixtures/scenarios";
 
 /**
  * Answers /company/invoices the way the API does — a `limit`/`offset` window
- * plus the total count — and /company/upcoming-invoice with the bill, or a
- * 204 when there is nothing to bill. An account not on the flag gets a 404
- * from every company route, which is what everything else falls to.
+ * plus the total count — /company/upcoming-invoice with the bill, or a 204
+ * when there is nothing to bill, and /company/payment-methods with the list,
+ * empty or not, always a 200. An account not on the flag gets a 404 from
+ * every company route, which is what everything else falls to.
  */
 function serve(
   scenario: ReturnType<(typeof SCENARIOS)["pro"]>,
@@ -31,8 +33,23 @@ function serve(
   const all = scenario.invoices?.invoices ?? [];
   const count = scenario.invoices?.count ?? all.length;
   const upcoming = scenario.upcomingInvoice;
+  const methods = scenario.paymentMethods ?? [];
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
+    if (flagged && url.pathname === "/company/payment-methods") {
+      return new Response(
+        JSON.stringify({
+          data: {
+            count: methods.length,
+            payment_methods: methods.map((method) =>
+              billingApi.CompanyPaymentMethodResponseDataToJSON(method),
+            ),
+          },
+          params: {},
+        }),
+        { status: 200 },
+      );
+    }
     if (flagged && url.pathname === "/company/upcoming-invoice") {
       return upcoming == null
         ? new Response(null, { status: 204 })
@@ -202,5 +219,84 @@ describe("end to end", () => {
     renderStack(<Invoices />);
     expect(await screen.findByText("Loading invoices")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("PaymentMethods", async () => {
+    renderStack(<PaymentMethods />, "tok");
+    const pill = await screen.findByTestId("schematic-payment-method-current");
+    expect(pill).toHaveTextContent("Card ending in 4444");
+    expect(pill).not.toHaveTextContent("Chase");
+    expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("PaymentMethods lists the other methods in its dialog", async () => {
+    renderStack(<PaymentMethods />, "tok");
+    fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Choose different payment method" }),
+    );
+    const rows = screen.getAllByTestId("schematic-payment-method");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveTextContent("Chase 6789");
+    expect(rows[1]).toHaveTextContent("jo@example.com");
+    expect(document.querySelector("dialog")).toHaveAttribute("open");
+  });
+
+  test("PaymentMethods renders the empty state for a 200 with no methods", async () => {
+    // Nothing on file is an empty list, never a 204 and never a 404.
+    renderStack(<PaymentMethods />, "tok", SCENARIOS.paymentMethodsEmpty());
+    expect(
+      await screen.findByText("No payment method added yet"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add" })).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("PaymentMethods says it is not available for an account off the flag", async () => {
+    renderStack(<PaymentMethods />, "tok", SCENARIOS.paymentMethods(), false);
+    expect(
+      await screen.findByText("Payment methods are not available"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("No payment method added yet")).toBeNull();
+  });
+
+  test("PaymentMethods waits rather than failing while the session is pending", async () => {
+    renderStack(<PaymentMethods />);
+    expect(
+      await screen.findByText("Loading payment methods"),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("a page prefetched for PaymentMethods makes no request of its own", async () => {
+    const fetchImpl = serve(SCENARIOS.pro());
+    const client = new SchematicBillingClient({
+      session: { company: "co_test", token: "tok" },
+      apiUrl: "https://api.test",
+      fetch: fetchImpl,
+    });
+    const names = billingResources(PaymentMethods);
+    expect(names).toEqual(["paymentMethods"]);
+    const initialData = await fetchBillingData(client, { names });
+    const calls = (fetchImpl as unknown as { mock: { calls: unknown[] } }).mock
+      .calls;
+    expect(calls).toHaveLength(1);
+
+    render(
+      <SchematicProvider
+        publishableKey="pk_test"
+        billingClient={client}
+        initialData={initialData}
+        session={{ company: "co_test", token: "tok" }}
+      >
+        <PaymentMethods />
+      </SchematicProvider>,
+    );
+    expect(
+      screen.getByTestId("schematic-payment-method-current"),
+    ).toHaveTextContent("Card ending in 4444");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(calls).toHaveLength(1);
   });
 });

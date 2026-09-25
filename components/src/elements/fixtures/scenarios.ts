@@ -3,15 +3,36 @@
  * Each is a function so fixtures never share mutable objects across tests.
  */
 
-import type { BillingData } from "@schematichq/schematic-react";
+import type { BillingData, PaymentMethod } from "@schematichq/schematic-react";
 
 import {
+  bankPaymentMethod,
+  cardPaymentMethod,
   daysFromNow,
   discount,
   invoice,
   invoicePage,
   upcomingInvoice,
+  walletPaymentMethod,
 } from "./builders";
+
+/**
+ * Three methods of three kinds, the card the default. Any of them can be
+ * removed while the others exist, the default included, which is what the
+ * server's `canRemove` says.
+ */
+export function paymentMethodSet(): PaymentMethod[] {
+  return [
+    cardPaymentMethod({
+      id: "pm_card",
+      externalId: "pm_card_ext",
+      isDefault: true,
+      canRemove: true,
+    }),
+    bankPaymentMethod({ id: "pm_bank", externalId: "pm_bank_ext" }),
+    walletPaymentMethod({ id: "pm_link", externalId: "pm_link_ext" }),
+  ];
+}
 
 /**
  * A paying company with history: two charges and a credit note on screen,
@@ -52,6 +73,7 @@ export function proCompany(): BillingData {
       customerBalanceRemaining: 0,
       discounts: [discount()],
     }),
+    paymentMethods: paymentMethodSet(),
   };
 }
 
@@ -60,6 +82,15 @@ export function trialingCompany(): BillingData {
   return {
     invoices: invoicePage([]),
     upcomingInvoice: upcomingInvoice({ dueDate: daysFromNow(7) }),
+    paymentMethods: [
+      cardPaymentMethod({
+        id: "pm_card",
+        externalId: "pm_card_ext",
+        isDefault: true,
+        // The last method stays on an active subscription.
+        canRemove: false,
+      }),
+    ],
   };
 }
 
@@ -69,13 +100,44 @@ export function trialingCompany(): BillingData {
  * resource that has not loaded.
  */
 export function unbilledCompany(): BillingData {
-  return { invoices: invoicePage([]), upcomingInvoice: null };
+  return {
+    invoices: invoicePage([]),
+    upcomingInvoice: null,
+    paymentMethods: [],
+  };
+}
+
+/** The pro company's methods on their own: a default card, a bank, a wallet. */
+export function paymentMethods(): BillingData {
+  return { paymentMethods: paymentMethodSet() };
+}
+
+/** Nothing on file: a 200 with an empty list, never a 404. */
+export function paymentMethodsEmpty(): BillingData {
+  return { paymentMethods: [] };
+}
+
+/**
+ * Methods with no default among them, which a provider allows. Nothing is
+ * promoted: every row offers Make default and none wears the badge.
+ */
+export function paymentMethodsNoDefault(): BillingData {
+  return {
+    paymentMethods: paymentMethodSet().map((method) => ({
+      ...method,
+      isDefault: false,
+      canRemove: true,
+    })),
+  };
 }
 
 export const SCENARIOS = {
   pro: proCompany,
   trialing: trialingCompany,
   unbilled: unbilledCompany,
+  paymentMethods,
+  paymentMethodsEmpty,
+  paymentMethodsNoDefault,
 } satisfies Record<string, () => BillingData>;
 
 export type ScenarioName = keyof typeof SCENARIOS;

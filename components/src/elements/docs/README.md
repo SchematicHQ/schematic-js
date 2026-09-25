@@ -13,10 +13,11 @@ is reserved for the offerings resource. The routes those clients call are
 still `/company/*`, and the generated wire models keep their `Company…`
 names — the tier is what `billing` names, not the resource.
 
-| Element      | Hooks                | Derivation              | Reads             | Recipe                                 |
-| ------------ | -------------------- | ----------------------- | ----------------- | -------------------------------------- |
-| Invoices     | `useInvoices`        | `deriveInvoiceList`     | `invoices`        | [invoices.md](./invoices.md)           |
-| UpcomingBill | `useUpcomingInvoice` | `deriveUpcomingInvoice` | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md) |
+| Element        | Hooks                                 | Derivation              | Reads             | Recipe                                     |
+| -------------- | ------------------------------------- | ----------------------- | ----------------- | ------------------------------------------ |
+| Invoices       | `useInvoices`                         | `deriveInvoiceList`     | `invoices`        | [invoices.md](./invoices.md)               |
+| UpcomingBill   | `useUpcomingInvoice`                  | `deriveUpcomingInvoice` | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md)     |
+| PaymentMethods | `usePaymentMethods`, `useSetupIntent` | `derivePaymentMethods`  | `paymentMethods`  | [payment-methods.md](./payment-methods.md) |
 
 ## Before it can load
 
@@ -37,6 +38,18 @@ means "nothing here", so the elements render "not available" for it and key
 on the status alone, never on the error message. If a correctly configured page shows
 `… failed with status 404`, the flag is what to check first. Ask Schematic
 to turn it on for the account.
+
+Adding a payment method goes through Stripe, so `PaymentMethods`' Add form
+needs `@stripe/stripe-js` and `@stripe/react-stripe-js` installed beside the
+package. Both are optional peers: the elements bundle leaves them out and
+imports them when the form first opens, so a page that only shows the method
+on file never loads Stripe, and a host without them still shows it — the
+form reports that it could not load rather than crashing.
+
+The server refuses to remove the last payment method on an active paid
+subscription, and nothing else. `PaymentMethods` offers Remove in its dialog,
+on the pill and the other rows, only where the server's `canRemove` allows
+it.
 
 ## Setup
 
@@ -132,10 +145,18 @@ matching markup on both sides rather than a hydration mismatch per row.
 ## Styling
 
 `<SchematicStyles />` injects one stylesheet driven by `--schematic-*`
-custom properties: `accent`, `accent-contrast`, `background`, `border`,
-`card-divider`, `card-padding`, `danger`, `font-body`, `font-heading`,
-`line-height`, `line-height-heading`, `meter-track`, `muted`, `primary`,
-`primary-contrast`, `radius`, `shadow`, `space`, `text`, `warning`.
+custom properties: `accent`, `accent-contrast`, `backdrop`, `background`,
+`border`, `card-divider`, `card-padding`, `danger`, `font-body`,
+`font-heading`, `font-link`, `line-height`, `line-height-heading`, `meter-track`, `muted`,
+`primary`, `primary-contrast`, `radius`, `shadow`, `space`, `surface`,
+`text`, `warning`.
+
+The same sheet carries the schematic-icons font, inlined as a `data:` URL,
+and its glyph rules: the brand marks on payment methods, the dialog's close
+control, the chevrons. A host whose Content Security Policy sets a
+`font-src` directive needs `data:` in it, or the browser refuses the font
+and every glyph renders empty. Each glyph is `aria-hidden` and sits beside
+its text, so nothing is lost but the mark.
 
 ### Light and dark
 
@@ -184,7 +205,12 @@ Overriding `background` and `text` alone leaves a card looking half-themed —
 `border`, `card-divider`, and `shadow` carry the rest.
 
 Or skip the stylesheet and write your own against the class names below —
-they are API, and each element's doc shows the tree it renders.
+they are API, and each element's doc shows the tree it renders. A sheet of
+your own has to bring the icon font too: render `<style>{iconsCss}</style>`
+once (exported beside `SchematicStyles`; the font face and one
+`.schematic-icon--<name>` rule per glyph), or the glyphs render empty. The
+package's own `@schematichq/schematic-icons/styles.css` is not a substitute:
+it names its rules `.icon-<name>`, which the elements never use.
 
 | Class                         | Where                                                      |
 | ----------------------------- | ---------------------------------------------------------- |
@@ -197,11 +223,18 @@ they are API, and each element's doc shows the tree it renders.
 | `schematic-badge`             | A filled pill.                                             |
 | `schematic-cta`               | Filled action; `--outline` and `--small` modifiers.        |
 | `schematic-link-button`       | Inline text action ("See more", "Try again", "Load more"). |
+| `schematic-icon`              | A glyph from the icon font, always `aria-hidden`.          |
+| `schematic-icon--<name>`      | Which glyph: a brand mark, `close`, `chevron-down`, …      |
 | `schematic-status`            | The error row that replaces a card's content.              |
 | `schematic-status__message`   | The message within it.                                     |
 | `schematic-status__retry`     | Its retry action.                                          |
 | `schematic-error`             | Error text.                                                |
 | `schematic-status-note`       | A failure reported under content that is still on screen.  |
+| `schematic-dialog`            | A modal `<dialog>` an element opens, inside its root.      |
+| `schematic-dialog__header`    | The dialog's title row.                                    |
+| `schematic-dialog__title`     | The title itself, which labels the dialog.                 |
+| `schematic-dialog__close`     | The control in the header that closes it.                  |
+| `schematic-dialog__body`      | Everything beneath the header.                             |
 | `schematic-skeleton`          | The pending placeholder, rendered inside the card.         |
 | `schematic-skeleton__heading` | The bar standing in for a card's heading.                  |
 | `schematic-skeleton__row`     | One row of the pending placeholder.                        |

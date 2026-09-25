@@ -2,17 +2,21 @@ import {
   BillingDataProvider,
   type BillingData,
 } from "@schematichq/schematic-react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { vi } from "vitest";
 
 import { Invoices } from "./Invoices";
+import { PaymentMethods } from "./PaymentMethods";
 import { UpcomingBill } from "./UpcomingBill";
 import {
+  NOW,
+  cardPaymentMethod,
   discount,
   invoice,
   invoicePage,
   upcomingInvoice,
 } from "./fixtures/builders";
-import { SCENARIOS } from "./fixtures/scenarios";
+import { SCENARIOS, paymentMethodSet } from "./fixtures/scenarios";
 
 /**
  * A host that skips <SchematicStyles /> writes CSS against these class names
@@ -49,6 +53,19 @@ function renderUpcomingBill(
   const { container } = render(
     <BillingDataProvider data={data} status={status}>
       <UpcomingBill locale="en-US" />
+    </BillingDataProvider>,
+  );
+  return container.firstElementChild as HTMLElement;
+}
+
+function renderPaymentMethods(
+  data: BillingData,
+  status?: React.ComponentProps<typeof BillingDataProvider>["status"],
+  actions?: React.ComponentProps<typeof BillingDataProvider>["actions"],
+) {
+  const { container } = render(
+    <BillingDataProvider actions={actions} data={data} status={status}>
+      <PaymentMethods locale="en-US" />
     </BillingDataProvider>,
   );
   return container.firstElementChild as HTMLElement;
@@ -264,6 +281,242 @@ describe("UpcomingBill markup contract", () => {
   });
 });
 
+describe("PaymentMethods markup contract", () => {
+  beforeEach(() => {
+    // Expiry is judged against the clock; the fixtures are dated from NOW.
+    vi.useFakeTimers({ now: NOW, toFake: ["Date"] });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test("the loaded card: the default method as a pill, with Edit", () => {
+    const root = renderPaymentMethods(SCENARIOS.paymentMethods());
+    expect(root.className).toBe("schematic-card schematic-payment-methods");
+    expect(root).toHaveAttribute("data-state", "ready");
+    expect(classNames(root)).toEqual([
+      "schematic-header",
+      "schematic-header__title",
+      "schematic-icon",
+      "schematic-icon--visa",
+      "schematic-link-button",
+      "schematic-payment-methods__current",
+      "schematic-payment-methods__edit",
+      "schematic-payment-methods__icon",
+      "schematic-payment-methods__label",
+      "schematic-payment-methods__last4",
+      "schematic-payment-methods__method",
+    ]);
+    const method = root.querySelector<HTMLElement>(
+      ".schematic-payment-methods__method",
+    );
+    expect(method?.dataset).toMatchObject({ brand: "visa", kind: "card" });
+    expect(screen.getByTestId("schematic-payment-method-current")).toBe(
+      root.querySelector(".schematic-payment-methods__current"),
+    );
+    expect(root.querySelector("dialog")).toBeNull();
+  });
+
+  test("the card with a default card about to expire", () => {
+    const root = renderPaymentMethods({
+      paymentMethods: [
+        cardPaymentMethod({
+          isDefault: true,
+          cardExpMonth: 10,
+          cardExpYear: 2026,
+        }),
+      ],
+    });
+    expect(classNames(root)).toEqual(
+      expect.arrayContaining([
+        "schematic-small",
+        "schematic-payment-methods__expiry-warning",
+      ]),
+    );
+    expect(
+      root.querySelector(".schematic-payment-methods__expiry-warning"),
+    ).toHaveAttribute("data-expiry", "soon");
+  });
+
+  test("the empty card", () => {
+    const root = renderPaymentMethods(SCENARIOS.paymentMethodsEmpty());
+    expect(root).toHaveAttribute("data-state", "ready");
+    expect(classNames(root)).toEqual([
+      "schematic-header",
+      "schematic-header__title",
+      "schematic-link-button",
+      "schematic-payment-methods__current",
+      "schematic-payment-methods__edit",
+      "schematic-payment-methods__empty",
+    ]);
+  });
+
+  test("the card with no default reads as empty, whatever is on file", () => {
+    const root = renderPaymentMethods(SCENARIOS.paymentMethodsNoDefault());
+    const names = classNames(root);
+    expect(names).toContain("schematic-payment-methods__empty");
+    expect(names).not.toContain("schematic-payment-methods__method");
+  });
+
+  test("the dialog, with the other methods unfolded", () => {
+    const root = renderPaymentMethods({
+      paymentMethods: [
+        ...paymentMethodSet(),
+        cardPaymentMethod({ cardLast4: "1881" }),
+      ],
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Choose different payment method" }),
+    );
+    const dialog = root.querySelector("dialog") as HTMLElement;
+    expect(dialog.className).toBe(
+      "schematic-dialog schematic-payment-methods__dialog",
+    );
+    expect(dialog).toHaveAttribute("open");
+    expect(classNames(dialog)).toEqual([
+      "schematic-cta",
+      "schematic-dialog__body",
+      "schematic-dialog__close",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-header",
+      "schematic-header__title",
+      "schematic-icon",
+      "schematic-icon--bank",
+      "schematic-icon--chevron-up",
+      "schematic-icon--close",
+      "schematic-icon--link",
+      "schematic-icon--visa",
+      "schematic-link-button",
+      "schematic-payment-methods__add-new",
+      "schematic-payment-methods__chevron",
+      "schematic-payment-methods__choose",
+      "schematic-payment-methods__choose-label",
+      "schematic-payment-methods__current",
+      "schematic-payment-methods__expires",
+      "schematic-payment-methods__icon",
+      "schematic-payment-methods__label",
+      "schematic-payment-methods__last4",
+      "schematic-payment-methods__list",
+      "schematic-payment-methods__method",
+      "schematic-payment-methods__remove",
+      "schematic-payment-methods__remove-current",
+      "schematic-payment-methods__row",
+      "schematic-payment-methods__set-default",
+    ]);
+    const rows = dialog.querySelectorAll<HTMLElement>(
+      ".schematic-payment-methods__row",
+    );
+    expect(rows).toHaveLength(3);
+    expect(rows[0].dataset).toMatchObject({
+      brand: "us_bank_account",
+      kind: "bank",
+    });
+    expect(rows[1].dataset).toMatchObject({ brand: "link", kind: "wallet" });
+    expect(rows[2].dataset).toMatchObject({ brand: "visa", kind: "card" });
+    expect(screen.getAllByTestId("schematic-payment-method")[0]).toBe(rows[0]);
+    expect(
+      dialog.querySelector(".schematic-payment-methods__choose"),
+    ).toHaveAttribute("aria-expanded", "true");
+  });
+
+  test("the dialog on the form, whose place is held while it loads", () => {
+    const root = renderPaymentMethods(SCENARIOS.paymentMethodsEmpty());
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    const dialog = root.querySelector("dialog") as HTMLElement;
+    expect(classNames(dialog)).toEqual([
+      "schematic-dialog__body",
+      "schematic-dialog__close",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-hidden",
+      "schematic-icon",
+      "schematic-icon--close",
+      "schematic-payment-methods__form",
+      "schematic-skeleton",
+      "schematic-skeleton__cell",
+      "schematic-skeleton__row",
+    ]);
+    expect(
+      dialog.querySelector(".schematic-payment-methods__form"),
+    ).toHaveAttribute("data-state", "pending");
+  });
+
+  test("the pending card keeps the card's own shape", () => {
+    const root = renderPaymentMethods(
+      {},
+      { paymentMethods: { isPending: true } },
+    );
+    expect(root.className).toBe("schematic-card schematic-payment-methods");
+    expect(root).toHaveAttribute("data-state", "pending");
+    expect(root).toHaveAttribute("aria-busy", "true");
+    expect(root).not.toHaveAttribute("role");
+    expect(classNames(root)).toEqual([
+      "schematic-hidden",
+      "schematic-skeleton",
+      "schematic-skeleton__cell",
+      "schematic-skeleton__heading",
+      "schematic-skeleton__row",
+    ]);
+    expect(
+      Array.from(
+        root.querySelectorAll<HTMLElement>(".schematic-skeleton__cell"),
+        (cell) => cell.dataset.column,
+      ),
+    ).toEqual(["method", "action"]);
+  });
+
+  test("the failed card", () => {
+    const root = renderPaymentMethods(
+      {},
+      { paymentMethods: { error: new Error("Boom") } },
+    );
+    expect(root.className).toBe("schematic-card schematic-payment-methods");
+    expect(root).toHaveAttribute("data-state", "error");
+    expect(classNames(root)).toEqual([
+      "schematic-error",
+      "schematic-link-button",
+      "schematic-status",
+      "schematic-status__message",
+      "schematic-status__retry",
+    ]);
+  });
+
+  test("a failure with rows still on screen", () => {
+    const root = renderPaymentMethods(SCENARIOS.paymentMethods(), {
+      paymentMethods: { error: new Error("Boom") },
+    });
+    expect(root).toHaveAttribute("data-state", "ready");
+    expect(classNames(root)).toContain("schematic-status-note");
+  });
+
+  test("a failed write, reported at the foot of the dialog", async () => {
+    const root = renderPaymentMethods(SCENARIOS.paymentMethods(), undefined, {
+      setDefaultPaymentMethod: vi.fn().mockRejectedValue(new Error("Nope")),
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Choose different payment method" }),
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: "Set default" })[0]);
+    await waitFor(() =>
+      expect(classNames(root)).toContain("schematic-payment-methods__error"),
+    );
+    expect(classNames(root)).toEqual(
+      expect.arrayContaining([
+        "schematic-error",
+        "schematic-status-note",
+        "schematic-payment-methods__error",
+        "schematic-payment-methods__error-message",
+        "schematic-payment-methods__error-retry",
+      ]),
+    );
+    expect(root).toHaveAttribute("data-state", "ready");
+  });
+});
+
 /**
  * Every node an element renders carries a class, so a host's CSS never has
  * to reach by tag or position and never breaks when a node moves.
@@ -327,6 +580,54 @@ describe("every node carries a schematic class", () => {
         discounts: [discount({ customerFacingCode: null })],
       }),
     });
+    expect(unclassed(root)).toEqual([]);
+  });
+
+  test.each([
+    ["loaded", SCENARIOS.paymentMethods(), undefined],
+    ["loaded, no default", SCENARIOS.paymentMethodsNoDefault(), undefined],
+    ["empty", SCENARIOS.paymentMethodsEmpty(), undefined],
+    ["pending", {}, { paymentMethods: pending }],
+    ["failed", {}, { paymentMethods: failed }],
+    [
+      "failed with rows on screen",
+      SCENARIOS.paymentMethods(),
+      { paymentMethods: failed },
+    ],
+  ] as const)("PaymentMethods, %s", (_state, data, status) => {
+    expect(unclassed(renderPaymentMethods(data, status))).toEqual([]);
+  });
+
+  test("PaymentMethods, the dialog with the other methods unfolded", () => {
+    const root = renderPaymentMethods({
+      paymentMethods: [
+        ...paymentMethodSet(),
+        cardPaymentMethod({ cardLast4: "1881" }),
+      ],
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Choose different payment method" }),
+    );
+    expect(unclassed(root)).toEqual([]);
+  });
+
+  test("PaymentMethods, the dialog on the form", () => {
+    const root = renderPaymentMethods(SCENARIOS.paymentMethodsEmpty());
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    expect(unclassed(root)).toEqual([]);
+  });
+
+  test("PaymentMethods, a failed write", async () => {
+    const root = renderPaymentMethods(SCENARIOS.paymentMethods(), undefined, {
+      removePaymentMethod: vi.fn().mockRejectedValue(new Error("Nope")),
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Choose different payment method" }),
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]);
+    await screen.findByRole("alert");
     expect(unclassed(root)).toEqual([]);
   });
 });
