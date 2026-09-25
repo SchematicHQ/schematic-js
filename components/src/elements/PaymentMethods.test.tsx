@@ -452,7 +452,7 @@ describe("PaymentMethods", () => {
     test("a click on the backdrop closes it; a click inside does not", () => {
       renderCard();
       const modal = openDialog();
-      fireEvent.click(within(modal).getByRole("heading"));
+      fireEvent.click(within(modal).getByRole("heading", { level: 2 }));
       expect(document.querySelector("dialog")).not.toBeNull();
       fireEvent.click(modal);
       expect(document.querySelector("dialog")).toBeNull();

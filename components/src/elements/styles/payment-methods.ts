@@ -27,7 +27,7 @@ export const paymentMethodsCss = `
   display: flex;
   gap: var(--schematic-space);
   justify-content: space-between;
-  padding: calc(var(--schematic-space) * 0.5) var(--schematic-space);
+  padding: calc(var(--schematic-space) / 2.25) var(--schematic-space);
 }
 
 .schematic-payment-methods__method {
@@ -38,11 +38,12 @@ export const paymentMethodsCss = `
   gap: 0.25em;
 }
 
-/* The brand's mark before the label, in the label's colour. */
+/* The brand's mark before the label, in the label's colour, at the embed's
+   size. */
 .schematic-payment-methods__icon {
   color: currentColor;
   flex-shrink: 0;
-  font-size: 1.25em;
+  font-size: 1.5em;
   margin-inline-end: calc(var(--schematic-space) / 4);
 }
 
@@ -61,16 +62,52 @@ export const paymentMethodsCss = `
 }
 
 /* The toggle that reveals the other methods, with its chevron: down while
-   folded, up while unfolded, each its own glyph. */
+   folded, up while unfolded, each its own glyph. As in the embed, the
+   chevron sits beside the link in the text colour rather than as part of
+   it. A flex container hands its underline to every item, and an item
+   cannot take it off, so the hover underline goes on the label alone. */
 .schematic-payment-methods__choose {
   align-items: center;
   align-self: flex-start;
   display: inline-flex;
-  gap: calc(var(--schematic-space) / 4);
+  gap: calc(var(--schematic-space) / 2);
+}
+
+.schematic-payment-methods__choose:hover {
+  text-decoration: none;
+}
+
+.schematic-payment-methods__choose:hover .schematic-payment-methods__choose-label {
+  text-decoration: underline;
 }
 
 .schematic-payment-methods__chevron {
-  font-size: 1em;
+  color: var(--schematic-text);
+  font-size: 1.5em;
+}
+
+/* The embed's dialog: a faintly tinted panel, roomier than the shared
+   dialog body, with its parts spaced further apart. The list tucks back up
+   under the toggle that reveals it. */
+.schematic-payment-methods__dialog .schematic-dialog__body {
+  background: color-mix(in srgb, var(--schematic-text) 2.5%, transparent);
+  gap: calc(var(--schematic-space) * 2);
+  padding: var(--schematic-space);
+}
+
+@media (min-width: 768px) {
+  .schematic-payment-methods__dialog .schematic-dialog__body {
+    padding: calc(var(--schematic-space) * 2) calc(var(--schematic-space) * 2.5);
+  }
+}
+
+/* The list tucks up under its toggle, the embed's heading sits a card's
+   gap above the pill, and a failed write sits close under what it failed
+   on. */
+.schematic-payment-methods__dialog .schematic-payment-methods__list,
+.schematic-payment-methods__dialog .schematic-payment-methods__current,
+.schematic-payment-methods__dialog .schematic-payment-methods__error {
+  margin-top: calc(var(--schematic-space) * -1);
 }
 
 .schematic-payment-methods__list {
@@ -92,6 +129,7 @@ export const paymentMethodsCss = `
   padding: calc(var(--schematic-space) / 2) 0;
 }
 
+/* In the embed the expiry reads in the text's own colour and size. */
 .schematic-payment-methods__expires {
   flex-grow: 1;
   font-variant-numeric: tabular-nums;
@@ -110,15 +148,17 @@ export const paymentMethodsCss = `
   text-decoration: none;
 }
 
+/* The embed's large, faint close glyph: the text colour at 27.5%. */
 .schematic-payment-methods__remove {
   background: none;
   border: none;
   border-radius: 9999px;
-  color: var(--schematic-muted);
+  color: color-mix(in srgb, var(--schematic-text) 27.5%, transparent);
   cursor: pointer;
-  font-size: 0.875rem;
+  display: inline-flex;
+  font-size: 1.75rem;
   line-height: 1;
-  padding: 0.25rem;
+  padding: 0;
 }
 
 .schematic-payment-methods__remove:hover:not(:disabled) {
@@ -137,6 +177,14 @@ export const paymentMethodsCss = `
 .schematic-payment-methods__add-new,
 .schematic-payment-methods__save {
   width: 100%;
+}
+
+/* The embed's large button: taller, with bigger type and radius. */
+.schematic-payment-methods__add-new {
+  border-radius: 0.625rem;
+  font-size: 1.1875rem;
+  min-height: 4rem;
+  padding: 0.5625rem 1.75rem;
 }
 
 .schematic-payment-methods__select-existing {

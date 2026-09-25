@@ -113,8 +113,9 @@ the default leaves the pill reading "No payment method added yet" until
 another method is set as the default.
 
 Edit opens a modal dialog titled "Edit payment details", closed by Escape,
-the backdrop, or the control in its header. It opens on the pill again,
-with Remove in place of Edit, and beneath it "Choose different payment method" unfolds the
+the backdrop, or the control in its header. It opens on the card's
+"Payment Details" heading and expiry warning, then the pill again, with
+Remove in place of Edit, and beneath it "Choose different payment method" unfolds the
 other methods: each row names the method, says when a card expires ("Expires
 8/27"), and offers Set default and a remove control where the server allows
 it. Under the rows a full-width "Add new payment method" opens the form. The
@@ -271,6 +272,12 @@ tell them apart. The dialog renders inside the root while it is open.
       </button>
     </div>
     <div class="schematic-dialog__body">
+      <!-- the card's heading and expiry warning again, one level down -->
+      <div class="schematic-header">
+        <h3 class="schematic-header__title">Payment Details</h3>
+        <!-- the expiry warning, as on the card -->
+      </div>
+
       <!-- the pill again, with Remove where canRemove allows it -->
       <div class="schematic-payment-methods__current">
         …
@@ -285,7 +292,9 @@ tell them apart. The dialog renders inside the root while it is open.
         class="schematic-link-button schematic-payment-methods__choose"
         aria-expanded="true"
       >
-        Choose different payment method
+        <span class="schematic-payment-methods__choose-label">
+          Choose different payment method
+        </span>
         <!-- chevron-down while folded -->
         <i
           class="schematic-icon schematic-icon--chevron-up schematic-payment-methods__chevron"
@@ -310,10 +319,7 @@ tell them apart. The dialog renders inside the root while it is open.
             <span class="schematic-payment-methods__last4">6789</span>
           </span>
           <!-- cards only -->
-          <span
-            class="schematic-muted schematic-small schematic-payment-methods__expires"
-            >Expires 8/27</span
-          >
+          <span class="schematic-payment-methods__expires">Expires 8/27</span>
           <button
             class="schematic-link-button schematic-payment-methods__set-default"
           >
