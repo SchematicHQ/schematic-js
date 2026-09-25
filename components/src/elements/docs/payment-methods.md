@@ -137,8 +137,8 @@ dialog's close control is the way out. Stripe's own wording shows for a
 declined card or an invalid field; any other failure reads "A problem
 occurred while saving your payment method." A setup intent the API refused
 reads "Error initializing payment method change. Please try again." A
-missing client secret, a Stripe that fails to load, a host without the
-Stripe packages installed, or fields that do not come up within ten seconds
+missing client secret, a Stripe that fails to load, or fields that do not
+come up within ten seconds
 read as the embed's "Unable to load payment form." message, which suggests
 the browser's privacy settings may be blocking it.
 

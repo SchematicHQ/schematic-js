@@ -19,8 +19,8 @@ import { withTokenDefaults } from "./styles/tokens";
  * The Add form: a Stripe PaymentElement over a setup intent the API mints
  * for the company. Loaded lazily by `PaymentMethods`, and the Stripe packages
  * are imported here at runtime, so a page that only lists methods never
- * downloads Stripe. Both packages are optional peers; a host without them
- * gets the load error rather than a crash.
+ * downloads Stripe. Both packages are peers of this one, so the host's
+ * package manager installs them and its bundler resolves the imports.
  */
 
 export interface PaymentMethodFormProps {

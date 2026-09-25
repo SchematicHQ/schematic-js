@@ -40,11 +40,10 @@ on the status alone, never on the error message. If a correctly configured page 
 to turn it on for the account.
 
 Adding a payment method goes through Stripe, so `PaymentMethods`' Add form
-needs `@stripe/stripe-js` and `@stripe/react-stripe-js` installed beside the
-package. Both are optional peers: the elements bundle leaves them out and
-imports them when the form first opens, so a page that only shows the method
-on file never loads Stripe, and a host without them still shows it — the
-form reports that it could not load rather than crashing.
+needs `@stripe/stripe-js` and `@stripe/react-stripe-js`. Both are peers of
+this package, so a package manager installs them beside it. The elements
+bundle leaves them out and imports them when the form first opens, so a page
+that only shows the method on file never loads Stripe.
 
 The server refuses to remove the last payment method on an active paid
 subscription, and nothing else. `PaymentMethods` offers Remove in its dialog,
