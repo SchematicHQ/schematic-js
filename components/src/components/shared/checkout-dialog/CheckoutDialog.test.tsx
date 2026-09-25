@@ -6,7 +6,11 @@ import {
   type PreviewCheckoutResponse,
 } from "../../../api/checkoutexternal";
 import { FETCH_DEBOUNCE_TIMEOUT } from "../../../const";
-import { EmbedContext, initialContext } from "../../../context";
+import {
+  EmbedContext,
+  initialContext,
+  type CheckoutState,
+} from "../../../context";
 import hydrateResponse from "../../../test/mocks/handlers/response/hydrate.json";
 import { render } from "../../../test/setup";
 import type { HydrateDataWithCompanyContext } from "../../../types";
@@ -129,10 +133,12 @@ function buildPreviewResponse(): PreviewCheckoutResponse {
 function renderCheckoutDialog({
   behavior = CheckoutBundlePurchaseBehavior.Individual,
   data,
+  checkoutState = { credits: true },
   previewCheckout,
 }: {
   behavior?: CheckoutBundlePurchaseBehavior;
   data?: HydrateDataWithCompanyContext;
+  checkoutState?: CheckoutState;
   previewCheckout: () => Promise<PreviewCheckoutResponse | undefined>;
 }) {
   return render(
@@ -141,7 +147,7 @@ function renderCheckoutDialog({
         ...initialContext,
         data: data ?? buildCreditOnlyData(behavior),
         layout: "checkout",
-        checkoutState: { credits: true },
+        checkoutState,
         previewCheckout,
         setLayout: () => {},
         setCheckoutState: () => {},
@@ -228,6 +234,44 @@ describe("`CheckoutDialog` credit-only purchases", () => {
     );
 
     expect(screen.getByText("Buy credits").closest("button")).toBeEnabled();
+  });
+
+  it("hides the plan and add-on stages when opened from `Buy More`", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildLegacyPlanData(CheckoutBundlePurchaseBehavior.Individual),
+      checkoutState: {
+        credits: true,
+        bypassPlanSelection: true,
+        bypassUsageSelection: true,
+        bypassAddOnSelection: true,
+        bypassAddOnUsageSelection: true,
+        hideSkippedStages: true,
+      },
+      previewCheckout,
+    });
+
+    // Credits is the first breadcrumb: nothing before it to navigate back to,
+    // so the subscription cannot be changed from this dialog.
+    expect(await screen.findByText("1. Credits")).toBeInTheDocument();
+    expect(screen.queryByText(/^\d+\. Plan$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\d+\. Add-ons$/)).not.toBeInTheDocument();
+
+    // No plan is pre-selected, so there is no preview to wait for and the
+    // bypass overlay must not block the bundle grid.
+    fireEvent.click(screen.getByText("Choose bundle"));
+
+    await waitFor(() => {
+      expect(dueToday()).toBeInTheDocument();
+    });
+    expect(previewCheckout).toHaveBeenCalledWith(
+      expect.objectContaining({
+        newPlanId: "",
+        newPriceId: "",
+        addOnIds: [],
+        creditBundles: [{ bundleId: "bilcrb_d4T2hNmJLyB", quantity: 1 }],
+      }),
+    );
   });
 
   it("clears the running total when the last chosen bundle is deselected", async () => {

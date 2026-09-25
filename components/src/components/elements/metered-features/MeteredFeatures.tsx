@@ -570,7 +570,18 @@ export const MeteredFeatures = forwardRef<
                       <Button
                         type="button"
                         onClick={() => {
-                          setCheckoutState({ credits: true });
+                          // Buying credits only: the plan and add-on stages
+                          // (and their quantity stages) are skipped and left
+                          // out of the breadcrumb, so the subscription cannot
+                          // be changed from here.
+                          setCheckoutState({
+                            credits: true,
+                            bypassPlanSelection: true,
+                            bypassUsageSelection: true,
+                            bypassAddOnSelection: true,
+                            bypassAddOnUsageSelection: true,
+                            hideSkippedStages: true,
+                          });
                         }}
                         style={{ whiteSpace: "nowrap" }}
                         $size="sm"
