@@ -147,7 +147,7 @@ matching markup on both sides rather than a hydration mismatch per row.
 `<SchematicStyles />` injects one stylesheet driven by `--schematic-*`
 custom properties: `accent`, `accent-contrast`, `backdrop`, `background`,
 `border`, `card-divider`, `card-padding`, `danger`, `font-body`,
-`font-heading`, `line-height`, `line-height-heading`, `meter-track`, `muted`,
+`font-heading`, `font-link`, `line-height`, `line-height-heading`, `meter-track`, `muted`,
 `primary`, `primary-contrast`, `radius`, `shadow`, `space`, `surface`,
 `text`, `warning`.
 
