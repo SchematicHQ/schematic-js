@@ -69,7 +69,7 @@
   },
   "dependencies": {
     "@schematichq/schematic-icons": "^0.8.0",
-    "@stripe/stripe-js": "^9.16.0",
+    "@stripe/stripe-js": "^9.17.0",
     "i18next": "^26.4.2",
     "lodash": "^4.18.1",
     "pako": "^3.0.2",
