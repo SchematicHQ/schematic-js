@@ -29,7 +29,7 @@ export const PriceText = ({
       return (
         <>
           {formatCurrency(perUnitPrice, { locale, currency })}
-          <sub>/{getFeatureName(feature, 1)}</sub>
+          <sub>/{getFeatureName(feature, locale, 1)}</sub>
         </>
       );
     }
@@ -46,7 +46,7 @@ export const PriceText = ({
     return (
       <>
         {formatCurrency(perUnitPrice, { locale, currency })}
-        <sub>/{getFeatureName(feature, 1)}</sub>
+        <sub>/{getFeatureName(feature, locale, 1)}</sub>
         {" + "}
         {formatCurrency(flatAmount, { locale, currency })}
         {period && <sub>/{shortenPeriod(period, t)}</sub>}

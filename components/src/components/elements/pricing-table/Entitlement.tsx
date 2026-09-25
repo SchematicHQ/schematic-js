@@ -131,7 +131,11 @@ export const Entitlement = ({
                   {entitlementPackageSize > 1 && (
                     <>{formatNumber(entitlementPackageSize, { locale })} </>
                   )}
-                  {getFeatureName(entitlement.feature, entitlementPackageSize)}
+                  {getFeatureName(
+                    entitlement.feature,
+                    locale,
+                    entitlementPackageSize,
+                  )}
                   {entitlement.priceBehavior ===
                     EntitlementPriceBehavior.PayInAdvance && (
                     <>
@@ -155,9 +159,10 @@ export const Entitlement = ({
                   {formatConsumptionRate(entitlement.consumptionRate, locale)}{" "}
                   {getFeatureName(
                     entitlement.valueCredit,
+                    locale,
                     entitlement.consumptionRate,
                   )}{" "}
-                  {t("per")} {getFeatureName(entitlement.feature, 1)}
+                  {t("per")} {getFeatureName(entitlement.feature, locale, 1)}
                 </>
               ) : entitlement.priceBehavior ===
                   EntitlementPriceBehavior.CreditBurndown &&
@@ -171,9 +176,12 @@ export const Entitlement = ({
                         ),
                         units: getFeatureName(
                           entitlement.feature,
+                          locale,
                           creditBasedEntitlementLimit.limit,
                         ),
-                        period: creditBasedEntitlementLimit.period,
+                        period: t(
+                          creditBasedEntitlementLimit.period as SchematicTranslationKey,
+                        ),
                       })
                     : t("Up to X units", {
                         amount: formatNumber(
@@ -182,6 +190,7 @@ export const Entitlement = ({
                         ),
                         units: getFeatureName(
                           entitlement.feature,
+                          locale,
                           creditBasedEntitlementLimit.limit,
                         ),
                       })}
@@ -193,14 +202,14 @@ export const Entitlement = ({
                   {entitlement.valueType === EntitlementValueType.Unlimited &&
                   !entitlement.priceBehavior ? (
                     t("Unlimited", {
-                      item: getFeatureName(entitlement.feature),
+                      item: getFeatureName(entitlement.feature, locale),
                     })
                   ) : (
                     <>
                       {typeof limit === "number" && (
                         <>{formatNumber(limit, { locale })} </>
                       )}
-                      {getFeatureName(entitlement.feature, limit)}
+                      {getFeatureName(entitlement.feature, locale, limit)}
                     </>
                   )}
 
@@ -236,6 +245,7 @@ export const Entitlement = ({
                     )}
                     {getFeatureName(
                       entitlement.feature,
+                      locale,
                       entitlementPackageSize,
                     )}
                     {entitlement.feature.featureType === FeatureType.Trait && (

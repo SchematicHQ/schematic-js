@@ -1,5 +1,5 @@
 import type { PreviewSubscriptionDiscountResponseData } from "../api/checkoutexternal";
-import type { Translate } from "../localization";
+import type { SchematicTranslationKey, Translate } from "../localization";
 
 import { getMonthName } from "./date";
 import { formatCurrency, formatOrdinal } from "./string";
@@ -124,11 +124,13 @@ export function getBillingPreviewText(
   const schedule =
     scheduleParts.length > 0 ? `${scheduleParts.join(" ")} ` : "";
 
+  const period = t(planPeriod as SchematicTranslationKey);
+
   if (!discount) {
     return t("You will be billed", {
       price: subscriptionPrice,
       usage,
-      period: planPeriod,
+      period,
       schedule,
     });
   }
@@ -140,7 +142,7 @@ export function getBillingPreviewText(
     return t("You will be billed", {
       price: discountedPrice,
       usage,
-      period: planPeriod,
+      period,
       schedule,
     });
   }
@@ -150,7 +152,7 @@ export function getBillingPreviewText(
     return t("You will be billed with discount window", {
       price: discountedPrice,
       usage,
-      period: planPeriod,
+      period,
       schedule,
       window: t("for the next months", { count: durationInMonths }),
       fullPrice: subscriptionPrice,
@@ -163,7 +165,7 @@ export function getBillingPreviewText(
   return t("You will be billed next bill discount", {
     price: discountedPrice,
     usage,
-    period: planPeriod,
+    period,
     schedule,
     fullPrice: subscriptionPrice,
   });

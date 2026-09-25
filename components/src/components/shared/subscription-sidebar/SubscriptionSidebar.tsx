@@ -397,7 +397,7 @@ export const SubscriptionSidebar = forwardRef<
           >
             {t("Includes X credits per period", {
               total: includedCredits,
-              creditName: getFeatureName(credit, includedCredits),
+              creditName: getFeatureName(credit, locale, includedCredits),
               period: shortenPeriod(credit.period, t),
             })}
           </Text>
@@ -1328,7 +1328,7 @@ export const SubscriptionSidebar = forwardRef<
                           <Box>
                             <Text>
                               {formatNumber(amount, { locale })}{" "}
-                              {getFeatureName(bundle, amount)}
+                              {getFeatureName(bundle, locale, amount)}
                               {expiry && ` · ${expiry}`}
                             </Text>
                           </Box>

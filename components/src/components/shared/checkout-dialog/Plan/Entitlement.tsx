@@ -117,7 +117,7 @@ export const Entitlement = ({
         <>
           {formatCurrency(price, { locale, currency })} {t("per")}{" "}
           {packageSize > 1 && <>{packageSize} </>}
-          {getFeatureName(entitlement.feature, packageSize)}
+          {getFeatureName(entitlement.feature, locale, packageSize)}
           {entitlement.priceBehavior ===
             EntitlementPriceBehavior.PayInAdvance && (
             <>
@@ -151,9 +151,10 @@ export const Entitlement = ({
             : entitlement.consumptionRate}{" "}
           {getFeatureName(
             entitlement.valueCredit,
+            locale,
             entitlement.consumptionRate || undefined,
           )}{" "}
-          {t("per")} {getFeatureName(entitlement.feature, 1)}
+          {t("per")} {getFeatureName(entitlement.feature, locale, 1)}
         </>
       );
     }
@@ -169,14 +170,18 @@ export const Entitlement = ({
                 amount: creditBasedEntitlementLimit.limit,
                 units: getFeatureName(
                   entitlement.feature,
+                  locale,
                   creditBasedEntitlementLimit.limit,
                 ),
-                period: creditBasedEntitlementLimit.period,
+                period: t(
+                  creditBasedEntitlementLimit.period as SchematicTranslationKey,
+                ),
               })
             : t("Up to X units", {
                 amount: creditBasedEntitlementLimit.limit,
                 units: getFeatureName(
                   entitlement.feature,
+                  locale,
                   creditBasedEntitlementLimit.limit,
                 ),
               })}
@@ -190,12 +195,12 @@ export const Entitlement = ({
           {entitlement.valueType === EntitlementValueType.Unlimited &&
           !entitlement.priceBehavior
             ? t("Unlimited", {
-                item: getFeatureName(entitlement.feature),
+                item: getFeatureName(entitlement.feature, locale),
               })
             : typeof limit === "number" && (
                 <>
                   {formatNumber(limit, { locale })}{" "}
-                  {getFeatureName(entitlement.feature, limit)}
+                  {getFeatureName(entitlement.feature, locale, limit)}
                 </>
               )}
 
@@ -238,7 +243,7 @@ export const Entitlement = ({
         <>
           {t("then")} {formatCurrency(price, { locale, currency })}/
           {packageSize > 1 && <>{packageSize} </>}
-          {getFeatureName(entitlement.feature, packageSize)}
+          {getFeatureName(entitlement.feature, locale, packageSize)}
           {entitlement.feature.featureType === FeatureType.Trait && (
             <>/{shortenPeriod(period, t)}</>
           )}

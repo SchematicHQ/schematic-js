@@ -113,8 +113,18 @@ export function formatOrdinal(n: number, t: Translate) {
   return t("Ordinal", { count: n, ordinal: true });
 }
 
-export function adjectify(str: string) {
-  return `${str}ly`;
+/** "monthly" for "month". The words are bundle keys, so a translation owns them. */
+export function adjectify(period: string, t: Translate) {
+  switch (period) {
+    case "month":
+      return t("monthly");
+    case "quarter":
+      return t("quarterly");
+    case "year":
+      return t("yearly");
+    default:
+      return period;
+  }
 }
 
 const CURRENCY_FLAGS: Record<string, string> = {

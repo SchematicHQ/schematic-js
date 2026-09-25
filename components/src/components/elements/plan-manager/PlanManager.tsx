@@ -634,9 +634,14 @@ export const PlanManager = forwardRef<
                                 amount: perLicenseGrant.amount,
                                 creditName: getFeatureName(
                                   group,
+                                  locale,
                                   perLicenseGrant.amount,
                                 ),
-                                licenseName: getFeatureName(licenseFeature, 1),
+                                licenseName: getFeatureName(
+                                  licenseFeature,
+                                  locale,
+                                  1,
+                                ),
                               })}
                               {composition.fixedQuantity > 0 &&
                                 creditPeriod && (
@@ -646,6 +651,7 @@ export const PlanManager = forwardRef<
                                       amount: composition.fixedQuantity,
                                       creditName: getFeatureName(
                                         group,
+                                        locale,
                                         composition.fixedQuantity,
                                       ),
                                       period: t(
@@ -658,7 +664,7 @@ export const PlanManager = forwardRef<
                           ) : (
                             <>
                               {group.total.value}{" "}
-                              {getFeatureName(group, group.total.value)}{" "}
+                              {getFeatureName(group, locale, group.total.value)}{" "}
                               {subscriptionInterval && (
                                 <>
                                   {t("per")}{" "}
@@ -710,6 +716,7 @@ export const PlanManager = forwardRef<
                                   quantity: licenseQuantity,
                                   licenseName: getFeatureName(
                                     licenseFeature,
+                                    locale,
                                     licenseQuantity,
                                   ),
                                   perUnit: perLicenseGrant.amount,
@@ -717,6 +724,7 @@ export const PlanManager = forwardRef<
                                   total: resolvedTotal,
                                   creditName: getFeatureName(
                                     group,
+                                    locale,
                                     resolvedTotal,
                                   ),
                                   period: shortenPeriod(creditPeriod, t),
@@ -725,12 +733,14 @@ export const PlanManager = forwardRef<
                                   quantity: licenseQuantity,
                                   licenseName: getFeatureName(
                                     licenseFeature,
+                                    locale,
                                     licenseQuantity,
                                   ),
                                   perUnit: perLicenseGrant.amount,
                                   total: resolvedTotal,
                                   creditName: getFeatureName(
                                     group,
+                                    locale,
                                     resolvedTotal,
                                   ),
                                   period: shortenPeriod(creditPeriod, t),
@@ -784,7 +794,7 @@ export const PlanManager = forwardRef<
                           acc.push(
                             <Text key={grant.id} $leading="tight">
                               {t("Auto top-up disabled for token", {
-                                unit: getFeatureName(grant.credit, 1),
+                                unit: getFeatureName(grant.credit, locale, 1),
                               })}
                             </Text>,
                           );
@@ -805,6 +815,7 @@ export const PlanManager = forwardRef<
                               {t("Adds X tokens when Y remaining in balance", {
                                 unit: getFeatureName(
                                   grant.credit,
+                                  locale,
                                   autoTopupAmount,
                                 ),
                                 amount: autoTopupAmount,
@@ -875,7 +886,7 @@ export const PlanManager = forwardRef<
                             </Text>
                           )}
                           {bundle.name} ({group.quantity}{" "}
-                          {getFeatureName(group, group.quantity)})
+                          {getFeatureName(group, locale, group.quantity)})
                         </Text>
                       ) : (
                         <Text display={props.addOns.fontStyle}>
@@ -885,7 +896,7 @@ export const PlanManager = forwardRef<
                             </Text>
                           )}
                           {group.quantity}{" "}
-                          {getFeatureName(group, group.quantity)}
+                          {getFeatureName(group, locale, group.quantity)}
                         </Text>
                       )}
 
@@ -953,11 +964,12 @@ export const PlanManager = forwardRef<
                           </Text>
                         )}
                         {bundle.name} ({group.quantity}{" "}
-                        {getFeatureName(group, group.quantity)})
+                        {getFeatureName(group, locale, group.quantity)})
                       </Text>
                     ) : (
                       <Text display={props.addOns.fontStyle}>
-                        {group.quantity} {getFeatureName(group, group.quantity)}
+                        {group.quantity}{" "}
+                        {getFeatureName(group, locale, group.quantity)}
                       </Text>
                     )}
 
@@ -1012,7 +1024,8 @@ export const PlanManager = forwardRef<
                     $gap="0.5rem"
                   >
                     <Text display={props.addOns.fontStyle}>
-                      {group.quantity} {getFeatureName(group, group.quantity)}
+                      {group.quantity}{" "}
+                      {getFeatureName(group, locale, group.quantity)}
                     </Text>
 
                     {group.total.used > 0 && (

@@ -77,12 +77,12 @@ export const EntitlementRow = (
           <Text display="heading4">
             {priceBehavior === EntitlementPriceBehavior.PayInAdvance ? (
               <>
-                {quantity} {getFeatureName(feature, quantity)}
+                {quantity} {getFeatureName(feature, locale, quantity)}
               </>
             ) : priceBehavior === EntitlementPriceBehavior.Overage &&
               typeof softLimit === "number" ? (
               <>
-                {softLimit} {getFeatureName(feature, softLimit)}
+                {softLimit} {getFeatureName(feature, locale, softLimit)}
               </>
             ) : (
               feature.name
@@ -115,7 +115,7 @@ export const EntitlementRow = (
               {formatCurrency(price ?? 0, { locale, currency })}
               <sub>
                 /{packageSize > 1 && <>{packageSize} </>}
-                {getFeatureName(feature, packageSize)}
+                {getFeatureName(feature, locale, packageSize)}
                 {feature.featureType === FeatureType.Trait && (
                   <>/{shortenPeriod(planPeriod, t)}</>
                 )}

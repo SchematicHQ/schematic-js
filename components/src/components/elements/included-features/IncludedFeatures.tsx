@@ -214,10 +214,11 @@ export const IncludedFeatures = forwardRef<
                           singularName: grant.singularName,
                           pluralName: grant.pluralName,
                         },
+                        locale,
                         grant.creditAmount,
                       ),
                       licenseName: entitlement.feature
-                        ? getFeatureName(entitlement.feature, 1)
+                        ? getFeatureName(entitlement.feature, locale, 1)
                         : "",
                     })}
                   </Text>

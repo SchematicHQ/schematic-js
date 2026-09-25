@@ -27,7 +27,7 @@ export const AutoTopup = ({
 }: AutoTopupProps) => {
   const { settings } = useEmbed();
 
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const cardPadding = settings.theme.card.padding / TEXT_BASE_SIZE;
 
@@ -100,7 +100,7 @@ export const AutoTopup = ({
                   <Text>
                     {t(
                       "Automatically purchase more credits when your balance is low",
-                      { units: getFeatureName(grant.credit) },
+                      { units: getFeatureName(grant.credit, locale) },
                     )}
                   </Text>
                 </Box>

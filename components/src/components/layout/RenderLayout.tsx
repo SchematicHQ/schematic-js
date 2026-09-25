@@ -1,9 +1,12 @@
 import { useEmbed } from "../../hooks";
+import { useTranslation } from "../../localization";
 import { Box, Flex, Text } from "../ui";
 
 import { Card, Element } from ".";
 
 const Disabled = () => {
+  const { t } = useTranslation();
+
   return (
     <Box $width="max-content" $height="max-content">
       <Card>
@@ -16,11 +19,11 @@ const Disabled = () => {
         >
           <Box $marginBottom="0.5rem">
             <Text as="h1" display="heading1">
-              Portal not found
+              {t("Portal not found")}
             </Text>
           </Box>
 
-          <Text as="p">Please try again later.</Text>
+          <Text as="p">{t("Please try again later.")}</Text>
         </Element>
       </Card>
     </Box>

@@ -28,7 +28,7 @@ export const AutoTopupNotice = ({
       portal={portal}
       trigger={
         <Icon
-          title="auto top-up"
+          title={t("Auto Top-up")}
           name="info-rounded"
           color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
           style={{ lineHeight: 0 }}

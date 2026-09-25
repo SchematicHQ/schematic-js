@@ -71,6 +71,7 @@ function renderMeteredEntitlementPricing(
                 FeatureResponseData,
                 "name" | "pluralName" | "singularName"
               >,
+              locale,
               packageSize,
             )
           : featureName || "unit"}
@@ -98,6 +99,7 @@ function renderMeteredEntitlementPricing(
                 FeatureResponseData,
                 "name" | "pluralName" | "singularName"
               >,
+              locale,
               packageSize,
             )
           : featureName || "unit"}
@@ -352,7 +354,9 @@ export const AddOn = ({
                             $flexDirection="column"
                             $justifyContent="center"
                           >
-                            <Text>{getFeatureName(entitlement.feature)}</Text>
+                            <Text>
+                              {getFeatureName(entitlement.feature, locale)}
+                            </Text>
                           </Flex>
                         )}
                       </Flex>

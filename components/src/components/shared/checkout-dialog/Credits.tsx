@@ -72,7 +72,7 @@ export const Credits = ({
                 <Box>
                   <Text display="heading6">
                     {formatNumber(bundle.quantity ?? 0, { locale })}{" "}
-                    {getFeatureName(bundle)}
+                    {getFeatureName(bundle, locale)}
                   </Text>
                 </Box>
               </Box>

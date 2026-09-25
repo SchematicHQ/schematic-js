@@ -161,7 +161,7 @@ export const Quantity = ({
                   >
                     {t("Currently using", {
                       quantity: entitlement.usage,
-                      unit: getFeatureName(entitlement.feature),
+                      unit: getFeatureName(entitlement.feature, locale),
                     })}
                   </Text>
 
@@ -220,8 +220,12 @@ export const Quantity = ({
                         })}
                         <sub>
                           /{packageSize > 1 && <>{packageSize} </>}
-                          {getFeatureName(entitlement.feature, packageSize)}/
-                          {shortenPeriod(period, t)}
+                          {getFeatureName(
+                            entitlement.feature,
+                            locale,
+                            packageSize,
+                          )}
+                          /{shortenPeriod(period, t)}
                         </sub>
                       </Text>
                     )}
@@ -256,12 +260,14 @@ export const Quantity = ({
                         quantity: entitlement.quantity,
                         licenseName: getFeatureName(
                           entitlement.feature,
+                          locale,
                           entitlement.quantity,
                         ),
                         perUnit: perLicenseGrant.amount,
                         total: includedCredits,
                         creditName: getFeatureName(
                           licenseCredit,
+                          locale,
                           includedCredits,
                         ),
                         period: shortenPeriod(licenseCredit.period, t),
@@ -291,11 +297,13 @@ export const Quantity = ({
                             added: addedQuantity,
                             licenseName: getFeatureName(
                               entitlement.feature,
+                              locale,
                               addedQuantity,
                             ),
                             credits: addedCredits,
                             creditName: getFeatureName(
                               licenseCredit,
+                              locale,
                               addedCredits,
                             ),
                           })}
@@ -306,9 +314,10 @@ export const Quantity = ({
                                 total: includedCredits,
                                 creditName: getFeatureName(
                                   licenseCredit,
+                                  locale,
                                   includedCredits,
                                 ),
-                                cadence: adjectify(licenseCredit.period),
+                                cadence: adjectify(licenseCredit.period, t),
                                 day: formatOrdinal(renewalDate.getDate(), t),
                               })}
                             </>

@@ -89,7 +89,7 @@ export const UsageDetails = ({
           {formatCurrency(price, { locale, currency: billingPrice?.currency })}
           <sub>
             /{packageSize > 1 && <>{packageSize} </>}
-            {getFeatureName(entitlement.feature, packageSize)}
+            {getFeatureName(entitlement.feature, locale, packageSize)}
             {entitlement.feature.featureType === FeatureType.Trait && (
               <>/{shortenPeriod(period, t)}</>
             )}
@@ -114,6 +114,7 @@ export const UsageDetails = ({
           )}{" "}
           {getFeatureName(
             entitlement.planEntitlement.valueCredit,
+            locale,
             entitlement.planEntitlement.consumptionRate,
           )}{" "}
           {t("per")} {t("use")}
@@ -156,7 +157,8 @@ export const UsageDetails = ({
       <Text display={layout.addOns.fontStyle}>
         {typeof quantity === "number" ? (
           <>
-            {quantity} {getFeatureName(entitlement.feature, quantity, true)}
+            {quantity}{" "}
+            {getFeatureName(entitlement.feature, locale, quantity, true)}
           </>
         ) : (
           entitlement.feature.name

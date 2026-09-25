@@ -40,6 +40,7 @@ const en = {
     "An invoice is created when charges reach {{amount}}; the rest is billed monthly.",
   "An unknown error occurred.": "An unknown error occurred.",
   "Billed": "Billed {{period}}",
+  "Billing threshold": "Billing threshold",
   "Bundle selected": "Bundle selected",
   "Buy credits": "Buy credits",
   "Cancel": "Cancel",
@@ -80,8 +81,11 @@ const en = {
   "Due today": "Due today",
   "Edit payment details": "Edit payment details",
   "Edit": "Edit",
+  "Email": "Email",
   "Ends on": "Ends on {{date}}",
   "Enter discount code": "Enter discount code",
+  "Enter email address": "Enter email address",
+  "Error": "Error",
   "Error initializing payment method change. Please try again.":
     "Error initializing payment method change. Please try again.",
   "Error processing payment. Please try a different payment method.":
@@ -108,6 +112,7 @@ const en = {
     "Credit — this amount was returned to your account, typically due to a plan change or proration",
   "Invoice charge tooltip": "Charge — you were billed this amount",
   "Invoices": "Invoices",
+  "Limit": "Limit",
   "Limit of": "Limit of {{amount}}",
   "Loading": "Loading",
   "Manage plan": "Manage plan",
@@ -136,6 +141,8 @@ const en = {
   "Plan selected": "Plan selected",
   "Please accept the agreement to continue.":
     "Please accept the agreement to continue.",
+  "Please try again later.": "Please try again later.",
+  "Portal not found": "Portal not found",
   "Plan": "Plan",
   "Plans": "Plans",
   "Please provide an access token.": "Please provide an access token.",
@@ -198,6 +205,7 @@ const en = {
   "There was a problem retrieving your invoices.":
     "There was a problem retrieving your invoices.",
   "Tier-based": "Tier-based",
+  "Tiered pricing": "Tiered pricing",
   "Tiers apply progressively as quantity increases.":
     "Tiers apply progressively as quantity increases.",
   "Top up balance with:": "Top up balance with:",
@@ -292,7 +300,14 @@ const en = {
   "$X/unit/period": "{{cost}}/{{unit}}/{{period}}",
   "$X/Y units/period": "{{cost}}/{{size}} {{units}}/{{period}}",
 
-  "day": "day",
+  "day_one": "day",
+  "day_other": "days",
+  "hour_one": "hour",
+  "hour_other": "hours",
+  "minute_one": "minute",
+  "minute_other": "minutes",
+  "second_one": "second",
+  "second_other": "seconds",
   "month": "month",
   "quarter": "quarter",
   "year": "year",
@@ -300,7 +315,11 @@ const en = {
   "qtr": "qtr",
   "yr": "yr",
   "one time": "one time",
-  "billing period": "billing period",
+  "billing period_one": "billing period",
+  "billing period_other": "billing periods",
+  "monthly": "monthly",
+  "quarterly": "quarterly",
+  "yearly": "yearly",
 
   "expires after purchase": "expires {{amount}} {{unit}} after purchase",
   "expires at the end of the billing period":

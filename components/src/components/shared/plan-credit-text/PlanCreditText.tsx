@@ -40,7 +40,7 @@ export const PlanCreditText = ({
   entitlements,
   children,
 }: PlanCreditTextProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { settings } = useEmbed();
 
@@ -50,7 +50,7 @@ export const PlanCreditText = ({
   if (perLicenseGrants.length === 0) {
     return (
       <Text>
-        {credit.quantity} {getFeatureName(credit, credit.quantity)}
+        {credit.quantity} {getFeatureName(credit, locale, credit.quantity)}
         {credit.period && (
           <>
             {" "}
@@ -70,7 +70,9 @@ export const PlanCreditText = ({
       (grant.licenseId ? undefined : findSoleLicenseSource(sources))
     )?.feature;
 
-    return licenseFeature ? getFeatureName(licenseFeature, 1) : t("license");
+    return licenseFeature
+      ? getFeatureName(licenseFeature, locale, 1)
+      : t("license");
   };
 
   return (
@@ -80,13 +82,13 @@ export const PlanCreditText = ({
           {credit.period
             ? t("X credits per license per period", {
                 amount: grant.amount,
-                creditName: getFeatureName(credit, grant.amount),
+                creditName: getFeatureName(credit, locale, grant.amount),
                 licenseName: resolveLicenseName(grant),
                 period: t(credit.period as SchematicTranslationKey),
               })
             : t("X credits per license", {
                 amount: grant.amount,
-                creditName: getFeatureName(credit, grant.amount),
+                creditName: getFeatureName(credit, locale, grant.amount),
                 licenseName: resolveLicenseName(grant),
               })}
           {grantIndex === 0 && children}
@@ -101,7 +103,7 @@ export const PlanCreditText = ({
         >
           {t("Plus X credits per period for your company", {
             amount: credit.fixedQuantity,
-            creditName: getFeatureName(credit, credit.fixedQuantity),
+            creditName: getFeatureName(credit, locale, credit.fixedQuantity),
             period: t(credit.period as SchematicTranslationKey),
           })}
         </Text>

@@ -6,12 +6,13 @@ import {
   MINUTES_IN_MS,
   SECONDS_IN_MS,
 } from "../const";
-import { pluralize } from "../utils";
+import { useTranslation } from "../localization";
 
 import { useEmbed } from ".";
 
 export function useTrialEnd() {
   const { data } = useEmbed();
+  const { t } = useTranslation();
 
   const { endDate, amount, units } = useMemo(() => {
     const billingSubscription = data?.company?.billingSubscription;
@@ -27,7 +28,7 @@ export function useTrialEnd() {
       const now = new Date();
       const difference = end.getTime() - now.getTime();
 
-      let unit: string;
+      let unit: "day" | "hour" | "minute" | "second";
 
       if (difference >= DAYS_IN_MS) {
         amount = Math.floor(difference / DAYS_IN_MS);
@@ -43,11 +44,11 @@ export function useTrialEnd() {
         unit = "second";
       }
 
-      units = pluralize(unit, amount);
+      units = t(unit, { count: amount });
     }
 
     return { endDate: end, amount, units };
-  }, [data?.company?.billingSubscription]);
+  }, [data?.company?.billingSubscription, t]);
 
   return { endDate, amount, units };
 }

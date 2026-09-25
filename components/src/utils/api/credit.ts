@@ -15,7 +15,6 @@ import {
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
 import type { Credit, CreditWithCompanyContext } from "../../types";
-import { pluralize } from "../pluralize";
 
 function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   switch (cadence) {
@@ -511,15 +510,15 @@ export function formatBundleExpiry(
         return undefined;
       }
 
+      // The unit is a plural key, so a translation inflects it for the
+      // count rather than getting English suffixes.
+      const count = bundle.expiryUnitCount;
       const unit =
         bundle.expiryUnit === BillingCreditExpiryUnit.BillingPeriods
-          ? t("billing period")
-          : t("day");
+          ? t("billing period", { count })
+          : t("day", { count });
 
-      return t("expires after purchase", {
-        amount: bundle.expiryUnitCount,
-        unit: pluralize(unit, bundle.expiryUnitCount),
-      });
+      return t("expires after purchase", { amount: count, unit });
     }
     case BillingCreditExpiryType.EndOfBillingPeriod:
       return t("expires at the end of the billing period");
