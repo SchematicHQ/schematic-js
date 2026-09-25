@@ -167,6 +167,7 @@ export interface HydrateRequest {
 export interface HydrateComponentRequest {
   componentId: string;
   catalogId?: string;
+  includeAddOnIds?: Array<string>;
 }
 
 export interface HydrateUpcomingInvoiceRequest {
@@ -1022,6 +1023,11 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
 
     if (requestParameters["catalogId"] != null) {
       queryParameters["catalog_id"] = requestParameters["catalogId"];
+    }
+
+    if (requestParameters["includeAddOnIds"] != null) {
+      queryParameters["include_add_on_ids"] =
+        requestParameters["includeAddOnIds"];
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
