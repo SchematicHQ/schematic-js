@@ -317,25 +317,19 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     }
   }, [filterBlocksSubscriptionCurrency, lockedCurrency, debug]);
 
-  const {
-    plans: availablePlans,
-    addOns: availableAddOns,
-    periods: availablePeriods,
-  } = useAvailablePlans(planPeriod, {
-    useSelectedPeriod: showPeriodToggle,
-  });
+  const { plans: availablePlans, periods: availablePeriods } =
+    useAvailablePlans(planPeriod, {
+      useSelectedPeriod: showPeriodToggle,
+    });
 
   // The company's own plan when `activePlans` leaves it out (a custom plan, or
   // one no longer live), so the company can keep it while changing something
-  // else. It is only priced for the period it is billed on.
-  const unlistedCurrentPlan = useMemo(() => {
-    const plan = getUnlistedCurrentPlan(data);
-    if (plan && showPeriodToggle && !getPlanPrice(plan, planPeriod)) {
-      return undefined;
-    }
-
-    return plan;
-  }, [data, showPeriodToggle, planPeriod]);
+  // else. It carries only the price it is billed at, so it is offered under
+  // every period and the toggle never reprices it.
+  const unlistedCurrentPlan = useMemo(
+    () => getUnlistedCurrentPlan(data),
+    [data],
+  );
 
   const selectablePlans = useMemo(
     () =>
@@ -447,6 +441,26 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     return ids;
   });
 
+  // The kept plan is billed at one period and carries only that price. While
+  // it is selected, that period prices everything attached to it: add-ons,
+  // quantities and the sidebar. The toggle then only reprices the listed
+  // cards, since the kept plan cannot move to another period. Otherwise the
+  // toggle's period applies.
+  const isKeptPlanSelected =
+    !!unlistedCurrentPlan && selectedPlan?.id === unlistedCurrentPlan.id;
+  const keptPlanPeriod = unlistedCurrentPlan?.yearlyPrice
+    ? "year"
+    : unlistedCurrentPlan?.quarterlyPrice
+      ? "quarter"
+      : "month";
+  const effectivePeriod = isKeptPlanSelected ? keptPlanPeriod : planPeriod;
+
+  // Add-ons join the selected plan's subscription, so they are offered at the
+  // period it is billed on rather than the toggle's.
+  const { addOns: availableAddOns } = useAvailablePlans(effectivePeriod, {
+    useSelectedPeriod: showPeriodToggle,
+  });
+
   const addOnCompatibilityLookup = useMemo(
     () => buildAddOnCompatibilityLookup(data?.addOnCompatibilities),
     [data?.addOnCompatibilities],
@@ -541,14 +555,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         plan: selectedPlan,
         creditBundles,
         addOns,
-        period: planPeriod,
+        period: effectivePeriod,
         currency: hasCurrency ? effectiveCurrency : undefined,
       }),
     [
       selectedPlan,
       creditBundles,
       addOns,
-      planPeriod,
+      effectivePeriod,
       hasCurrency,
       effectiveCurrency,
     ],
@@ -557,7 +571,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const [usageBasedEntitlements, setUsageBasedEntitlements] = useState(() =>
     applyPrefilledQuantities(
       (selectedPlan?.entitlements || []).reduce(
-        createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
+        createActiveUsageBasedEntitlementsReducer(
+          featureUsage,
+          effectivePeriod,
+        ),
         [] as UsageBasedEntitlement[],
       ),
       checkoutState?.payInAdvanceQuantities,
@@ -576,7 +593,10 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           if (!availableAddOn) return [];
 
           return (availableAddOn.entitlements ?? []).reduce(
-            createActiveUsageBasedEntitlementsReducer(featureUsage, planPeriod),
+            createActiveUsageBasedEntitlementsReducer(
+              featureUsage,
+              effectivePeriod,
+            ),
             [],
           );
         },
@@ -959,9 +979,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   const checkoutStageCurrencies = useMemo(() => {
     if (!selectedPlan) return currencies;
     return currencies.filter((currency) =>
-      planOffersCurrencyForPeriod(selectedPlan, planPeriod, currency),
+      planOffersCurrencyForPeriod(selectedPlan, effectivePeriod, currency),
     );
-  }, [currencies, selectedPlan, planPeriod]);
+  }, [currencies, selectedPlan, effectivePeriod]);
 
   // Plan stage keeps the toggle when it's shown; otherwise the checkout stage
   // hosts it so a plan-skipping flow can still choose a currency — but only
@@ -982,30 +1002,34 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     !lockedCurrency &&
     !planStageVisible &&
     !!selectedPlan &&
-    !planOffersCurrencyForPeriod(selectedPlan, planPeriod, effectiveCurrency);
+    !planOffersCurrencyForPeriod(
+      selectedPlan,
+      effectivePeriod,
+      effectiveCurrency,
+    );
 
   useEffect(() => {
     if (currencyPeriodMismatch) {
       console.error(
-        `[Schematic] No ${effectiveCurrency} price for the "${planPeriod}" billing period on the selected plan; refusing to fall back to the default currency.`,
+        `[Schematic] No ${effectiveCurrency} price for the "${effectivePeriod}" billing period on the selected plan; refusing to fall back to the default currency.`,
       );
       debug("currency/period mismatch in checkout bypass config", {
         currency: effectiveCurrency,
-        period: planPeriod,
+        period: effectivePeriod,
         planId: selectedPlan?.id,
       });
     }
   }, [
     currencyPeriodMismatch,
     effectiveCurrency,
-    planPeriod,
+    effectivePeriod,
     selectedPlan?.id,
     debug,
   ]);
 
   const handlePreviewCheckout = useCallback(
     async (updates: PreviewCheckoutUpdates) => {
-      const period = updates.period || planPeriod;
+      const period = updates.period || effectivePeriod;
       const plan = updates.plan || selectedPlan;
       const resolvedCurrency = hasCurrency ? effectiveCurrency : undefined;
       const currencyPrice = plan
@@ -1233,7 +1257,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       data?.company?.plan?.id,
       data?.company?.plan?.includedCreditGrants,
       previewCheckout,
-      planPeriod,
+      effectivePeriod,
       selectedPlan,
       effectiveCurrency,
       hasCurrency,
@@ -1336,16 +1360,19 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       shouldTrial?: boolean;
     }) => {
       const plan = updates.plan;
+      const isKeptPlan = plan.id === unlistedCurrentPlan?.id;
 
-      const period = showPeriodToggle
-        ? updates.period || planPeriod
-        : plan.monthlyPrice
-          ? BillingProductPriceInterval.Month
-          : plan.quarterlyPrice
-            ? "quarter"
-            : plan.yearlyPrice
-              ? BillingProductPriceInterval.Year
-              : BillingProductPriceInterval.Month;
+      // The kept plan is billed at its one price, whatever the toggle says.
+      const period =
+        showPeriodToggle && !isKeptPlan
+          ? updates.period || planPeriod
+          : plan.monthlyPrice
+            ? BillingProductPriceInterval.Month
+            : plan.quarterlyPrice
+              ? "quarter"
+              : plan.yearlyPrice
+                ? BillingProductPriceInterval.Year
+                : BillingProductPriceInterval.Month;
 
       // Overlay any host-provided prefill so the initial price preview reflects
       // it. On the very first selection (mount) the merge block below is skipped
@@ -1362,7 +1389,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         checkoutState?.payInAdvanceQuantities,
       );
 
-      if (period !== planPeriod || plan.id !== selectedPlan?.id) {
+      if (period !== effectivePeriod || plan.id !== selectedPlan?.id) {
         setUsageBasedEntitlements((prev) => {
           return updatedUsageBasedEntitlements.map((updated) => {
             const current = prev.find(
@@ -1381,7 +1408,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         });
       }
 
-      if (period !== planPeriod) {
+      // Choosing the kept plan leaves the toggle alone, so the listed cards
+      // keep showing the period being browsed.
+      if (!isKeptPlan && period !== planPeriod) {
         setPlanPeriod(period);
       }
 
@@ -1428,7 +1457,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [
       data?.creditBundles,
       selectedPlan?.id,
+      unlistedCurrentPlan?.id,
       planPeriod,
+      effectivePeriod,
       showPeriodToggle,
       featureUsage,
       bundleCounts,
@@ -1446,6 +1477,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       }
 
       setPlanPeriod(period);
+
+      // With the kept plan selected the toggle only reprices the listed
+      // cards; nothing in the order changes period.
+      if (isKeptPlanSelected) {
+        return;
+      }
 
       const updatedUsageBasedEntitlements = (
         selectedPlan?.entitlements || []
@@ -1502,6 +1539,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     },
     [
       planPeriod,
+      isKeptPlanSelected,
       selectedPlan?.entitlements,
       featureUsage,
       addOns,
@@ -1878,7 +1916,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           >
             <CurrencyPeriodMismatchNotice
               currency={effectiveCurrency}
-              period={planPeriod}
+              period={effectivePeriod}
             />
           </Flex>
         </DialogContent>
@@ -2054,7 +2092,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             <Quantity
               portal={dialogElement}
               isLoading={isLoading}
-              period={planPeriod}
+              period={effectivePeriod}
               selectedPlan={selectedPlan}
               entitlements={payInAdvanceEntitlements}
               updateQuantity={updateUsageBasedEntitlementQuantity}
@@ -2063,7 +2101,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           ) : effectiveCheckoutStage === "addons" ? (
             <AddOns
               isLoading={isLoading}
-              period={planPeriod}
+              period={effectivePeriod}
               addOns={addOns}
               toggle={(id) => toggleAddOn(id)}
               currency={hasCurrency ? effectiveCurrency : undefined}
@@ -2072,7 +2110,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             <Quantity
               portal={dialogElement}
               isLoading={isLoading}
-              period={planPeriod}
+              period={effectivePeriod}
               selectedPlan={selectedPlan}
               entitlements={addOnPayInAdvanceEntitlements}
               updateQuantity={updateAddOnEntitlementQuantity}
@@ -2118,7 +2156,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         <SubscriptionSidebar
           ref={sidebarRef}
           portal={dialogElement}
-          planPeriod={planPeriod}
+          planPeriod={effectivePeriod}
           selectedPlan={selectedPlan}
           autoTopupConfigs={autoTopupConfigs}
           addOns={addOns}

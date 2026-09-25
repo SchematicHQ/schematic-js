@@ -464,6 +464,68 @@ describe("`CheckoutDialog` for a company on an unlisted plan", () => {
     });
   });
 
+  it("keeps its own billing period when the host asks for another", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildLegacyPlanData(CheckoutBundlePurchaseBehavior.Individual),
+      checkoutState: { period: "year" },
+      previewCheckout,
+    });
+
+    // The plan is billed monthly and carries only that price, so it is still
+    // offered, starts selected, and is sent at that price.
+    expect(await screen.findByText("Current plan")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(previewCheckout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newPlanId: LEGACY_PLAN_ID,
+          newPriceId: LEGACY_PRICE_ID,
+        }),
+      );
+    });
+
+    // Add-ons join its subscription, so they are offered at its period too,
+    // not at the yearly one the host asked for.
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /Next: Add-ons/ })[0],
+    );
+    fireEvent.click((await screen.findAllByText("Choose add-on"))[0]);
+
+    await waitFor(() => {
+      expect(previewCheckout).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          newPriceId: LEGACY_PRICE_ID,
+          addOnIds: [
+            { addOnId: "plan_aDevbC1pNVr", priceId: "bilpp_2CYnLGzpQ9V" },
+          ],
+        }),
+      );
+    });
+  });
+
+  it("stays offered and selected when the period toggle changes", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildLegacyPlanData(CheckoutBundlePurchaseBehavior.Individual),
+      checkoutState: {},
+      previewCheckout,
+    });
+
+    expect(await screen.findByText("Current plan")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(previewCheckout).toHaveBeenCalled();
+    });
+    const previewCount = previewCheckout.mock.calls.length;
+
+    fireEvent.click(screen.getByText("Billed yearly"));
+
+    // The toggle only reprices the listed cards. The kept plan cannot move to
+    // another period, so it stays selected at its own price and nothing in
+    // the order is previewed again.
+    expect(screen.getByText("Current plan")).toBeInTheDocument();
+    expect(previewCheckout).toHaveBeenCalledTimes(previewCount);
+  });
+
   it("keeps the plan while changing seats, sending the current quantity", async () => {
     const previewCheckout = vi.fn(async () => buildPreviewResponse());
     renderCheckoutDialog({
