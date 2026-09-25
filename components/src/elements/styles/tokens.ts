@@ -18,7 +18,11 @@ const ld = (light: string, dark: string): string =>
 export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-accent": ld("#194bfb", "#6f92ff"),
   "--schematic-accent-contrast": ld("#ffffff", "#0a0a0a"),
-  "--schematic-backdrop": ld("hsla(0, 0%, 0%, 0.5)", "hsla(0, 0%, 0%, 0.7)"),
+  // The embed's frosted backdrop: a pale grey (dark in dark mode) over a blur.
+  "--schematic-backdrop": ld(
+    "hsla(0, 0%, 87.5%, 0.9)",
+    "hsla(0, 0%, 12.5%, 0.9)",
+  ),
   "--schematic-background": ld("#ffffff", "#0e0e0e"),
   "--schematic-border": ld(
     "hsla(0, 0%, 0%, 0.125)",

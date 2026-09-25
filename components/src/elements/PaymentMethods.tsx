@@ -190,19 +190,12 @@ export function PaymentMethods({
       {derived !== undefined && (
         <>
           {showHeader && (
-            <div className="schematic-header">
-              <Heading className="schematic-header__title">
-                {t("paymentMethodsHeader")}
-              </Heading>
-              {showExpiration && derived.expiryWarning !== "none" && (
-                <span
-                  className="schematic-small schematic-payment-methods__expiry-warning"
-                  data-expiry={derived.expiryWarning}
-                >
-                  {expiryWarningText(derived, t)}
-                </span>
-              )}
-            </div>
+            <PaymentMethodsHeader
+              derived={derived}
+              heading={Heading}
+              showExpiration={showExpiration}
+              t={t}
+            />
           )}
           <MethodPill row={derived.current} t={t}>
             {allowEdit && (
@@ -324,6 +317,14 @@ function PaymentMethodsDialog({
         </Suspense>
       ) : (
         <>
+          {/* The embed's dialog repeats the card's heading and warning above
+              the pill, one level under the dialog's own title. */}
+          <PaymentMethodsHeader
+            derived={derived}
+            heading="h3"
+            showExpiration
+            t={t}
+          />
           <MethodPill row={current} t={t}>
             {current?.canRemove === true && (
               <button
@@ -342,7 +343,9 @@ function PaymentMethodsDialog({
             type="button"
             onClick={onChoose}
           >
-            {t("paymentMethodsChooseDifferent")}
+            <span className="schematic-payment-methods__choose-label">
+              {t("paymentMethodsChooseDifferent")}
+            </span>
             <i
               aria-hidden="true"
               className={cx(
@@ -371,7 +374,7 @@ function PaymentMethodsDialog({
                     >
                       <Method row={row} t={t} />
                       {row.expiresShort !== null && (
-                        <span className="schematic-muted schematic-small schematic-payment-methods__expires">
+                        <span className="schematic-payment-methods__expires">
                           {t("paymentMethodsExpires", {
                             date: row.expiresShort,
                           })}
@@ -436,6 +439,35 @@ function PaymentMethodsDialog({
         </p>
       )}
     </Dialog>
+  );
+}
+
+/** "Payment Details", with the expiry warning beside it when it applies. */
+function PaymentMethodsHeader({
+  derived,
+  heading: Heading,
+  showExpiration,
+  t,
+}: {
+  derived: DerivedPaymentMethods;
+  heading: "h2" | "h3" | "h4" | "h5" | "h6";
+  showExpiration: boolean;
+  t: Translator;
+}) {
+  return (
+    <div className="schematic-header">
+      <Heading className="schematic-header__title">
+        {t("paymentMethodsHeader")}
+      </Heading>
+      {showExpiration && derived.expiryWarning !== "none" && (
+        <span
+          className="schematic-small schematic-payment-methods__expiry-warning"
+          data-expiry={derived.expiryWarning}
+        >
+          {expiryWarningText(derived, t)}
+        </span>
+      )}
+    </div>
   );
 }
 

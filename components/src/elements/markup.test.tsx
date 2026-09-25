@@ -381,6 +381,8 @@ describe("PaymentMethods markup contract", () => {
       "schematic-dialog__close",
       "schematic-dialog__header",
       "schematic-dialog__title",
+      "schematic-header",
+      "schematic-header__title",
       "schematic-icon",
       "schematic-icon--bank",
       "schematic-icon--chevron-up",
@@ -388,10 +390,10 @@ describe("PaymentMethods markup contract", () => {
       "schematic-icon--link",
       "schematic-icon--visa",
       "schematic-link-button",
-      "schematic-muted",
       "schematic-payment-methods__add-new",
       "schematic-payment-methods__chevron",
       "schematic-payment-methods__choose",
+      "schematic-payment-methods__choose-label",
       "schematic-payment-methods__current",
       "schematic-payment-methods__expires",
       "schematic-payment-methods__icon",
@@ -403,7 +405,6 @@ describe("PaymentMethods markup contract", () => {
       "schematic-payment-methods__remove-current",
       "schematic-payment-methods__row",
       "schematic-payment-methods__set-default",
-      "schematic-small",
     ]);
     const rows = dialog.querySelectorAll<HTMLElement>(
       ".schematic-payment-methods__row",
