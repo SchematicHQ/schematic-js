@@ -7,6 +7,7 @@ import type {
 import {
   EntitlementPriceBehavior,
   EntitlementValueType,
+  PlanPriceCadence,
 } from "../../api/checkoutexternal";
 
 import type { Plan } from "../../types";
@@ -14,6 +15,7 @@ import type { Plan } from "../../types";
 import {
   getDefaultPlanPeriod,
   getEntitlementPrice,
+  getPlanEstimatedPrice,
   planOffersCurrencyForPeriod,
 } from "./billing";
 
@@ -220,5 +222,48 @@ describe("getDefaultPlanPeriod", () => {
   it("returns monthly when no plan has a recurring price", () => {
     expect(getDefaultPlanPeriod([])).toBe("month");
     expect(getDefaultPlanPeriod([{}])).toBe("month");
+  });
+});
+
+describe("getPlanEstimatedPrice", () => {
+  function makeEstimatedPlan(overrides: Partial<Plan> = {}): Plan {
+    return {
+      id: "plan-1",
+      custom: false,
+      estimatedTotals: [
+        { amount: 17500, currency: "usd", period: PlanPriceCadence.Monthly },
+        { amount: 10000, currency: "usd", period: PlanPriceCadence.Yearly },
+      ],
+      ...overrides,
+    } as Plan;
+  }
+
+  it("returns the estimate for the period and currency", () => {
+    expect(
+      getPlanEstimatedPrice(makeEstimatedPlan(), "month", 10000, "USD"),
+    ).toBe(17500);
+  });
+
+  it("returns undefined when the estimate equals the plan price", () => {
+    expect(
+      getPlanEstimatedPrice(makeEstimatedPlan(), "year", 10000, "usd"),
+    ).toBeUndefined();
+  });
+
+  it("returns undefined without an estimate for the currency", () => {
+    expect(
+      getPlanEstimatedPrice(makeEstimatedPlan(), "month", 10000, "eur"),
+    ).toBeUndefined();
+  });
+
+  it("returns undefined for a custom plan", () => {
+    expect(
+      getPlanEstimatedPrice(
+        makeEstimatedPlan({ custom: true }),
+        "month",
+        10000,
+        "usd",
+      ),
+    ).toBeUndefined();
   });
 });

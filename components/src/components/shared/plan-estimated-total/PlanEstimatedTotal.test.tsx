@@ -19,7 +19,7 @@ function makePlan(overrides: Partial<Plan> = {}): Plan {
 }
 
 describe("`PlanEstimatedTotal` component", () => {
-  it("shows the estimate for the selected period", () => {
+  it("names the base price the estimate replaced", () => {
     render(
       <PlanEstimatedTotal
         plan={makePlan()}
@@ -30,7 +30,24 @@ describe("`PlanEstimatedTotal` component", () => {
     );
 
     expect(
-      screen.getByText("Est. $2,984.00/month at your current usage"),
+      screen.getByText(
+        "Estimated at your current usage. Base price $1,199.00/month",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("omits the base price for a free plan", () => {
+    render(
+      <PlanEstimatedTotal
+        plan={makePlan()}
+        period="month"
+        planPrice={0}
+        currency="usd"
+      />,
+    );
+
+    expect(
+      screen.getByText("Estimated at your current usage"),
     ).toBeInTheDocument();
   });
 
