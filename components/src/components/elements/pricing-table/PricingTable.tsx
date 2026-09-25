@@ -21,7 +21,11 @@ import {
 } from "../../../hooks";
 import { useTranslation } from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
-import { getSubscriptionPeriod, planSupportsCurrency } from "../../../utils";
+import {
+  getDefaultPlanPeriod,
+  getSubscriptionPeriod,
+  planSupportsCurrency,
+} from "../../../utils";
 import { Container, FussyChild } from "../../layout";
 import {
   CurrencyToggle,
@@ -167,7 +171,7 @@ export const PricingTable = forwardRef<
     () =>
       getSubscriptionPeriod(data?.company?.billingSubscription) ||
       data?.company?.plan?.planPeriod ||
-      "month",
+      getDefaultPlanPeriod(data?.activePlans),
   );
 
   const { currencies, invalidFilterEntries } =
