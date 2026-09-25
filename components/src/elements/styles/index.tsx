@@ -202,7 +202,7 @@ const rulesCss = `
   border: none;
   color: var(--schematic-accent);
   cursor: pointer;
-  font-family: var(--schematic-font-body);
+  font-family: var(--schematic-font-link);
   font-size: 1rem;
   padding: 0;
 }
@@ -295,10 +295,11 @@ const rulesCss = `
   margin-bottom: var(--schematic-space);
 }
 
+/* The embed's card heading: 18px at its heaviest weight. */
 .schematic-header__title {
   font-family: var(--schematic-font-heading);
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.125rem;
+  font-weight: 800;
   line-height: var(--schematic-line-height-heading);
   margin: 0 0 calc(var(--schematic-space) / 2);
 }

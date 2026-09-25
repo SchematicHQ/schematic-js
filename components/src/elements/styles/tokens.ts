@@ -32,6 +32,8 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-danger": ld("#d75a5c", "#ff6b6e"),
   "--schematic-font-body": '"Public Sans", system-ui, sans-serif',
   "--schematic-font-heading": '"Manrope", system-ui, sans-serif',
+  // The embed's link face: Edit, Set default, Try again, and the rest.
+  "--schematic-font-link": '"Inter", system-ui, sans-serif',
   "--schematic-line-height": "1.5",
   "--schematic-line-height-heading": "1.2",
   "--schematic-meter-track": ld("#f2f4f7", "#26282d"),
