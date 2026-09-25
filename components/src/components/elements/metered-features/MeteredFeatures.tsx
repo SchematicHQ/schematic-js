@@ -73,11 +73,11 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
       typeof feature !== "undefined"
       ? currentTier?.to === Infinity
         ? t("Unlimited in this tier", {
-            feature: getFeatureName(feature),
+            feature: getFeatureName(feature, locale),
           })
         : t("Up to X units in this tier", {
             amount: currentTier.to,
-            feature: getFeatureName(feature),
+            feature: getFeatureName(feature, locale),
           })
       : priceBehavior === EntitlementPriceBehavior.Overage &&
           typeof limit === "number"
@@ -101,6 +101,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
                   ),
                   units: getFeatureName(
                     planEntitlement.valueCredit,
+                    locale,
                     planEntitlement.consumptionRate,
                   ),
                 })
@@ -109,7 +110,7 @@ const Limit = ({ entitlement, usageDetails, fontStyle }: LimitProps) => {
                   typeof limit === "number"
                 ? t("X units remaining", {
                     amount: formatNumber(limit, { locale }),
-                    units: getFeatureName(feature, limit),
+                    units: getFeatureName(feature, locale, limit),
                   })
                 : typeof limit === "number"
                   ? t("Limit of", {
@@ -419,13 +420,14 @@ export const MeteredFeatures = forwardRef<
                               {typeof limit === "number" && (
                                 <>{formatNumber(limit, { locale })} </>
                               )}
-                              {getFeatureName(feature, limit)}
+                              {getFeatureName(feature, locale, limit)}
                             </>
                           ) : (
                             typeof usage === "number" && (
                               <>
                                 {formatNumber(usage, { locale })}{" "}
-                                {getFeatureName(feature, usage)} {t("used")}
+                                {getFeatureName(feature, locale, usage)}{" "}
+                                {t("used")}
                               </>
                             )
                           )}
@@ -559,6 +561,7 @@ export const MeteredFeatures = forwardRef<
                             }),
                             units: getFeatureName(
                               credit,
+                              locale,
                               credit.total.remaining,
                             ),
                           })}
@@ -617,6 +620,7 @@ export const MeteredFeatures = forwardRef<
                         quantity: licenseQuantity,
                         licenseName: getFeatureName(
                           licenseFeature,
+                          locale,
                           licenseQuantity,
                         ),
                         perUnit: perLicenseGrant.amount,
@@ -644,7 +648,7 @@ export const MeteredFeatures = forwardRef<
                         >
                           {t("Your plan includes credits", {
                             total,
-                            creditName: getFeatureName(credit, total),
+                            creditName: getFeatureName(credit, locale, total),
                             period: shortenPeriod(composition.period, t),
                             composition: ` — ${parts.join(" + ")}`,
                           })}
@@ -690,6 +694,7 @@ export const MeteredFeatures = forwardRef<
                                     amount: grant.quantity,
                                     item: getFeatureName(
                                       credit,
+                                      locale,
                                       grant.quantity,
                                     ),
                                   })}
@@ -723,7 +728,7 @@ export const MeteredFeatures = forwardRef<
                                     <>
                                       {t("X item bundle", {
                                         amount: grant.quantity,
-                                        item: getFeatureName(credit, 1),
+                                        item: getFeatureName(credit, locale, 1),
                                         createdAt: toPrettyDate(
                                           grant.createdAt,
                                           { locale, month: "short" },
@@ -737,6 +742,7 @@ export const MeteredFeatures = forwardRef<
                                         amount: grant.quantity,
                                         item: getFeatureName(
                                           credit,
+                                          locale,
                                           grant.quantity,
                                         ),
                                         createdAt: toPrettyDate(
@@ -751,6 +757,7 @@ export const MeteredFeatures = forwardRef<
                                         amount: grant.quantity,
                                         item: getFeatureName(
                                           credit,
+                                          locale,
                                           grant.quantity,
                                         ),
                                         createdAt: toPrettyDate(

@@ -107,7 +107,7 @@ export const PeriodToggle = ({
               $size={15}
               $weight={option === selectedOption ? 600 : 400}
             >
-              {t("Billed", { period: adjectify(option) })}
+              {t("Billed", { period: adjectify(option, t) })}
             </Text>
           </Button>
         );

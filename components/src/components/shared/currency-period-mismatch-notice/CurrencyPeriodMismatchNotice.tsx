@@ -1,5 +1,6 @@
 import { useEmbed } from "../../../hooks";
 import { useTranslation } from "../../../localization";
+import { adjectify } from "../../../utils";
 import { Flex, Icon, Text } from "../../ui";
 
 interface CurrencyPeriodMismatchNoticeProps {
@@ -45,7 +46,7 @@ export const CurrencyPeriodMismatchNotice = ({
       >
         {t("No {{currency}} price for the {{period}} billing period.", {
           currency: currency.toUpperCase(),
-          period,
+          period: adjectify(period, t),
         })}
       </Text>
     </Flex>

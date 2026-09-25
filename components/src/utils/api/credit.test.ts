@@ -1,4 +1,3 @@
-import type { TFunction } from "i18next";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -12,6 +11,8 @@ import {
   type CreditCompanyGrantView,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
+import { createSchematicI18n, i18n, type Translate } from "../../localization";
+
 import {
   aggregateActiveGrantsByBundle,
   aggregateActiveGrantsByCredit,
@@ -190,12 +191,7 @@ describe("getPurchasableCreditIds", () => {
 });
 
 describe("formatBundleExpiry", () => {
-  // Stand-in for i18next: echoes the key and interpolates, so assertions read
-  // as the composed sentence rather than a mock call log.
-  const t = ((key: string, params?: Record<string, unknown>) =>
-    key === "expires after purchase"
-      ? `expires ${params?.amount} ${params?.unit} after purchase`
-      : key) as unknown as TFunction;
+  const t: Translate = (key, options) => i18n.t(key, options);
 
   it("describes a duration in days", () => {
     expect(
@@ -221,6 +217,30 @@ describe("formatBundleExpiry", () => {
         t,
       ),
     ).toBe("expires 1 billing period after purchase");
+  });
+
+  it("inflects the unit with the translation's plural forms", () => {
+    const italian = createSchematicI18n({
+      it: {
+        "expires after purchase": "scade {{amount}} {{unit}} dopo l'acquisto",
+        "day_one": "giorno",
+        "day_many": "giorni",
+        "day_other": "giorni",
+      },
+    });
+    const translate: Translate = (key, options) =>
+      italian.t(key, { ...options, lng: "it" });
+
+    expect(
+      formatBundleExpiry(
+        {
+          expiryType: BillingCreditExpiryType.Duration,
+          expiryUnit: BillingCreditExpiryUnit.Days,
+          expiryUnitCount: 365,
+        },
+        translate,
+      ),
+    ).toBe("scade 365 giorni dopo l'acquisto");
   });
 
   it("returns nothing for a duration with no count, rather than a broken sentence", () => {

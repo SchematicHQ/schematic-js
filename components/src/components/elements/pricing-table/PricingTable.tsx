@@ -242,7 +242,7 @@ export const PricingTable = forwardRef<
         $justifyContent="center"
         $padding={`${settings.theme.card.padding / TEXT_BASE_SIZE}rem`}
       >
-        <Loader aria-label="loading" $size="2xl" />
+        <Loader aria-label={t("Loading")} $size="2xl" />
       </Flex>
     );
   }

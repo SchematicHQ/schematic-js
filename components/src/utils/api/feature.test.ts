@@ -15,7 +15,7 @@ describe("getFeatureName", () => {
         pluralName: "API Calls",
       };
 
-      expect(getFeatureName(feature)).toBe("API Calls");
+      expect(getFeatureName(feature, "en")).toBe("API Calls");
     });
 
     it("should return pluralName when count > 1", () => {
@@ -25,7 +25,7 @@ describe("getFeatureName", () => {
         pluralName: "API Calls",
       };
 
-      expect(getFeatureName(feature, 5)).toBe("API Calls");
+      expect(getFeatureName(feature, "en", 5)).toBe("API Calls");
     });
 
     it("should return singularName when count is 1", () => {
@@ -35,7 +35,7 @@ describe("getFeatureName", () => {
         pluralName: "API Calls",
       };
 
-      expect(getFeatureName(feature, 1)).toBe("API Call");
+      expect(getFeatureName(feature, "en", 1)).toBe("API Call");
     });
 
     it("should pluralize singularName when pluralName is not set and count > 1", () => {
@@ -45,7 +45,7 @@ describe("getFeatureName", () => {
         pluralName: null,
       };
 
-      expect(getFeatureName(feature, 5)).toBe("Requests");
+      expect(getFeatureName(feature, "en", 5)).toBe("Requests");
     });
 
     it("should return singularName as-is when count is 1 and pluralName is not set", () => {
@@ -55,7 +55,7 @@ describe("getFeatureName", () => {
         pluralName: null,
       };
 
-      expect(getFeatureName(feature, 1)).toBe("Request");
+      expect(getFeatureName(feature, "en", 1)).toBe("Request");
     });
 
     it("should fall back to pluralized name when both singularName and pluralName are null", () => {
@@ -65,7 +65,7 @@ describe("getFeatureName", () => {
         pluralName: null,
       };
 
-      expect(getFeatureName(feature, 5)).toBe("seats");
+      expect(getFeatureName(feature, "en", 5)).toBe("seats");
     });
 
     it("should fall back to name singularized when count is 1 and singular/plural names are null", () => {
@@ -75,7 +75,7 @@ describe("getFeatureName", () => {
         pluralName: null,
       };
 
-      expect(getFeatureName(feature, 1)).toBe("seat");
+      expect(getFeatureName(feature, "en", 1)).toBe("seat");
     });
   });
 
@@ -87,7 +87,7 @@ describe("getFeatureName", () => {
         pluralName: "Custom Plural Name",
       };
 
-      const result = getFeatureName(feature, 5, true);
+      const result = getFeatureName(feature, "en", 5, true);
       expect(result).not.toBe("Custom Plural Name");
       expect(result).toBe("API Calls");
     });
@@ -99,7 +99,7 @@ describe("getFeatureName", () => {
         pluralName: "Custom Plural Name",
       };
 
-      const result = getFeatureName(feature, 1, true);
+      const result = getFeatureName(feature, "en", 1, true);
       expect(result).not.toBe("Custom Singular Name");
       expect(result).toBe("Call");
     });
@@ -111,7 +111,7 @@ describe("getFeatureName", () => {
         pluralName: "Custom Seats",
       };
 
-      const result = getFeatureName(feature, 0, true);
+      const result = getFeatureName(feature, "en", 0, true);
       expect(result).not.toBe("Custom Seats");
       expect(result).toBe("seats");
     });
@@ -123,8 +123,8 @@ describe("getFeatureName", () => {
         pluralName: null,
       };
 
-      expect(getFeatureName(feature, 5, true)).toBe("Widgets");
-      expect(getFeatureName(feature, 1, true)).toBe("Widget");
+      expect(getFeatureName(feature, "en", 5, true)).toBe("Widgets");
+      expect(getFeatureName(feature, "en", 1, true)).toBe("Widget");
     });
   });
 
@@ -136,9 +136,9 @@ describe("getFeatureName", () => {
         pluralName: "API Calls",
       };
 
-      expect(getFeatureName(feature, 5, false)).toBe("API Calls");
-      expect(getFeatureName(feature, 1, false)).toBe("API Call");
-      expect(getFeatureName(feature, 0, false)).toBe("API Calls");
+      expect(getFeatureName(feature, "en", 5, false)).toBe("API Calls");
+      expect(getFeatureName(feature, "en", 1, false)).toBe("API Call");
+      expect(getFeatureName(feature, "en", 0, false)).toBe("API Calls");
     });
   });
 
@@ -150,7 +150,7 @@ describe("getFeatureName", () => {
         pluralName: null,
       };
 
-      const result = getFeatureName(feature, 0);
+      const result = getFeatureName(feature, "en", 0);
       expect(typeof result).toBe("string");
     });
 
@@ -161,7 +161,7 @@ describe("getFeatureName", () => {
         pluralName: "pieces",
       };
 
-      expect(getFeatureName(feature, 2)).toBe("pieces");
+      expect(getFeatureName(feature, "en", 2)).toBe("pieces");
     });
 
     it("should use singularName for singular context even when pluralName exists", () => {
@@ -171,7 +171,7 @@ describe("getFeatureName", () => {
         pluralName: "pieces",
       };
 
-      expect(getFeatureName(feature, 1)).toBe("piece");
+      expect(getFeatureName(feature, "en", 1)).toBe("piece");
     });
 
     it("should ignore user-set singularName and pluralName when ignore is true, falling back to name-based pluralization", () => {
@@ -181,13 +181,45 @@ describe("getFeatureName", () => {
         pluralName: "Custom Mice",
       };
 
-      const pluralResult = getFeatureName(feature, 2, true);
+      const pluralResult = getFeatureName(feature, "en", 2, true);
       expect(pluralResult).not.toBe("Custom Mice");
       expect(pluralResult).toBe("mice");
 
-      const singularResult = getFeatureName(feature, 1, true);
+      const singularResult = getFeatureName(feature, "en", 1, true);
       expect(singularResult).not.toBe("Custom Mouse");
       expect(singularResult).toBe("mouse");
+    });
+  });
+
+  describe("in another language", () => {
+    it("keeps a name without a plural form as given rather than adding English suffixes", () => {
+      const feature: FeaturePick = { name: "Accesso" };
+
+      expect(getFeatureName(feature, "it", 5)).toBe("Accesso");
+      expect(getFeatureName(feature, "it")).toBe("Accesso");
+    });
+
+    it("uses the configured plural form", () => {
+      const feature: FeaturePick = {
+        name: "Posto",
+        singularName: "posto",
+        pluralName: "posti",
+      };
+
+      expect(getFeatureName(feature, "it", 1)).toBe("posto");
+      expect(getFeatureName(feature, "it", 5)).toBe("posti");
+      expect(getFeatureName(feature, "it")).toBe("posti");
+    });
+
+    it("takes the plural category from the locale", () => {
+      const feature: FeaturePick = {
+        name: "Siège",
+        singularName: "siège",
+        pluralName: "sièges",
+      };
+
+      // 0 is singular in French.
+      expect(getFeatureName(feature, "fr", 0)).toBe("siège");
     });
   });
 });

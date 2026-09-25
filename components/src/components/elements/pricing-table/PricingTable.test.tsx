@@ -32,7 +32,7 @@ describe("`PricingTable`", () => {
 
       render(<PricingTable callToActionUrl="/" />, {});
 
-      const loading = screen.queryByLabelText("loading");
+      const loading = screen.queryByLabelText("Loading");
       expect(loading).toBeInTheDocument();
     });
 
@@ -663,7 +663,7 @@ describe("`PricingTable`", () => {
 
       render(<PricingTable callToActionUrl="/" />);
 
-      const loading = screen.queryByLabelText("loading");
+      const loading = screen.queryByLabelText("Loading");
       expect(loading).toBeInTheDocument();
 
       await waitForElementToBeRemoved(loading);

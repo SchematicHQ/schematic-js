@@ -63,6 +63,7 @@ function renderMeteredEntitlementPricing(
                 FeatureResponseData,
                 "name" | "pluralName" | "singularName"
               >,
+              locale,
               packageSize,
             )
           : featureName || "unit"}
@@ -90,6 +91,7 @@ function renderMeteredEntitlementPricing(
                 FeatureResponseData,
                 "name" | "pluralName" | "singularName"
               >,
+              locale,
               packageSize,
             )
           : featureName || "unit"}

@@ -46,23 +46,23 @@ export const TieredPricingDetails = ({
   if (flatAmount === 0 && perUnitPrice === 0) {
     return t("Up to X units for free", {
       X: upTo,
-      units: getFeatureName(entitlement.feature, upTo),
+      units: getFeatureName(entitlement.feature, locale, upTo),
     });
   }
 
   if (flatAmount === 0 && perUnitPrice > 0) {
     return t("Up to X units at $Y/unit", {
       X: upTo,
-      units: getFeatureName(entitlement.feature, upTo),
+      units: getFeatureName(entitlement.feature, locale, upTo),
       Y: formatCurrency(perUnitPrice, { locale, currency }),
-      unit: getFeatureName(entitlement.feature, 1),
+      unit: getFeatureName(entitlement.feature, locale, 1),
     });
   }
 
   if (flatAmount > 0 && perUnitPrice === 0) {
     return t("Up to X units for $Y/period", {
       X: upTo,
-      units: getFeatureName(entitlement.feature, upTo),
+      units: getFeatureName(entitlement.feature, locale, upTo),
       Y: formatCurrency(flatAmount, { locale, currency }),
       period,
     });
@@ -71,9 +71,9 @@ export const TieredPricingDetails = ({
   if (flatAmount > 0 && perUnitPrice > 0) {
     return t("Up to X units at $Y/unit + $Z/period", {
       X: upTo,
-      units: getFeatureName(entitlement.feature, upTo),
+      units: getFeatureName(entitlement.feature, locale, upTo),
       Y: formatCurrency(perUnitPrice, { locale, currency }),
-      unit: getFeatureName(entitlement.feature, 1),
+      unit: getFeatureName(entitlement.feature, locale, 1),
       Z: formatCurrency(flatAmount, { locale, currency }),
       period,
     });

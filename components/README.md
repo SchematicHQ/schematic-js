@@ -266,7 +266,9 @@ reach it, so `{{amount}}` reads `20,000` or `20.000` on its own. A plural's
 the bundle formats it with `{{count, number}}`.
 
 Feature names and their plural forms come from your Schematic account, not the
-bundle, so set them there in the language you need.
+bundle, so set them there in the language you need. In a language other than
+English, a name with no plural form set is shown as entered for every count,
+rather than with an English plural ending added.
 
 ## License
 

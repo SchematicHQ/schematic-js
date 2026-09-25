@@ -5,6 +5,7 @@ import { ThemeContext } from "styled-components";
 import { TEXT_BASE_SIZE } from "../../const";
 import { EmbedSettings, stub } from "../../context";
 import { useEmbed } from "../../hooks";
+import { useTranslation } from "../../localization";
 import { DeepPartial } from "../../types";
 import { ERROR_UNKNOWN, isError } from "../../utils";
 import { Box, Flex, Loader, Text } from "../ui";
@@ -31,6 +32,7 @@ const Loading = () => {
 
 const Error = ({ message }: { message: string }) => {
   const { settings } = useEmbed();
+  const { t } = useTranslation();
 
   return (
     <Flex
@@ -43,7 +45,7 @@ const Error = ({ message }: { message: string }) => {
       $justifyContent="center"
     >
       <Box $marginBottom="0.5rem">
-        <Text display="heading1">Error</Text>
+        <Text display="heading1">{t("Error")}</Text>
       </Box>
 
       <Box $marginBottom="0.5rem">
@@ -60,6 +62,7 @@ export interface EmbedProps {
 
 export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
   const theme = useContext(ThemeContext);
+  const { t } = useTranslation();
 
   const {
     data,
@@ -149,15 +152,15 @@ export const SchematicEmbed = ({ id, accessToken }: EmbedProps) => {
   }
 
   if (accessToken?.length === 0) {
-    return <Error message="Please provide an access token." />;
+    return <Error message={t("Please provide an access token.")} />;
   }
 
   if (!accessToken?.startsWith("token_")) {
     return (
       <Error
-        message={
-          'Invalid access token; your temporary access token will start with "token_".'
-        }
+        message={t(
+          "Invalid access token; your temporary access token will start with `token_`.",
+        )}
       />
     );
   }

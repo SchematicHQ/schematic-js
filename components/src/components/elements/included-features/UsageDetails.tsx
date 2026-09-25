@@ -122,7 +122,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     ) {
       return t("X units", {
         amount: formatNumber(allocation, { locale }),
-        units: getFeatureName(feature, allocation),
+        units: getFeatureName(feature, locale, allocation),
       });
     }
 
@@ -131,7 +131,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       typeof price === "number"
     ) {
       const formattedCost = formatCurrency(price, { locale, currency });
-      const featureName = getFeatureName(feature, packageSize);
+      const featureName = getFeatureName(feature, locale, packageSize);
 
       return packageSize > 1
         ? t("$X per Y units", {
@@ -148,7 +148,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     ) {
       return t("X units", {
         amount: formatNumber(softLimit, { locale }),
-        units: getFeatureName(feature, softLimit),
+        units: getFeatureName(feature, locale, softLimit),
       });
     }
 
@@ -157,11 +157,11 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         typeof currentTier?.to === "number" &&
         (currentTier?.to === Infinity
           ? t("Unlimited in this tier", {
-              feature: getFeatureName(feature),
+              feature: getFeatureName(feature, locale),
             })
           : t("Up to X units in this tier", {
               amount: formatNumber(currentTier.to, { locale }),
-              feature: getFeatureName(feature, currentTier.to),
+              feature: getFeatureName(feature, locale, currentTier.to),
             }))
       );
     }
@@ -176,6 +176,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         amount: formatConsumptionRate(planEntitlement.consumptionRate, locale),
         units: getFeatureName(
           planEntitlement.valueCredit,
+          locale,
           planEntitlement.consumptionRate,
         ),
       });
@@ -187,7 +188,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
     ) {
       return t("X units remaining", {
         amount: formatNumber(limit, { locale }),
-        units: getFeatureName(feature, limit),
+        units: getFeatureName(feature, locale, limit),
       });
     }
 
@@ -198,12 +199,12 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
       const numericLimit = limit ?? allocation;
       return t("X units", {
         amount: formatNumber(numericLimit, { locale }),
-        units: getFeatureName(feature, numericLimit),
+        units: getFeatureName(feature, locale, numericLimit),
       });
     }
 
     if (!priceBehavior && allocationType === "unlimited") {
-      return t("Unlimited", { item: getFeatureName(feature) });
+      return t("Unlimited", { item: getFeatureName(feature, locale) });
     }
   }, [
     t,
@@ -247,12 +248,12 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
             ? t("$X/Y units/period", {
                 cost: formatCurrency(price, { locale, currency }),
                 size: packageSize,
-                units: getFeatureName(feature, packageSize),
+                units: getFeatureName(feature, locale, packageSize),
                 period: shortenPeriod(period, t),
               })
             : t("$X/unit/period", {
                 cost: formatCurrency(price, { locale, currency }),
-                unit: getFeatureName(feature, packageSize),
+                unit: getFeatureName(feature, locale, packageSize),
                 period: shortenPeriod(period, t),
               })}
         </Fragment>,
@@ -271,7 +272,7 @@ export const UsageDetails = ({ entitlement, layout }: UsageDetailsProps) => {
         <Fragment key={index}>
           {t("X units used", {
             amount: usage,
-            units: getFeatureName(feature, usage),
+            units: getFeatureName(feature, locale, usage),
           })}
         </Fragment>,
       );

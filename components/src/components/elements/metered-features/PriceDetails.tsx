@@ -81,7 +81,7 @@ export const PriceDetails = ({
           {formatCurrency(currentTierPerUnitPrice, { locale, currency })}
           <Box as="sub" $whiteSpace="nowrap">
             /{packageSize > 1 && <>{packageSize} </>}
-            {getFeatureName(feature, packageSize)}
+            {getFeatureName(feature, locale, packageSize)}
             {feature.featureType === FeatureType.Trait && period && (
               <>/{shortenPeriod(period, t)}</>
             )}
@@ -111,7 +111,7 @@ export const PriceDetails = ({
           {priceBehavior === EntitlementPriceBehavior.Overage ? (
             <Text>
               {formatNumber(amount, { locale })}{" "}
-              {getFeatureName(feature, amount)}
+              {getFeatureName(feature, locale, amount)}
               {" · "}
               {formatCurrency(currentTierPerUnitPrice * amount, {
                 locale,

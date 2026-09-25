@@ -51,13 +51,13 @@ describe("`HardLimitTooltip` component", () => {
   test("renders the trigger icon when feature and limit are provided", () => {
     render(<HardLimitTooltip feature={createMockFeature()} limit={1000} />);
 
-    expect(screen.getByTitle("limit")).toBeInTheDocument();
+    expect(screen.getByTitle("Limit")).toBeInTheDocument();
   });
 
   test("renders tooltip content on hover with correct text", () => {
     render(<HardLimitTooltip feature={createMockFeature()} limit={1000} />);
 
-    const trigger = screen.getByTitle("limit");
+    const trigger = screen.getByTitle("Limit");
     fireEvent.pointerEnter(trigger);
 
     expect(
@@ -68,7 +68,7 @@ describe("`HardLimitTooltip` component", () => {
   test("uses singular feature name when limit is 1", () => {
     render(<HardLimitTooltip feature={createMockFeature()} limit={1} />);
 
-    const trigger = screen.getByTitle("limit");
+    const trigger = screen.getByTitle("Limit");
     fireEvent.pointerEnter(trigger);
 
     expect(screen.getByText("Up to a limit of 1 API Call")).toBeInTheDocument();
@@ -101,9 +101,9 @@ describe("`HardLimitTooltip` component", () => {
   test("renders when limit is 0", () => {
     render(<HardLimitTooltip feature={createMockFeature()} limit={0} />);
 
-    expect(screen.getByTitle("limit")).toBeInTheDocument();
+    expect(screen.getByTitle("Limit")).toBeInTheDocument();
 
-    const trigger = screen.getByTitle("limit");
+    const trigger = screen.getByTitle("Limit");
     fireEvent.pointerEnter(trigger);
 
     expect(
@@ -126,7 +126,7 @@ describe("`HardLimitTooltip` component", () => {
 
     render(<HardLimitTooltip feature={createMockFeature()} limit={1000} />);
 
-    expect(screen.getByTitle("limit")).toBeInTheDocument();
+    expect(screen.getByTitle("Limit")).toBeInTheDocument();
   });
 
   test("defaults to showing tooltip when data is undefined (showHardLimit ?? false)", () => {
@@ -164,7 +164,7 @@ describe("`HardLimitTooltip` component", () => {
 
     render(<HardLimitTooltip feature={feature} limit={5} />);
 
-    const trigger = screen.getByTitle("limit");
+    const trigger = screen.getByTitle("Limit");
     fireEvent.pointerEnter(trigger);
 
     expect(screen.getByText("Up to a limit of 5 Requests")).toBeInTheDocument();

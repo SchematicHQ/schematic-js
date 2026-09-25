@@ -15,7 +15,7 @@ export const HardLimitTooltip = ({
   feature,
   limit,
 }: HardLimitTooltipProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const { data } = useEmbed();
 
@@ -32,7 +32,7 @@ export const HardLimitTooltip = ({
       portal={portal}
       trigger={
         <Icon
-          title="limit"
+          title={t("Limit")}
           name="info-rounded"
           color={`hsla(0, 0%, ${isLightBackground ? 0 : 100}%, 0.5)`}
           style={{ lineHeight: 0 }}
@@ -42,7 +42,7 @@ export const HardLimitTooltip = ({
         <Text>
           {t("Up to a limit of", {
             amount: limit,
-            units: getFeatureName(feature, limit),
+            units: getFeatureName(feature, locale, limit),
           })}
         </Text>
       }

@@ -226,9 +226,19 @@ describe("formatOrdinal with a translation", () => {
 });
 
 describe("adjectify", () => {
-  test("appends 'ly' to a string", () => {
-    expect(adjectify("month")).toBe("monthly");
-    expect(adjectify("year")).toBe("yearly");
-    expect(adjectify("week")).toBe("weekly");
+  test("gives the adjective for a billing period", () => {
+    expect(adjectify("day", t)).toBe("daily");
+    expect(adjectify("week", t)).toBe("weekly");
+    expect(adjectify("month", t)).toBe("monthly");
+    expect(adjectify("quarter", t)).toBe("quarterly");
+    expect(adjectify("year", t)).toBe("yearly");
+  });
+
+  test("reads the adjective from the bundle", () => {
+    const it = createSchematicI18n({ it: { monthly: "mensile" } });
+    const translate: Translate = (key, options) =>
+      it.t(key, { ...options, lng: "it" });
+
+    expect(adjectify("month", translate)).toBe("mensile");
   });
 });

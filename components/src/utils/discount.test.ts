@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 
 import type { PreviewSubscriptionDiscountResponseData } from "../api/checkoutexternal";
-import { i18n } from "../localization/i18n";
+import { createSchematicI18n, i18n } from "../localization/i18n";
+import type { Translate } from "../localization/types";
 
 import { getBillingPreviewText, getSubscriptionDiscount } from "./discount";
 
@@ -182,6 +183,33 @@ describe("getBillingPreviewText", () => {
     ).toBe(
       "You will be billed $200.00 for this subscription every month on the 3rd unless you unsubscribe.",
     );
+  });
+
+  test("translates the billing period", () => {
+    const italian = createSchematicI18n({
+      it: {
+        "You will be billed":
+          "Ti verrà addebitato {{price}} {{usage}}ogni {{period}} {{schedule}}salvo disdetta.",
+        "month": "mese",
+        "on the day": "il {{day}}",
+        "Ordinal_ordinal_other": "{{count, number}}º",
+      },
+    });
+    const translate: Translate = (key, options) =>
+      italian.t(key, { ...options, lng: "it" });
+
+    expect(
+      getBillingPreviewText(
+        {
+          subscriptionPrice: "49,00 €",
+          planPeriod: "month",
+          periodStart: JAN_3,
+          hasUsageBasedCosts: false,
+          locale: "it-IT",
+        },
+        translate,
+      ),
+    ).toBe("Ti verrà addebitato 49,00 € ogni mese il 3º salvo disdetta.");
   });
 
   test("no discount: includes usage-based costs when present", () => {

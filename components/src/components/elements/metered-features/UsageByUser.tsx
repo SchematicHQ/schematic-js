@@ -217,7 +217,7 @@ export const UsageByUser = ({ source, unit }: UsageByUserProps) => {
   // Every amount is denominated in `unit`, pluralized against its own value:
   // "1 token", "1,200 tokens".
   const formatAmount = (amount: number) =>
-    `${formatNumber(amount, { locale })} ${getFeatureName(unit, amount)}`;
+    `${formatNumber(amount, { locale })} ${getFeatureName(unit, locale, amount)}`;
 
   // A failed fetch should not take the surrounding meter down with it: report
   // it in place, offer a retry, and leave the rest of the element intact.

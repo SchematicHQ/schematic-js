@@ -183,14 +183,14 @@ export const PaymentForm = ({ onConfirm, financeData }: PaymentFormProps) => {
 
       {stripe && collectEmail && (
         <Box data-field="name" $marginBottom="1.5rem" $verticalAlign="top">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("Email")}</Label>
           <Input
             ref={emailInputRef}
             id="email"
             type="email"
             value={email}
             autoComplete="email"
-            placeholder="Enter email address"
+            placeholder={t("Enter email address")}
             required
             onChange={(e) => {
               userEditedEmailRef.current = true;
