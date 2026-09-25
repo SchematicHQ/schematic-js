@@ -153,6 +153,29 @@ export function getPlanEstimatedTotal(
 }
 
 /**
+ * The estimate a plan card shows as its headline price, or undefined when the
+ * card should show the plan's own price: custom plans quote their own price,
+ * and an estimate equal to the plan price adds nothing.
+ */
+export function getPlanEstimatedPrice(
+  plan: Plan,
+  period: string,
+  planPrice?: number,
+  currency?: string,
+): number | undefined {
+  if (plan.custom) {
+    return undefined;
+  }
+
+  const estimate = getPlanEstimatedTotal(plan, period, currency);
+  if (!estimate || estimate.amount === (planPrice ?? 0)) {
+    return undefined;
+  }
+
+  return estimate.amount;
+}
+
+/**
  * Whether the plan prices the given period in the given currency *specifically*
  * — i.e. `getPlanPrice` would return a real currency price rather than silently
  * falling back to the plan's default-currency price for that period.

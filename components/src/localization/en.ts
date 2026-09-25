@@ -90,8 +90,9 @@ const en = {
     "Error retrieving plan details. Please try again in a moment.",
   "Error updating payment method. Please try again.":
     "Error updating payment method. Please try again.",
-  "Estimated at current usage":
-    "Est. {{amount}}/{{period}} at your current usage",
+  "Estimated at current usage": "Estimated at your current usage",
+  "Estimated at current usage with base price":
+    "Estimated at your current usage. Base price {{amount}}/{{period}}",
   "Estimated bill": "Estimated bill",
   "Everything in": "Everything in {{plan}}, plus",
   "Expired": "Expired",
