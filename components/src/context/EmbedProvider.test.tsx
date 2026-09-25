@@ -1,8 +1,11 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { HttpResponse, http } from "msw";
 import { vi } from "vitest";
 
 import { SchematicEmbed } from "../components/embed";
 import { useEmbed } from "../hooks";
+import hydrate from "../test/mocks/handlers/response/hydrate.json";
+import { server } from "../test/mocks/node";
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
 
 import { EmbedProvider } from "./EmbedProvider";
@@ -66,6 +69,122 @@ describe("requestUnsubscribe", () => {
     expect(warn).toHaveBeenCalled();
 
     warn.mockRestore();
+  });
+});
+
+describe("rehydrateWithParams", () => {
+  const accessToken = "token_abc12345678901234567890123456";
+  const adHocAddOnId = "plan_adHocAddOn1";
+
+  // Hydrates a component the way `SchematicEmbed` does, without rendering the
+  // embed.
+  const renderHydrated = async () => {
+    const rendered = renderHook(() => useEmbed(), { wrapper });
+    act(() => {
+      rendered.result.current.setAccessToken(accessToken);
+    });
+    await act(async () => {
+      await rendered.result.current.hydrateComponent("comp_test");
+    });
+    await waitFor(() => expect(rendered.result.current.data).toBeDefined());
+    return rendered;
+  };
+
+  // Serves the fixture, adding the ad-hoc add-on when the request includes it.
+  const serveIncludedAddOn = () => {
+    const requested: string[][] = [];
+    server.use(
+      http.get(
+        "https://api.schematichq.com/components/:id/hydrate",
+        ({ request }) => {
+          const included = new URL(request.url).searchParams.getAll(
+            "include_add_on_ids",
+          );
+          requested.push(included);
+          const [addOn] = hydrate.data.active_add_ons;
+          const activeAddOns = included.includes(adHocAddOnId)
+            ? [
+                ...hydrate.data.active_add_ons,
+                { ...addOn, id: adHocAddOnId, name: "Ad-hoc service" },
+              ]
+            : hydrate.data.active_add_ons;
+          return HttpResponse.json({
+            ...hydrate,
+            data: { ...hydrate.data, active_add_ons: activeAddOns },
+          });
+        },
+      ),
+    );
+    return requested;
+  };
+
+  test("re-fetches the component with the included add-ons", async () => {
+    const requested = serveIncludedAddOn();
+    const { result } = await renderHydrated();
+
+    await act(async () => {
+      await result.current.rehydrateWithParams({
+        includeAddOnIds: [adHocAddOnId],
+      });
+    });
+
+    expect(requested[requested.length - 1]).toEqual([adHocAddOnId]);
+    expect(
+      result.current.data?.activeAddOns.map((addOn) => addOn.id),
+    ).toContain(adHocAddOnId);
+    // Nothing opens or gets selected; that's `initializeWithPlan`'s job.
+    expect(result.current.layout).toBe("portal");
+  });
+
+  test("warns about an included ID the response left out", async () => {
+    serveIncludedAddOn();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { result } = await renderHydrated();
+
+    await act(async () => {
+      await result.current.rehydrateWithParams({
+        includeAddOnIds: ["plan_notAnAddOn"],
+      });
+    });
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("plan_notAnAddOn"),
+    );
+
+    warn.mockRestore();
+  });
+
+  test("rejects without touching the embed when the fetch fails", async () => {
+    const { result } = await renderHydrated();
+    const before = result.current.data;
+    server.use(
+      http.get("https://api.schematichq.com/components/:id/hydrate", () =>
+        HttpResponse.json({ error: "boom" }, { status: 500 }),
+      ),
+    );
+
+    await act(async () => {
+      await expect(
+        result.current.rehydrateWithParams({
+          includeAddOnIds: [adHocAddOnId],
+        }),
+      ).rejects.toBeDefined();
+    });
+
+    expect(result.current.error).toBeUndefined();
+    expect(result.current.data).toBe(before);
+  });
+
+  test("rejects when no component has been hydrated", async () => {
+    const { result } = renderHook(() => useEmbed(), { wrapper });
+
+    await act(async () => {
+      await expect(
+        result.current.rehydrateWithParams({
+          includeAddOnIds: [adHocAddOnId],
+        }),
+      ).rejects.toThrow("SchematicEmbed");
+    });
   });
 });
 

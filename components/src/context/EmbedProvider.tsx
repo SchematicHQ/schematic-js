@@ -26,7 +26,7 @@ import {
 import type { DeepPartial, HydrateDataWithCompanyContext } from "../types";
 import { ERROR_UNKNOWN, debounceByKey, isError } from "../utils";
 
-import { EmbedContext } from "./EmbedContext";
+import { EmbedContext, type RehydrateParams } from "./EmbedContext";
 import { reducer } from "./embedReducer";
 import {
   initialState,
@@ -353,6 +353,47 @@ export const EmbedProvider = ({
         LEADING_DEBOUNCE_SETTINGS,
       ),
     [hydrateExternal],
+  );
+
+  /**
+   * Re-fetches the hydrated component with extra params, e.g. add-ons to offer
+   * that aren't live. Not debounced, since the caller awaits the result.
+   */
+  const rehydrateWithParams = useCallback(
+    async (params: RehydrateParams) => {
+      // Only a component hydrate carries `component`, which also means a
+      // `SchematicEmbed` is mounted.
+      const componentId = state.data?.component?.id;
+      if (!componentId || !checkoutApi) {
+        throw new Error(
+          "[Schematic] `rehydrateWithParams` needs a `SchematicEmbed` that has loaded.",
+        );
+      }
+
+      // Skip `HYDRATE_STARTED`: it swaps the whole embed for its loading
+      // state. A failed fetch rejects for the caller to handle.
+      const response = await checkoutApi.hydrateComponent({
+        componentId,
+        includeAddOnIds: params.includeAddOnIds,
+      });
+
+      const returnedIds = new Set(
+        response.data.activeAddOns.map((addOn) => addOn.id),
+      );
+      const missingIds = (params.includeAddOnIds ?? []).filter(
+        (id) => !returnedIds.has(id),
+      );
+      if (missingIds.length > 0) {
+        console.warn(
+          `[Schematic] These included add-ons were left out because each must be an add-on with a billing product: ${missingIds.join(", ")}`,
+        );
+      }
+
+      dispatch({ type: "HYDRATE_COMPONENT", data: response.data });
+
+      return response.data;
+    },
+    [checkoutApi, state.data?.component?.id],
   );
 
   // api methods
@@ -786,6 +827,7 @@ export const EmbedProvider = ({
         hydrate: debouncedHydrate,
         hydrateComponent: debouncedHydrateComponent,
         hydrateExternal: debouncedHydrateExternal,
+        rehydrateWithParams,
         createSetupIntent: debouncedCreateSetupIntent,
         updatePaymentMethod: debouncedUpdatePaymentMethod,
         deletePaymentMethod: debouncedDeletePaymentMethod,
