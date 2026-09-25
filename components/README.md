@@ -93,24 +93,29 @@ notice that appears in the same spot.
 The Plans and add-ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).
 
+### Offering add-ons that aren't live
+
 To sell an add-on that isn't live, such as one your backend creates for a
-single purchase, pass its ID in `includeAddOnIds`. The checkout offers it
-alongside the live add-ons. To pre-select it, also list it in `addOnIds`.
+single purchase, re-fetch the embed's data with it included using
+`rehydrateWithParams`, then open the checkout.
 
 ```ts
-await initializeWithPlan({
-  includeAddOnIds: ['plan_BQx8kWjSx4'], // offer this add-on even though it isn't live
-  addOnIds: ['plan_BQx8kWjSx4'],        // pre-select it (optional)
+const { rehydrateWithParams, initializeWithPlan } = useEmbed();
+
+await rehydrateWithParams({ includeAddOnIds: ['plan_BQx8kWjSx4'] });
+initializeWithPlan({
+  addOnIds: ['plan_BQx8kWjSx4'], // pre-select it (optional)
 });
 ```
 
-The embed fetches its data again to include those add-ons before the checkout
-opens, so `initializeWithPlan` returns a promise that resolves once the
-checkout is showing and rejects if that fetch fails. This needs a mounted
-`SchematicEmbed`. An ID that isn't an add-on with a billing product is left
-out, with a console warning. The add-on still has to be compatible with the
-selected plan and priced in the checkout's currency and billing period to
-appear.
+`rehydrateWithParams` needs a `SchematicEmbed` that has loaded. It updates
+the embed's data without showing its loading state, and rejects if the fetch
+fails, so you can keep your own button in a loading state and handle the
+error. An ID that isn't an add-on with a billing product is left out, with a
+console warning. The add-on still has to be compatible with the selected plan
+and priced in the checkout's currency and billing period to appear. Any later
+refresh of the embed, such as the one after a purchase, drops add-ons that
+aren't live unless the company now has them.
 
 ## Programmatic Unsubscribe
 

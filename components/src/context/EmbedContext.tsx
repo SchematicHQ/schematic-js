@@ -34,6 +34,20 @@ import {
 // apis are not defined immediately on mount
 type DebouncedApiPromise<R> = Promise<R | undefined> | undefined;
 
+/**
+ * Extra params for {@link EmbedContextProps.rehydrateWithParams}.
+ */
+export interface RehydrateParams {
+  /**
+   * Add-on IDs to offer in the checkout even when they aren't live in the
+   * catalog, such as an add-on created for a single purchase. Including an
+   * add-on doesn't select it; pass it in `initializeWithPlan`'s `addOnIds` for
+   * that. An ID that isn't an add-on with a billing product is left out, with
+   * a console warning.
+   */
+  includeAddOnIds?: string[];
+}
+
 // The settings layers are an implementation detail of the reducer; consumers read
 // the resolved `settings` and write through `updateSettings`.
 export interface EmbedContextProps extends Omit<EmbedState, SettingsLayer> {
@@ -45,6 +59,15 @@ export interface EmbedContextProps extends Omit<EmbedState, SettingsLayer> {
   hydrateExternal: (
     fn: () => Promise<HydrateDataWithCompanyContext>,
   ) => DebouncedApiPromise<HydrateDataWithCompanyContext>;
+  /**
+   * Re-fetch the mounted `SchematicEmbed`'s component with extra params,
+   * without swapping the embed for its loading state. Resolves with the new
+   * data once it's applied. Rejects if the fetch fails, or if no component has
+   * been hydrated yet.
+   */
+  rehydrateWithParams: (
+    params: RehydrateParams,
+  ) => Promise<HydrateDataWithCompanyContext>;
   getUpcomingInvoice: (
     id: string,
   ) => DebouncedApiPromise<HydrateUpcomingInvoiceResponse>;
@@ -85,7 +108,7 @@ export interface EmbedContextProps extends Omit<EmbedState, SettingsLayer> {
   setLayout: (layout: EmbedLayout) => void;
   setCheckoutState: (state: CheckoutState) => void;
   clearCheckoutState: () => void;
-  initializeWithPlan: (config: string | BypassConfig) => Promise<void>;
+  initializeWithPlan: (config: string | BypassConfig) => void;
   requestUnsubscribe: () => void;
   setData: (data: HydrateDataWithCompanyContext) => void;
   /**
@@ -118,6 +141,7 @@ export const initialContext = {
   hydrate: stub,
   hydrateComponent: stub,
   hydrateExternal: stub,
+  rehydrateWithParams: stub,
   getUpcomingInvoice: stub,
   getCustomerBalance: stub,
   listInvoices: stub,

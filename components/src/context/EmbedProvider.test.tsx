@@ -72,12 +72,12 @@ describe("requestUnsubscribe", () => {
   });
 });
 
-describe("initializeWithPlan with includeAddOnIds", () => {
+describe("rehydrateWithParams", () => {
   const accessToken = "token_abc12345678901234567890123456";
   const adHocAddOnId = "plan_adHocAddOn1";
 
   // Hydrates a component the way `SchematicEmbed` does, without rendering the
-  // embed, so opening the checkout doesn't mount the real dialog.
+  // embed.
   const renderHydrated = async () => {
     const rendered = renderHook(() => useEmbed(), { wrapper });
     act(() => {
@@ -118,23 +118,22 @@ describe("initializeWithPlan with includeAddOnIds", () => {
     return requested;
   };
 
-  test("re-fetches with the included add-ons, then opens the checkout", async () => {
+  test("re-fetches the component with the included add-ons", async () => {
     const requested = serveIncludedAddOn();
     const { result } = await renderHydrated();
 
     await act(async () => {
-      await result.current.initializeWithPlan({
+      await result.current.rehydrateWithParams({
         includeAddOnIds: [adHocAddOnId],
       });
     });
 
     expect(requested[requested.length - 1]).toEqual([adHocAddOnId]);
-    expect(result.current.layout).toBe("checkout");
-    // Including an add-on offers it; `addOnIds` is what pre-selects.
-    expect(result.current.checkoutState?.addOnIds).toBeUndefined();
     expect(
       result.current.data?.activeAddOns.map((addOn) => addOn.id),
     ).toContain(adHocAddOnId);
+    // Nothing opens or gets selected; that's `initializeWithPlan`'s job.
+    expect(result.current.layout).toBe("portal");
   });
 
   test("warns about an included ID the response left out", async () => {
@@ -143,12 +142,11 @@ describe("initializeWithPlan with includeAddOnIds", () => {
     const { result } = await renderHydrated();
 
     await act(async () => {
-      await result.current.initializeWithPlan({
+      await result.current.rehydrateWithParams({
         includeAddOnIds: ["plan_notAnAddOn"],
       });
     });
 
-    expect(result.current.layout).toBe("checkout");
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining("plan_notAnAddOn"),
     );
@@ -156,8 +154,9 @@ describe("initializeWithPlan with includeAddOnIds", () => {
     warn.mockRestore();
   });
 
-  test("rejects and stays closed when the fetch fails", async () => {
+  test("rejects without touching the embed when the fetch fails", async () => {
     const { result } = await renderHydrated();
+    const before = result.current.data;
     server.use(
       http.get("https://api.schematichq.com/components/:id/hydrate", () =>
         HttpResponse.json({ error: "boom" }, { status: 500 }),
@@ -166,31 +165,26 @@ describe("initializeWithPlan with includeAddOnIds", () => {
 
     await act(async () => {
       await expect(
-        result.current.initializeWithPlan({
+        result.current.rehydrateWithParams({
           includeAddOnIds: [adHocAddOnId],
         }),
       ).rejects.toBeDefined();
     });
 
-    expect(result.current.layout).toBe("portal");
+    expect(result.current.error).toBeUndefined();
+    expect(result.current.data).toBe(before);
   });
 
-  test("warns and opens the checkout without a mounted embed", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  test("rejects when no component has been hydrated", async () => {
     const { result } = renderHook(() => useEmbed(), { wrapper });
 
     await act(async () => {
-      await result.current.initializeWithPlan({
-        includeAddOnIds: [adHocAddOnId],
-      });
+      await expect(
+        result.current.rehydrateWithParams({
+          includeAddOnIds: [adHocAddOnId],
+        }),
+      ).rejects.toThrow("SchematicEmbed");
     });
-
-    expect(result.current.layout).toBe("checkout");
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("SchematicEmbed"),
-    );
-
-    warn.mockRestore();
   });
 });
 
