@@ -93,29 +93,96 @@ notice that appears in the same spot.
 The Plans and add-ons available to the checkout flows must be live in your
 Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/overview).
 
-### Offering add-ons that aren't live
+To offer an add-on that isn't live, see
+[Rehydrating With Params](#rehydrating-with-params).
 
-To sell an add-on that isn't live, such as one your backend creates for a
-single purchase, re-fetch the embed's data with it included using
-`rehydrateWithParams`, then open the checkout.
+## Rehydrating With Params
+
+We provide a function `rehydrateWithParams` for re-fetching the embed's data
+with params the standard load doesn't send. Like `initializeWithPlan`, it's
+suitable for click handlers and must be extracted from the library's embedded
+context.
 
 ```ts
-const { rehydrateWithParams, initializeWithPlan } = useEmbed();
+const { rehydrateWithParams } = useEmbed();
 
-await rehydrateWithParams({ includeAddOnIds: ['plan_BQx8kWjSx4'] });
-initializeWithPlan({
-  addOnIds: ['plan_BQx8kWjSx4'], // pre-select it (optional)
-});
+const data = await rehydrateWithParams({ includeAddOnIds: ['plan_BQx8kWjSx4'] });
 ```
 
-`rehydrateWithParams` needs a `SchematicEmbed` that has loaded. It updates
-the embed's data without showing its loading state, and rejects if the fetch
-fails, so you can keep your own button in a loading state and handle the
-error. An ID that isn't an add-on with a billing product is left out, with a
-console warning. The add-on still has to be compatible with the selected plan
-and priced in the checkout's currency and billing period to appear. Any later
-refresh of the embed, such as the one after a purchase, drops add-ons that
-aren't live unless the company now has them.
+It re-fetches the component your `SchematicEmbed` loaded and applies the
+result in place:
+
+- The embed's data updates without the embed showing its loading state.
+- It isn't debounced: every call makes a request, and the promise resolves
+  with the new data once it's applied.
+- The promise rejects if the request fails, leaving the embed's data and
+  error state as they were, so your UI decides how to handle it. It also
+  rejects if no `SchematicEmbed` has loaded yet.
+- The params apply to this fetch only. The embed's next refresh, such as the
+  one after a purchase, goes back to the standard load.
+
+Await it before anything that depends on the new data, such as opening a
+checkout with `initializeWithPlan`.
+
+### Params
+
+| Param             | Type       | Effect                                                                                                                                                               |
+| ----------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `includeAddOnIds` | `string[]` | Add-ons to offer in the checkout even though they aren't live. Each must be an add-on with a billing product; any other ID is left out, with a console warning. |
+
+### Example: selling an add-on that isn't live
+
+Say your backend creates an add-on for a single purchase, such as a one-off
+service, and deletes it afterward, so it's never live in your catalog. A "Buy
+now" button can create it, include it, and open the checkout with it
+selected:
+
+```tsx
+import { useState } from 'react';
+import { useEmbed } from '@schematichq/schematic-components';
+
+function BuyServiceButton({ serviceId }: { serviceId: string }) {
+  const { rehydrateWithParams, initializeWithPlan } = useEmbed();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>();
+
+  const handleClick = async () => {
+    setIsLoading(true);
+    setError(undefined);
+
+    try {
+      // Your backend creates the add-on and returns its Schematic ID
+      const { addOnId } = await createServiceAddOn(serviceId);
+
+      // Fetch the embed's data again, this time with the add-on in it
+      await rehydrateWithParams({ includeAddOnIds: [addOnId] });
+
+      // Open the checkout. Including an add-on only makes it available;
+      // list it in `addOnIds` to pre-select it.
+      initializeWithPlan({
+        addOnIds: [addOnId],
+        skipped: { addOnStage: true }, // it's already chosen
+      });
+    } catch {
+      setError("We couldn't start the checkout. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <button onClick={handleClick} disabled={isLoading}>
+        {isLoading ? 'Preparing checkout…' : 'Buy now'}
+      </button>
+      {error && <p role="alert">{error}</p>}
+    </>
+  );
+}
+```
+
+The add-on still has to be compatible with the selected plan and priced in
+the checkout's currency and billing period to appear.
 
 ## Programmatic Unsubscribe
 
