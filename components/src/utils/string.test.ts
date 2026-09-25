@@ -227,6 +227,8 @@ describe("formatOrdinal with a translation", () => {
 
 describe("adjectify", () => {
   test("gives the adjective for a billing period", () => {
+    expect(adjectify("day", t)).toBe("daily");
+    expect(adjectify("week", t)).toBe("weekly");
     expect(adjectify("month", t)).toBe("monthly");
     expect(adjectify("quarter", t)).toBe("quarterly");
     expect(adjectify("year", t)).toBe("yearly");

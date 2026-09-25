@@ -1,5 +1,18 @@
-import { featureName, isEnglish } from "../../elements/model/format";
 import { pluralize } from "../pluralize";
+
+/** An unusable locale falls back to English, as the formatters do. */
+function isEnglish(locale: string) {
+  try {
+    return new Intl.Locale(locale).language === "en";
+  } catch {
+    return true;
+  }
+}
+
+/** The category comes from the locale: 0 is "one" in French, for example. */
+function isOne(count: number, locale: string) {
+  return new Intl.PluralRules(locale).select(count) === "one";
+}
 
 type Named = {
   name: string;
@@ -23,13 +36,14 @@ export function getFeatureName(
 ) {
   if (!isEnglish(locale)) {
     const named: Named = ignore ? { name: feature.name } : feature;
+    const singularName = named.singularName || named.name;
+    const pluralName = named.pluralName || singularName;
 
-    // 0 is singular in some languages, so no count cannot stand in for 0.
-    if (count === undefined) {
-      return named.pluralName || named.singularName || named.name;
-    }
-
-    return featureName(named, count, locale);
+    // No count means the plural label. 0 cannot stand in for it, since 0 is
+    // singular in some languages.
+    return count !== undefined && isOne(count, locale)
+      ? singularName
+      : pluralName;
   }
 
   const resolvedCount = count ?? 0;

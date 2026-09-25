@@ -116,6 +116,10 @@ export function formatOrdinal(n: number, t: Translate) {
 /** "monthly" for "month". The words are bundle keys, so a translation owns them. */
 export function adjectify(period: string, t: Translate) {
   switch (period) {
+    case "day":
+      return t("daily");
+    case "week":
+      return t("weekly");
     case "month":
       return t("monthly");
     case "quarter":

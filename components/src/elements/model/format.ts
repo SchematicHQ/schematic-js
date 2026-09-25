@@ -245,7 +245,7 @@ function pluralCategory(count: number, locale: string): Intl.LDMLPluralRule {
   return new Intl.PluralRules(usableLocale(locale)).select(count);
 }
 
-export function isEnglish(locale: string): boolean {
+function isEnglish(locale: string): boolean {
   return new Intl.Locale(usableLocale(locale)).language === "en";
 }
 
