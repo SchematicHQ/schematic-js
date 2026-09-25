@@ -95,11 +95,12 @@ Schematic account [Catalog configuration](https://docs.schematichq.com/catalog/o
 
 To sell an add-on that isn't live, such as one your backend creates for a
 single purchase, pass its ID in `includeAddOnIds`. The checkout offers it
-alongside the live add-ons and pre-selects it.
+alongside the live add-ons. To pre-select it, also list it in `addOnIds`.
 
 ```ts
 await initializeWithPlan({
-  includeAddOnIds: ['plan_BQx8kWjSx4'],
+  includeAddOnIds: ['plan_BQx8kWjSx4'], // offer this add-on even though it isn't live
+  addOnIds: ['plan_BQx8kWjSx4'],        // pre-select it (optional)
 });
 ```
 

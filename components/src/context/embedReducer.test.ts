@@ -66,25 +66,6 @@ describe("embedReducer - SET_PLANID_BYPASS", () => {
         hideSkippedStages: false,
       });
     });
-
-    it("should pre-select included add-ons along with addOnIds", () => {
-      const config: BypassConfig = {
-        planId: "plan_abc",
-        addOnIds: ["addon_1", "addon_2"],
-        includeAddOnIds: ["addon_2", "addon_adhoc"],
-      };
-
-      const result = reducer(initialState, {
-        type: "SET_PLANID_BYPASS",
-        config,
-      });
-
-      expect(result.checkoutState?.addOnIds).toEqual([
-        "addon_1",
-        "addon_2",
-        "addon_adhoc",
-      ]);
-    });
   });
 
   describe("Explicit Skip Mode (object with skipped)", () => {

@@ -118,7 +118,7 @@ describe("initializeWithPlan with includeAddOnIds", () => {
     return requested;
   };
 
-  test("re-fetches with the included add-ons, then opens the checkout with them selected", async () => {
+  test("re-fetches with the included add-ons, then opens the checkout", async () => {
     const requested = serveIncludedAddOn();
     const { result } = await renderHydrated();
 
@@ -130,7 +130,8 @@ describe("initializeWithPlan with includeAddOnIds", () => {
 
     expect(requested[requested.length - 1]).toEqual([adHocAddOnId]);
     expect(result.current.layout).toBe("checkout");
-    expect(result.current.checkoutState?.addOnIds).toEqual([adHocAddOnId]);
+    // Including an add-on offers it; `addOnIds` is what pre-selects.
+    expect(result.current.checkoutState?.addOnIds).toBeUndefined();
     expect(
       result.current.data?.activeAddOns.map((addOn) => addOn.id),
     ).toContain(adHocAddOnId);

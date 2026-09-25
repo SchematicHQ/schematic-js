@@ -279,8 +279,8 @@ export interface BypassConfig {
   addOnIds?: string[];
   /**
    * Add-on IDs to offer in this checkout even when they aren't live in the
-   * catalog, such as an add-on created for a single purchase. They are
-   * pre-selected along with `addOnIds`.
+   * catalog, such as an add-on created for a single purchase. To pre-select
+   * one, also list it in `addOnIds`.
    *
    * The embed re-fetches its data to include them before the checkout opens,
    * so `initializeWithPlan` resolves once the checkout is showing and rejects
