@@ -7,6 +7,8 @@ export {
   BillingDataProvider,
   FEATURE_USER_USAGE_LIMIT,
   SchematicI18nProvider,
+  useCreditBalances,
+  useCreditUserUsage,
   useFeatureUsage,
   useFeatureUserUsage,
   useInvalidateBillingData,
@@ -22,6 +24,11 @@ export {
   type BillingData,
   type BillingDataProviderProps,
   type BillingDataStatus,
+  type CreditBalanceEntry,
+  type CreditComposition,
+  type CreditGrant,
+  type CreditUserUsage,
+  type CreditUserUsageRow,
   type Discount,
   type FeatureUsage,
   type FeatureUserUsage,
@@ -43,6 +50,7 @@ export {
 } from "@schematichq/schematic-react";
 export {
   currentTier,
+  deriveCreditUsage,
   deriveIncludedFeatures,
   deriveInvoiceList,
   deriveMeteredFeatures,
@@ -66,6 +74,11 @@ export {
   usageLimit,
   viewerLocale,
   type BillLine,
+  type CreditCompositionLine,
+  type CreditGrantKind,
+  type CreditLedgerRow,
+  type CreditUsageRow,
+  type DeriveCreditUsageOptions,
   type DeriveIncludedFeaturesOptions,
   type DeriveInvoiceListOptions,
   type DeriveMeteredFeaturesOptions,
@@ -114,6 +127,7 @@ export {
   type Translator,
 } from "./strings";
 export * from "./styles";
+export { CreditUsage, type CreditUsageProps } from "./CreditUsage";
 export {
   IncludedFeatures,
   type IncludedFeaturesProps,
