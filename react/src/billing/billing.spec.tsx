@@ -1884,7 +1884,6 @@ describe("usePaymentMethods", () => {
       settled = result.current.setDefault("pm_1");
     });
     expect(result.current.isMutating).toBe(true);
-    // The list's own state is untouched by a write in flight.
     expect(result.current.isPending).toBe(false);
 
     write.resolve();
@@ -1916,7 +1915,6 @@ describe("usePaymentMethods", () => {
       expect(rejected).toEqual(new Error("in use"));
       expect(result.current.mutationError?.message).toBe("in use");
       expect(result.current.isMutating).toBe(false);
-      // A write's failure is not the list's: what was loaded stands.
       expect(result.current.error).toBeUndefined();
       expect(result.current.data).toHaveLength(2);
       expect(client.fetchPaymentMethods).toHaveBeenCalledTimes(1);
@@ -2003,7 +2001,6 @@ describe("usePaymentMethods", () => {
     expect(setDefaultPaymentMethod).toHaveBeenCalledWith("pm_2");
     expect(result.current.mutationError).toBeUndefined();
 
-    // An action left out rejects, naming itself.
     let rejected: unknown;
     await act(async () => {
       await result.current.remove("2").catch((cause: unknown) => {
@@ -2044,7 +2041,6 @@ describe("useSetupIntent", () => {
       setupIntentClientSecret: "seti_2",
     });
     expect(client.createSetupIntent).toHaveBeenCalledTimes(2);
-    // Action only: no resource was read for it.
     expect(client.fetchPaymentMethods).not.toHaveBeenCalled();
   });
 

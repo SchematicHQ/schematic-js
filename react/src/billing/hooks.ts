@@ -179,11 +179,10 @@ export interface SetupIntentHandle {
 }
 
 /**
- * Mints setup intents for adding a payment method. The first action-only
- * hook on the billing store: it subscribes to no resource, reports no state,
- * and rejects with the failure. Once the provider confirms the intent, the
- * list is reloaded by whoever adds the method — `refetch` on
- * `usePaymentMethods`, or `useInvalidateBillingData`.
+ * Mints setup intents for adding a payment method. Subscribes to no
+ * resource, reports no state, and rejects with the failure. Once the
+ * provider confirms the intent, the list is reloaded by whoever adds the
+ * method — `refetch` on `usePaymentMethods`, or `useInvalidateBillingData`.
  */
 export function useSetupIntent(): SetupIntentHandle {
   const source = useBillingDataSource();
