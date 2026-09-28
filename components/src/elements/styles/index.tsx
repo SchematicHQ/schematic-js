@@ -295,7 +295,6 @@ const rulesCss = `
   margin-bottom: var(--schematic-space);
 }
 
-/* The embed's card heading: 18px at its heaviest weight. */
 .schematic-header__title {
   font-family: var(--schematic-font-heading);
   font-size: 1.125rem;

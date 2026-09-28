@@ -20,26 +20,26 @@ import {
 import type { Translator } from "./strings";
 
 /**
- * Loaded on the first Add: the form pulls in Stripe, which a page that only
- * shows the method on file never needs.
+ * Loaded the first time the form shows: it pulls in Stripe, which a page
+ * that only shows the method on file never needs.
  */
 const PaymentMethodForm = lazy(() => import("./PaymentMethodForm"));
 
 /**
- * What the Add form collects beyond Stripe's payment fields, under the
- * embed's names for the account's checkout settings. Each defaults to false.
+ * What the Add form collects beyond Stripe's payment fields. Each defaults
+ * to false.
  */
 export interface PaymentMethodsCheckoutSettings {
   /** An email field, sent to Stripe as the method's billing email. */
   collectEmail?: boolean;
   /** Stripe's billing address fields. */
   collectAddress?: boolean;
-  /** A phone field; brings Stripe's address fields with it, as the embed
-   * does, without requiring the address to be complete. */
+  /** A phone field; brings Stripe's address fields with it, without
+   * requiring the address to be complete. */
   collectPhone?: boolean;
 }
 
-/** Values the Add form starts with, in the embed's `checkoutPrefill` shape. */
+/** Values the Add form starts with. */
 export interface PaymentMethodsCheckoutPrefill {
   billingDetails?: {
     /** Fills the email field until the customer edits it. */
@@ -57,7 +57,8 @@ export interface PaymentMethodsProps extends ElementProps {
   showHeader?: boolean;
   /** Heading level, so the card fits the host's outline. Default 2. */
   headingLevel?: HeadingLevel;
-  /** The header's warning when the default card is about to expire. Default true. */
+  /** The header's warning when the default card has expired or is about
+   * to. Default true. */
   showExpiration?: boolean;
   /** What the Add form collects beyond the payment fields. */
   checkoutSettings?: PaymentMethodsCheckoutSettings;
@@ -69,20 +70,20 @@ export interface PaymentMethodsProps extends ElementProps {
 type DialogView = "current" | "add";
 
 /** A write the dialog made, kept so Retry can re-run it and its failure
- * reads as the embed words it. */
+ * shows the copy for that write. */
 interface Write {
   action: () => Promise<void>;
   errorKey: "paymentMethodsSetDefaultError" | "paymentMethodsRemoveError";
 }
 
 /**
- * The company's payment method on file, the embed's way: a pill naming the
- * default, an expiry warning beside the heading, and an Edit that opens a
- * dialog where the other saved methods can be made the default or removed
- * and a new one added through Stripe.
+ * The company's payment method on file: a pill naming the default, an expiry
+ * warning beside the heading, and an Edit that opens a dialog where the
+ * other saved methods can be made the default or removed and a new one
+ * added through Stripe.
  *
- * Inside the dialog the pill offers Remove, as the embed's does, and the
- * other rows a remove control; each shows only where the server's
+ * Inside the dialog the pill offers Remove and the other rows a remove
+ * control; each shows only where the server's
  * `canRemove` allows it, which it refuses only for the last method on an
  * active paid subscription.
  */
@@ -112,8 +113,8 @@ export function PaymentMethods({
   // Null while the dialog is closed.
   const [dialog, setDialog] = useState<DialogView | null>(null);
   const [choosing, setChoosing] = useState(false);
-  // The write that last failed, so Retry re-runs it rather than refetching;
-  // also whether this dialog session has written at all, which is what
+  // The last write, so Retry re-runs it rather than refetching; also
+  // whether this dialog session has written at all, which is what
   // decides whether a `mutationError` is its to show.
   const [lastWrite, setLastWrite] = useState<Write | null>(null);
 
@@ -127,8 +128,7 @@ export function PaymentMethods({
 
   // A rejected write also lands on `mutationError`, so the rejection here
   // is already reported and only needs catching. The dialog stays where it
-  // was, as the embed's does: Set default and remove leave the other rows
-  // unfolded.
+  // was: Set default and remove leave the other rows unfolded.
   const write = useCallback(async (next: Write) => {
     setLastWrite(next);
     try {
@@ -141,7 +141,7 @@ export function PaymentMethods({
   // The method Stripe just saved becomes the default. Stripe has already
   // kept it, so a failure here is a failed write to retry from the method
   // view, not a form to resubmit. Either way the dialog returns to the
-  // method on file with the other rows folded away, as the embed's does.
+  // method on file with the other rows folded away.
   const saved = useCallback(
     async (paymentMethodId: string) => {
       await write({
@@ -289,8 +289,8 @@ function PaymentMethodsDialog({
   view: DialogView;
 }) {
   const { current, others, rows } = derived;
-  // With nothing on file there is nothing to show but the form, as the
-  // embed does; the dialog's close control is then the only way out.
+  // With nothing on file there is nothing to show but the form, and no
+  // method for it to go back to.
   const hasMethods = rows.length > 0;
   const showForm = view === "add" || !hasMethods;
 
@@ -317,8 +317,8 @@ function PaymentMethodsDialog({
         </Suspense>
       ) : (
         <>
-          {/* The embed's dialog repeats the card's heading and warning above
-              the pill, one level under the dialog's own title. */}
+          {/* The dialog repeats the card's heading and warning above the
+              pill, one level under the dialog's own title. */}
           <PaymentMethodsHeader
             derived={derived}
             heading="h3"
@@ -563,7 +563,7 @@ function PaymentMethodsSkeleton({ showHeader }: { showHeader: boolean }) {
   );
 }
 
-/** Holds the form's place while its module and Stripe load. */
+/** Holds the form's place while its module loads. */
 function FormSkeleton({ label }: { label: string }) {
   return (
     <div

@@ -58,14 +58,13 @@ Every line carries its raw value beside the text — `amountDueMinor`, `percentO
 `locale` falls back to the one configured on the provider, then to the
 viewer's language; see [Localizing it](#localizing-it) for the copy.
 
-The layout is the embed's: the heading names the due date, and is omitted
-for a bill the provider has not dated; the amount sits beside an
-"Estimated bill" caption; the balance rows appear together — a company
-that spends its whole balance on this invoice still sees a remaining row,
-reading zero, because "your credit is now gone" is worth saying, while a
-company that never had a balance sees neither; and every active discount
-lists under one "Discount" label with its promo code as a chip, or with no
-chip when the coupon has none.
+The heading names the due date, and is omitted for a bill the provider has not
+dated; the amount sits beside an "Estimated bill" caption; the balance rows
+appear together — a company that spends its whole balance on this invoice still
+sees a remaining row, reading zero, because "your credit is now gone" is worth
+saying, while a company that never had a balance sees neither; and every active
+discount lists under one "Discount" label with its promo code as a chip, or with
+no chip when the coupon has none.
 
 A failure with a bill still on screen — a refetch that did not land — is
 reported under it rather than replacing it; only a failure with nothing to

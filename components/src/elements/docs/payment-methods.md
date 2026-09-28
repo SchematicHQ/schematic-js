@@ -1,6 +1,6 @@
 # PaymentMethods
 
-The company's payment method on file, laid out as the embed's `PaymentMethod` element is: a pill naming the default method, a warning beside the heading when that card is about to expire, and an Edit that opens a dialog where the other saved methods can be made the default or removed and a new one added through Stripe.
+The company's payment method on file: a pill naming the default method, a warning beside the heading when that card is about to expire, and an Edit that opens a dialog where the other saved methods can be made the default or removed and a new one added through Stripe.
 
 ## Hook and derivation
 
@@ -8,16 +8,15 @@ The company's payment method on file, laid out as the embed's `PaymentMethod` el
 
 The handle carries the writes beside the read: `setDefault(externalId)` and `remove(id)`, each a promise that refetches the list on success and rejects on failure, with `isMutating` true while one is on the wire and `mutationError` holding the last rejection. `setDefault` takes the provider's id (the `externalId`), because that is what the provider is asked with; `remove` takes Schematic's. `useSetupIntent().create()` mints a setup intent for a new method, which is what the Add form confirms through Stripe.
 
-Four rules hold across the list, and the server applies them, not the element:
+Three rules hold across the list:
 
-- Any method can be removed, the default included, except the last one on an active paid subscription; `canRemove` is false only on that one.
-- Removing the default promotes nothing: the list has no default until someone sets one.
+- Any method can be removed, the default included, except the last one on an active paid subscription; the server sets `canRemove` false only on that one.
 - A method added through the form becomes the default. The form asks for that itself, with `setDefault`, once Stripe confirms the setup.
-- Nothing is promoted. A list with no default — which a provider allows — stays that way until someone chooses; the pill reads as empty and every method is offered in the dialog.
+- Nothing is promoted. Removing the default leaves the list without one, and a list with no default — which a provider allows — stays that way until someone sets one; the pill reads as empty and every method is offered in the dialog.
 
-`derivePaymentMethods` turns the wire rows into what the element shows. It returns the `rows`, the `current` one — the default, which is what the pill shows, or `null` when none is — and the `others`, which is every row but the default (all of them when there is no default). Alongside sit `monthsToExpiration` and `expiryWarning` for the header: `soon` when the default card has fewer than four months left, `expired` once its month has arrived, `none` otherwise. The months are whole calendar months from the current month to the card's, as the embed counts them; `now` fixes the moment they are counted from, for a test or a server render.
+`derivePaymentMethods` turns the wire rows into what the element shows. It returns the `rows`, the `current` one — the default, which is what the pill shows, or `null` when none is — and the `others`, which is every row but the default (all of them when there is no default). Alongside sit `monthsToExpiration` and `expiryWarning` for the header: `soon` when the default card has fewer than four months left, `expired` once its month has arrived, `none` otherwise. The months are whole calendar months from the current month to the card's; `now` fixes the moment they are counted from, for a test or a server render.
 
-Each row has a `kind` (`card`, `bank`, `wallet`, `other`), an `icon` (the glyph's name in the schematic-icons font, mapped as the embed maps it: `visa`, `mastercard`, or `amex` where the card's brand matches, `credit` for any other card, `bank` for a US bank account, the wallet's own mark — `applepay`, `google`, `cashapp`, `paypal`, `link`, `amazonpay` — and `generic-payment` for a type nobody mapped), the `last4` digits that follow its label, `expiresShort` ("8/27", the embed's form, for a card), its own `monthsToExpiration` and `expiry`, and a `label`. The label is either `{ key }` — copy to resolve through the translator, such as `paymentMethodsCardEndingIn` for "Card ending in" — or `{ text }`, a value the provider supplied: the bank's name, the email behind a Link account, the account name behind PayPal or Cash App. A wallet that supplied nothing is named by its own key, in the embed's words: "PayPal account", "CashApp account", "Link account", "Amazon Pay account", or "Apple Pay" and "Google Pay" when no card digits came with them. Only US bank accounts are banks, and only cards, Apple Pay, and Google Pay carry digits; any other type, a debit scheme included, is named by whatever the provider supplied. That split keeps the derivation pure and the translatable words in the string catalogue.
+Each row has a `kind` (`card`, `bank`, `wallet`, `other`), an `icon` (the glyph's name in the schematic-icons font: `visa`, `mastercard`, or `amex` where the card's brand matches, `credit` for any other card, `bank` for a US bank account, the wallet's own mark — `applepay`, `google`, `cashapp`, `paypal`, `link`, `amazonpay` — and `generic-payment` for a type nobody mapped), the `last4` digits that follow its label, `expiresShort` ("8/27", for a card), its own `monthsToExpiration` and `expiry`, and a `label`. The label is either `{ key }` — copy to resolve through the translator, such as `paymentMethodsCardEndingIn` for "Card ending in" — or `{ text }`, a value the provider supplied: the bank's name, the email behind a Link account, the account name behind PayPal or Cash App. A wallet that supplied nothing is named by its own key: "PayPal account", "CashApp account", "Link account", "Amazon Pay account", or "Apple Pay" and "Google Pay" when no card digits came with them. Only US bank accounts are banks, and only cards, Apple Pay, and Google Pay carry digits; any other type, a debit scheme included, is named by whatever the provider supplied. That split keeps the derivation pure and the translatable words in the string catalogue.
 
 ```tsx
 import {
@@ -76,74 +75,69 @@ Every row carries its raw fields beside the text — `brand`, `type`, `isDefault
 | `className`, `locale` | —       | Root class; BCP 47 tag for formatting and Stripe's UI.             |
 | `strings`             | —       | Copy for this card by key; wins over the provider's.               |
 
-`locale` falls back to the one configured on the provider, then to the
-viewer's language; see [Localizing it](#localizing-it) for the copy.
+`locale` falls back to the one configured on the provider, then to the viewer's
+language; see [Localizing it](#localizing-it) for the copy.
 
-The card is the embed's. The heading reads "Payment Details", and when the
-default card has fewer than four months left the right of the header says
-"Expires in 2 mo", or "Expired" once its month has arrived, in the
-danger colour. Below it one pill names the default method the way the embed
-does — "Card ending in 4444", "Apple Pay ending in 1881", the bank's name and
-the account's digits, a Link account by its email — with Edit on the right,
-or "No payment method added yet" with Add when nothing is on file. The pill
-shows the default only; the other methods live in the dialog. It carries
+The heading reads "Payment Details", and when the default card has fewer than
+four months left the right of the header says "Expires in 2 mo", or "Expired"
+once its month has arrived, in the danger colour. Below it one pill names the
+default method — "Card ending in 4444", "Apple Pay ending in 1881", the bank's
+name and the account's digits, a Link account by its email — with Edit on the
+right, or "No payment method added yet" with Add when nothing is on file. The
+pill shows the default only; the other methods live in the dialog. It carries
 `data-kind` and `data-brand` for a host that wants to style by either.
 
 ### Icons
 
-Each method wears its brand's mark before the label — Visa, Mastercard,
-Amex, a generic card, a bank, or the wallet's own — and the dialog's close
-control and the chevron on "Choose different payment method" are glyphs of
-the same set. The glyphs come from the schematic-icons font, which
-`<SchematicStyles />` inlines, so nothing else has to be loaded. The class
-contract is `schematic-icon schematic-icon--<name>`, with the row's `icon`
-as the name; the method's mark also carries
-`schematic-payment-methods__icon`. Every glyph is `aria-hidden`, and the
-label stays beside it, so a host that blocks the font degrades to the text
-rather than to nothing.
+Each method wears its brand's mark before the label — Visa, Mastercard, Amex, a
+generic card, a bank, or the wallet's own — and the dialog's close control and
+the chevron on "Choose different payment method" are glyphs of the same set. The
+glyphs come from the schematic-icons font, which `<SchematicStyles />` inlines,
+so nothing else has to be loaded. The class contract is `schematic-icon
+schematic-icon--<name>`, with the row's `icon` as the name; the method's mark
+also carries `schematic-payment-methods__icon`. Every glyph is `aria-hidden`,
+and the label stays beside it, so a host that blocks the font degrades to the
+text rather than to nothing.
 
 The font is a `data:` URL. A host whose Content Security Policy sets a
-`font-src` directive needs `data:` in it, or the browser refuses the font
-and the glyphs render empty.
+`font-src` directive needs `data:` in it, or the browser refuses the font and
+the glyphs render empty.
 
-The card's pill offers no Remove. Inside the dialog it does, as the embed's
-does, beside the method it names, and the other rows each carry a remove
-control; both show only where the server's `canRemove` allows it. Removing
-the default leaves the pill reading "No payment method added yet" until
-another method is set as the default.
+The card's pill offers no Remove. Inside the dialog it does, beside the method
+it names, and the other rows each carry a remove control; both show only where
+the server's `canRemove` allows it. Removing the default leaves the pill reading
+"No payment method added yet" until another method is set as the default.
 
-Edit opens a modal dialog titled "Edit payment details", closed by Escape,
-the backdrop, or the control in its header. It opens on the card's
-"Payment Details" heading and expiry warning, then the pill again, with
-Remove in place of Edit, and beneath it "Choose different payment method" unfolds the
-other methods: each row names the method, says when a card expires ("Expires
-8/27"), and offers Set default and a remove control where the server allows
-it. Under the rows a full-width "Add new payment method" opens the form. The
-actions are disabled while a write is on the wire; a write that lands leaves
-the dialog as it was, the rows still unfolded over the refreshed list, and
-one that fails is reported at the foot of the dialog in the embed's words —
-"Error updating payment method. Please try again." or "Error deleting
-payment method. Please try again." — with "Try again", which re-runs it.
+Edit opens a modal dialog titled "Edit payment details", closed by Escape, the
+backdrop, or the control in its header. It opens on the card's "Payment Details"
+heading and expiry warning, then the pill again, with Remove in place of Edit,
+and beneath it "Choose different payment method" unfolds the other methods: each
+row names the method, says when a card expires ("Expires 8/27"), and offers Set
+default and a remove control where the server allows it. Under the rows a
+full-width "Add new payment method" opens the form. The actions are disabled
+while a write is on the wire; a write that lands leaves the dialog as it was,
+the rows still unfolded over the refreshed list, and one that fails is reported
+at the foot of the dialog — "Error updating payment method. Please try again."
+or "Error deleting payment method. Please try again." — with "Try again", which
+re-runs it.
 
-The form is loaded on first use, and the Stripe packages with it, so a page
-that only shows the method on file never downloads Stripe. It mints a setup
-intent, mounts Stripe's `PaymentElement` on it, and on Save confirms the
-setup in place; the saved method is then made the default and the dialog
-returns to it with the rows folded away. "Save payment method" waits until
-Stripe calls the fields complete, and reads "Loading" while it saves.
-"Select existing payment method" beneath the form goes back without saving.
-With nothing on file the dialog opens straight onto the form, and the
-dialog's close control is the way out. Stripe's own wording shows for a
-declined card or an invalid field; any other failure reads "A problem
-occurred while saving your payment method." A setup intent the API refused
-reads "Error initializing payment method change. Please try again." A
-missing client secret, a Stripe that fails to load, or fields that do not
-come up within ten seconds
-read as the embed's "Unable to load payment form." message, which suggests
-the browser's privacy settings may be blocking it.
+The form is loaded on first use, and the Stripe packages with it, so a page that
+only shows the method on file never downloads Stripe. It mints a setup intent,
+mounts Stripe's `PaymentElement` on it, and on Save confirms the setup in place;
+the saved method is then made the default and the dialog returns to it with the
+rows folded away. "Save payment method" waits until Stripe calls the fields
+complete, and reads "Loading" while it saves. "Select existing payment method"
+beneath the form goes back without saving. With nothing on file the dialog opens
+straight onto the form, and the dialog's close control is the way out. Stripe's
+own wording shows for a declined card or an invalid field; any other failure
+reads "A problem occurred while saving your payment method." A setup intent the
+API refused reads "Error initializing payment method change. Please try again."
+A missing client secret, a Stripe that fails to load, or fields that do not come
+up within ten seconds read "Unable to load payment form.", with a note that the
+browser's privacy settings may be blocking it.
 
-`checkoutSettings` and `checkoutPrefill` take the embed's names and shapes,
-so a host can pass the account's checkout settings through as they come:
+`checkoutSettings` and `checkoutPrefill` take the names and shapes of the
+account's checkout settings, so a host can pass them through as they come:
 
 ```tsx
 <PaymentMethods
@@ -153,35 +147,33 @@ so a host can pass the account's checkout settings through as they come:
 ```
 
 `collectEmail` adds a required "Email" field under Stripe's, filled from
-`checkoutPrefill.billingDetails.email` until the customer types, and sends it
-as the method's billing email. `collectAddress` adds Stripe's billing
-address fields, with their name filled from `billingDetails.name`, and Save
-waits for them to be complete. `collectPhone` shows the same fields with a
-phone number among them but, as in the embed, does not require them. The
-prefilled name is sent as the billing name whenever the address fields
-show. Each setting defaults to false, which leaves Stripe's payment fields
-alone.
+`checkoutPrefill.billingDetails.email` until the customer types, and sends it as
+the method's billing email. `collectAddress` adds Stripe's billing address
+fields, with their name filled from `billingDetails.name`, and Save waits for
+them to be complete. `collectPhone` shows the same fields with a phone number
+among them but does not require them. The prefilled name is sent as the billing
+name whenever the address fields show. Each setting defaults to false, which
+leaves Stripe's payment fields alone.
 
-Stripe's fields render in an iframe, where the host's CSS reaches nothing,
-so the form hands Stripe an `appearance` resolved from the tokens: the body
-font, the text, background, accent, and danger colours, and the radius, each
-read as the browser resolves it under the host's `color-scheme`. A dark host
-gets a form it can read.
+Stripe's fields render in an iframe, where the host's CSS reaches nothing, so
+the form hands Stripe an `appearance` resolved from the tokens: the body font,
+the text, background, accent, and danger colours, and the radius, each read as
+the browser resolves it under the host's `color-scheme`. A dark host gets a form
+it can read.
 
 A failure with a method still on screen — a refetch that did not land — is
-reported under it rather than replacing it; only a failure with nothing to
-show takes over the card. A 404 with nothing to show renders "Payment
-methods are not available"; every other failure, and a 404 under a method
-already loaded, reads "Could not load payment methods". Both offer "Try
-again". Neither shows the error's own message; in development it is logged
-to the console beside the copy.
+reported under it rather than replacing it; only a failure with nothing to show
+takes over the card. A 404 with nothing to show renders "Payment methods are not
+available"; every other failure, and a 404 under a method already loaded, reads
+"Could not load payment methods". Both offer "Try again". Neither shows the
+error's own message; in development it is logged to the console beside the copy.
 
 ## Localizing it
 
 `locale` localizes the formatting and is handed to Stripe for the form's own
 labels; the words come from `strings` or from the host's `translate`.
-`strings={{ paymentMethodsHeader: "Billing" }}` renames the heading with no
-i18n stack, and `translate={t}` routes every string through i18next.
+`strings={{ paymentMethodsHeader: "Billing" }}` renames the heading with no i18n
+stack, and `translate={t}` routes every string through i18next.
 
 The keys this element renders are `paymentMethodsHeader`,
 `paymentMethodsLoading`, `paymentMethodsError`, `paymentMethodsUnavailable`,
@@ -197,19 +189,20 @@ The keys this element renders are `paymentMethodsHeader`,
 `paymentMethodsSetDefault`, `paymentMethodsRemove`, `paymentMethodsAddNew`,
 `paymentMethodsSelectExisting`, `paymentMethodsFormLoading`,
 `paymentMethodsFormError`, `paymentMethodsEmail`,
-`paymentMethodsEmailPlaceholder`, `paymentMethodsSetupError`, `paymentMethodsSave`,
-`paymentMethodsSaving`, `paymentMethodsSaveError`,
-`paymentMethodsSetDefaultError`, `paymentMethodsRemoveError`, and `retry`. `strings.test.ts` freezes the list, so a rename is a
-deliberate, breaking change.
+`paymentMethodsEmailPlaceholder`, `paymentMethodsSetupError`,
+`paymentMethodsSave`, `paymentMethodsSaving`, `paymentMethodsSaveError`,
+`paymentMethodsSetDefaultError`, `paymentMethodsRemoveError`, and `retry`.
+`strings.test.ts` freezes the list, so a rename is a deliberate, breaking
+change.
 
-Two of them take values. `paymentMethodsExpires` interpolates `{{date}}`, the
-embed's short form, and `paymentMethodsExpiresInMonths` interpolates
-`{{months}}` into the embed's abbreviated "Expires in {{months}} mo", which
-needs no plural forms.
+Two of them take values. `paymentMethodsExpires` interpolates `{{date}}` in its
+short form ("8/27"), and `paymentMethodsExpiresInMonths` interpolates
+`{{months}}` into the abbreviated "Expires in {{months}} mo", which needs no
+plural forms.
 
-The labels are not assembled from fragments: "Card ending in" is one string,
-and the digits follow it in their own node, so a translator owns the words
-and a host can style the digits.
+The labels are not assembled from fragments: "Card ending in" is one string, and
+the digits follow it in their own node, so a translator owns the words and a
+host can style the digits.
 
 ## Markup
 

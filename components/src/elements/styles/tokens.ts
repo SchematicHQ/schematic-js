@@ -18,7 +18,7 @@ const ld = (light: string, dark: string): string =>
 export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-accent": ld("#194bfb", "#6f92ff"),
   "--schematic-accent-contrast": ld("#ffffff", "#0a0a0a"),
-  // The embed's frosted backdrop: a pale grey (dark in dark mode) over a blur.
+  // Tints the dialog's backdrop, which also blurs the page behind it.
   "--schematic-backdrop": ld(
     "hsla(0, 0%, 87.5%, 0.9)",
     "hsla(0, 0%, 12.5%, 0.9)",
@@ -36,7 +36,7 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-danger": ld("#d75a5c", "#ff6b6e"),
   "--schematic-font-body": '"Public Sans", system-ui, sans-serif',
   "--schematic-font-heading": '"Manrope", system-ui, sans-serif',
-  // The embed's link face: Edit, Set default, Try again, and the rest.
+  // Link buttons' face: Edit, Set default, Try again, and the rest.
   "--schematic-font-link": '"Inter", system-ui, sans-serif',
   "--schematic-line-height": "1.5",
   "--schematic-line-height-heading": "1.2",

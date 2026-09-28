@@ -28,7 +28,8 @@ export interface PaymentMethodFormProps {
   checkoutSettings?: PaymentMethodsCheckoutSettings;
   locale: string;
   t: Translator;
-  /** The saved method's provider id; resolves once the list has taken it. */
+  /** Called with the saved method's provider id; resolves once the owner
+   * has tried to make it the default. */
   onSaved: (paymentMethodId: string) => Promise<void>;
   /** The "Select existing payment method" link; omitted when there is none
    * to select. */
@@ -42,7 +43,8 @@ type StripeUi = Pick<
 
 type FormState =
   | { status: "loading" }
-  /** Which step failed: minting the setup intent, or loading Stripe. */
+  /** Which step failed: minting the setup intent, or loading the form on
+   * it. */
   | {
       status: "failed";
       errorKey: "paymentMethodsSetupError" | "paymentMethodsFormError";
@@ -77,7 +79,7 @@ const PROBE_CSS = withTokenDefaults(
 );
 
 /** How long Stripe's fields get to come up before the form reports them
- * blocked, as the embed waits. */
+ * blocked. */
 const READY_TIMEOUT_MS = 10_000;
 
 /**
@@ -157,8 +159,8 @@ export function PaymentMethodForm({
         if (clientSecret === null || clientSecret === "") {
           throw new Error(NO_CLIENT_SECRET);
         }
-        // A connected account is charged through Schematic's own key with
-        // the account named; a direct account uses its own key.
+        // A connected account loads through Schematic's key with the account
+        // named; any other uses its own key, else Schematic's.
         let publishableKey =
           intent.publishableKey ?? intent.schematicPublishableKey;
         const options: StripeConstructorOptions = {
@@ -284,7 +286,7 @@ function Fields({
   const elements = useElements();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  // Save waits for fields Stripe calls complete, as the embed's does.
+  // Save waits until Stripe reports its fields complete.
   const [complete, setComplete] = useState(false);
   const [ready, setReady] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -296,7 +298,7 @@ function Fields({
   const emailValid = !collectEmail || VALID_EMAIL.test(email);
 
   // A blocked iframe never reports ready or failed, so a quiet one is taken
-  // as blocked once the embed's wait runs out.
+  // as blocked once READY_TIMEOUT_MS passes.
   useEffect(() => {
     if (ready) {
       return;
@@ -331,8 +333,7 @@ function Fields({
         redirect: "if_required",
       });
       if (result.error !== undefined) {
-        // Stripe's wording where it speaks to the customer, the embed's
-        // otherwise.
+        // Stripe's wording where it speaks to the customer, ours otherwise.
         const { message: stripeMessage, type } = result.error;
         setMessage(
           (type === "card_error" || type === "validation_error") &&

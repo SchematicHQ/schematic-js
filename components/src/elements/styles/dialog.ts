@@ -3,7 +3,7 @@
  * a close control, and a body. Shared by every element that opens one.
  */
 export const dialogCss = `
-/* The embed's dialog: up to 768px wide, with a tighter radius than a card. */
+/* Up to 768px wide, with a tighter radius than a card. */
 .schematic-dialog {
   background: var(--schematic-background);
   border: 0;
@@ -26,8 +26,8 @@ export const dialogCss = `
   background: var(--schematic-backdrop);
 }
 
-/* The embed's padding: narrow on the right, where the close control's own
-   hit area makes up the rest. */
+/* Narrow on the right, where the close control's own hit area makes up the
+   rest. */
 .schematic-dialog__header {
   align-items: center;
   border-bottom: 1px solid
@@ -44,7 +44,7 @@ export const dialogCss = `
   }
 }
 
-/* The embed's dialog title: body text at 18px, not a heading face. */
+/* Body text at 18px, not a heading face. */
 .schematic-dialog__title {
   font-family: var(--schematic-font-body);
   font-size: 1.125rem;
@@ -53,8 +53,7 @@ export const dialogCss = `
   margin: 0;
 }
 
-/* The embed's close control: a 2.5rem glyph in the text colour at 27.5%,
-   centred in a 2.75rem target. */
+/* A large, faint glyph centred in a slightly larger hit target. */
 .schematic-dialog__close {
   align-items: center;
   background: none;

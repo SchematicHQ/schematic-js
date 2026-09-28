@@ -337,7 +337,7 @@ describe("PaymentMethodForm", () => {
     );
   });
 
-  test("a refused intent reads as the embed words it, with the way back when there is one", async () => {
+  test("a refused intent reads as a setup error, with the way back when there is one", async () => {
     const onSelectExisting = vi.fn();
     renderForm(
       { createSetupIntent: vi.fn().mockRejectedValue(new Error("403")) },
@@ -382,7 +382,7 @@ describe("PaymentMethodForm", () => {
     );
   });
 
-  test("fields that never come up read as a blocked form once the embed's wait runs out", async () => {
+  test("fields that never come up read as a blocked form once the wait runs out", async () => {
     stripe.fields = "silent";
     stripe.loadStripe.mockResolvedValue(stripe.instance);
     // Real time still passes, so the intent and Stripe resolve; the wait is

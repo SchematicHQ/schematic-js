@@ -39,7 +39,7 @@ function typed(type: string, overrides: Partial<PaymentMethod> = {}) {
 }
 
 describe("derivePaymentMethods", () => {
-  test("a card: the embed's label, its digits, its expiry, and the raw fields", () => {
+  test("a card: its label, its digits, its expiry, and the raw fields", () => {
     expect(one({ id: "pm_9", externalId: "pm_x", isDefault: true })).toEqual({
       id: "pm_9",
       externalId: "pm_x",
@@ -63,7 +63,7 @@ describe("derivePaymentMethods", () => {
     expect(one({ cardBrand: "" }).brand).toBe("card");
   });
 
-  describe("the icon, as the embed maps it", () => {
+  describe("the icon", () => {
     test.each([
       ["visa", "visa"],
       ["mastercard", "mastercard"],
@@ -79,7 +79,7 @@ describe("derivePaymentMethods", () => {
       expect(one({ cardBrand: "" }).icon).toBe("credit");
     });
 
-    test("a US bank account is a bank; a debit scheme the embed never mapped is not", () => {
+    test("a US bank account is a bank; a debit scheme is not", () => {
       expect(typed("us_bank_account").icon).toBe("bank");
       expect(typed("sepa_debit").icon).toBe("generic-payment");
     });
@@ -100,7 +100,7 @@ describe("derivePaymentMethods", () => {
     });
   });
 
-  test("a card with no digits keeps the embed's label", () => {
+  test("a card with no digits keeps its label", () => {
     expect(one({ cardLast4: null })).toMatchObject({
       label: { key: "paymentMethodsCardEndingIn" },
       last4: null,
@@ -108,7 +108,7 @@ describe("derivePaymentMethods", () => {
     expect(one({ cardLast4: "" }).last4).toBeNull();
   });
 
-  describe("labels, as the embed writes them", () => {
+  describe("labels", () => {
     test("a bank account: the bank's name and the account's digits", () => {
       expect(
         typed("us_bank_account", { bankName: "Chase", accountLast4: "6789" }),

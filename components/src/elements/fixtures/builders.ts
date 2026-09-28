@@ -79,7 +79,7 @@ export function upcomingInvoice(
 /**
  * A Visa good for a year past `NOW`, not the default. Absent optionals are
  * omitted rather than `null`, as for `discount`. The external id is what
- * the provider knows the method by, and what "make default" is asked with.
+ * the provider knows the method by, and what "Set default" is asked with.
  */
 export function cardPaymentMethod(
   overrides: Partial<PaymentMethod> = {},

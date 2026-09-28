@@ -119,7 +119,7 @@ export function paymentMethodsEmpty(): BillingData {
 
 /**
  * Methods with no default among them, which a provider allows. Nothing is
- * promoted: every row offers Make default and none wears the badge.
+ * promoted: the pill is empty and every row is among the others.
  */
 export function paymentMethodsNoDefault(): BillingData {
   return {

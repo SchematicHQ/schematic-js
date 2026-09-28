@@ -58,8 +58,7 @@ function History() {
 `locale` falls back to the one configured on the provider, then to the
 viewer's language; see [Localizing it](#localizing-it) for the copy.
 
-Every amount carries a tooltip saying whether it was a charge or a credit,
-as the embed's does.
+Every amount carries a tooltip saying whether it was a charge or a credit.
 
 A failure with rows still on screen — a refetch or a page that did not land —
 is reported under the list rather than replacing it; only a failure with

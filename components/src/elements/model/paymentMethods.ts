@@ -8,16 +8,15 @@ import type { StringKey } from "../strings";
  * beside it, plus whether the default card is about to stop working.
  *
  * The provider's vocabulary stays here. A row says "Card ending in" and
- * "8/27"; the element never reads `card_brand` or does calendar arithmetic.
+ * "8/27"; the element never reads `cardBrand` or does calendar arithmetic.
  */
 
 export type PaymentMethodKind = "card" | "bank" | "wallet" | "other";
 
 /**
- * `expired` once a card's month has arrived (the embed's rule: a card in its
- * last month already reads as expired); `soon` when fewer than four months
- * remain, which is when a provider starts declining renewals; `none` for a
- * method that does not expire.
+ * `expired` once a card's month has arrived, so a card in its last month
+ * already reads as expired; `soon` when fewer than four months remain; `ok`
+ * beyond that; `none` for a method that does not expire.
  */
 export type PaymentMethodExpiry = "ok" | "soon" | "expired" | "none";
 
@@ -54,8 +53,8 @@ export type PaymentMethodLabel =
 /**
  * The glyph beside a row's label, by its name in the schematic-icons font:
  * the card network where the font has its mark, a generic card otherwise,
- * the wallet's own mark, a bank for a US bank account, and `generic-payment` for
- * a type nobody mapped. The element renders it as
+ * the wallet's own mark, a bank for a US bank account, and
+ * `generic-payment` for a type nobody mapped. The element renders it as
  * `schematic-icon schematic-icon--<icon>`.
  */
 export type PaymentMethodIcon =
@@ -79,14 +78,13 @@ export interface PaymentMethodRow {
   kind: PaymentMethodKind;
   label: PaymentMethodLabel;
   icon: PaymentMethodIcon;
-  /** The raw card brand, else the raw type; for `[data-brand]`. */
+  /** The card brand, lowercased, else the raw type; for `[data-brand]`. */
   brand: string;
   /** The wire type as sent: `card`, `us_bank_account`, `link`, … */
   type: string;
   /** Digits that follow the label: "Card ending in" 4444. */
   last4: string | null;
-  /** "8/27", the way the embed writes a card's expiry; null when the method
-   * has none. */
+  /** "8/27"; null when the method has none. */
   expiresShort: string | null;
   /** Whole months from the current month to the expiry month; null when the
    * method has none. Zero or less is expired. */
@@ -148,8 +146,8 @@ function isYear(value: number | null | undefined): value is number {
 }
 
 /**
- * Whole calendar months from `now`'s month to the expiry month, the way the
- * embed counts them: the day of either month never matters.
+ * Whole calendar months from `now`'s month to the expiry month; the day of
+ * either month never matters.
  */
 function monthsUntil(month: number, year: number, now: Date): number {
   return (year - now.getFullYear()) * 12 + (month - (now.getMonth() + 1));
@@ -170,8 +168,8 @@ function shortExpiry(month: number, year: number): string {
   return `${month}/${String(year).slice(-2)}`;
 }
 
-/** The embed's label for each type, as a key where the words need
- * translating and as text where the provider supplied them. */
+/** Each type's label, as a key where the words need translating and as
+ * text where the provider supplied them. */
 function labelOf(
   method: PaymentMethod,
   kind: PaymentMethodKind,
@@ -183,7 +181,7 @@ function labelOf(
   const billingEmail = orNull(method.billingEmail);
   const billingName = orNull(method.billingName);
 
-  // The embed labels every card this way, digits or not.
+  // Every card is labelled this way, digits or not.
   if (kind === "card") {
     return { key: "paymentMethodsCardEndingIn" };
   }
@@ -209,7 +207,8 @@ function labelOf(
     }
     // The account behind a wallet is what tells two of them apart: the
     // Link email, the PayPal account name. Link is known by its email
-    // first; the others by their account name.
+    // first, Amazon Pay by its billing name, the others by their account
+    // name.
     const detail =
       type === "link"
         ? (billingEmail ?? accountName)
@@ -228,8 +227,8 @@ function kindOf(type: string): PaymentMethodKind {
   if (type === "card") {
     return "card";
   }
-  // The embed's only bank type; a debit scheme such as `sepa_debit` falls
-  // through to the generic label, as it does there.
+  // The only bank type; a debit scheme such as `sepa_debit` falls through
+  // to the generic label.
   if (type === "us_bank_account") {
     return "bank";
   }
@@ -252,8 +251,6 @@ const WALLET_ICONS: Record<string, PaymentMethodIcon> = {
   paypal: "paypal",
 };
 
-/** The embed's icon map, keyed the same way: brand for a card, type for
- * the rest. */
 function iconOf(
   type: string,
   kind: PaymentMethodKind,

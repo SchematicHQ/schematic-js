@@ -191,7 +191,7 @@ describe("PaymentMethods", () => {
     );
   });
 
-  test("shows the default method alone, as the embed's pill, with Edit", () => {
+  test("shows the default method alone, in a pill, with Edit", () => {
     renderCard();
     expect(
       screen.getByRole("heading", { name: "Payment Details" }),
@@ -300,7 +300,7 @@ describe("PaymentMethods", () => {
     expect(warning?.closest(".schematic-header")).not.toBeNull();
   });
 
-  test("says one month in the embed's short form", () => {
+  test('abbreviates one month as "1 mo"', () => {
     renderCard({ paymentMethods: [defaultCard(9, 2026)] });
     expect(screen.getByText("Expires in 1 mo")).toBeInTheDocument();
   });
@@ -485,7 +485,7 @@ describe("PaymentMethods", () => {
       ).toBeNull();
     });
 
-    test("a card among the others shows when it expires, in the embed's short form", () => {
+    test("a card among the others shows when it expires, as month/year", () => {
       renderCard({
         paymentMethods: [
           defaultCard(8, 2027),
@@ -527,7 +527,7 @@ describe("PaymentMethods", () => {
       await waitFor(() =>
         expect(setDefaultPaymentMethod).toHaveBeenCalledWith("pm_bank_ext"),
       );
-      // The embed's dialog stays as it was after a write.
+      // The dialog stays as it was after a write.
       expect(rows()).toHaveLength(2);
       expect(
         screen.getByRole("button", { name: "Choose different payment method" }),
@@ -552,7 +552,7 @@ describe("PaymentMethods", () => {
       );
     });
 
-    test("the pill offers Remove in the dialog, as the embed's does, and asks the provider with the default's id", async () => {
+    test("the pill offers Remove in the dialog, and asks the provider with the default's id", async () => {
       const removePaymentMethod = vi.fn().mockResolvedValue(undefined);
       renderCard(
         SCENARIOS.paymentMethods(),
@@ -625,7 +625,7 @@ describe("PaymentMethods", () => {
       });
     });
 
-    test("reports a failed write at the foot of the dialog in the embed's words, and Retry re-runs it", async () => {
+    test("reports a failed write at the foot of the dialog, and Retry re-runs it", async () => {
       const setDefaultPaymentMethod = vi
         .fn()
         .mockRejectedValue(new Error("The provider refused."));
@@ -710,7 +710,7 @@ describe("PaymentMethods", () => {
       expect(screen.queryByRole("alert")).toBeNull();
     });
 
-    test("a failed remove reads as the embed words it", async () => {
+    test("a failed remove reports its own copy", async () => {
       const removePaymentMethod = vi
         .fn()
         .mockRejectedValue(new Error("The provider refused."));
