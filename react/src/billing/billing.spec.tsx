@@ -19,6 +19,8 @@ import {
   normalizeInvoiceQuery,
   type BillingData,
   type BillingProviderClient,
+  type CreditBalanceEntry,
+  type CreditUserUsage,
   type FeatureUsage,
   type FeatureUserUsage,
   type Invoice,
@@ -33,6 +35,8 @@ import {
   useBillingDataSource,
 } from "./context";
 import {
+  useCreditBalances,
+  useCreditUserUsage,
   useFeatureUsage,
   useFeatureUserUsage,
   useInvoices,
@@ -105,6 +109,20 @@ const userUsage = (featureId: string): FeatureUserUsage =>
     users: [{ userId: `user_${featureId}`, usage: 5 }],
   }) as unknown as FeatureUserUsage;
 
+const balance = (creditId: string): CreditBalanceEntry =>
+  ({
+    creditId,
+    creditName: creditId,
+    grants: [],
+  }) as unknown as CreditBalanceEntry;
+
+const creditUsage = (creditId: string): CreditUserUsage =>
+  ({
+    count: 1,
+    total: 3,
+    users: [{ userId: `user_${creditId}`, used: 3 }],
+  }) as unknown as CreditUserUsage;
+
 type SessionListener = (event: SessionEvent) => void;
 
 function fakeClient(
@@ -125,6 +143,8 @@ function fakeClient(
     deletePaymentMethod: vi.fn(async () => {}),
     fetchFeatureUsage: vi.fn(async () => []),
     fetchFeatureUserUsage: vi.fn(async ({ featureId }) => userUsage(featureId)),
+    fetchCreditBalances: vi.fn(async () => []),
+    fetchCreditUserUsage: vi.fn(async ({ creditId }) => creditUsage(creditId)),
     onSessionChange: (listener) => {
       listeners.push(listener);
       return () => {};
@@ -2278,5 +2298,96 @@ describe("useFeatureUserUsage", () => {
       ),
     });
     expect(result.current).toMatchObject({ data: undefined, isPending: true });
+  });
+});
+
+describe("useCreditBalances", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_("loads the balances once for every reader", async () => {
+    const client = fakeClient({
+      fetchCreditBalances: vi.fn(async () => [balance("a")]),
+    });
+    const { result } = renderHook(
+      () => [useCreditBalances(), useCreditBalances()] as const,
+      { wrapper: wrap(client) },
+    );
+    await flush();
+    expect(result.current[0].data?.[0].creditId).toBe("a");
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(client.fetchCreditBalances).toHaveBeenCalledTimes(1);
+  });
+
+  it_(
+    "serves a prefetched list, an empty one included, without a request",
+    async () => {
+      const client = fakeClient({
+        fetchCreditBalances: vi.fn(async () => [balance("fetched")]),
+      });
+      const { result } = renderHook(() => useCreditBalances(), {
+        wrapper: wrap(client, { creditBalances: [] }),
+      });
+      expect(result.current).toMatchObject({ data: [], isPending: false });
+      await flush();
+      expect(client.fetchCreditBalances).not.toHaveBeenCalled();
+    },
+  );
+});
+
+describe("useCreditUserUsage", () => {
+  it_("reads each credit's breakdown once, the heaviest 20 users", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(
+      () => [useCreditUserUsage("a"), useCreditUserUsage("a")] as const,
+      {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingProvider billingClient={client}>{children}</BillingProvider>
+        ),
+      },
+    );
+    await flush();
+    expect(result.current[0].data?.users[0].userId).toBe("user_a");
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(client.fetchCreditUserUsage).toHaveBeenCalledTimes(1);
+    expect(client.fetchCreditUserUsage).toHaveBeenCalledWith({
+      creditId: "a",
+      limit: 20,
+    });
+
+    act(() => {
+      client.listeners.forEach((listener) => listener({ type: "changed" }));
+    });
+    await flush();
+    expect(client.fetchCreditUserUsage).toHaveBeenCalledTimes(2);
+  });
+
+  it_("serves fixture breakdowns by credit, pending for the rest", () => {
+    const { result } = renderHook(
+      () => [useCreditUserUsage("a"), useCreditUserUsage("b")] as const,
+      {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingDataProvider
+            creditUserUsage={{ a: creditUsage("a") }}
+            data={{}}
+          >
+            {children}
+          </BillingDataProvider>
+        ),
+      },
+    );
+    expect(result.current[0].data?.total).toBe(3);
+    expect(result.current[1]).toMatchObject({
+      data: undefined,
+      isPending: true,
+    });
   });
 });
