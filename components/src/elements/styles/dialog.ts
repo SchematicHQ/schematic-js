@@ -53,7 +53,6 @@ export const dialogCss = `
   margin: 0;
 }
 
-/* A large, faint glyph centred in a slightly larger hit target. */
 .schematic-dialog__close {
   align-items: center;
   background: none;

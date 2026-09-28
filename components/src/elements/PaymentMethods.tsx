@@ -110,7 +110,6 @@ export function PaymentMethods({
   } = usePaymentMethods();
   const locale = useResolvedLocale(localeProp);
   const t = useTranslator(strings, localeProp);
-  // Null while the dialog is closed.
   const [dialog, setDialog] = useState<DialogView | null>(null);
   const [choosing, setChoosing] = useState(false);
   // The last write, so Retry re-runs it rather than refetching; also

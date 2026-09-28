@@ -144,7 +144,6 @@ export const paymentMethodsCss = `
   text-decoration: none;
 }
 
-/* A large, faint close glyph. */
 .schematic-payment-methods__remove {
   background: none;
   border: none;

@@ -85,7 +85,6 @@ const defaultCard = (cardExpMonth: number, cardExpYear: number) =>
     cardExpYear,
   });
 
-/** Opens the dialog from the card's Edit or Add. */
 function openDialog() {
   fireEvent.click(within(pill()).getByRole("button"));
   return dialog();
@@ -380,7 +379,6 @@ describe("PaymentMethods", () => {
         name: "Edit payment details",
       });
       expect(modal).toHaveAttribute("aria-labelledby", title.id);
-      // The pill again, with Remove in place of Edit.
       const current = within(modal).getByTestId(
         "schematic-payment-method-current",
       );
