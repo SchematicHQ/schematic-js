@@ -6,6 +6,7 @@
 import type {
   Discount,
   FeatureUsage,
+  FeatureUserUsage,
   Invoice,
   InvoicePage,
   MeteredPrice,
@@ -194,6 +195,37 @@ export function perLicenseCreditGrant(
     creditName: "AI credit",
     id: nextId("bpcg"),
     scaling: "per_license",
+    ...overrides,
+  };
+}
+
+/**
+ * Five named users behind a feature, heaviest last so a consumer has to sort,
+ * and usage sent without a user.
+ */
+export function featureUserUsage(
+  overrides: Partial<FeatureUserUsage> = {},
+): FeatureUserUsage {
+  const users = [
+    { name: "Eve", usage: 10 },
+    { name: "Dan", usage: 20 },
+    { name: "Cy", usage: 30 },
+    { name: "Bo", usage: 40 },
+    { name: "Ada", usage: 150 },
+  ];
+  return {
+    count: users.length,
+    endTime: daysFromNow(11),
+    startTime: daysFromNow(-20),
+    total: 260,
+    unattributed: 10,
+    users: users.map(({ name, usage }, index) => ({
+      lastSeen: daysFromNow(-index),
+      name,
+      share: usage / 260,
+      usage,
+      userId: `user_${name.toLowerCase()}`,
+    })),
     ...overrides,
   };
 }

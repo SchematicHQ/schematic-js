@@ -7,9 +7,15 @@ import { vi } from "vitest";
 
 import { IncludedFeatures } from "../IncludedFeatures";
 import { Invoices } from "../Invoices";
+import { MeteredFeatures } from "../MeteredFeatures";
 import { PaymentMethods } from "../PaymentMethods";
 import { UpcomingBill } from "../UpcomingBill";
-import { cardPaymentMethod, invoice, invoicePage } from "../fixtures/builders";
+import {
+  cardPaymentMethod,
+  featureUserUsage,
+  invoice,
+  invoicePage,
+} from "../fixtures/builders";
 import { SCENARIOS, paymentMethodSet } from "../fixtures/scenarios";
 
 import { withTokenDefaults } from "./tokens";
@@ -25,7 +31,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped; `schematic-badge` is among them, worn only by the plan cards.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|included-features|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|included-features|metered-features|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -87,9 +93,17 @@ function tree(
   data: BillingData,
   status?: never,
   actions?: React.ComponentProps<typeof BillingDataProvider>["actions"],
+  featureUserUsage?: React.ComponentProps<
+    typeof BillingDataProvider
+  >["featureUserUsage"],
 ) {
   const { container } = render(
-    <BillingDataProvider actions={actions} data={data} status={status}>
+    <BillingDataProvider
+      actions={actions}
+      data={data}
+      featureUserUsage={featureUserUsage}
+      status={status}
+    >
       {node}
     </BillingDataProvider>,
   );
@@ -220,6 +234,19 @@ async function everyCard() {
       featureUsage: { error: boom },
     } as never),
     tree(<IncludedFeatures locale="en-US" />, SCENARIOS.featureUsage(), {
+      featureUsage: { error: boom },
+    } as never),
+    tree(
+      <MeteredFeatures addMoreUrl="/buy" locale="en-US" showHardLimit />,
+      SCENARIOS.featureUsage(),
+      undefined,
+      undefined,
+      { feat_api: featureUserUsage() },
+    ),
+    tree(<MeteredFeatures locale="en-US" />, {}, {
+      featureUsage: { isPending: true },
+    } as never),
+    tree(<MeteredFeatures locale="en-US" />, {}, {
       featureUsage: { error: boom },
     } as never),
     tree(<UpcomingBill locale="en-US" />, SCENARIOS.pro()),
