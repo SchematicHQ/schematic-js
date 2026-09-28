@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@microsoft/api-extractor": "^7.59.1",
+    "@microsoft/api-extractor": "^7.59.2",
     "@schematichq/schematic-js": "^1.8.0",
     "@testing-library/dom": "^10.4.2",
     "@types/jest": "^30.0.0",
@@ -45,8 +45,8 @@
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "jest-esbuild": "^0.4.0",
-    "prettier": "^3.9.8",
-    "ts-jest": "^29.4.12",
+    "prettier": "^3.9.9",
+    "ts-jest": "^29.4.14",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1",
     "vue": "^3.5.43"
