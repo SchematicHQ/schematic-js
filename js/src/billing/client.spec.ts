@@ -669,3 +669,257 @@ describe("fetchBillingData", () => {
     expect("paymentMethods" in failed).toBe(false);
   });
 });
+
+const wireFeatureUsage = {
+  data: {
+    count: 2,
+    features: [
+      {
+        access: true,
+        allocation: 1000,
+        company_override_id: null,
+        consumption_rate: null,
+        current_cost: 1500,
+        entitlement_type: "plan_entitlement",
+        expires_at: null,
+        feature_description: "Calls to the API",
+        feature_icon: "api",
+        feature_id: "feat_1",
+        feature_name: "API calls",
+        feature_plural_name: "API calls",
+        feature_singular_name: "API call",
+        feature_type: "event",
+        license_id: null,
+        metric_period: "current_month",
+        metric_period_month_reset: "first_of_month",
+        per_license_credit_grants: [],
+        plan_entitlement_id: "pe_1",
+        price: {
+          currency: "usd",
+          id: "bpp_1",
+          interval: "month",
+          interval_count: 1,
+          overage_unit_price_decimal: null,
+          package_size: 1,
+          price: 5,
+          price_decimal: null,
+          price_tiers: [],
+          scheme: "per_unit",
+          tiers_mode: null,
+        },
+        price_behavior: "overage",
+        resets_at: "2026-10-01T00:00:00Z",
+        soft_limit: 1000,
+        usage: 1300,
+        value_bool: null,
+        value_numeric: 1000,
+        value_type: "numeric",
+        warning_threshold: 800,
+      },
+      {
+        access: true,
+        allocation: 50,
+        company_override_id: "co_1",
+        entitlement_type: "company_override",
+        expires_at: "2026-11-01T00:00:00Z",
+        feature_description: "",
+        feature_icon: "",
+        feature_id: "feat_2",
+        feature_name: "Seats",
+        feature_type: "trait",
+        per_license_credit_grants: [],
+        price: null,
+        usage: 12,
+        value_type: "numeric",
+      },
+    ],
+  },
+};
+
+const wireFeatureUserUsage = {
+  data: {
+    count: 3,
+    end_time: "2026-10-01T00:00:00Z",
+    start_time: "2026-09-01T00:00:00Z",
+    total: 900,
+    unattributed: 100,
+    users: [
+      {
+        last_seen: "2026-09-27T12:00:00Z",
+        name: "Ada",
+        share: 0.5,
+        usage: 450,
+        user_id: "user_1",
+      },
+      {
+        last_seen: "2026-09-26T12:00:00Z",
+        name: null,
+        share: 0.3,
+        usage: 270,
+        user_id: "user_2",
+      },
+    ],
+  },
+};
+
+describe("feature usage", () => {
+  it("decodes the company's feature usage", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireFeatureUsage }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const features = await client.fetchFeatureUsage();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/company/usage",
+      method: "GET",
+    });
+    expect(features).toHaveLength(2);
+    expect(features[0]).toMatchObject({
+      featureId: "feat_1",
+      entitlementType: "plan_entitlement",
+      planEntitlementId: "pe_1",
+      priceBehavior: "overage",
+      softLimit: 1000,
+      usage: 1300,
+      currentCost: 1500,
+      warningThreshold: 800,
+      price: { currency: "usd", price: 5, packageSize: 1 },
+    });
+    expect(features[0].resetsAt).toEqual(new Date("2026-10-01T00:00:00Z"));
+    expect(features[1]).toMatchObject({
+      entitlementType: "company_override",
+      companyOverrideId: "co_1",
+    });
+    expect(features[1].expiresAt).toEqual(new Date("2026-11-01T00:00:00Z"));
+    expect(features[1].price).toBeUndefined();
+  });
+
+  it("reads no features from an empty, null or omitted list", async () => {
+    for (const body of [
+      { data: { count: 0, features: [] } },
+      { data: { count: 0, features: null } },
+      { data: { count: 0 } },
+      { data: null },
+    ]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchFeatureUsage()).resolves.toEqual([]);
+    }
+  });
+
+  it("reports malformed feature usage rather than reading it as none", async () => {
+    for (const body of [null, "yes", { nope: 1 }]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchFeatureUsage()).rejects.toThrow(
+        /Malformed response/,
+      );
+    }
+  });
+
+  it("keeps a 404 on feature usage the failure it is", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client.fetchFeatureUsage().catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({ status: 404, path: "/company/usage" });
+  });
+
+  it("decodes one feature's usage by user and pages it", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: wireFeatureUserUsage,
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const usage = await client.fetchFeatureUserUsage({
+      featureId: "feat 1",
+      limit: 20,
+    });
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/usage/feat%201/users?limit=20",
+    );
+    expect(usage).toMatchObject({ count: 3, total: 900, unattributed: 100 });
+    expect(usage.users).toHaveLength(2);
+    expect(usage.users[0]).toMatchObject({ userId: "user_1", name: "Ada" });
+    expect(usage.users[1].name).toBeUndefined();
+
+    await client.fetchFeatureUserUsage({ featureId: "feat_1" });
+    expect(calls[1].url).toBe(
+      "https://api.schematichq.com/company/usage/feat_1/users",
+    );
+  });
+
+  it("keeps a 404 on a breakdown the company cannot read", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client
+      .fetchFeatureUserUsage({ featureId: "feat_1" })
+      .catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({
+      status: 404,
+      path: "/company/usage/feat_1/users",
+    });
+  });
+
+  it("seeds feature usage, an empty list included", async () => {
+    const { calls, fetchImpl } = fakeFetch(
+      byPath({ "/company/usage": { body: wireFeatureUsage } }),
+    );
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const data = await fetchBillingData(client, { names: ["featureUsage"] });
+    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
+      "/company/usage",
+    ]);
+    expect(data.featureUsage).toHaveLength(2);
+
+    const { fetchImpl: none } = fakeFetch(() => ({
+      body: { data: { count: 0, features: [] } },
+    }));
+    const empty = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: none,
+      }),
+      { names: ["featureUsage"] },
+    );
+    expect(empty.featureUsage).toEqual([]);
+
+    const { fetchImpl: failing } = fakeFetch(() => ({
+      status: 500,
+      body: "x",
+    }));
+    const failed = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: failing,
+      }),
+      { names: ["featureUsage"] },
+    );
+    expect("featureUsage" in failed).toBe(false);
+  });
+});

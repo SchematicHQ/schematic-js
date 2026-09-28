@@ -8,6 +8,8 @@
 
 import {
   CreateSetupIntentResponseFromJSON,
+  GetCompanyFeatureUsageResponseFromJSON,
+  GetCompanyFeatureUserUsageResponseFromJSON,
   GetCompanyInvoicesResponseFromJSON,
   GetCompanyPaymentMethodsResponseFromJSON,
   GetCompanyUpcomingInvoiceResponseFromJSON,
@@ -15,6 +17,8 @@ import {
 import type {
   BillingData,
   BillingResourceName,
+  FeatureUsage,
+  FeatureUserUsage,
   InvoicePage,
   InvoiceQuery,
   PaymentMethod,
@@ -41,6 +45,13 @@ export interface InvoicesRequest extends InvoiceQuery {
  */
 export type InvoicesResult = Omit<InvoicePage, "hasMore">;
 
+export interface FeatureUserUsageRequest {
+  featureId: string;
+  /** Users per page; the server's default when omitted. */
+  limit?: number;
+  offset?: number;
+}
+
 /**
  * What a reader of billing data can ask for, and the few writes beside it.
  * Subscription and usage — the rest of what `hydrate` serves — and the
@@ -59,6 +70,12 @@ export interface BillingClient {
   updatePaymentMethod(externalId: string): Promise<void>;
   /** Removes the method, by Schematic's id (`id`). */
   deletePaymentMethod(id: string): Promise<void>;
+  /** Empty when the company is entitled to nothing. */
+  fetchFeatureUsage(): Promise<FeatureUsage[]>;
+  /** One event-based feature's usage by user over its metric period. */
+  fetchFeatureUserUsage(
+    params: FeatureUserUsageRequest,
+  ): Promise<FeatureUserUsage>;
 
   readonly sessionStatus: SessionStatus;
 
@@ -200,6 +217,46 @@ export class SchematicBillingClient implements BillingClient {
       })
       .then(() => undefined);
   }
+
+  fetchFeatureUsage(): Promise<FeatureUsage[]> {
+    const path = "/company/usage";
+    // No entitlements is a 200 with an empty list. A 404 is the account
+    // being off the flag, and stays the error it is.
+    return this.session.request(path).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      const data = (body as { data: unknown }).data as {
+        features?: unknown;
+      } | null;
+      if (data == null || data.features == null) {
+        return [];
+      }
+      return GetCompanyFeatureUsageResponseFromJSON(body).data.features;
+    });
+  }
+
+  fetchFeatureUserUsage(
+    params: FeatureUserUsageRequest,
+  ): Promise<FeatureUserUsage> {
+    const query = new URLSearchParams();
+    if (params.limit !== undefined) {
+      query.set("limit", String(params.limit));
+    }
+    if (params.offset !== undefined) {
+      query.set("offset", String(params.offset));
+    }
+    const search = query.toString();
+    const path = `/company/usage/${encodeURIComponent(params.featureId)}/users${search === "" ? "" : `?${search}`}`;
+    // A feature the company has no event-based entitlement to is a 404:
+    // there is no breakdown for it to read.
+    return this.session.request(path).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return GetCompanyFeatureUserUsageResponseFromJSON(body).data;
+    });
+  }
 }
 
 export interface BillingPrefetchOptions {
@@ -264,6 +321,10 @@ export async function fetchBillingData(
           }
           case "paymentMethods": {
             data.paymentMethods = await client.fetchPaymentMethods();
+            break;
+          }
+          case "featureUsage": {
+            data.featureUsage = await client.fetchFeatureUsage();
             break;
           }
         }
