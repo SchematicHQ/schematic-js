@@ -200,24 +200,28 @@ export const UpcomingBill = forwardRef<
           <TransitionBox>
             {upcomingInvoice ? (
               <Flex $flexDirection="column" $gap="1rem">
-                {props.header.isVisible && billDate && (
-                  <Flex $flexDirection="column" $gap="0.25rem">
-                    <Text display={props.header.fontStyle}>
-                      {t(props.header.prefix as SchematicTranslationKey)}{" "}
-                      {toPrettyDate(billDate, { locale })}
-                    </Text>
-
-                    {paymentDueDate && (
-                      <Text
-                        $size={0.8125 * settings.theme.typography.text.fontSize}
-                      >
-                        {t("Payment due", {
-                          date: toPrettyDate(paymentDueDate, { locale }),
-                        })}
+                {props.header.isVisible &&
+                  upcomingInvoice.dueDate &&
+                  billDate && (
+                    <Flex $flexDirection="column" $gap="0.25rem">
+                      <Text display={props.header.fontStyle}>
+                        {t(props.header.prefix as SchematicTranslationKey)}{" "}
+                        {toPrettyDate(billDate, { locale })}
                       </Text>
-                    )}
-                  </Flex>
-                )}
+
+                      {paymentDueDate && (
+                        <Text
+                          $size={
+                            0.8125 * settings.theme.typography.text.fontSize
+                          }
+                        >
+                          {t("Payment due", {
+                            date: toPrettyDate(paymentDueDate, { locale }),
+                          })}
+                        </Text>
+                      )}
+                    </Flex>
+                  )}
 
                 <Flex
                   $justifyContent="space-between"

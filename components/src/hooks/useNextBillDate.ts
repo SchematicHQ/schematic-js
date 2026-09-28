@@ -4,6 +4,7 @@ import {
   BillingCollectionMethod,
   type UpcomingInvoiceResponseData,
 } from "../api/checkoutexternal";
+
 import { useEmbed } from ".";
 
 /**
@@ -15,6 +16,9 @@ import { useEmbed } from ".";
  * falls weeks after the customer is actually billed. The subscription's period
  * end is when the invoice is raised; `dueDate` is only the fallback, for the
  * automatic-collection case where the two coincide.
+ *
+ * A subscription set to cancel at period end has no next bill, so both dates
+ * are `undefined`.
  */
 export function useNextBillDate(
   upcomingInvoice?: UpcomingInvoiceResponseData | null,
@@ -23,13 +27,20 @@ export function useNextBillDate(
 
   const invoice =
     upcomingInvoice === undefined ? data?.upcomingInvoice : upcomingInvoice;
-  const periodEnd = data?.company?.billingSubscription?.periodEnd;
+  const subscription = data?.company?.billingSubscription;
+  const cancelAtPeriodEnd = subscription?.cancelAtPeriodEnd;
+  const periodEnd = subscription?.periodEnd;
   const collectionMethod = invoice?.collectionMethod;
   const dueDate = invoice?.dueDate ?? undefined;
 
   return useMemo(() => {
+    if (cancelAtPeriodEnd) {
+      return { billDate: undefined, paymentDueDate: undefined };
+    }
+
+    // `periodEnd` defaults to 0 when unset, which is not a real date.
     const billDate =
-      typeof periodEnd === "number" ? new Date(periodEnd * 1000) : dueDate;
+      periodEnd && periodEnd > 0 ? new Date(periodEnd * 1000) : dueDate;
 
     // Compare calendar days so a time-of-day difference is not shown as a
     // separate deadline.
@@ -43,5 +54,5 @@ export function useNextBillDate(
       billDate,
       paymentDueDate: hasSeparateDeadline ? dueDate : undefined,
     };
-  }, [periodEnd, collectionMethod, dueDate]);
+  }, [cancelAtPeriodEnd, periodEnd, collectionMethod, dueDate]);
 }

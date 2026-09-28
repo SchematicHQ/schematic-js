@@ -122,6 +122,21 @@ describe("`UpcomingBill` heading date", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/Payment due/)).not.toBeInTheDocument();
   });
+  test("shows no heading when the invoice has no due date", async () => {
+    // A trial set to cancel at trial end: a $0 invoice with no due date, but
+    // the subscription still has a period end.
+    state.company.billingSubscription = {
+      periodEnd: SEP_9_2027,
+    };
+    state.embed.getUpcomingInvoice.mockResolvedValue({
+      data: { amountDue: 0, currency: "usd" },
+    });
+
+    render(<UpcomingBill />);
+
+    expect(await screen.findByText("$0.00")).toBeInTheDocument();
+    expect(screen.queryByText(/Next bill due/)).not.toBeInTheDocument();
+  });
 });
 
 describe("`UpcomingBill` discount summary", () => {
