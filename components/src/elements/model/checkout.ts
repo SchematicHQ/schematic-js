@@ -159,6 +159,8 @@ export interface CheckoutModel {
   /** There is something to price. */
   priceable: boolean;
   problems: CheckoutProblems;
+  /** What the card form collects beside the card. */
+  collect: { address: boolean; email: boolean; phone: boolean };
   /** What the payment step collects. */
   requirements: {
     collectTaxId: boolean;
@@ -485,6 +487,11 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
     trial,
     priceable,
     problems,
+    collect: {
+      address: catalog.checkoutSettings.collectAddress,
+      email: catalog.checkoutSettings.collectEmail,
+      phone: catalog.checkoutSettings.collectPhone,
+    },
     requirements: {
       collectTaxId: catalog.checkoutSettings.collectTaxId,
       customFields: catalog.checkoutSettings.customFields.map((field) => ({

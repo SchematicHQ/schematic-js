@@ -1,5 +1,6 @@
 import React from "react";
 
+import { checkoutCss } from "./checkout";
 import { dialogCss } from "./dialog";
 import { iconsCss } from "./icons";
 import { invoicesCss } from "./invoices";
@@ -508,6 +509,7 @@ ${dialogCss}
 ${invoicesCss}
 ${upcomingBillCss}
 ${paymentMethodsCss}
+${checkoutCss}
 `;
 
 /**
