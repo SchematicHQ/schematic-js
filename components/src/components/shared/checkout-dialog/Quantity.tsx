@@ -2,7 +2,11 @@ import { useMemo } from "react";
 
 import { ProrationBehavior } from "../../../api/checkoutexternal";
 import { TEXT_BASE_SIZE } from "../../../const";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  useNextBillDate,
+} from "../../../hooks";
 import { useTranslation } from "../../../localization";
 import type { SelectedPlan, UsageBasedEntitlement } from "../../../types";
 import {
@@ -54,7 +58,7 @@ export const Quantity = ({
   );
 
   const prorationBehavior = data?.checkoutSettings?.prorationBehavior;
-  const renewalDate = data?.upcomingInvoice?.dueDate ?? undefined;
+  const { billDate: renewalDate } = useNextBillDate();
 
   return (
     <Flex $flexDirection="column" $gap="1rem">

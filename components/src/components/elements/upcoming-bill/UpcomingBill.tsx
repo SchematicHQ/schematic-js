@@ -2,7 +2,11 @@ import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 
 import { type UpcomingInvoiceResponseData } from "../../../api/checkoutexternal";
 import { type FontStyle } from "../../../context";
-import { useEmbed, useIsLightBackground } from "../../../hooks";
+import {
+  useEmbed,
+  useIsLightBackground,
+  useNextBillDate,
+} from "../../../hooks";
 import {
   useTranslation,
   type SchematicTranslationKey,
@@ -154,6 +158,8 @@ export const UpcomingBill = forwardRef<
     upcomingInvoice?.subtotal,
   ]);
 
+  const { billDate, paymentDueDate } = useNextBillDate(upcomingInvoice ?? null);
+
   const hasApplied = applied > 0;
   const hasBalance = remaining > 0 || applied > 0;
 
@@ -194,12 +200,28 @@ export const UpcomingBill = forwardRef<
           <TransitionBox>
             {upcomingInvoice ? (
               <Flex $flexDirection="column" $gap="1rem">
-                {props.header.isVisible && upcomingInvoice.dueDate && (
-                  <Text display={props.header.fontStyle}>
-                    {t(props.header.prefix as SchematicTranslationKey)}{" "}
-                    {toPrettyDate(upcomingInvoice.dueDate, { locale })}
-                  </Text>
-                )}
+                {props.header.isVisible &&
+                  upcomingInvoice.dueDate &&
+                  billDate && (
+                    <Flex $flexDirection="column" $gap="0.25rem">
+                      <Text display={props.header.fontStyle}>
+                        {t(props.header.prefix as SchematicTranslationKey)}{" "}
+                        {toPrettyDate(billDate, { locale })}
+                      </Text>
+
+                      {paymentDueDate && (
+                        <Text
+                          $size={
+                            0.8125 * settings.theme.typography.text.fontSize
+                          }
+                        >
+                          {t("Payment due", {
+                            date: toPrettyDate(paymentDueDate, { locale }),
+                          })}
+                        </Text>
+                      )}
+                    </Flex>
+                  )}
 
                 <Flex
                   $justifyContent="space-between"

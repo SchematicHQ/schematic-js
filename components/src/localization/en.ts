@@ -138,6 +138,7 @@ const en = {
     "Error saving custom field values. Please try again.",
   "Pay now": "Pay now",
   "Payment Details": "Payment Details",
+  "Payment due": "Payment due {{date}}",
   "Plan selected": "Plan selected",
   "Please accept the agreement to continue.":
     "Please accept the agreement to continue.",
