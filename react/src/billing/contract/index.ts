@@ -23,6 +23,10 @@ import type {
 } from "@schematichq/schematic-js";
 
 export {
+  CheckoutDraft,
+  CheckoutProblemCode,
+  CheckoutStatus,
+  checkoutProblemsOf,
   DEFAULT_CATALOG_QUERY,
   DEFAULT_INVOICE_QUERY,
   InvoiceStatus,
@@ -35,6 +39,14 @@ export {
   type CatalogEntitlement,
   type CatalogPlan,
   type CatalogQuery,
+  type Checkout,
+  type CheckoutDraftState,
+  type CheckoutPriceSnapshot,
+  type CheckoutProblem,
+  type CheckoutResult,
+  type CheckoutSelections,
+  type CheckoutTransport,
+  type CheckoutWrite,
   type Company,
   type CompanyPlan,
   type CompanySubscription,
@@ -78,8 +90,8 @@ export type BillingResourceParams = Pick<
 
 /**
  * What `BillingProvider` asks of its client: the session it reads under, the
- * fetch behind each resource above, and the payment-method actions the hooks
- * expose. schematic-js's `SchematicBillingClient`
+ * fetch behind each resource above, and the payment-method and checkout
+ * actions the hooks expose. schematic-js's `SchematicBillingClient`
  * satisfies it, and so does a host's own client that implements only this
  * much. Named apart from schematic-js's `BillingClient`, which is the whole
  * interface; this is the part the hooks here call.
@@ -91,6 +103,10 @@ export type BillingProviderClient = Pick<
   | "setSession"
   | "onSessionChange"
   | "fetchCatalog"
+  | "createCheckout"
+  | "getCheckout"
+  | "updateCheckout"
+  | "finalizeCheckout"
   | "fetchInvoices"
   | "fetchUpcomingInvoice"
   | "fetchPaymentMethods"

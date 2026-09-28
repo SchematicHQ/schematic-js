@@ -20,6 +20,8 @@ import {
   type BillingData,
   type BillingProviderClient,
   type Catalog,
+  type Checkout,
+  type CheckoutResult,
   type Company,
   type CreditBalanceEntry,
   type CreditUserUsage,
@@ -38,6 +40,7 @@ import {
 } from "./context";
 import {
   useCatalog,
+  useCheckout,
   useCompany,
   useCreditBalances,
   useCreditUserUsage,
@@ -140,6 +143,16 @@ const catalog = (id: string): Catalog =>
     creditBundles: [],
   }) as unknown as Catalog;
 
+const draftCheckout = (version: number): Checkout =>
+  ({
+    id: "chk_1",
+    version,
+    status: "open",
+    problems: [],
+  }) as unknown as Checkout;
+
+const charged = { id: "bilsub_1" } as unknown as CheckoutResult;
+
 type SessionListener = (event: SessionEvent) => void;
 
 function fakeClient(
@@ -155,6 +168,13 @@ function fakeClient(
     fetchCatalog: vi.fn(async (query) =>
       catalog(query?.catalogId ?? "cat_env"),
     ),
+    createCheckout: vi.fn(async () => ({ checkout: draftCheckout(1) })),
+    getCheckout: vi.fn(async () => draftCheckout(1)),
+    updateCheckout: vi.fn(async (_id, version) => ({
+      checkout: draftCheckout(version + 1),
+      sessionId: `cs_${version + 1}`,
+    })),
+    finalizeCheckout: vi.fn(async () => charged),
     fetchInvoices: vi.fn(async () => rowsOf()),
     fetchUpcomingInvoice: vi.fn(async () => null),
     fetchPaymentMethods: vi.fn(async () => []),
@@ -2523,4 +2543,136 @@ describe("useCatalog", () => {
     });
     expect(result.current.data?.id).toBe("fixture");
   });
+});
+
+describe("useCheckout", () => {
+  const wrap = (client: BillingProviderClient, strict = false) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      const tree = (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      );
+      return strict ? <StrictMode>{tree}</StrictMode> : tree;
+    }
+    return Wrapper;
+  };
+
+  it_(
+    "opens the checkout, re-prices it, and finalizes under the last session",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(() => useCheckout(), {
+        wrapper: wrap(client),
+      });
+      expect(result.current.checkout).toBeUndefined();
+
+      await act(() => result.current.setSelections({ planId: "plan_1" }));
+      expect(client.createCheckout).toHaveBeenCalledWith({ planId: "plan_1" });
+      expect(result.current.checkout?.version).toBe(1);
+
+      await act(() => result.current.setSelections({ planId: "plan_2" }));
+      expect(client.updateCheckout).toHaveBeenCalledWith("chk_1", 1, {
+        planId: "plan_2",
+      });
+
+      let charge: CheckoutResult | undefined;
+      await act(async () => {
+        charge = await result.current.finalize();
+      });
+      expect(client.finalizeCheckout).toHaveBeenCalledWith("chk_1", 2, {
+        sessionId: "cs_2",
+      });
+      expect(charge).toBe(charged);
+      expect(result.current.result).toBe(charged);
+    },
+  );
+
+  it_("reloads what the purchase changed once it lands", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(
+      () => [useCheckout(), useCompany()] as const,
+      {
+        wrapper: wrap(client),
+      },
+    );
+    await flush();
+    expect(client.fetchCompany).toHaveBeenCalledTimes(1);
+    await act(() => result.current[0].setSelections({ planId: "plan_1" }));
+    await act(() => result.current[0].finalize());
+    await flush();
+    expect(
+      (client.fetchCompany as ReturnType<typeof vi.fn>).mock.calls.length,
+    ).toBeGreaterThan(1);
+  });
+
+  it_("keeps one checkout under StrictMode", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => useCheckout(), {
+      wrapper: wrap(client, true),
+    });
+    await act(() => result.current.setSelections({ planId: "plan_1" }));
+    await act(() => result.current.setSelections({ planId: "plan_2" }));
+    expect(client.createCheckout).toHaveBeenCalledTimes(1);
+    expect(client.updateCheckout).toHaveBeenCalledTimes(1);
+  });
+
+  it_(
+    "drops the checkout when the session changes to somebody else",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(() => useCheckout(), {
+        wrapper: wrap(client),
+      });
+      await act(() => result.current.setSelections({ planId: "plan_1" }));
+      expect(result.current.checkout).toBeDefined();
+      act(() => client.listeners.forEach((l) => l({ type: "changed" })));
+      expect(result.current.checkout).toBeUndefined();
+    },
+  );
+
+  it_("resumes a checkout by id", async () => {
+    const client = fakeClient({
+      getCheckout: vi.fn(async () => draftCheckout(7)),
+    });
+    const { result } = renderHook(() => useCheckout({ checkoutId: "chk_1" }), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current.checkout?.version).toBe(7);
+    await act(() => result.current.setSelections({ planId: "plan_1" }));
+    expect(client.updateCheckout).toHaveBeenCalledWith("chk_1", 7, {
+      planId: "plan_1",
+    });
+  });
+
+  it_(
+    "writes through a fixture's actions, and refuses on a source that only reads",
+    async () => {
+      const createCheckout = vi.fn(async () => ({
+        checkout: draftCheckout(1),
+      }));
+      const { result } = renderHook(() => useCheckout(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingDataProvider data={{}} actions={{ createCheckout }}>
+            {children}
+          </BillingDataProvider>
+        ),
+      });
+      await act(() => result.current.setSelections({ planId: "plan_1" }));
+      expect(createCheckout).toHaveBeenCalledTimes(1);
+
+      const { result: readOnly } = renderHook(() => useCheckout(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingDataProvider data={{}}>{children}</BillingDataProvider>
+        ),
+      });
+      await act(async () => {
+        await expect(
+          readOnly.current.setSelections({ planId: "plan_1" }),
+        ).rejects.toThrow(BILLING_ACTION_UNAVAILABLE_MESSAGE("createCheckout"));
+      });
+      expect(readOnly.current.error?.message).toBe(
+        BILLING_ACTION_UNAVAILABLE_MESSAGE("createCheckout"),
+      );
+    },
+  );
 });
