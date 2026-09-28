@@ -7,6 +7,7 @@
  */
 
 import {
+  CompanyCatalogResponseDataFromJSON,
   CreateSetupIntentResponseFromJSON,
   GetCompanyCreditBalancesResponseFromJSON,
   GetCompanyResponseFromJSON,
@@ -20,6 +21,8 @@ import {
 import type {
   BillingData,
   BillingResourceName,
+  Catalog,
+  CatalogQuery,
   Company,
   CreditBalanceEntry,
   CreditUserUsage,
@@ -31,7 +34,7 @@ import type {
   SetupIntent,
   UpcomingInvoice,
 } from "./contract";
-import { normalizeInvoiceQuery } from "./contract";
+import { normalizeCatalogQuery, normalizeInvoiceQuery } from "./contract";
 import type {
   SessionEvent,
   SessionInput,
@@ -72,6 +75,8 @@ export interface FeatureUserUsageRequest {
  * ship.
  */
 export interface BillingClient {
+  /** The environment's catalog, or the one `catalogId` names. */
+  fetchCatalog(query?: CatalogQuery): Promise<Catalog>;
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult>;
   /** `null` when the company has no next bill. */
   fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
@@ -141,6 +146,28 @@ export class SchematicBillingClient implements BillingClient {
 
   onSessionChange(listener: (event: SessionEvent) => void): () => void {
     return this.session.onChange(listener);
+  }
+
+  fetchCatalog(query: CatalogQuery = {}): Promise<Catalog> {
+    // A 404 is the account being off the catalog flag, or a catalog that is
+    // not the account's, and stays the error it is.
+    const path =
+      query.catalogId === undefined
+        ? "/catalog/view"
+        : `/catalogs/${encodeURIComponent(query.catalogId)}/view`;
+    return this.session.request(path).then((body) => {
+      if (
+        body === null ||
+        typeof body !== "object" ||
+        !("data" in body) ||
+        (body as { data: unknown }).data == null
+      ) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return CompanyCatalogResponseDataFromJSON(
+        (body as { data: unknown }).data,
+      );
+    });
   }
 
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult> {
@@ -347,6 +374,8 @@ export interface BillingPrefetchOptions {
   names: BillingResourceName[];
   /** The invoice query to prefetch for; the element must ask the same one. */
   invoices?: InvoiceQuery;
+  /** The catalog to prefetch; the element must ask the same one. */
+  catalog?: CatalogQuery;
 }
 
 /**
@@ -365,8 +394,15 @@ export async function fetchBillingData(
     options.invoices === undefined
       ? undefined
       : normalizeInvoiceQuery(options.invoices);
-  if (invoices !== undefined) {
-    data.params = { invoices };
+  const catalog =
+    options.catalog === undefined
+      ? undefined
+      : normalizeCatalogQuery(options.catalog);
+  if (invoices !== undefined || catalog !== undefined) {
+    data.params = {
+      ...(invoices === undefined ? {} : { invoices }),
+      ...(catalog === undefined ? {} : { catalog }),
+    };
   }
   // A page rendered before its auth resolves hands these rows to whichever
   // session turns up; it has to be the one they were fetched for.
@@ -375,6 +411,10 @@ export async function fetchBillingData(
     wanted.map(async (name) => {
       try {
         switch (name) {
+          case "catalog": {
+            data.catalog = await client.fetchCatalog(catalog ?? {});
+            break;
+          }
           case "invoices": {
             const page = await client.fetchInvoices({
               ...(invoices ?? {}),
