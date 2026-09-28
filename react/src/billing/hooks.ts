@@ -10,6 +10,8 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  Catalog,
+  CatalogQuery,
   Company,
   CreditBalanceEntry,
   CreditUserUsage,
@@ -22,8 +24,10 @@ import type {
   UpcomingInvoice,
 } from "./contract";
 import {
+  DEFAULT_CATALOG_QUERY,
   DEFAULT_INVOICE_QUERY,
   SINGLETON,
+  normalizeCatalogQuery,
   normalizeInvoiceQuery,
 } from "./contract";
 import {
@@ -35,8 +39,8 @@ import { hashKey } from "./store";
 
 /**
  * Hooks never fetch during server rendering: without `initialData` they
- * report pending on the server and load on the client. `useInvoices`,
- * `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`,
+ * report pending on the server and load on the client. `useCatalog`,
+ * `useInvoices`, `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`,
  * `useFeatureUserUsage`, `useCreditBalances`, `useCreditUserUsage` and
  * `useCompany` so far; the other resource hooks ship with their elements.
  */
@@ -65,6 +69,20 @@ function useBillingResource<K extends BillingResourceName>(
     [name, params, source],
   );
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
+/**
+ * The catalog as the session's company sees it: what it can buy, and how it
+ * stands against each plan and add-on. Without a `catalogId`, the catalog the
+ * environment sells; an inline object literal is fine, the hook keys by value.
+ */
+export function useCatalog(
+  query: CatalogQuery = DEFAULT_CATALOG_QUERY,
+): ResourceHandle<Catalog> {
+  return useBillingResource(
+    "catalog",
+    useStableParams(normalizeCatalogQuery(query)),
+  );
 }
 
 export interface InvoicesHandle extends ResourceHandle<InvoicePage> {
