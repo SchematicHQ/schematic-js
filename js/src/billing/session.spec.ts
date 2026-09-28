@@ -61,6 +61,59 @@ describe("SchematicSession", () => {
     );
   });
 
+  it("sends a request's own headers, never in place of the credential", async () => {
+    const { calls, fetchImpl } = fakeFetch();
+    const session = new SchematicSession({
+      session: { company: "comp_a", token: "t" },
+      additionalHeaders: { "X-Client": "a" },
+      fetch: fetchImpl,
+    });
+    await session.request("/probe", {
+      headers: {
+        "X-Checkout-Session-ID": "cs_1",
+        "X-Schematic-Api-Key": "forged",
+      },
+    });
+    expect(calls[0].headers).toMatchObject({
+      "X-Client": "a",
+      "X-Checkout-Session-ID": "cs_1",
+      "X-Schematic-Api-Key": "t",
+    });
+  });
+
+  it("hands back the headers the answer came with", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      headers: { "X-Checkout-Session-ID": "cs_2" },
+    }));
+    const session = new SchematicSession({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const { body, headers } = await session.requestWithResponse("/probe");
+    expect(body).toEqual({ ok: true });
+    expect(headers.get("X-Checkout-Session-ID")).toBe("cs_2");
+  });
+
+  it("hands back the retry's headers after a 401, not the rejection's", async () => {
+    let n = 0;
+    const provider = vi.fn(async () => `t${++n}`);
+    const { fetchImpl } = fakeFetch((_url, headers) =>
+      headers["X-Schematic-Api-Key"] === "t1"
+        ? {
+            status: 401,
+            body: { error: "expired" },
+            headers: { "X-Checkout-Session-ID": "stale" },
+          }
+        : { headers: { "X-Checkout-Session-ID": "fresh" } },
+    );
+    const session = new SchematicSession({
+      session: { company: "comp_a", token: provider },
+      fetch: fetchImpl,
+    });
+    const { headers } = await session.requestWithResponse("/probe");
+    expect(headers.get("X-Checkout-Session-ID")).toBe("fresh");
+  });
+
   it("resolves a token provider once and shares it across concurrent requests", async () => {
     const provider = vi.fn(async () => ({ token: "t1" }));
     const { calls, fetchImpl } = fakeFetch();

@@ -18,9 +18,12 @@ export function fakeFetch(
   respond: (
     url: string,
     headers: Record<string, string>,
+    request: { method: string; body: unknown },
   ) => {
     status?: number;
     body?: unknown;
+    /** Response headers beside the content type. */
+    headers?: Record<string, string>;
   } = () => ({}),
 ) {
   const calls: Call[] = [];
@@ -28,20 +31,25 @@ export function fakeFetch(
     async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       const headers = (init?.headers ?? {}) as Record<string, string>;
-      calls.push({
+      const call: Call = {
         url,
         method: init?.method ?? "GET",
         headers,
         body:
           typeof init?.body === "string" ? JSON.parse(init.body) : undefined,
-      });
-      const { status = 200, body = { ok: true } } = respond(url, headers);
+      };
+      calls.push(call);
+      const {
+        status = 200,
+        body = { ok: true },
+        headers: responseHeaders = {},
+      } = respond(url, headers, { method: call.method, body: call.body });
       // A 204 may not carry a body, even an empty one; `body: null` on any
       // other status is an empty body, which is how a malformed 200 reads.
       const raw = body === null ? "" : JSON.stringify(body);
       return new Response(status === 204 ? null : raw, {
         status,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...responseHeaders },
       });
     },
   );
