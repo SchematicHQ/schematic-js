@@ -1,4 +1,5 @@
 export * from "./catalog";
+export * from "./checkout";
 export * from "./company";
 export * from "./credits";
 export * from "./data";
