@@ -198,7 +198,14 @@ export function BillingProvider({
         removePaymentMethod: (id) => store.removePaymentMethod(id),
         createSetupIntent: () => store.createSetupIntent(),
         unsubscribe: () => store.unsubscribe(),
+        createCheckout: (selections) => store.createCheckout(selections),
+        getCheckout: (id) => store.getCheckout(id),
+        updateCheckout: (id, version, selections) =>
+          store.updateCheckout(id, version, selections),
+        finalizeCheckout: (id, version, options) =>
+          store.finalizeCheckout(id, version, options),
       },
+      onSessionChange: (listener) => store.onSessionChange(listener),
     };
   }, [store]);
 
