@@ -5,7 +5,10 @@
 
 export {
   BillingDataProvider,
+  FEATURE_USER_USAGE_LIMIT,
   SchematicI18nProvider,
+  useFeatureUsage,
+  useFeatureUserUsage,
   useInvalidateBillingData,
   useInvoices,
   usePaymentMethods,
@@ -20,11 +23,15 @@ export {
   type BillingDataProviderProps,
   type BillingDataStatus,
   type Discount,
+  type FeatureUsage,
+  type FeatureUserUsage,
   type Invoice,
   type InvoicePage,
   type InvoiceQuery,
+  type MeteredPrice,
   type PaymentMethod,
   type PaymentMethodsHandle,
+  type PerLicenseCreditGrant,
   type ResourceHandle,
   type ResourceState,
   type SchematicI18nConfig,
@@ -32,8 +39,11 @@ export {
   type SetupIntent,
   type SetupIntentHandle,
   type UpcomingInvoice,
+  type UserUsage,
 } from "@schematichq/schematic-react";
 export {
+  currentTier,
+  deriveIncludedFeatures,
   deriveInvoiceList,
   derivePaymentMethods,
   deriveUpcomingInvoice,
@@ -46,16 +56,24 @@ export {
   formatPercent,
   formatShortDate,
   httpStatus,
+  isTieredPrice,
   plural,
+  pricePeriod,
   resolveLocale,
+  tierRanges,
+  unitPrice,
+  usageLimit,
   viewerLocale,
   type BillLine,
+  type DeriveIncludedFeaturesOptions,
   type DeriveInvoiceListOptions,
   type DerivePaymentMethodsOptions,
   type DeriveUpcomingInvoiceOptions,
   type DerivedPaymentMethods,
   type DiscountLine,
+  type EntitlementText,
   type FormatCurrencyOptions,
+  type IncludedFeatureRow,
   type InvoiceFormatters,
   type InvoiceList,
   type InvoiceRow,
@@ -66,8 +84,14 @@ export {
   type PaymentMethodLabel,
   type PaymentMethodLabelKey,
   type PaymentMethodRow,
+  type PerLicenseCredits,
+  type PriceTier,
+  type TierRange,
   type UpcomingBillSummary,
   type UpcomingInvoiceFormatters,
+  type UsageLimitOptions,
+  type UsageSegment,
+  type UsageSummary,
 } from "./model";
 export {
   DEFAULT_STRINGS,
@@ -82,6 +106,10 @@ export {
   type Translator,
 } from "./strings";
 export * from "./styles";
+export {
+  IncludedFeatures,
+  type IncludedFeaturesProps,
+} from "./IncludedFeatures";
 export { Invoices, type InvoicesProps } from "./Invoices";
 export {
   PaymentMethods,
@@ -91,6 +119,7 @@ export {
 } from "./PaymentMethods";
 export { UpcomingBill, type UpcomingBillProps } from "./UpcomingBill";
 export {
+  Tooltip,
   billingResources,
   useResolvedLocale,
   useTranslator,

@@ -2,9 +2,11 @@ import React from "react";
 
 import { dialogCss } from "./dialog";
 import { iconsCss } from "./icons";
+import { includedFeaturesCss } from "./included-features";
 import { invoicesCss } from "./invoices";
 import { paymentMethodsCss } from "./payment-methods";
 import { withTokenDefaults } from "./tokens";
+import { tooltipCss } from "./tooltip";
 import { upcomingBillCss } from "./upcoming-bill";
 
 export { iconsCss } from "./icons";
@@ -508,6 +510,8 @@ ${dialogCss}
 ${invoicesCss}
 ${upcomingBillCss}
 ${paymentMethodsCss}
+${tooltipCss}
+${includedFeaturesCss}
 `;
 
 /**

@@ -3,15 +3,22 @@
  * Each is a function so fixtures never share mutable objects across tests.
  */
 
-import type { BillingData, PaymentMethod } from "@schematichq/schematic-react";
+import type {
+  BillingData,
+  FeatureUsage,
+  PaymentMethod,
+} from "@schematichq/schematic-react";
 
 import {
   bankPaymentMethod,
   cardPaymentMethod,
   daysFromNow,
   discount,
+  featureUsage,
   invoice,
   invoicePage,
+  meteredPrice,
+  perLicenseCreditGrant,
   upcomingInvoice,
   walletPaymentMethod,
 } from "./builders";
@@ -131,6 +138,133 @@ export function paymentMethodsNoDefault(): BillingData {
   };
 }
 
+/**
+ * One feature per way a company can be entitled: plan and override,
+ * unpriced and each price behavior, a license with per-license credits, a
+ * credit-burning feature, a boolean, and an unlimited allowance.
+ */
+export function featureUsageSet(): FeatureUsage[] {
+  return [
+    featureUsage({ featureId: "feat_api", featureName: "API call" }),
+    featureUsage({
+      featureId: "feat_seats",
+      featureDescription: "People who can sign in",
+      featureIcon: "stacks",
+      featureName: "Seat",
+      featureType: "trait",
+      licenseId: "lic_seats",
+      allocation: 12,
+      valueNumeric: 12,
+      usage: 9,
+      priceBehavior: "pay_in_advance",
+      price: meteredPrice({ price: 1500 }),
+      currentCost: 18000,
+      metricPeriod: undefined,
+      metricPeriodMonthReset: undefined,
+      resetsAt: undefined,
+      perLicenseCreditGrants: [perLicenseCreditGrant()],
+    }),
+    featureUsage({
+      featureId: "feat_storage",
+      featureDescription: "Files kept in your workspace",
+      featureIcon: "folder",
+      featureName: "GB of storage",
+      featureSingularName: "GB of storage",
+      featurePluralName: "GB of storage",
+      priceBehavior: "pay_as_you_go",
+      allocation: undefined,
+      valueNumeric: undefined,
+      valueType: "unlimited",
+      usage: 1300,
+      price: meteredPrice({ price: 2, packageSize: 100 }),
+      currentCost: 26,
+    }),
+    featureUsage({
+      featureId: "feat_emails",
+      featureDescription: "Messages sent to your customers",
+      featureIcon: "paper-plane",
+      featureName: "Email",
+      priceBehavior: "overage",
+      softLimit: 1000,
+      usage: 1300,
+      price: meteredPrice({
+        price: 0,
+        scheme: "tiered",
+        tiersMode: "graduated",
+        priceTiers: [
+          { from: 0, to: 1000, perUnitPrice: 0 },
+          { from: 1001, perUnitPrice: 5 },
+        ],
+      }),
+      currentCost: 1500,
+    }),
+    featureUsage({
+      featureId: "feat_builds",
+      featureName: "Build",
+      priceBehavior: "tier",
+      allocation: 100,
+      valueNumeric: 100,
+      usage: 40,
+      price: meteredPrice({
+        price: 0,
+        scheme: "tiered",
+        tiersMode: "volume",
+        priceTiers: [
+          { from: 0, to: 50, perUnitPrice: 10 },
+          { from: 51, perUnitPrice: 8, flatPrice: 500 },
+        ],
+      }),
+      currentCost: 400,
+    }),
+    featureUsage({
+      featureId: "feat_generations",
+      featureName: "Generation",
+      priceBehavior: "credit_burndown",
+      allocation: undefined,
+      valueType: "credit",
+      usage: 120,
+      consumptionRate: 2,
+      creditId: "bcr_ai",
+      creditName: "AI credit",
+    }),
+    featureUsage({
+      featureId: "feat_exports",
+      featureName: "Export",
+      entitlementType: "company_override",
+      companyOverrideId: "co_exports",
+      planEntitlementId: undefined,
+      allocation: 50,
+      valueNumeric: 50,
+      usage: 45,
+      expiresAt: daysFromNow(30),
+    }),
+    featureUsage({
+      featureId: "feat_sso",
+      featureDescription: "Sign in with your identity provider",
+      featureIcon: "key",
+      featureName: "SSO",
+      featureType: "boolean",
+      allocation: undefined,
+      valueNumeric: undefined,
+      valueBool: true,
+      valueType: "boolean",
+      usage: undefined,
+      metricPeriod: undefined,
+      metricPeriodMonthReset: undefined,
+      resetsAt: undefined,
+    }),
+  ];
+}
+
+export function featureUsageScenario(): BillingData {
+  return { featureUsage: featureUsageSet() };
+}
+
+/** Entitled to nothing: a loaded, empty list. */
+export function featureUsageEmpty(): BillingData {
+  return { featureUsage: [] };
+}
+
 export const SCENARIOS = {
   pro: proCompany,
   trialing: trialingCompany,
@@ -138,6 +272,8 @@ export const SCENARIOS = {
   paymentMethods,
   paymentMethodsEmpty,
   paymentMethodsNoDefault,
+  featureUsage: featureUsageScenario,
+  featureUsageEmpty,
 } satisfies Record<string, () => BillingData>;
 
 export type ScenarioName = keyof typeof SCENARIOS;
