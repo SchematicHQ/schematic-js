@@ -7,6 +7,7 @@ import { SchematicProvider } from "@schematichq/schematic-react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
+import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
 import { PaymentMethods } from "./PaymentMethods";
 import { UpcomingBill } from "./UpcomingBill";
@@ -34,8 +35,23 @@ function serve(
   const count = scenario.invoices?.count ?? all.length;
   const upcoming = scenario.upcomingInvoice;
   const methods = scenario.paymentMethods ?? [];
+  const features = scenario.featureUsage ?? [];
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
+    if (flagged && url.pathname === "/company/usage") {
+      return new Response(
+        JSON.stringify({
+          data: {
+            count: features.length,
+            features: features.map((row) =>
+              billingApi.CompanyFeatureUsageResponseDataToJSON(row),
+            ),
+          },
+          params: {},
+        }),
+        { status: 200 },
+      );
+    }
     if (flagged && url.pathname === "/company/payment-methods") {
       return new Response(
         JSON.stringify({
@@ -103,6 +119,24 @@ function renderStack(
 }
 
 describe("end to end", () => {
+  test("IncludedFeatures", async () => {
+    renderStack(
+      <IncludedFeatures locale="en-US" />,
+      "tok",
+      SCENARIOS.featureUsage(),
+    );
+    const rows = await screen.findAllByTestId("schematic-included-feature");
+    expect(rows).toHaveLength(4);
+    expect(rows[0]).toHaveTextContent("1,000 API calls");
+  });
+
+  test("IncludedFeatures says it is not available for an account off the flag", async () => {
+    renderStack(<IncludedFeatures />, "tok", SCENARIOS.featureUsage(), false);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Features are not available for this account.",
+    );
+  });
+
   test("Invoices", async () => {
     renderStack(<Invoices limit={2} />, "tok");
     const rows = await screen.findAllByTestId("schematic-invoice");

@@ -5,9 +5,12 @@
 
 import type {
   Discount,
+  FeatureUsage,
   Invoice,
   InvoicePage,
+  MeteredPrice,
   PaymentMethod,
+  PerLicenseCreditGrant,
   UpcomingInvoice,
 } from "@schematichq/schematic-react";
 
@@ -129,6 +132,68 @@ export function walletPaymentMethod(
     canRemove: true,
     accountName: "jo@example.com",
     billingEmail: "jo@example.com",
+    ...overrides,
+  };
+}
+
+/**
+ * An event-based feature on the plan: 1,000 API calls a month, 250 used,
+ * resetting on the first. No price, so nothing to cost. Absent optionals are
+ * omitted rather than `null`, as for `discount`.
+ */
+export function featureUsage(
+  overrides: Partial<FeatureUsage> = {},
+): FeatureUsage {
+  const featureId = nextId("feat");
+  return {
+    access: true,
+    allocation: 1000,
+    entitlementType: "plan_entitlement",
+    featureDescription: "Requests to the public API",
+    featureIcon: "code",
+    featureId,
+    featureName: "API call",
+    featureType: "event",
+    metricPeriod: "current_month",
+    metricPeriodMonthReset: "first_of_month",
+    perLicenseCreditGrants: [],
+    planEntitlementId: `pe_${featureId}`,
+    resetsAt: daysFromNow(11),
+    usage: 250,
+    valueNumeric: 1000,
+    valueType: "numeric",
+    ...overrides,
+  };
+}
+
+/** A monthly USD price of one cent a unit, untiered. */
+export function meteredPrice(
+  overrides: Partial<MeteredPrice> = {},
+): MeteredPrice {
+  return {
+    currency: "usd",
+    id: nextId("bpp"),
+    interval: "month",
+    intervalCount: 1,
+    packageSize: 1,
+    price: 1,
+    priceTiers: [],
+    scheme: "per_unit",
+    ...overrides,
+  };
+}
+
+/** Ten credits for every license unit, reset monthly. */
+export function perLicenseCreditGrant(
+  overrides: Partial<PerLicenseCreditGrant> = {},
+): PerLicenseCreditGrant {
+  return {
+    companyCreditAmount: 0,
+    creditAmount: 10,
+    creditId: nextId("bcr"),
+    creditName: "AI credit",
+    id: nextId("bpcg"),
+    scaling: "per_license",
     ...overrides,
   };
 }
