@@ -34,11 +34,13 @@ export {
   useInvoices,
   usePaymentMethods,
   useSetupIntent,
+  useTaxIds,
   useUpcomingInvoice,
   type CheckoutHandle,
   type InvoicesHandle,
   type PaymentMethodsHandle,
   type SetupIntentHandle,
+  type TaxIdsHandle,
   type UseCheckoutOptions,
 } from "./hooks";
 export { BillingProvider, type BillingProviderProps } from "./provider";

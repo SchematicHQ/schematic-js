@@ -28,6 +28,8 @@ import type {
   InvoiceQuery,
   PaymentMethod,
   SetupIntent,
+  TaxId,
+  TaxIdInput,
   UpcomingInvoice,
 } from "./contract";
 import {
@@ -49,8 +51,9 @@ import { hashKey } from "./store";
  * Hooks never fetch during server rendering: without `initialData` they
  * report pending on the server and load on the client. `useCatalog`,
  * `useInvoices`, `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`,
- * `useFeatureUserUsage`, `useCreditBalances`, `useCreditUserUsage` and
- * `useCompany` so far; the other resource hooks ship with their elements.
+ * `useFeatureUserUsage`, `useCreditBalances`, `useCreditUserUsage`,
+ * `useCompany` and `useTaxIds` so far; the other resource hooks ship with
+ * their elements.
  */
 
 /** The same object until the hash of `params` changes. */
@@ -221,6 +224,51 @@ export function useSetupIntent(): SetupIntentHandle {
   return useMemo(
     () => ({ create: () => actionsOf(source).createSetupIntent() }),
     [source],
+  );
+}
+
+export interface TaxIdsHandle extends ResourceHandle<TaxId[]> {
+  /**
+   * Sets the company's tax ID; `data` holds what is on file once it has.
+   * Rejects with the failure and records it on `mutationError`.
+   */
+  update: (taxId: TaxIdInput) => Promise<void>;
+  isMutating: boolean;
+  mutationError: Error | undefined;
+}
+
+/**
+ * The tax IDs on the company's billing customer, with the write that sets
+ * one. `data` is empty when there are none; `undefined` means not loaded.
+ */
+export function useTaxIds(): TaxIdsHandle {
+  const source = useBillingDataSource();
+  const handle = useBillingResource("taxIds", SINGLETON);
+  const [mutation, setMutation] = useState<Mutation>(IDLE);
+
+  const update = useCallback(
+    async (taxId: TaxIdInput) => {
+      setMutation((m) => ({ inflight: m.inflight + 1, error: undefined }));
+      try {
+        await actionsOf(source).updateTaxId(taxId);
+      } catch (cause: unknown) {
+        const error = cause instanceof Error ? cause : new Error(String(cause));
+        setMutation((m) => ({ inflight: m.inflight - 1, error }));
+        throw error;
+      }
+      setMutation((m) => ({ inflight: m.inflight - 1, error: undefined }));
+    },
+    [source],
+  );
+
+  return useMemo(
+    () => ({
+      ...handle,
+      update,
+      isMutating: mutation.inflight > 0,
+      mutationError: mutation.error,
+    }),
+    [handle, mutation, update],
   );
 }
 

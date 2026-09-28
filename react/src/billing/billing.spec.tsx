@@ -30,6 +30,7 @@ import {
   type Invoice,
   type PaymentMethod,
   type SetupIntent,
+  type TaxId,
   type UpcomingInvoice,
 } from "./contract";
 import {
@@ -49,6 +50,7 @@ import {
   useInvoices,
   usePaymentMethods,
   useSetupIntent,
+  useTaxIds,
   useUpcomingInvoice,
 } from "./hooks";
 import { BillingProvider, SESSION_REPLACED_MESSAGE } from "./provider";
@@ -175,6 +177,10 @@ function fakeClient(
       sessionId: `cs_${version + 1}`,
     })),
     finalizeCheckout: vi.fn(async () => charged),
+    fetchTaxIds: vi.fn(async () => []),
+    updateTaxId: vi.fn(async (taxId) => [
+      { country: "DE", id: "txi_1", ...taxId } as TaxId,
+    ]),
     fetchInvoices: vi.fn(async () => rowsOf()),
     fetchUpcomingInvoice: vi.fn(async () => null),
     fetchPaymentMethods: vi.fn(async () => []),
@@ -2675,4 +2681,57 @@ describe("useCheckout", () => {
       );
     },
   );
+});
+
+describe("useTaxIds", () => {
+  const wrap = (client: BillingProviderClient) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_(
+    "loads the tax IDs, and takes what a write answers without a second read",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(() => useTaxIds(), {
+        wrapper: wrap(client),
+      });
+      await flush();
+      expect(result.current).toMatchObject({ data: [], isPending: false });
+
+      await act(() =>
+        result.current.update({ type: "eu_vat", value: "DE123456789" }),
+      );
+      expect(client.updateTaxId).toHaveBeenCalledWith({
+        type: "eu_vat",
+        value: "DE123456789",
+      });
+      expect(result.current.data?.[0]).toMatchObject({ value: "DE123456789" });
+      expect(client.fetchTaxIds).toHaveBeenCalledTimes(1);
+      expect(result.current.isMutating).toBe(false);
+    },
+  );
+
+  it_("records a refused write on mutationError, not on the list", async () => {
+    const client = fakeClient({
+      updateTaxId: vi.fn(async () => {
+        throw new Error("That tax ID is not valid.");
+      }),
+    });
+    const { result } = renderHook(() => useTaxIds(), { wrapper: wrap(client) });
+    await flush();
+    await act(async () => {
+      await expect(
+        result.current.update({ type: "eu_vat", value: "x" }),
+      ).rejects.toThrow("That tax ID is not valid.");
+    });
+    expect(result.current.mutationError?.message).toBe(
+      "That tax ID is not valid.",
+    );
+    expect(result.current.error).toBeUndefined();
+  });
 });
