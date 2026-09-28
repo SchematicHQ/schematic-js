@@ -1,6 +1,7 @@
 import React from "react";
 
 import { cardGroupCss } from "./card-group";
+import { checkoutCss } from "./checkout";
 import { creditUsageCss } from "./credit-usage";
 import { dialogCss } from "./dialog";
 import { iconsCss } from "./icons";
@@ -566,6 +567,7 @@ ${creditUsageCss}
 ${planManagerCss}
 ${unsubscribeCss}
 ${cardGroupCss}
+${checkoutCss}
 `;
 
 /**
