@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from "./ApiError";
+export * from "./BillingCreditGrantReason";
 export * from "./BillingPlanCreditGrantResetCadence";
 export * from "./BillingPriceScheme";
 export * from "./BillingProductPriceInterval";
@@ -9,6 +10,12 @@ export * from "./BillingTiersMode";
 export * from "./CatalogCreditGrantResponseData";
 export * from "./CatalogPriceResponseData";
 export * from "./CatalogPriceTierResponseData";
+export * from "./CompanyCreditBalanceResponseData";
+export * from "./CompanyCreditBalancesResponseData";
+export * from "./CompanyCreditCompositionResponseData";
+export * from "./CompanyCreditGrantResponseData";
+export * from "./CompanyCreditUserUsageResponseData";
+export * from "./CompanyCreditUserUsageRowResponseData";
 export * from "./CompanyDiscountResponseData";
 export * from "./CompanyFeatureUsageListResponseData";
 export * from "./CompanyFeatureUsageResponseData";
@@ -26,6 +33,9 @@ export * from "./EntitlementPriceBehavior";
 export * from "./EntitlementType";
 export * from "./EntitlementValueType";
 export * from "./FeatureType";
+export * from "./GetCompanyCreditBalancesResponse";
+export * from "./GetCompanyCreditUserUsageParams";
+export * from "./GetCompanyCreditUserUsageResponse";
 export * from "./GetCompanyFeatureUsageResponse";
 export * from "./GetCompanyFeatureUserUsageParams";
 export * from "./GetCompanyFeatureUserUsageResponse";

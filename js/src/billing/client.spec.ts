@@ -923,3 +923,179 @@ describe("feature usage", () => {
     expect("featureUsage" in failed).toBe(false);
   });
 });
+
+const wireCredits = {
+  data: {
+    count: 2,
+    balances: [
+      {
+        composition: {
+          fixed_quantity: 100,
+          license_id: "lic_seats",
+          license_name: "Seat",
+          license_plural_name: null,
+          license_quantity: 12,
+          license_singular_name: null,
+          per_license_amount: 10,
+          period: "month",
+          renews_at: "2026-10-01T00:00:00Z",
+          total: 220,
+        },
+        credit_description: "Spent running inference",
+        credit_icon: null,
+        credit_id: "bcr_ai",
+        credit_name: "AI credit",
+        credit_plural_name: null,
+        credit_singular_name: null,
+        expires_at: null,
+        grants: [
+          {
+            bundle_id: null,
+            bundle_name: null,
+            created_at: "2026-09-01T00:00:00Z",
+            expires_at: null,
+            grant_reason: "plan",
+            id: "bcg_1",
+            plan_id: "plan_pro",
+            plan_name: "Pro",
+            quantity: 220,
+            quantity_remaining: 120,
+            quantity_used: 100,
+            renewal_period: "monthly",
+            resets_at: "2026-10-01T00:00:00Z",
+            valid_from: null,
+          },
+        ],
+        purchasable: true,
+        remaining: 120,
+        resets_at: "2026-10-01T00:00:00Z",
+        total: 220,
+        used: 100,
+      },
+      {
+        composition: null,
+        credit_description: "",
+        credit_id: "bcr_export",
+        credit_name: "Export credit",
+        grants: [],
+        purchasable: false,
+        remaining: 0,
+        total: 0,
+        used: 0,
+      },
+    ],
+  },
+};
+
+describe("credits", () => {
+  it("decodes the company's credit balances", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireCredits }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const balances = await client.fetchCreditBalances();
+    expect(calls[0].url).toBe("https://api.schematichq.com/company/credits");
+    expect(balances).toHaveLength(2);
+    expect(balances[0]).toMatchObject({
+      creditId: "bcr_ai",
+      purchasable: true,
+      remaining: 120,
+      composition: { licenseQuantity: 12, perLicenseAmount: 10, total: 220 },
+    });
+    expect(balances[0].composition?.renewsAt).toEqual(
+      new Date("2026-10-01T00:00:00Z"),
+    );
+    expect(balances[0].grants[0]).toMatchObject({
+      grantReason: "plan",
+      renewalPeriod: "monthly",
+    });
+    expect(balances[1].grants).toEqual([]);
+    expect(balances[1].composition).toBeUndefined();
+  });
+
+  it("reads no credits from an empty, null or omitted list", async () => {
+    for (const body of [
+      { data: { count: 0, balances: [] } },
+      { data: { count: 0, balances: null } },
+      { data: { count: 0 } },
+      { data: null },
+    ]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchCreditBalances()).resolves.toEqual([]);
+    }
+  });
+
+  it("keeps a 404 on credits the failure it is", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client.fetchCreditBalances().catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({ status: 404, path: "/company/credits" });
+  });
+
+  it("decodes one credit's consumption by user", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: {
+        data: {
+          count: 1,
+          end_time: null,
+          start_time: null,
+          total: 0,
+          unattributed: null,
+          users: [{ name: "Ada", share: 1, used: 12.5, user_id: "user_1" }],
+        },
+      },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const usage = await client.fetchCreditUserUsage({
+      creditId: "bcr_ai",
+      limit: 20,
+    });
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/credits/bcr_ai/users?limit=20",
+    );
+    expect(usage.users[0]).toMatchObject({ userId: "user_1", used: 12.5 });
+    expect(usage.startTime).toBeUndefined();
+  });
+
+  it("seeds credit balances, an empty list included", async () => {
+    const { fetchImpl } = fakeFetch(
+      byPath({ "/company/credits": { body: wireCredits } }),
+    );
+    const data = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      }),
+      { names: ["creditBalances"] },
+    );
+    expect(data.creditBalances).toHaveLength(2);
+
+    const { fetchImpl: failing } = fakeFetch(() => ({
+      status: 500,
+      body: "x",
+    }));
+    const failed = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: failing,
+      }),
+      { names: ["creditBalances"] },
+    );
+    expect("creditBalances" in failed).toBe(false);
+  });
+});
