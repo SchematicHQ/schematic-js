@@ -12,6 +12,7 @@ import type {
   BillingResources,
   Catalog,
   CatalogQuery,
+  Company,
   FeatureUsage,
   FeatureUserUsage,
   InvoicePage,
@@ -37,7 +38,7 @@ import { hashKey } from "./store";
 /**
  * Hooks never fetch during server rendering: without `initialData` they
  * report pending on the server and load on the client. `useCatalog`,
- * `useInvoices`, `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`
+ * `useCompany`, `useInvoices`, `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`
  * and `useFeatureUserUsage` so far; the other resource hooks ship with their
  * elements.
  */
@@ -80,6 +81,14 @@ export function useCatalog(
     "catalog",
     useStableParams(normalizeCatalogQuery(query)),
   );
+}
+
+/**
+ * The session's company: the plan and add-ons it holds, each with the price it
+ * pays, and its subscription — the currency and period a change stays in.
+ */
+export function useCompany(): ResourceHandle<Company> {
+  return useBillingResource("company", SINGLETON);
 }
 
 export interface InvoicesHandle extends ResourceHandle<InvoicePage> {

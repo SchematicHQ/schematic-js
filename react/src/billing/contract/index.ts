@@ -5,7 +5,7 @@
  * client method this release does not read, and typing the store by the
  * whole would make each addition there a compile error here, so that taking
  * a newer schematic-js meant adopting whatever it added. A resource joins
- * this list with the hook that reads it. The catalog, invoices,
+ * this list with the hook that reads it. The catalog, company, invoices,
  * upcoming-invoice, payment-methods and feature-usage slices so far; the rest
  * of the contract ships with its elements.
  */
@@ -35,6 +35,9 @@ export {
   type CatalogEntitlement,
   type CatalogPlan,
   type CatalogQuery,
+  type Company,
+  type CompanyPlan,
+  type CompanySubscription,
   type FeatureUsage,
   type FeatureUserUsage,
   type Invoice,
@@ -53,6 +56,7 @@ export {
 /** The resources this package serves; a key of schematic-js's contract. */
 export type BillingResourceName =
   | "catalog"
+  | "company"
   | "invoices"
   | "upcomingInvoice"
   | "paymentMethods"
@@ -78,6 +82,7 @@ export type BillingProviderClient = Pick<
   | "setSession"
   | "onSessionChange"
   | "fetchCatalog"
+  | "fetchCompany"
   | "fetchInvoices"
   | "fetchUpcomingInvoice"
   | "fetchPaymentMethods"

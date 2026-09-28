@@ -20,6 +20,7 @@ import {
   type BillingData,
   type BillingProviderClient,
   type Catalog,
+  type Company,
   type FeatureUsage,
   type FeatureUserUsage,
   type Invoice,
@@ -35,6 +36,7 @@ import {
 } from "./context";
 import {
   useCatalog,
+  useCompany,
   useFeatureUsage,
   useFeatureUserUsage,
   useInvoices,
@@ -117,6 +119,9 @@ const catalog = (id: string): Catalog =>
     creditBundles: [],
   }) as unknown as Catalog;
 
+const company = (id: string): Company =>
+  ({ id, name: id, addOns: [] }) as unknown as Company;
+
 type SessionListener = (event: SessionEvent) => void;
 
 function fakeClient(
@@ -132,6 +137,7 @@ function fakeClient(
     fetchCatalog: vi.fn(async (query) =>
       catalog(query?.catalogId ?? "cat_env"),
     ),
+    fetchCompany: vi.fn(async () => company("comp_a")),
     fetchInvoices: vi.fn(async () => rowsOf()),
     fetchUpcomingInvoice: vi.fn(async () => null),
     fetchPaymentMethods: vi.fn(async () => []),
@@ -2368,5 +2374,39 @@ describe("useCatalog", () => {
       ),
     });
     expect(result.current.data?.id).toBe("fixture");
+  });
+});
+
+describe("useCompany", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_("loads the company once for every reader", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => [useCompany(), useCompany()] as const, {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current[0].data?.id).toBe("comp_a");
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(client.fetchCompany).toHaveBeenCalledTimes(1);
+  });
+
+  it_("serves a prefetched company without a request", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => useCompany(), {
+      wrapper: wrap(client, { company: company("seeded") }),
+    });
+    expect(result.current.data?.id).toBe("seeded");
+    await flush();
+    expect(client.fetchCompany).not.toHaveBeenCalled();
   });
 });

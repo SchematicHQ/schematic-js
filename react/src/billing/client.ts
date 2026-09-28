@@ -16,6 +16,7 @@ import type {
   BillingResources,
   Catalog,
   CatalogQuery,
+  Company,
   FeatureUsage,
   FeatureUserUsage,
   Invoice,
@@ -136,6 +137,7 @@ export interface BillingStoreOptions {
 interface HeldSeed {
   key: string | undefined;
   catalog?: { params: CatalogQuery; data: Catalog };
+  company?: Company;
   invoices?: { params: InvoiceQuery; data: InvoicePage };
   /** `null` is a company with no next bill, and worth seeding. */
   upcomingInvoice?: UpcomingInvoice | null;
@@ -147,8 +149,9 @@ interface HeldSeed {
  * The store for one session: a `KeyedResource` per billing resource, built
  * over a `BillingProviderClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
- * resource. The catalog, invoices, the upcoming invoice, the payment methods
- * and feature usage so far; the rest join with their elements.
+ * resource. The catalog, the company, invoices, the upcoming invoice, the
+ * payment methods and feature usage so far; the rest join with their
+ * elements.
  *
  * `featureUserUsage` is keyed by feature and is not a resource name: a
  * prefetch or fixture holds one value per name, which a per-feature list
@@ -162,6 +165,7 @@ interface HeldSeed {
  */
 export class BillingStore {
   readonly catalog: KeyedResource<Catalog, CatalogQuery>;
+  readonly company: KeyedResource<Company, Record<string, never>>;
   readonly invoices: KeyedResource<InvoicePage, InvoiceQuery>;
   readonly upcomingInvoice: KeyedResource<
     UpcomingInvoice | null,
@@ -200,6 +204,9 @@ export class BillingStore {
       (query) => this._client.fetchCatalog(query),
       { readiness },
     );
+    this.company = new KeyedResource(() => this._client.fetchCompany(), {
+      readiness,
+    });
     // A refetch re-requests the loaded window, so a user who has paged
     // three deep does not collapse back to one page on invalidation.
     this.invoices = new KeyedResource(
@@ -240,6 +247,9 @@ export class BillingStore {
         data: initialData.catalog,
       };
     }
+    if (initialData.company !== undefined) {
+      held.company = initialData.company;
+    }
     if (initialData.invoices !== undefined) {
       held.invoices = {
         // Normalized the way the hook normalizes, or the caller asking for
@@ -264,6 +274,7 @@ export class BillingStore {
     }
     if (
       held.catalog !== undefined ||
+      held.company !== undefined ||
       held.invoices !== undefined ||
       held.upcomingInvoice !== undefined ||
       held.paymentMethods !== undefined ||
@@ -342,6 +353,9 @@ export class BillingStore {
     if (verdict === "adopt") {
       if (held.catalog !== undefined) {
         this.catalog.seed(held.catalog.params, held.catalog.data);
+      }
+      if (held.company !== undefined) {
+        this.company.seed(SINGLETON, held.company);
       }
       if (held.invoices !== undefined) {
         this.invoices.seed(held.invoices.params, held.invoices.data);
@@ -531,6 +545,7 @@ export class BillingStore {
 
 export const RESOURCE_NAMES: readonly BillingResourceName[] = [
   "catalog",
+  "company",
   "invoices",
   "upcomingInvoice",
   "paymentMethods",

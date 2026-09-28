@@ -24,6 +24,7 @@ export {
 } from "./context";
 export {
   useCatalog,
+  useCompany,
   useFeatureUsage,
   useFeatureUserUsage,
   useInvalidateBillingData,
