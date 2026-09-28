@@ -4,6 +4,7 @@ import { dialogCss } from "./dialog";
 import { iconsCss } from "./icons";
 import { includedFeaturesCss } from "./included-features";
 import { invoicesCss } from "./invoices";
+import { meteredFeaturesCss } from "./metered-features";
 import { paymentMethodsCss } from "./payment-methods";
 import { withTokenDefaults } from "./tokens";
 import { tooltipCss } from "./tooltip";
@@ -512,6 +513,7 @@ ${upcomingBillCss}
 ${paymentMethodsCss}
 ${tooltipCss}
 ${includedFeaturesCss}
+${meteredFeaturesCss}
 `;
 
 /**

@@ -9,10 +9,11 @@ import { vi } from "vitest";
 
 import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
+import { MeteredFeatures } from "./MeteredFeatures";
 import { PaymentMethods } from "./PaymentMethods";
 import { UpcomingBill } from "./UpcomingBill";
 import { billingResources } from "./common";
-import { invoice } from "./fixtures/builders";
+import { featureUserUsage, invoice } from "./fixtures/builders";
 import { SCENARIOS } from "./fixtures/scenarios";
 
 /**
@@ -38,6 +39,18 @@ function serve(
   const features = scenario.featureUsage ?? [];
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
+    const perUser = /^\/company\/usage\/([^/]+)\/users$/.exec(url.pathname);
+    if (flagged && perUser !== null) {
+      return new Response(
+        JSON.stringify({
+          data: billingApi.CompanyFeatureUserUsageResponseDataToJSON(
+            featureUserUsage(),
+          ),
+          params: { limit: Number(url.searchParams.get("limit")) },
+        }),
+        { status: 200 },
+      );
+    }
     if (flagged && url.pathname === "/company/usage") {
       return new Response(
         JSON.stringify({
@@ -128,6 +141,18 @@ describe("end to end", () => {
     const rows = await screen.findAllByTestId("schematic-included-feature");
     expect(rows).toHaveLength(4);
     expect(rows[0]).toHaveTextContent("1,000 API calls");
+  });
+
+  test("MeteredFeatures, with usage by user", async () => {
+    renderStack(
+      <MeteredFeatures locale="en-US" visibleFeatures={["feat_api"]} />,
+      "tok",
+      SCENARIOS.featureUsage(),
+    );
+    const [api] = await screen.findAllByTestId("schematic-metered-feature");
+    expect(api).toHaveTextContent("250 API calls used");
+    await waitFor(() => expect(api).toHaveTextContent("Usage by user"));
+    expect(api).toHaveTextContent("Ada");
   });
 
   test("IncludedFeatures says it is not available for an account off the flag", async () => {

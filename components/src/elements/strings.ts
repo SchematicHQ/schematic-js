@@ -91,6 +91,28 @@ export type ElementStrings = {
   includedFeaturesExpires: string;
   includedFeaturesPerLicense: string;
 
+  meteredFeaturesLoading: string;
+  meteredFeaturesError: string;
+  meteredFeaturesUnavailable: string;
+  meteredFeaturesUsed: string;
+  meteredFeaturesIncluded: string;
+  meteredFeaturesInUse: string;
+  meteredFeaturesLimitOf: string;
+  meteredFeaturesNoLimit: string;
+  meteredFeaturesAddMore: string;
+  meteredFeaturesAdditional: string;
+  meteredFeaturesTier: string;
+
+  usageByUserHeader: string;
+  usageByUserTotal: string;
+  usageByUserError: string;
+  usageByUserUnattributed: string;
+  usageByUserMore: string;
+  usageByUserShowTop: string;
+  usageByUserShowAllCount: string;
+  usageByUserShowAll: string;
+  usageByUserShowFewer: string;
+
   usageUnits: string;
   usagePerUnit: string;
   usagePerPackage: string;
@@ -234,6 +256,33 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   includedFeaturesExpires: "Expires {{date}}",
   includedFeaturesPerLicense:
     "Includes {{amount}} {{creditName}} per {{licenseName}}",
+
+  meteredFeaturesLoading: "Loading usage",
+  meteredFeaturesError: "There was a problem retrieving your usage.",
+  meteredFeaturesUnavailable: "Usage is not available for this account.",
+  meteredFeaturesUsed: "{{amount}} {{units}} used",
+  meteredFeaturesIncluded: "{{amount}} included",
+  meteredFeaturesInUse: "{{amount}} used",
+  meteredFeaturesLimitOf: "Limit of {{amount}}",
+  meteredFeaturesNoLimit: "No limit",
+  meteredFeaturesAddMore: "Add More",
+  meteredFeaturesAdditional: "Additional",
+  meteredFeaturesTier: "Tier",
+
+  usageByUserHeader: "Usage by user",
+  usageByUserTotal: "{{amount}} used by your team this period",
+  usageByUserError: "There was a problem retrieving usage by user.",
+  usageByUserUnattributed: "Unattributed",
+  // Looked up by the bare key with `{ count }`; `shown` is the count formatted.
+  usageByUserMore: "plus {{shown}} more",
+  usageByUserShowTop: "Show top {{shown}} users",
+  usageByUserShowTop_one: "Show top {{shown}} user",
+  usageByUserShowTop_other: "Show top {{shown}} users",
+  usageByUserShowAllCount: "Show all {{shown}} users",
+  usageByUserShowAllCount_one: "Show all {{shown}} user",
+  usageByUserShowAllCount_other: "Show all {{shown}} users",
+  usageByUserShowAll: "Show all",
+  usageByUserShowFewer: "Show fewer",
 
   // Shared by the usage elements.
   usageUnits: "{{amount}} {{units}}",
