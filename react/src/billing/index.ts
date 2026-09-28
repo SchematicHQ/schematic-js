@@ -23,6 +23,8 @@ export {
   type ResourceHandle,
 } from "./context";
 export {
+  useCreditBalances,
+  useCreditUserUsage,
   useFeatureUsage,
   useFeatureUserUsage,
   useInvalidateBillingData,

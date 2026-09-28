@@ -10,6 +10,8 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  CreditBalanceEntry,
+  CreditUserUsage,
   FeatureUsage,
   FeatureUserUsage,
   InvoicePage,
@@ -33,8 +35,8 @@ import { hashKey } from "./store";
 /**
  * Hooks never fetch during server rendering: without `initialData` they
  * report pending on the server and load on the client. `useInvoices`,
- * `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage` and
- * `useFeatureUserUsage` so far; the other resource hooks ship with their
+ * `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`,
+ * `useFeatureUserUsage`, `useCreditBalances` and `useCreditUserUsage` so far; the other resource hooks ship with their
  * elements.
  */
 
@@ -220,6 +222,35 @@ export function useFeatureUserUsage(
   const getSnapshot = useCallback(
     () => source.featureUserUsage(featureId),
     [featureId, source],
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
+/**
+ * The company's credit balances, one per credit. `data` is empty when it
+ * holds no credits and its plan draws on none; `undefined` means not loaded.
+ */
+export function useCreditBalances(): ResourceHandle<CreditBalanceEntry[]> {
+  return useBillingResource("creditBalances", SINGLETON);
+}
+
+/**
+ * One credit's consumption by user over the span of its live grants: the
+ * heaviest users, how many there are in all, and consumption sent without a
+ * user. Empty for a plan credit the company holds no grant of.
+ */
+export function useCreditUserUsage(
+  creditId: string,
+): ResourceHandle<CreditUserUsage> {
+  const source = useBillingDataSource();
+  const subscribe = useCallback(
+    (listener: () => void) =>
+      source.subscribeCreditUserUsage(creditId, listener),
+    [creditId, source],
+  );
+  const getSnapshot = useCallback(
+    () => source.creditUserUsage(creditId),
+    [creditId, source],
   );
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

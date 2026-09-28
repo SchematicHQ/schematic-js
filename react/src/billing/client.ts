@@ -14,6 +14,8 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  CreditBalanceEntry,
+  CreditUserUsage,
   FeatureUsage,
   FeatureUserUsage,
   Invoice,
@@ -113,6 +115,11 @@ export interface FeatureUserUsageParams {
   featureId: string;
 }
 
+/** Which credit's consumption by user. */
+export interface CreditUserUsageParams {
+  creditId: string;
+}
+
 export interface BillingStoreOptions {
   pageSize?: number;
   /**
@@ -133,6 +140,7 @@ interface HeldSeed {
   upcomingInvoice?: UpcomingInvoice | null;
   paymentMethods?: PaymentMethod[];
   featureUsage?: FeatureUsage[];
+  creditBalances?: CreditBalanceEntry[];
 }
 
 /**
@@ -142,9 +150,10 @@ interface HeldSeed {
  * resource. Invoices, the upcoming invoice, the payment methods and feature
  * usage so far; the rest join with their elements.
  *
- * `featureUserUsage` is keyed by feature and is not a resource name: a
- * prefetch or fixture holds one value per name, which a per-feature list
- * cannot fit. It resets, clears, resumes and invalidates with the rest.
+ * `featureUserUsage` and `creditUserUsage` are keyed by feature and credit
+ * and are not resource names: a prefetch or fixture holds one value per
+ * name, which a per-feature list cannot fit. They reset, clear, resume and
+ * invalidate with the rest.
  *
  * Nothing loads before `connect()`: a store that is not listening for the
  * session would fetch under whatever the client held when a subscriber
@@ -163,6 +172,14 @@ export class BillingStore {
     Record<string, never>
   >;
   readonly featureUsage: KeyedResource<FeatureUsage[], Record<string, never>>;
+  readonly creditBalances: KeyedResource<
+    CreditBalanceEntry[],
+    Record<string, never>
+  >;
+  readonly creditUserUsage: KeyedResource<
+    CreditUserUsage,
+    CreditUserUsageParams
+  >;
   readonly featureUserUsage: KeyedResource<
     FeatureUserUsage,
     FeatureUserUsageParams
@@ -217,6 +234,18 @@ export class BillingStore {
         }),
       { readiness },
     );
+    this.creditBalances = new KeyedResource(
+      () => this._client.fetchCreditBalances(),
+      { readiness },
+    );
+    this.creditUserUsage = new KeyedResource(
+      ({ creditId }) =>
+        this._client.fetchCreditUserUsage({
+          creditId,
+          limit: FEATURE_USER_USAGE_LIMIT,
+        }),
+      { readiness },
+    );
 
     const held: HeldSeed = { key: initialData.sessionKey };
     if (initialData.invoices !== undefined) {
@@ -241,11 +270,15 @@ export class BillingStore {
     if (initialData.featureUsage !== undefined) {
       held.featureUsage = initialData.featureUsage;
     }
+    if (initialData.creditBalances !== undefined) {
+      held.creditBalances = initialData.creditBalances;
+    }
     if (
       held.invoices !== undefined ||
       held.upcomingInvoice !== undefined ||
       held.paymentMethods !== undefined ||
-      held.featureUsage !== undefined
+      held.featureUsage !== undefined ||
+      held.creditBalances !== undefined
     ) {
       this._held = held;
       this._settleSeed(claimFrom(options.session) ?? claimOf(this._client));
@@ -330,6 +363,9 @@ export class BillingStore {
       if (held.featureUsage !== undefined) {
         this.featureUsage.seed(SINGLETON, held.featureUsage);
       }
+      if (held.creditBalances !== undefined) {
+        this.creditBalances.seed(SINGLETON, held.creditBalances);
+      }
       this._seedKey = held.key;
       this._seeded = true;
     }
@@ -350,6 +386,7 @@ export class BillingStore {
       this[name].resetAll();
     }
     this.featureUserUsage.resetAll();
+    this.creditUserUsage.resetAll();
   }
 
   /** Forgets every resource and leaves them empty; nothing reloads. */
@@ -358,6 +395,7 @@ export class BillingStore {
       this[name].clearAll();
     }
     this.featureUserUsage.clearAll();
+    this.creditUserUsage.clearAll();
   }
 
   /** Loads every resource that is subscribed and has nothing yet. */
@@ -366,6 +404,7 @@ export class BillingStore {
       this[name].resumeAll();
     }
     this.featureUserUsage.resumeAll();
+    this.creditUserUsage.resumeAll();
   }
 
   /** Reloads every resource that has been loaded, keeping its current data. */
@@ -374,6 +413,7 @@ export class BillingStore {
       this[name].invalidateAll();
     }
     this.featureUserUsage.invalidateAll();
+    this.creditUserUsage.invalidateAll();
   }
 
   /**
@@ -509,4 +549,5 @@ export const RESOURCE_NAMES: readonly BillingResourceName[] = [
   "upcomingInvoice",
   "paymentMethods",
   "featureUsage",
+  "creditBalances",
 ];
