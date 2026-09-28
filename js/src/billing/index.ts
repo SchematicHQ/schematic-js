@@ -1,5 +1,6 @@
 export * from "./contract";
 export {
+  CHECKOUT_SESSION_HEADER,
   INVOICE_MAX_PAGE_SIZE,
   INVOICE_PAGE_SIZE,
   SchematicBillingClient,
