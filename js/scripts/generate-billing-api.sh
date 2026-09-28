@@ -2,9 +2,8 @@
 # Regenerates the narrow billing API client (src/billing/api/generated)
 # from the temporary-access-token OpenAPI spec, filtered to the surface this
 # branch ships (/company/invoices, /company/upcoming-invoice,
-# /company/payment-methods and the payment-method writes beside it: the
-# setup intent, the default update and the delete; hydrate, checkout and the
-# rest join with their elements).
+# /company/payment-methods and its writes; hydrate, checkout and the rest
+# join with their elements).
 #
 # Until the endpoints deploy, the source of truth is a local schematic-api
 # checkout; point SCHEMATIC_API_DIR at it (default: ../../schematic-api).
