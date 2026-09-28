@@ -14,6 +14,8 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  Catalog,
+  CatalogQuery,
   FeatureUsage,
   FeatureUserUsage,
   Invoice,
@@ -23,7 +25,12 @@ import type {
   SetupIntent,
   UpcomingInvoice,
 } from "./contract";
-import { DEFAULT_INVOICE_QUERY, normalizeInvoiceQuery } from "./contract";
+import {
+  DEFAULT_CATALOG_QUERY,
+  DEFAULT_INVOICE_QUERY,
+  normalizeCatalogQuery,
+  normalizeInvoiceQuery,
+} from "./contract";
 import { KeyedResource, type Readiness } from "./store";
 
 /**
@@ -128,6 +135,7 @@ export interface BillingStoreOptions {
 /** A prefetch not yet judged; a resource it did not carry is absent. */
 interface HeldSeed {
   key: string | undefined;
+  catalog?: { params: CatalogQuery; data: Catalog };
   invoices?: { params: InvoiceQuery; data: InvoicePage };
   /** `null` is a company with no next bill, and worth seeding. */
   upcomingInvoice?: UpcomingInvoice | null;
@@ -139,8 +147,8 @@ interface HeldSeed {
  * The store for one session: a `KeyedResource` per billing resource, built
  * over a `BillingProviderClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
- * resource. Invoices, the upcoming invoice, the payment methods and feature
- * usage so far; the rest join with their elements.
+ * resource. The catalog, invoices, the upcoming invoice, the payment methods
+ * and feature usage so far; the rest join with their elements.
  *
  * `featureUserUsage` is keyed by feature and is not a resource name: a
  * prefetch or fixture holds one value per name, which a per-feature list
@@ -153,6 +161,7 @@ interface HeldSeed {
  * out under the right one.
  */
 export class BillingStore {
+  readonly catalog: KeyedResource<Catalog, CatalogQuery>;
   readonly invoices: KeyedResource<InvoicePage, InvoiceQuery>;
   readonly upcomingInvoice: KeyedResource<
     UpcomingInvoice | null,
@@ -187,6 +196,10 @@ export class BillingStore {
     // client's refusal as an error.
     const readiness = (): Readiness =>
       this._connected ? READINESS[this._client.sessionStatus] : "waiting";
+    this.catalog = new KeyedResource(
+      (query) => this._client.fetchCatalog(query),
+      { readiness },
+    );
     // A refetch re-requests the loaded window, so a user who has paged
     // three deep does not collapse back to one page on invalidation.
     this.invoices = new KeyedResource(
@@ -219,6 +232,14 @@ export class BillingStore {
     );
 
     const held: HeldSeed = { key: initialData.sessionKey };
+    if (initialData.catalog !== undefined) {
+      held.catalog = {
+        params: normalizeCatalogQuery(
+          initialData.params?.catalog ?? DEFAULT_CATALOG_QUERY,
+        ),
+        data: initialData.catalog,
+      };
+    }
     if (initialData.invoices !== undefined) {
       held.invoices = {
         // Normalized the way the hook normalizes, or the caller asking for
@@ -242,6 +263,7 @@ export class BillingStore {
       held.featureUsage = initialData.featureUsage;
     }
     if (
+      held.catalog !== undefined ||
       held.invoices !== undefined ||
       held.upcomingInvoice !== undefined ||
       held.paymentMethods !== undefined ||
@@ -318,6 +340,9 @@ export class BillingStore {
     }
     this._held = undefined;
     if (verdict === "adopt") {
+      if (held.catalog !== undefined) {
+        this.catalog.seed(held.catalog.params, held.catalog.data);
+      }
       if (held.invoices !== undefined) {
         this.invoices.seed(held.invoices.params, held.invoices.data);
       }
@@ -505,6 +530,7 @@ export class BillingStore {
 }
 
 export const RESOURCE_NAMES: readonly BillingResourceName[] = [
+  "catalog",
   "invoices",
   "upcomingInvoice",
   "paymentMethods",

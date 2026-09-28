@@ -5,24 +5,36 @@
  * client method this release does not read, and typing the store by the
  * whole would make each addition there a compile error here, so that taking
  * a newer schematic-js meant adopting whatever it added. A resource joins
- * this list with the hook that reads it. The invoices, upcoming-invoice,
- * payment-methods and feature-usage slices so far; the rest of the contract
- * ships with its elements.
+ * this list with the hook that reads it. The catalog, invoices,
+ * upcoming-invoice, payment-methods and feature-usage slices so far; the rest
+ * of the contract ships with its elements.
  */
-import { normalizeInvoiceQuery as normalize } from "@schematichq/schematic-js";
+import {
+  normalizeCatalogQuery as normalizeCatalog,
+  normalizeInvoiceQuery as normalize,
+} from "@schematichq/schematic-js";
 
 import type {
   BillingClient as ContractClient,
   BillingResourceParams as ContractResourceParams,
   BillingResources as ContractResources,
+  CatalogQuery,
   InvoiceQuery,
 } from "@schematichq/schematic-js";
 
 export {
+  DEFAULT_CATALOG_QUERY,
   DEFAULT_INVOICE_QUERY,
   InvoiceStatus,
   SINGLETON,
   type BillingData,
+  type Catalog,
+  type CatalogAutoTopup,
+  type CatalogCheckoutField,
+  type CatalogCreditBundle,
+  type CatalogEntitlement,
+  type CatalogPlan,
+  type CatalogQuery,
   type FeatureUsage,
   type FeatureUserUsage,
   type Invoice,
@@ -40,7 +52,11 @@ export {
 
 /** The resources this package serves; a key of schematic-js's contract. */
 export type BillingResourceName =
-  "invoices" | "upcomingInvoice" | "paymentMethods" | "featureUsage";
+  | "catalog"
+  | "invoices"
+  | "upcomingInvoice"
+  | "paymentMethods"
+  | "featureUsage";
 export type BillingResources = Pick<ContractResources, BillingResourceName>;
 export type BillingResourceParams = Pick<
   ContractResourceParams,
@@ -61,6 +77,7 @@ export type BillingProviderClient = Pick<
   | "sessionKey"
   | "setSession"
   | "onSessionChange"
+  | "fetchCatalog"
   | "fetchInvoices"
   | "fetchUpcomingInvoice"
   | "fetchPaymentMethods"
@@ -81,4 +98,10 @@ export function normalizeInvoiceQuery(query: InvoiceQuery): InvoiceQuery {
   return normalize(query).includePending === true
     ? { includePending: true }
     : {};
+}
+
+/** As `normalizeInvoiceQuery`: only the catalog id keys a catalog. */
+export function normalizeCatalogQuery(query: CatalogQuery): CatalogQuery {
+  const { catalogId } = normalizeCatalog(query);
+  return catalogId === undefined ? {} : { catalogId };
 }

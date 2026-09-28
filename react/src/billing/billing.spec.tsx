@@ -19,6 +19,7 @@ import {
   normalizeInvoiceQuery,
   type BillingData,
   type BillingProviderClient,
+  type Catalog,
   type FeatureUsage,
   type FeatureUserUsage,
   type Invoice,
@@ -33,6 +34,7 @@ import {
   useBillingDataSource,
 } from "./context";
 import {
+  useCatalog,
   useFeatureUsage,
   useFeatureUserUsage,
   useInvoices,
@@ -105,6 +107,16 @@ const userUsage = (featureId: string): FeatureUserUsage =>
     users: [{ userId: `user_${featureId}`, usage: 5 }],
   }) as unknown as FeatureUserUsage;
 
+/** Only the fields the tests read; the rest of the wire shape is the API's. */
+const catalog = (id: string): Catalog =>
+  ({
+    id,
+    name: id,
+    plans: [],
+    addOns: [],
+    creditBundles: [],
+  }) as unknown as Catalog;
+
 type SessionListener = (event: SessionEvent) => void;
 
 function fakeClient(
@@ -117,6 +129,9 @@ function fakeClient(
     listeners,
     sessionStatus: "active",
     sessionKey: undefined,
+    fetchCatalog: vi.fn(async (query) =>
+      catalog(query?.catalogId ?? "cat_env"),
+    ),
     fetchInvoices: vi.fn(async () => rowsOf()),
     fetchUpcomingInvoice: vi.fn(async () => null),
     fetchPaymentMethods: vi.fn(async () => []),
@@ -2278,5 +2293,80 @@ describe("useFeatureUserUsage", () => {
       ),
     });
     expect(result.current).toMatchObject({ data: undefined, isPending: true });
+  });
+});
+
+describe("useCatalog", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_("loads the environment's catalog once for every reader", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(
+      () => [useCatalog(), useCatalog({})] as const,
+      {
+        wrapper: wrap(client),
+      },
+    );
+    expect(result.current[0].isPending).toBe(true);
+    await flush();
+    expect(result.current[0].data?.id).toBe("cat_env");
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(client.fetchCatalog).toHaveBeenCalledTimes(1);
+    expect(client.fetchCatalog).toHaveBeenCalledWith({});
+  });
+
+  it_(
+    "keys each catalog by its id, and an explicit undefined as none",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(
+        () =>
+          [
+            useCatalog({ catalogId: "cat_2" }),
+            useCatalog({ catalogId: undefined }),
+          ] as const,
+        { wrapper: wrap(client) },
+      );
+      await flush();
+      expect(result.current[0].data?.id).toBe("cat_2");
+      expect(result.current[1].data?.id).toBe("cat_env");
+      expect(client.fetchCatalog).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it_(
+    "serves a prefetched catalog under the query it was fetched for",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(() => useCatalog({ catalogId: "cat_2" }), {
+        wrapper: wrap(client, {
+          catalog: catalog("seeded"),
+          params: { catalog: { catalogId: "cat_2" } },
+        }),
+      });
+      expect(result.current.data?.id).toBe("seeded");
+      await flush();
+      expect(client.fetchCatalog).not.toHaveBeenCalled();
+    },
+  );
+
+  it_("serves fixture data", () => {
+    const { result } = renderHook(() => useCatalog(), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <BillingDataProvider data={{ catalog: catalog("fixture") }}>
+          {children}
+        </BillingDataProvider>
+      ),
+    });
+    expect(result.current.data?.id).toBe("fixture");
   });
 });
