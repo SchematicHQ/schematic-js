@@ -23,6 +23,7 @@ export {
   type ResourceHandle,
 } from "./context";
 export {
+  useCatalog,
   useCompany,
   useCreditBalances,
   useCreditUserUsage,
