@@ -1,9 +1,10 @@
 #!/bin/bash
 # Regenerates the narrow billing API client (src/billing/api/generated)
 # from the temporary-access-token OpenAPI spec, filtered to the surface this
-# branch ships (/company/invoices, /company/upcoming-invoice,
-# /company/payment-methods and its writes, /company/usage and its per-user
-# breakdown; hydrate, checkout and the rest join with their elements).
+# branch ships (/company and its invoices, upcoming invoice, payment methods
+# and their writes, usage and its per-user breakdown; the company's catalog
+# view; the persisted checkout and the tax ID it collects; hydrate and the
+# rest join with their elements).
 #
 # Until the endpoints deploy, the source of truth is a local schematic-api
 # checkout; point SCHEMATIC_API_DIR at it (default: ../../schematic-api).
@@ -22,8 +23,11 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 # which would sidestep the minimumReleaseAge guard in pnpm-workspace.yaml.
 pnpm exec js-yaml "$SPEC_DIR/temporaryaccesstoken.yml" > "$TMP_DIR/spec.json"
 node scripts/filter-openapi.mjs "$TMP_DIR/spec.json" "$TMP_DIR/spec.filtered.json" \
-  /company/invoices /company/upcoming-invoice /company/payment-methods \
+  /company /company/invoices /company/upcoming-invoice /company/payment-methods \
   /company/usage '/company/usage/{feature_id}/users' \
+  /catalog/view '/catalogs/{catalog_id}/view' \
+  /checkouts '/checkouts/{checkout_id}' '/checkouts/{checkout_id}/finalize' \
+  /checkout/tax-id \
   /checkout/paymentmethod/update '/checkout/paymentmethod/{checkout_id}' \
   /components/setup-intent
 rm -rf src/billing/api/generated
