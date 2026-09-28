@@ -178,6 +178,12 @@ export {
 } from "./strings";
 export * from "./styles";
 export { Checkout, type CheckoutProps } from "./Checkout";
+export {
+  CheckoutLauncherProvider,
+  useCheckoutLauncher,
+  type CheckoutLauncher,
+  type CheckoutLauncherProviderProps,
+} from "./checkout/launcher";
 export { CreditUsage, type CreditUsageProps } from "./CreditUsage";
 export {
   IncludedFeatures,
