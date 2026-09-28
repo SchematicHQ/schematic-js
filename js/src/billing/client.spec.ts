@@ -1206,3 +1206,49 @@ describe("checkouts", () => {
     expect(checkoutProblemsOf(new Error("x"))).toBeUndefined();
   });
 });
+
+describe("tax IDs", () => {
+  const wireTaxIds = {
+    data: {
+      tax_ids: [
+        {
+          country: "DE",
+          id: "txi_1",
+          type: "eu_vat",
+          value: "DE123456789",
+          verification_status: "verified",
+        },
+      ],
+    },
+  };
+
+  it("reads the tax IDs on file", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireTaxIds }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const taxIds = await client.fetchTaxIds();
+    expect(calls[0].url).toBe("https://api.schematichq.com/checkout/tax-id");
+    expect(taxIds).toEqual([
+      expect.objectContaining({ type: "eu_vat", value: "DE123456789" }),
+    ]);
+  });
+
+  it("sets a tax ID and answers with what is now on file", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireTaxIds }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const taxIds = await client.updateTaxId({
+      type: "eu_vat",
+      value: "DE123456789",
+    });
+    expect(calls[0]).toMatchObject({
+      method: "POST",
+      body: { tax_id: { type: "eu_vat", value: "DE123456789" } },
+    });
+    expect(taxIds).toHaveLength(1);
+  });
+});

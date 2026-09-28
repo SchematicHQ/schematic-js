@@ -3,6 +3,7 @@ import type { Company } from "./company";
 import type { FeatureUsage } from "./featureUsage";
 import type { InvoicePage, InvoiceQuery } from "./invoices";
 import type { PaymentMethod } from "./paymentMethods";
+import type { TaxId } from "./taxId";
 import type { UpcomingInvoice } from "./upcoming";
 
 export interface ResourceState<T> {
@@ -47,6 +48,11 @@ export interface BillingResources {
    * to nothing — so only `undefined` means not loaded.
    */
   featureUsage: FeatureUsage[];
+  /**
+   * `GET /checkout/tax-id`. Empty is a loaded value — the company has none on
+   * file — so only `undefined` means not loaded.
+   */
+  taxIds: TaxId[];
 }
 
 /** `Record<string, never>` marks a singleton; anything else is keyed. */
@@ -57,6 +63,7 @@ export interface BillingResourceParams {
   upcomingInvoice: Record<string, never>;
   paymentMethods: Record<string, never>;
   featureUsage: Record<string, never>;
+  taxIds: Record<string, never>;
 }
 
 /** The params of every singleton resource. */
