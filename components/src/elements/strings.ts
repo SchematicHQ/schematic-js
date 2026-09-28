@@ -157,6 +157,88 @@ export type ElementStrings = {
   periodMonthShort: string;
   periodQuarterShort: string;
   periodYearShort: string;
+
+  checkoutTitle: string;
+  checkoutClose: string;
+  checkoutLoading: string;
+  checkoutError: string;
+  checkoutUnavailable: string;
+  checkoutStepsLabel: string;
+  checkoutStepPlan: string;
+  checkoutStepAutoTopup: string;
+  checkoutStepUsage: string;
+  checkoutStepAddOns: string;
+  checkoutStepAddOnUsage: string;
+  checkoutStepCredits: string;
+  checkoutStepPayment: string;
+  checkoutNext: string;
+  checkoutBack: string;
+  checkoutPeriodMonth: string;
+  checkoutPeriodQuarter: string;
+  checkoutPeriodYear: string;
+  checkoutPerMonth: string;
+  checkoutPerQuarter: string;
+  checkoutPerYear: string;
+  checkoutPeriodLabel: string;
+  checkoutCurrencyLabel: string;
+  checkoutFree: string;
+  checkoutCurrentPlan: string;
+  checkoutSelect: string;
+  checkoutSelected: string;
+  checkoutTrialDays: string;
+  checkoutTrialToggle: string;
+  checkoutPlanOverLimit: string;
+  checkoutPlanDowngradeBlocked: string;
+  checkoutPlanNotPriced: string;
+  checkoutAddOnsEmpty: string;
+  checkoutAdd: string;
+  checkoutRemove: string;
+  checkoutQuantityLabel: string;
+  checkoutCurrentQuantity: string;
+  checkoutPerUnit: string;
+  checkoutCreditsCount: string;
+  checkoutAutoTopupEnable: string;
+  checkoutAutoTopupThreshold: string;
+  checkoutAutoTopupAmount: string;
+  checkoutAutoTopupCost: string;
+  checkoutPaymentMethod: string;
+  checkoutUseDifferentMethod: string;
+  checkoutPaymentNotRequired: string;
+  checkoutPromoCode: string;
+  checkoutPromoApply: string;
+  checkoutPromoRemove: string;
+  checkoutPromoApplied: string;
+  checkoutTaxId: string;
+  checkoutTaxIdCountry: string;
+  checkoutTaxIdType: string;
+  checkoutTaxIdValue: string;
+  checkoutTaxIdSaved: string;
+  checkoutTaxIdError: string;
+  checkoutTaxIdFormat: string;
+  checkoutCustomFields: string;
+  checkoutRequired: string;
+  checkoutOptInAccept: string;
+  checkoutSummary: string;
+  checkoutDueToday: string;
+  checkoutTotalPerMonth: string;
+  checkoutTotalPerQuarter: string;
+  checkoutTotalPerYear: string;
+  checkoutProration: string;
+  checkoutDiscount: string;
+  checkoutTax: string;
+  checkoutTrialEnds: string;
+  checkoutScheduledChange: string;
+  checkoutDisclaimerMonth: string;
+  checkoutDisclaimerQuarter: string;
+  checkoutDisclaimerYear: string;
+  checkoutPricing: string;
+  checkoutPricingError: string;
+  checkoutPay: string;
+  checkoutStartTrial: string;
+  checkoutConfirm: string;
+  checkoutFinalizing: string;
+  checkoutFinalizeError: string;
+  checkoutPaymentFailed: string;
 };
 
 export type StringKey = keyof ElementStrings;
@@ -356,6 +438,90 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   periodMonthShort: "mo",
   periodQuarterShort: "qtr",
   periodYearShort: "yr",
+
+  checkoutTitle: "Checkout",
+  checkoutClose: "Close",
+  checkoutLoading: "Loading checkout",
+  checkoutError: "There was a problem loading checkout.",
+  checkoutUnavailable: "Checkout is not available for this account.",
+  checkoutStepsLabel: "Checkout steps",
+  checkoutStepPlan: "Plan",
+  checkoutStepAutoTopup: "Auto top-up",
+  checkoutStepUsage: "Quantity",
+  checkoutStepAddOns: "Add-ons",
+  checkoutStepAddOnUsage: "Add-on quantity",
+  checkoutStepCredits: "Credits",
+  checkoutStepPayment: "Checkout",
+  checkoutNext: "Next: {{step}}",
+  checkoutBack: "Back",
+  checkoutPeriodMonth: "Monthly",
+  checkoutPeriodQuarter: "Quarterly",
+  checkoutPeriodYear: "Yearly",
+  checkoutPerMonth: "/month",
+  checkoutPerQuarter: "/quarter",
+  checkoutPerYear: "/year",
+  checkoutPeriodLabel: "Billing period",
+  checkoutCurrencyLabel: "Currency",
+  checkoutFree: "Free",
+  checkoutCurrentPlan: "Current plan",
+  checkoutSelect: "Select",
+  checkoutSelected: "Selected",
+  checkoutTrialDays: "{{count}} day free trial",
+  checkoutTrialDays_one: "{{count}} day free trial",
+  checkoutTrialDays_other: "{{count}} day free trial",
+  checkoutTrialToggle: "Start with a free trial",
+  checkoutPlanOverLimit: "Over plan limit",
+  checkoutPlanDowngradeBlocked: "Downgrade not permitted",
+  checkoutPlanNotPriced: "Not available for this billing period",
+  checkoutAddOnsEmpty: "No add-ons are available for this plan.",
+  checkoutAdd: "Add",
+  checkoutRemove: "Remove",
+  checkoutQuantityLabel: "Quantity of {{name}}",
+  checkoutCurrentQuantity: "Currently {{count}}",
+  checkoutPerUnit: "{{price}} each",
+  checkoutCreditsCount: "{{count}} {{credits}}",
+  checkoutAutoTopupEnable: "Top up {{credits}} automatically",
+  checkoutAutoTopupThreshold: "When the balance falls below",
+  checkoutAutoTopupAmount: "Buy",
+  checkoutAutoTopupCost: "{{cost}} per top-up",
+  checkoutPaymentMethod: "Payment method",
+  checkoutUseDifferentMethod: "Use a different payment method",
+  checkoutPaymentNotRequired: "No payment is needed today.",
+  checkoutPromoCode: "Promo code",
+  checkoutPromoApply: "Apply",
+  checkoutPromoRemove: "Remove",
+  checkoutPromoApplied: "{{code}} applied",
+  checkoutTaxId: "Tax ID",
+  checkoutTaxIdCountry: "Country",
+  checkoutTaxIdType: "Type",
+  checkoutTaxIdValue: "Tax ID number",
+  checkoutTaxIdSaved: "Tax ID saved",
+  checkoutTaxIdError: "There was a problem saving your tax ID.",
+  checkoutTaxIdFormat: "Double-check this matches the format {{example}}.",
+  checkoutCustomFields: "Additional details",
+  checkoutRequired: "Required",
+  checkoutOptInAccept: "I agree",
+  checkoutSummary: "Summary",
+  checkoutDueToday: "Due today",
+  checkoutTotalPerMonth: "Total per month",
+  checkoutTotalPerQuarter: "Total per quarter",
+  checkoutTotalPerYear: "Total per year",
+  checkoutProration: "Proration",
+  checkoutDiscount: "Discount",
+  checkoutTax: "Tax",
+  checkoutTrialEnds: "Your trial ends {{date}}; you will be charged then.",
+  checkoutScheduledChange: "This change takes effect {{date}}.",
+  checkoutDisclaimerMonth: "Renews monthly until cancelled.",
+  checkoutDisclaimerQuarter: "Renews quarterly until cancelled.",
+  checkoutDisclaimerYear: "Renews yearly until cancelled.",
+  checkoutPricing: "Updating price",
+  checkoutPricingError: "There was a problem pricing this checkout.",
+  checkoutPay: "Pay now",
+  checkoutStartTrial: "Start trial",
+  checkoutConfirm: "Confirm",
+  checkoutFinalizing: "Processing",
+  checkoutFinalizeError: "There was a problem completing checkout.",
+  checkoutPaymentFailed: "The payment was not completed: {{message}}",
 };
 
 /**

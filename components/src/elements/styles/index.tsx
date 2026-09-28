@@ -1,5 +1,6 @@
 import React from "react";
 
+import { checkoutCss } from "./checkout";
 import { creditUsageCss } from "./credit-usage";
 import { dialogCss } from "./dialog";
 import { iconsCss } from "./icons";
@@ -569,6 +570,7 @@ ${tooltipCss}
 ${includedFeaturesCss}
 ${meteredFeaturesCss}
 ${creditUsageCss}
+${checkoutCss}
 `;
 
 /**
