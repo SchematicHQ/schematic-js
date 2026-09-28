@@ -1,3 +1,4 @@
+import { Checkout } from "./Checkout";
 import { Invoices } from "./Invoices";
 import { PaymentMethods } from "./PaymentMethods";
 import { UpcomingBill } from "./UpcomingBill";
@@ -14,6 +15,12 @@ describe("what the elements read", () => {
     expect(Invoices.resources).toEqual(["invoices"]);
     expect(UpcomingBill.resources).toEqual(["upcomingInvoice"]);
     expect(PaymentMethods.resources).toEqual(["paymentMethods"]);
+    expect(Checkout.resources).toEqual([
+      "catalog",
+      "company",
+      "paymentMethods",
+      "featureUsage",
+    ]);
   });
 
   test("billingResources collects them once each, in the order given", () => {
