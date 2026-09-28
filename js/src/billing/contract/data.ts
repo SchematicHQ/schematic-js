@@ -1,3 +1,4 @@
+import type { Catalog, CatalogQuery } from "./catalog";
 import type { Company } from "./company";
 import type { CreditBalanceEntry } from "./credits";
 import type { FeatureUsage } from "./featureUsage";
@@ -22,6 +23,11 @@ export interface ResourceState<T> {
  * session's data keys it by that and serves only the active one.
  */
 export interface BillingResources {
+  /**
+   * `GET /catalog/view`, or `GET /catalogs/{catalog_id}/view` for a
+   * `catalogId`: the catalog as the company sees it.
+   */
+  catalog: Catalog;
   /** `GET /company/invoices?limit&offset&include_pending`. */
   invoices: InvoicePage;
   /**
@@ -52,6 +58,7 @@ export interface BillingResources {
 
 /** `Record<string, never>` marks a singleton; anything else is keyed. */
 export interface BillingResourceParams {
+  catalog: CatalogQuery;
   invoices: InvoiceQuery;
   upcomingInvoice: Record<string, never>;
   paymentMethods: Record<string, never>;

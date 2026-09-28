@@ -1,5 +1,5 @@
 import { SchematicBillingClient, fetchBillingData } from "./client";
-import { fakeFetch, tokens } from "./testing";
+import { fakeFetch, tokens, wireCatalogView } from "./testing";
 import { SchematicApiError, SchematicSession } from "./session";
 
 const wireInvoices = {
@@ -1244,5 +1244,87 @@ describe("company", () => {
       selfService: true,
       thresholdCredits: 10,
     });
+  });
+});
+
+describe("catalog view", () => {
+  it("reads the environment's catalog and decodes it", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireCatalogView }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const catalog = await client.fetchCatalog();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/catalog/view",
+      method: "GET",
+    });
+    expect(catalog.capabilities.checkout).toBe(true);
+    expect(catalog.checkoutSettings.customFields).toEqual([]);
+    expect(catalog.plans).toHaveLength(1);
+    expect(catalog.plans[0]).toMatchObject({
+      id: "plan_fw7bhwPVFas",
+      current: false,
+      valid: true,
+      autoTopups: [],
+    });
+    // A null compatibility list is every plan, and decodes as absent.
+    expect(catalog.plans[0].compatiblePlanIds).toBeUndefined();
+  });
+
+  it("reads one catalog by id", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireCatalogView }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await client.fetchCatalog({ catalogId: "cat/1" });
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/catalogs/cat%2F1/view",
+    );
+  });
+
+  it("reports a malformed catalog, and keeps a 404 the failure it is", async () => {
+    for (const body of [null, "yes", { nope: 1 }, { data: null }]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchCatalog()).rejects.toThrow(/Malformed response/);
+    }
+
+    // Off the catalog flag: the account has no catalog view to read.
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(client.fetchCatalog()).rejects.toMatchObject({
+      name: "SchematicApiError",
+      status: 404,
+    });
+  });
+
+  it("prefetches the catalog it is asked for, and says which it was", async () => {
+    const { calls, fetchImpl } = fakeFetch(
+      byPath({ "/catalogs/cat_2/view": { body: wireCatalogView } }),
+    );
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const data = await fetchBillingData(client, {
+      names: ["catalog"],
+      catalog: { catalogId: "cat_2" },
+    });
+    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
+      "/catalogs/cat_2/view",
+    ]);
+    expect(data.catalog?.plans).toHaveLength(1);
+    expect(data.params).toEqual({ catalog: { catalogId: "cat_2" } });
   });
 });
