@@ -14,6 +14,7 @@ import {
   GetCompanyCreditBalancesResponseFromJSON,
   GetCompanyResponseFromJSON,
   GetCompanyCreditUserUsageResponseFromJSON,
+  UpdateCheckoutTaxIDResponseDataFromJSON,
   GetCompanyFeatureUsageResponseFromJSON,
   GetCompanyFeatureUserUsageResponseFromJSON,
   GetCompanyInvoicesResponseFromJSON,
@@ -38,6 +39,8 @@ import type {
   InvoiceQuery,
   PaymentMethod,
   SetupIntent,
+  TaxId,
+  TaxIdInput,
   UpcomingInvoice,
 } from "./contract";
 import {
@@ -121,6 +124,10 @@ export interface BillingClient {
   deletePaymentMethod(id: string): Promise<void>;
   /** Empty when the company is entitled to nothing. */
   fetchFeatureUsage(): Promise<FeatureUsage[]>;
+  /** Empty when the company has none on file. */
+  fetchTaxIds(): Promise<TaxId[]>;
+  /** Sets the company's tax ID, and answers with every one now on file. */
+  updateTaxId(taxId: TaxIdInput): Promise<TaxId[]>;
   /** One event-based feature's usage by user over its metric period. */
   fetchFeatureUserUsage(
     params: FeatureUserUsageRequest,
@@ -358,6 +365,29 @@ export class SchematicBillingClient implements BillingClient {
       .then(() => undefined);
   }
 
+  fetchTaxIds(): Promise<TaxId[]> {
+    const path = "/checkout/tax-id";
+    return this.session
+      .request(path)
+      .then(
+        (body) =>
+          UpdateCheckoutTaxIDResponseDataFromJSON(dataOf(body, path)).taxIds,
+      );
+  }
+
+  updateTaxId(taxId: TaxIdInput): Promise<TaxId[]> {
+    const path = "/checkout/tax-id";
+    return this.session
+      .request(path, {
+        method: "POST",
+        body: { tax_id: { type: taxId.type, value: taxId.value } },
+      })
+      .then(
+        (body) =>
+          UpdateCheckoutTaxIDResponseDataFromJSON(dataOf(body, path)).taxIds,
+      );
+  }
+
   fetchFeatureUsage(): Promise<FeatureUsage[]> {
     const path = "/company/usage";
     // No entitlements is a 200 with an empty list. A 404 is the account
@@ -543,6 +573,10 @@ export async function fetchBillingData(
           }
           case "company": {
             data.company = await client.fetchCompany();
+            break;
+          }
+          case "taxIds": {
+            data.taxIds = await client.fetchTaxIds();
             break;
           }
         }
