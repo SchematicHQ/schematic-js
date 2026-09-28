@@ -7,6 +7,8 @@
  */
 
 import {
+  CheckoutDraftResponseDataFromJSON,
+  CheckoutResponseDataFromJSON,
   CompanyCatalogResponseDataFromJSON,
   CreateSetupIntentResponseFromJSON,
   GetCompanyCreditBalancesResponseFromJSON,
@@ -23,6 +25,10 @@ import type {
   BillingResourceName,
   Catalog,
   CatalogQuery,
+  Checkout,
+  CheckoutResult,
+  CheckoutSelections,
+  CheckoutWrite,
   Company,
   CreditBalanceEntry,
   CreditUserUsage,
@@ -34,7 +40,11 @@ import type {
   SetupIntent,
   UpcomingInvoice,
 } from "./contract";
-import { normalizeCatalogQuery, normalizeInvoiceQuery } from "./contract";
+import {
+  checkoutSelectionsToJSON,
+  normalizeCatalogQuery,
+  normalizeInvoiceQuery,
+} from "./contract";
 import type {
   SessionEvent,
   SessionInput,
@@ -77,6 +87,27 @@ export interface FeatureUserUsageRequest {
 export interface BillingClient {
   /** The environment's catalog, or the one `catalogId` names. */
   fetchCatalog(query?: CatalogQuery): Promise<Catalog>;
+  /** Opens a checkout, priced when the cart is priceable. */
+  createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite>;
+  getCheckout(id: string): Promise<Checkout>;
+  /**
+   * Replaces the cart and re-prices it. `version` is the one the caller last
+   * read; a stale one is a 409.
+   */
+  updateCheckout(
+    id: string,
+    version: number,
+    selections: CheckoutSelections,
+  ): Promise<CheckoutWrite>;
+  /**
+   * Charges the cart at `version`. `sessionId` is the one the last write
+   * answered with; without it the finalize starts a session of its own.
+   */
+  finalizeCheckout(
+    id: string,
+    version: number,
+    options?: { sessionId?: string },
+  ): Promise<CheckoutResult>;
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult>;
   /** `null` when the company has no next bill. */
   fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
@@ -112,6 +143,22 @@ export interface BillingClient {
 }
 
 export type BillingClientOptions = SessionOptions;
+
+/** The header a checkout's session rides in, both ways. */
+export const CHECKOUT_SESSION_HEADER = "X-Checkout-Session-ID";
+
+/** The `data` of a response, or a malformed-response error naming the path. */
+function dataOf(body: unknown, path: string): unknown {
+  if (
+    body === null ||
+    typeof body !== "object" ||
+    !("data" in body) ||
+    (body as { data: unknown }).data == null
+  ) {
+    throw new Error(`Malformed response from ${path}`);
+  }
+  return (body as { data: unknown }).data;
+}
 
 export const INVOICE_PAGE_SIZE = 12;
 
@@ -155,19 +202,64 @@ export class SchematicBillingClient implements BillingClient {
       query.catalogId === undefined
         ? "/catalog/view"
         : `/catalogs/${encodeURIComponent(query.catalogId)}/view`;
-    return this.session.request(path).then((body) => {
-      if (
-        body === null ||
-        typeof body !== "object" ||
-        !("data" in body) ||
-        (body as { data: unknown }).data == null
-      ) {
-        throw new Error(`Malformed response from ${path}`);
-      }
-      return CompanyCatalogResponseDataFromJSON(
-        (body as { data: unknown }).data,
-      );
+    return this.session
+      .request(path)
+      .then((body) => CompanyCatalogResponseDataFromJSON(dataOf(body, path)));
+  }
+
+  createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite> {
+    return this.checkoutWrite("/checkouts", {
+      method: "POST",
+      body: checkoutSelectionsToJSON(selections),
     });
+  }
+
+  getCheckout(id: string): Promise<Checkout> {
+    const path = `/checkouts/${encodeURIComponent(id)}`;
+    return this.session
+      .request(path)
+      .then((body) => CheckoutDraftResponseDataFromJSON(dataOf(body, path)));
+  }
+
+  updateCheckout(
+    id: string,
+    version: number,
+    selections: CheckoutSelections,
+  ): Promise<CheckoutWrite> {
+    return this.checkoutWrite(`/checkouts/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: { ...checkoutSelectionsToJSON(selections), version },
+    });
+  }
+
+  finalizeCheckout(
+    id: string,
+    version: number,
+    options: { sessionId?: string } = {},
+  ): Promise<CheckoutResult> {
+    const path = `/checkouts/${encodeURIComponent(id)}/finalize`;
+    return this.session
+      .request(path, {
+        method: "POST",
+        body: { version },
+        ...(options.sessionId === undefined
+          ? {}
+          : { headers: { [CHECKOUT_SESSION_HEADER]: options.sessionId } }),
+      })
+      .then((body) => CheckoutResponseDataFromJSON(dataOf(body, path)));
+  }
+
+  private checkoutWrite(
+    path: string,
+    options: { method: string; body: unknown },
+  ): Promise<CheckoutWrite> {
+    return this.session
+      .requestWithResponse(path, options)
+      .then(({ body, headers }) => {
+        const checkout = CheckoutDraftResponseDataFromJSON(dataOf(body, path));
+        const sessionId = headers.get(CHECKOUT_SESSION_HEADER) ?? undefined;
+        return sessionId === undefined ? { checkout } : { checkout, sessionId };
+      });
   }
 
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult> {

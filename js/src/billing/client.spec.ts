@@ -1,5 +1,12 @@
 import { SchematicBillingClient, fetchBillingData } from "./client";
-import { fakeFetch, tokens, wireCatalogView } from "./testing";
+import { checkoutProblemsOf } from "./contract";
+import {
+  fakeFetch,
+  tokens,
+  wireCatalogView,
+  wireCheckout,
+  wireCheckoutResult,
+} from "./testing";
 import { SchematicApiError, SchematicSession } from "./session";
 
 const wireInvoices = {
@@ -1326,5 +1333,147 @@ describe("catalog view", () => {
     ]);
     expect(data.catalog?.plans).toHaveLength(1);
     expect(data.params).toEqual({ catalog: { catalogId: "cat_2" } });
+  });
+});
+
+describe("checkouts", () => {
+  const client = (fetchImpl: typeof fetch) =>
+    new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+
+  it("opens a checkout with the cart on the wire and keeps the session it names", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      status: 201,
+      body: wireCheckout(),
+      headers: { "X-Checkout-Session-ID": "cs_1" },
+    }));
+    const { checkout, sessionId } = await client(fetchImpl).createCheckout({
+      addOns: [{ addOnId: "addon_1", priceId: "price_a" }],
+      currency: "usd",
+      payInAdvance: [{ priceId: "price_seats", quantity: 4 }],
+      planId: "plan_1",
+      priceId: "price_1",
+    });
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/checkouts",
+      method: "POST",
+      body: {
+        add_on_ids: [{ add_on_id: "addon_1", price_id: "price_a" }],
+        auto_topup_overrides: [],
+        credit_bundles: [],
+        currency: "usd",
+        custom_field_values: [],
+        new_plan_id: "plan_1",
+        new_price_id: "price_1",
+        pay_in_advance: [{ price_id: "price_seats", quantity: 4 }],
+        skip_trial: false,
+      },
+    });
+    expect(checkout.id).toBe("chk_1");
+    expect(checkout.priceSnapshot?.dueNow).toBe(2500);
+    expect(checkout.selections.intent).toBe("change");
+    expect(sessionId).toBe("cs_1");
+  });
+
+  it("leaves a credit-only cart without a plan or price", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      status: 201,
+      body: wireCheckout(),
+    }));
+    const { sessionId } = await client(fetchImpl).createCheckout({
+      creditBundles: [{ bundleId: "bundle_1", quantity: 2 }],
+    });
+    expect(calls[0].body).not.toHaveProperty("new_plan_id");
+    expect(calls[0].body).not.toHaveProperty("new_price_id");
+    expect(sessionId).toBeUndefined();
+  });
+
+  it("replaces the cart at a version, and reads back the rotated session", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: wireCheckout({ version: 3 }),
+      headers: { "X-Checkout-Session-ID": "cs_2" },
+    }));
+    const { checkout, sessionId } = await client(fetchImpl).updateCheckout(
+      "chk_1",
+      2,
+      { planId: "plan_1", priceId: "price_1", promoCode: "SAVE10" },
+    );
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/checkouts/chk_1",
+      method: "PUT",
+      body: { version: 2, promo_code: "SAVE10" },
+    });
+    expect(checkout.version).toBe(3);
+    expect(sessionId).toBe("cs_2");
+  });
+
+  it("finalizes at a version under the session it was priced in", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: wireCheckoutResult({
+        confirmPaymentIntentClientSecret: "pi_secret",
+      }),
+    }));
+    const result = await client(fetchImpl).finalizeCheckout("chk_1", 3, {
+      sessionId: "cs_2",
+    });
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/checkouts/chk_1/finalize",
+      method: "POST",
+      body: { version: 3 },
+    });
+    expect(calls[0].headers["X-Checkout-Session-ID"]).toBe("cs_2");
+    expect(result.confirmPaymentIntentClientSecret).toBe("pi_secret");
+
+    const { calls: bare, fetchImpl: bareFetch } = fakeFetch(() => ({
+      body: wireCheckoutResult(),
+    }));
+    await client(bareFetch).finalizeCheckout("chk_1", 3);
+    expect(bare[0].headers).not.toHaveProperty("X-Checkout-Session-ID");
+  });
+
+  it("reads a checkout by id", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireCheckout() }));
+    const checkout = await client(fetchImpl).getCheckout("chk_1");
+    expect(calls[0].url).toBe("https://api.schematichq.com/checkouts/chk_1");
+    expect(checkout.status).toBe("open");
+  });
+
+  it("reads the problems off a refused finalize, and nothing off other errors", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 400,
+      body: {
+        error: "Add a payment method to complete this checkout.",
+        problems: [
+          {
+            blocking: true,
+            code: "payment_method_required",
+            message: "Add a payment method to complete this checkout.",
+            source: "requirement",
+          },
+        ],
+      },
+    }));
+    const error = await client(fetchImpl)
+      .finalizeCheckout("chk_1", 3)
+      .catch((e: unknown) => e);
+    expect(checkoutProblemsOf(error)).toEqual([
+      expect.objectContaining({
+        blocking: true,
+        code: "payment_method_required",
+      }),
+    ]);
+
+    const { fetchImpl: conflict } = fakeFetch(() => ({
+      status: 409,
+      body: { error: "The checkout changed since it was read." },
+    }));
+    const stale = await client(conflict)
+      .updateCheckout("chk_1", 1, {})
+      .catch((e: unknown) => e);
+    expect(stale).toMatchObject({ name: "SchematicApiError", status: 409 });
+    expect(checkoutProblemsOf(stale)).toBeUndefined();
+    expect(checkoutProblemsOf(new Error("x"))).toBeUndefined();
   });
 });

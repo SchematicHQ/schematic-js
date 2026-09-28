@@ -209,3 +209,81 @@ export const wireCatalogView = {
     ],
   },
 };
+
+/** A priced checkout as `GET /checkouts/{checkout_id}` answers it. */
+export function wireCheckout(
+  overrides: { version?: number; status?: string; problems?: unknown[] } = {},
+) {
+  return {
+    data: {
+      company_id: "comp_a",
+      created_at: "2026-09-28T12:00:00Z",
+      expires_at: "2026-10-05T12:00:00Z",
+      id: "chk_1",
+      last_activity_at: "2026-09-28T12:00:00Z",
+      price_snapshot: {
+        amount_off: 0,
+        currency: "usd",
+        discount_amount: 0,
+        discounts: [],
+        due_now: 2500,
+        is_scheduled_downgrade: false,
+        new_charges: 2500,
+        opt_in_required: false,
+        payment_method_required: true,
+        percent_off: 0,
+        period_start: "2026-09-28T12:00:00Z",
+        priced_at: "2026-09-28T12:00:00Z",
+        promo_code_applied: false,
+        proration: 0,
+        total_per_billing_period: 2500,
+      },
+      priced_at: "2026-09-28T12:00:00Z",
+      problems: overrides.problems ?? [],
+      selections: {
+        add_on_ids: [],
+        auto_topup_overrides: [],
+        billing_entity_id: null,
+        coupon_external_id: null,
+        credit_bundles: [],
+        currency: "usd",
+        custom_field_values: [],
+        intent: "change",
+        new_plan_id: "plan_1",
+        new_price_id: "price_1",
+        opt_in_accepted: null,
+        pay_in_advance: [],
+        payment_method_id: null,
+        promo_code: null,
+        skip_trial: false,
+      },
+      status: overrides.status ?? "open",
+      updated_at: "2026-09-28T12:00:00Z",
+      version: overrides.version ?? 1,
+    },
+  };
+}
+
+/** What a finalize answers: the subscription it charged for. */
+export function wireCheckoutResult(
+  overrides: { confirmPaymentIntentClientSecret?: string } = {},
+) {
+  return {
+    data: {
+      cancel_at_period_end: false,
+      confirm_payment_intent_client_secret:
+        overrides.confirmPaymentIntentClientSecret ?? null,
+      created_at: "2026-09-28T12:00:00Z",
+      currency: "usd",
+      customer_external_id: "cus_1",
+      id: "bilsub_1",
+      interval: "month",
+      period_end: 1790000000,
+      period_start: 1787000000,
+      provider_type: "stripe",
+      status: "active",
+      subscription_external_id: "sub_1",
+      total_price: 2500,
+    },
+  };
+}
