@@ -1,11 +1,6 @@
 import { useSetupIntent } from "@schematichq/schematic-react";
 import type * as ReactStripe from "@stripe/react-stripe-js";
-import type {
-  Appearance,
-  Stripe,
-  StripeConstructorOptions,
-  StripeElementLocale,
-} from "@stripe/stripe-js";
+import type { Appearance, Stripe } from "@stripe/stripe-js";
 import React, { useEffect, useId, useRef, useState } from "react";
 
 import type {
@@ -13,6 +8,7 @@ import type {
   PaymentMethodsCheckoutSettings,
 } from "./PaymentMethods";
 import type { Translator } from "./strings";
+import { loadStripeForIntent } from "./stripe";
 import { withTokenDefaults } from "./styles/tokens";
 
 /**
@@ -58,7 +54,6 @@ type FormState =
     };
 
 const NO_CLIENT_SECRET = "The setup intent carries no client secret.";
-const STRIPE_NOT_LOADED = "Stripe.js did not load.";
 
 /**
  * The tokens Stripe's iframe is themed from, as the properties a probe
@@ -151,29 +146,14 @@ export function PaymentMethodForm({
         setupFailed = true;
         throw error;
       }),
-      import("@stripe/stripe-js"),
       import("@stripe/react-stripe-js"),
     ])
-      .then(async ([intent, stripeJs, ui]) => {
+      .then(async ([intent, ui]) => {
         const clientSecret = intent.setupIntentClientSecret ?? null;
         if (clientSecret === null || clientSecret === "") {
           throw new Error(NO_CLIENT_SECRET);
         }
-        // A connected account loads through Schematic's key with the account
-        // named; any other uses its own key, else Schematic's.
-        let publishableKey =
-          intent.publishableKey ?? intent.schematicPublishableKey;
-        const options: StripeConstructorOptions = {
-          locale: locale as StripeElementLocale,
-        };
-        if (intent.accountId !== undefined && intent.accountId !== null) {
-          publishableKey = intent.schematicPublishableKey;
-          options.stripeAccount = intent.accountId;
-        }
-        const stripe = await stripeJs.loadStripe(publishableKey, options);
-        if (stripe === null) {
-          throw new Error(STRIPE_NOT_LOADED);
-        }
+        const stripe = await loadStripeForIntent(intent, locale);
         if (!cancelled) {
           const appearance = resolveAppearance(
             hostRef.current ?? document.body,
