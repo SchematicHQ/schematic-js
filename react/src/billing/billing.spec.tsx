@@ -19,6 +19,8 @@ import {
   normalizeInvoiceQuery,
   type BillingData,
   type BillingProviderClient,
+  type FeatureUsage,
+  type FeatureUserUsage,
   type Invoice,
   type PaymentMethod,
   type SetupIntent,
@@ -31,6 +33,8 @@ import {
   useBillingDataSource,
 } from "./context";
 import {
+  useFeatureUsage,
+  useFeatureUserUsage,
   useInvoices,
   usePaymentMethods,
   useSetupIntent,
@@ -90,6 +94,17 @@ const intent = (secret: string): SetupIntent =>
     setupIntentClientSecret: secret,
   }) as unknown as SetupIntent;
 
+/** Only the fields the tests read; the rest of the wire shape is the API's. */
+const feature = (featureId: string): FeatureUsage =>
+  ({ featureId, featureName: featureId, usage: 1 }) as unknown as FeatureUsage;
+
+const userUsage = (featureId: string): FeatureUserUsage =>
+  ({
+    count: 1,
+    total: 5,
+    users: [{ userId: `user_${featureId}`, usage: 5 }],
+  }) as unknown as FeatureUserUsage;
+
 type SessionListener = (event: SessionEvent) => void;
 
 function fakeClient(
@@ -108,6 +123,8 @@ function fakeClient(
     createSetupIntent: vi.fn(async () => intent("seti_secret")),
     updatePaymentMethod: vi.fn(async () => {}),
     deletePaymentMethod: vi.fn(async () => {}),
+    fetchFeatureUsage: vi.fn(async () => []),
+    fetchFeatureUserUsage: vi.fn(async ({ featureId }) => userUsage(featureId)),
     onSessionChange: (listener) => {
       listeners.push(listener);
       return () => {};
@@ -2110,5 +2127,156 @@ describe("BillingStore", () => {
     store.invalidateAll();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(client.fetchInvoices).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("useFeatureUsage", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_("reports the missing-source error outside any provider", () => {
+    const { result } = renderHook(() => useFeatureUsage());
+    expect(result.current.error?.message).toBe(MISSING_BILLING_SOURCE_MESSAGE);
+  });
+
+  it_("loads the list once for every reader", async () => {
+    const client = fakeClient({
+      fetchFeatureUsage: vi.fn(async () => [feature("a"), feature("b")]),
+    });
+    const { result } = renderHook(
+      () => [useFeatureUsage(), useFeatureUsage()] as const,
+      { wrapper: wrap(client) },
+    );
+    expect(result.current[0].isPending).toBe(true);
+    await flush();
+    expect(result.current[0].data?.map((f) => f.featureId)).toEqual(["a", "b"]);
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(client.fetchFeatureUsage).toHaveBeenCalledTimes(1);
+  });
+
+  it_("reads an empty list as loaded, not as pending", async () => {
+    const { result } = renderHook(() => useFeatureUsage(), {
+      wrapper: wrap(fakeClient()),
+    });
+    await flush();
+    expect(result.current).toMatchObject({ data: [], isPending: false });
+  });
+
+  it_("serves a prefetched list without a request", async () => {
+    const client = fakeClient({
+      fetchFeatureUsage: vi.fn(async () => [feature("fetched")]),
+    });
+    const { result } = renderHook(() => useFeatureUsage(), {
+      wrapper: wrap(client, { featureUsage: [feature("seeded")] }),
+    });
+    expect(result.current.data?.[0].featureId).toBe("seeded");
+    await flush();
+    expect(client.fetchFeatureUsage).not.toHaveBeenCalled();
+  });
+
+  it_("serves fixture data", () => {
+    const { result } = renderHook(() => useFeatureUsage(), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <BillingDataProvider data={{ featureUsage: [feature("f")] }}>
+          {children}
+        </BillingDataProvider>
+      ),
+    });
+    expect(result.current.data?.[0].featureId).toBe("f");
+  });
+});
+
+describe("useFeatureUserUsage", () => {
+  const wrap = (client: BillingProviderClient) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_("reports the missing-source error outside any provider", () => {
+    const { result } = renderHook(() => useFeatureUserUsage("a"));
+    expect(result.current.error?.message).toBe(MISSING_BILLING_SOURCE_MESSAGE);
+  });
+
+  it_(
+    "reads each feature's breakdown once, the heaviest 20 users",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(
+        () =>
+          [
+            useFeatureUserUsage("a"),
+            useFeatureUserUsage("a"),
+            useFeatureUserUsage("b"),
+          ] as const,
+        { wrapper: wrap(client) },
+      );
+      expect(result.current[0].isPending).toBe(true);
+      await flush();
+      expect(result.current[0].data?.users[0].userId).toBe("user_a");
+      expect(result.current[1].data).toBe(result.current[0].data);
+      expect(result.current[2].data?.users[0].userId).toBe("user_b");
+      expect(client.fetchFeatureUserUsage).toHaveBeenCalledTimes(2);
+      expect(client.fetchFeatureUserUsage).toHaveBeenCalledWith({
+        featureId: "a",
+        limit: 20,
+      });
+    },
+  );
+
+  it_("drops a breakdown when the session changes", async () => {
+    const client = fakeClient();
+    renderHook(() => useFeatureUserUsage("a"), { wrapper: wrap(client) });
+    await flush();
+    expect(client.fetchFeatureUserUsage).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      client.listeners.forEach((listener) => listener({ type: "changed" }));
+    });
+    await flush();
+    expect(client.fetchFeatureUserUsage).toHaveBeenCalledTimes(2);
+  });
+
+  it_("serves fixture breakdowns by feature, pending for the rest", () => {
+    const { result } = renderHook(
+      () => [useFeatureUserUsage("a"), useFeatureUserUsage("b")] as const,
+      {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingDataProvider
+            data={{}}
+            featureUserUsage={{ a: userUsage("a") }}
+          >
+            {children}
+          </BillingDataProvider>
+        ),
+      },
+    );
+    expect(result.current[0].data?.total).toBe(5);
+    expect(result.current[1]).toMatchObject({
+      data: undefined,
+      isPending: true,
+    });
+  });
+
+  it_("stays pending over a prefetch with no client", () => {
+    const { result } = renderHook(() => useFeatureUserUsage("a"), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <BillingProvider initialData={{ featureUsage: [] }}>
+          {children}
+        </BillingProvider>
+      ),
+    });
+    expect(result.current).toMatchObject({ data: undefined, isPending: true });
   });
 });
