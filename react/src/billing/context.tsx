@@ -16,6 +16,7 @@ import type {
   InvoiceQuery,
   ResourceState,
   SetupIntent,
+  TaxIdInput,
 } from "./contract";
 import type { SessionEvent } from "./client";
 
@@ -35,6 +36,8 @@ export interface BillingActions {
   removePaymentMethod(id: string): Promise<void>;
   /** Mints a new setup intent every call; nothing is cached. */
   createSetupIntent(): Promise<SetupIntent>;
+  /** Sets the company's tax ID and takes the list it answers with. */
+  updateTaxId(taxId: TaxIdInput): Promise<void>;
   /** Opens a checkout; the store holds nothing of it, `useCheckout` does. */
   createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite>;
   getCheckout(id: string): Promise<Checkout>;
@@ -112,6 +115,7 @@ const ACTION_NAMES: readonly (keyof BillingActions)[] = [
   "setDefaultPaymentMethod",
   "removePaymentMethod",
   "createSetupIntent",
+  "updateTaxId",
   "createCheckout",
   "getCheckout",
   "updateCheckout",
