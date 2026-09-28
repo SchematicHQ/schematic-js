@@ -1,3 +1,4 @@
+import { CreditUsage } from "./CreditUsage";
 import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
 import { MeteredFeatures } from "./MeteredFeatures";
@@ -18,6 +19,7 @@ describe("what the elements read", () => {
     expect(PaymentMethods.resources).toEqual(["paymentMethods"]);
     expect(IncludedFeatures.resources).toEqual(["featureUsage"]);
     expect(MeteredFeatures.resources).toEqual(["featureUsage"]);
+    expect(CreditUsage.resources).toEqual(["creditBalances"]);
   });
 
   test("billingResources collects them once each, in the order given", () => {

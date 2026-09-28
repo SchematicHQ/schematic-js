@@ -7,6 +7,7 @@ import { SchematicProvider } from "@schematichq/schematic-react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
+import { CreditUsage } from "./CreditUsage";
 import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
 import { MeteredFeatures } from "./MeteredFeatures";
@@ -37,6 +38,7 @@ function serve(
   const upcoming = scenario.upcomingInvoice;
   const methods = scenario.paymentMethods ?? [];
   const features = scenario.featureUsage ?? [];
+  const balances = scenario.creditBalances ?? [];
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
     const perUser = /^\/company\/usage\/([^/]+)\/users$/.exec(url.pathname);
@@ -47,6 +49,20 @@ function serve(
             featureUserUsage(),
           ),
           params: { limit: Number(url.searchParams.get("limit")) },
+        }),
+        { status: 200 },
+      );
+    }
+    if (flagged && url.pathname === "/company/credits") {
+      return new Response(
+        JSON.stringify({
+          data: {
+            count: balances.length,
+            balances: balances.map((row) =>
+              billingApi.CompanyCreditBalanceResponseDataToJSON(row),
+            ),
+          },
+          params: {},
         }),
         { status: 200 },
       );
@@ -153,6 +169,13 @@ describe("end to end", () => {
     expect(api).toHaveTextContent("250 API calls used");
     await waitFor(() => expect(api).toHaveTextContent("Usage by user"));
     expect(api).toHaveTextContent("Ada");
+  });
+
+  test("CreditUsage", async () => {
+    renderStack(<CreditUsage locale="en-US" />, "tok", SCENARIOS.credits());
+    const credits = await screen.findAllByTestId("schematic-credit");
+    expect(credits).toHaveLength(3);
+    expect(credits[0]).toHaveTextContent("850.25 AI credits remaining");
   });
 
   test("IncludedFeatures says it is not available for an account off the flag", async () => {

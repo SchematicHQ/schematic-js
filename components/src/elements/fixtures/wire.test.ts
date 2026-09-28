@@ -79,4 +79,19 @@ describe("wire round trip", () => {
       expect(decoded).toEqual(rows);
     },
   );
+
+  test.each(Object.keys(SCENARIOS) as ScenarioName[])(
+    "%s, the credit balances",
+    (name) => {
+      const rows = SCENARIOS[name]().creditBalances ?? [];
+      const wire = rows.map((row) =>
+        billingApi.CompanyCreditBalanceResponseDataToJSON(row),
+      );
+      expect(JSON.stringify(wire)).not.toMatch(/"[a-z]+[A-Z]/);
+      const decoded = JSON.parse(JSON.stringify(wire)).map(
+        billingApi.CompanyCreditBalanceResponseDataFromJSON,
+      );
+      expect(decoded).toEqual(rows);
+    },
+  );
 });
