@@ -4,6 +4,7 @@ import {
   SINGLETON,
   sessionKey,
   type InvoicesResult,
+  type SessionEvent,
   type SessionInput,
   type SessionStatus,
 } from "@schematichq/schematic-js";
@@ -16,6 +17,10 @@ import type {
   BillingResources,
   Catalog,
   CatalogQuery,
+  Checkout,
+  CheckoutResult,
+  CheckoutSelections,
+  CheckoutWrite,
   Company,
   FeatureUsage,
   FeatureUserUsage,
@@ -473,6 +478,39 @@ export class BillingStore {
    */
   createSetupIntent(): Promise<SetupIntent> {
     return this._client.createSetupIntent();
+  }
+
+  /**
+   * The checkout calls pass straight through: a checkout in progress is one
+   * reader's cart, not a resource to share, and `useCheckout` holds it.
+   */
+  createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite> {
+    return this._client.createCheckout(selections);
+  }
+
+  getCheckout(id: string): Promise<Checkout> {
+    return this._client.getCheckout(id);
+  }
+
+  updateCheckout(
+    id: string,
+    version: number,
+    selections: CheckoutSelections,
+  ): Promise<CheckoutWrite> {
+    return this._client.updateCheckout(id, version, selections);
+  }
+
+  finalizeCheckout(
+    id: string,
+    version: number,
+    options?: { sessionId?: string },
+  ): Promise<CheckoutResult> {
+    return this._client.finalizeCheckout(id, version, options);
+  }
+
+  /** The client's session changes, for state kept beside the store. */
+  onSessionChange(listener: (event: SessionEvent) => void): () => void {
+    return this._client.onSessionChange?.(listener) ?? (() => {});
   }
 
   dispose(): void {

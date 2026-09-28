@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -12,6 +13,12 @@ import type {
   BillingResources,
   Catalog,
   CatalogQuery,
+  Checkout,
+  CheckoutDraftState,
+  CheckoutPriceSnapshot,
+  CheckoutResult,
+  CheckoutSelections,
+  CheckoutTransport,
   Company,
   FeatureUsage,
   FeatureUserUsage,
@@ -22,6 +29,7 @@ import type {
   UpcomingInvoice,
 } from "./contract";
 import {
+  CheckoutDraft,
   DEFAULT_CATALOG_QUERY,
   DEFAULT_INVOICE_QUERY,
   SINGLETON,
@@ -249,6 +257,109 @@ export function useFeatureUserUsage(
     [featureId, source],
   );
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
+export interface UseCheckoutOptions {
+  /** Resume this checkout rather than opening one on the first write. */
+  checkoutId?: string;
+}
+
+export interface CheckoutHandle extends CheckoutDraftState {
+  /** What the cart was last priced at; `undefined` until it is priceable. */
+  snapshot: CheckoutPriceSnapshot | undefined;
+  /**
+   * Replaces the cart and re-prices it. Calls made while a write is out are
+   * coalesced into the newest, so a component can call this on every change.
+   * Rejects with the write's failure, which also lands on `error`.
+   */
+  setSelections: (
+    selections: CheckoutSelections,
+  ) => Promise<Checkout | undefined>;
+  /**
+   * Charges the cart once every write has landed, then reloads the billing
+   * data the purchase changed. A refusal on the cart's problems puts them on
+   * `problems` and rejects.
+   */
+  finalize: () => Promise<CheckoutResult>;
+  /** Drops the checkout; the next write opens a new one. */
+  reset: () => void;
+}
+
+/**
+ * A persisted checkout: the first `setSelections` opens it, each later one
+ * replaces the cart and re-prices it, and `finalize` charges it. The server
+ * has no notion of steps, and neither does this: a component sequences its
+ * own and hands over the whole cart each time it changes. One checkout per
+ * component that calls this; the session changing drops it.
+ */
+export function useCheckout(options: UseCheckoutOptions = {}): CheckoutHandle {
+  const source = useBillingDataSource();
+  // Read at call time, so a provider that swaps its source mid-checkout is
+  // the one the next write goes through.
+  const sourceRef = useRef(source);
+  sourceRef.current = source;
+
+  const [draft] = useState(() => {
+    const transport: CheckoutTransport = {
+      createCheckout: (selections) =>
+        actionsOf(sourceRef.current).createCheckout(selections),
+      getCheckout: (id) => actionsOf(sourceRef.current).getCheckout(id),
+      updateCheckout: (id, version, selections) =>
+        actionsOf(sourceRef.current).updateCheckout(id, version, selections),
+      finalizeCheckout: (id, version, opts) =>
+        actionsOf(sourceRef.current).finalizeCheckout(id, version, opts),
+    };
+    return new CheckoutDraft(transport, { checkoutId: options.checkoutId });
+  });
+
+  // From an effect, not the draft's constructor: StrictMode builds the state
+  // twice and keeps one, and a subscription made by the discarded one would
+  // outlive it.
+  useEffect(() => {
+    const onSessionChange = source.onSessionChange;
+    return onSessionChange === undefined
+      ? undefined
+      : draft.watchSession(onSessionChange);
+  }, [draft, source]);
+
+  const checkoutId = options.checkoutId;
+  useEffect(() => {
+    if (checkoutId !== undefined) {
+      // A failed read leaves the draft as it was; the next write reports.
+      draft.load().catch(() => undefined);
+    }
+  }, [checkoutId, draft]);
+
+  const subscribe = useCallback(
+    (listener: () => void) => draft.subscribe(listener),
+    [draft],
+  );
+  const getSnapshot = useCallback(() => draft.state, [draft]);
+  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+
+  const invalidateAll = source.invalidateAll;
+  const setSelections = useCallback(
+    (selections: CheckoutSelections) => draft.setSelections(selections),
+    [draft],
+  );
+  const finalize = useCallback(async () => {
+    const result = await draft.finalize();
+    // The plan, the add-ons, the bill and the balances all moved.
+    invalidateAll();
+    return result;
+  }, [draft, invalidateAll]);
+  const reset = useCallback(() => draft.reset(), [draft]);
+
+  return useMemo(
+    () => ({
+      ...state,
+      snapshot: state.checkout?.priceSnapshot,
+      setSelections,
+      finalize,
+      reset,
+    }),
+    [finalize, reset, setSelections, state],
+  );
 }
 
 /** Reloads every loaded billing resource (after a plan change, for instance). */
