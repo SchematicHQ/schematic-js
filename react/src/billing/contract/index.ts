@@ -5,9 +5,9 @@
  * client method this release does not read, and typing the store by the
  * whole would make each addition there a compile error here, so that taking
  * a newer schematic-js meant adopting whatever it added. A resource joins
- * this list with the hook that reads it. The invoices, upcoming-invoice and
- * payment-methods slices so far; the rest of the contract ships with its
- * elements.
+ * this list with the hook that reads it. The invoices, upcoming-invoice,
+ * payment-methods and feature-usage slices so far; the rest of the contract
+ * ships with its elements.
  */
 import { normalizeInvoiceQuery as normalize } from "@schematichq/schematic-js";
 
@@ -23,19 +23,24 @@ export {
   InvoiceStatus,
   SINGLETON,
   type BillingData,
+  type FeatureUsage,
+  type FeatureUserUsage,
   type Invoice,
   type InvoicePage,
   type Discount,
   type InvoiceQuery,
+  type MeteredPrice,
   type PaymentMethod,
+  type PerLicenseCreditGrant,
   type ResourceState,
   type SetupIntent,
   type UpcomingInvoice,
+  type UserUsage,
 } from "@schematichq/schematic-js";
 
 /** The resources this package serves; a key of schematic-js's contract. */
 export type BillingResourceName =
-  "invoices" | "upcomingInvoice" | "paymentMethods";
+  "invoices" | "upcomingInvoice" | "paymentMethods" | "featureUsage";
 export type BillingResources = Pick<ContractResources, BillingResourceName>;
 export type BillingResourceParams = Pick<
   ContractResourceParams,
@@ -62,6 +67,8 @@ export type BillingProviderClient = Pick<
   | "createSetupIntent"
   | "updatePaymentMethod"
   | "deletePaymentMethod"
+  | "fetchFeatureUsage"
+  | "fetchFeatureUserUsage"
 >;
 
 /**

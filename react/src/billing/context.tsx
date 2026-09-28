@@ -7,6 +7,7 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  FeatureUserUsage,
   InvoiceQuery,
   ResourceState,
   SetupIntent,
@@ -48,6 +49,16 @@ export interface BillingDataSource {
     name: K,
     params: BillingResourceParams[K],
   ): ResourceHandle<BillingResources[K]>;
+  /**
+   * One feature's usage by user. Keyed by feature, so it sits beside the
+   * named resources rather than among them: a source that holds one value
+   * per name has no slot for it.
+   */
+  subscribeFeatureUserUsage(
+    featureId: string,
+    listener: () => void,
+  ): () => void;
+  featureUserUsage(featureId: string): ResourceHandle<FeatureUserUsage>;
   /** Never rejects: a failure lands on the resource's `error`. */
   loadMoreInvoices: (query: InvoiceQuery) => Promise<void>;
   invalidateAll: () => void;
@@ -114,6 +125,8 @@ const missingHandle: ResourceHandle<never> = {
 export const missingBillingSource: BillingDataSource = {
   subscribe: () => () => {},
   handle: () => missingHandle,
+  subscribeFeatureUserUsage: () => () => {},
+  featureUserUsage: () => missingHandle,
   loadMoreInvoices: () => Promise.resolve(),
   invalidateAll: () => {},
   // The same error a read reports, so a write outside any provider names
@@ -136,6 +149,8 @@ export type BillingDataStatus = {
 interface BillingDataProviderDataProps {
   /** A missing key reports as pending. */
   data: BillingData;
+  /** Usage by user, by feature id; a feature left out reports as pending. */
+  featureUserUsage?: Record<string, FeatureUserUsage>;
   /** Simulated loading / failure per resource; wins over `data`. */
   status?: BillingDataStatus;
   onRefetch?: (name: BillingResourceName) => void;
@@ -162,6 +177,7 @@ export function BillingDataProvider({
   actions,
   children,
   data,
+  featureUserUsage,
   locale,
   onLoadMoreInvoices,
   onMissingString,
@@ -172,6 +188,10 @@ export function BillingDataProvider({
 }: BillingDataProviderProps) {
   const source = useMemo<BillingDataSource>(() => {
     const handles = new Map<BillingResourceName, ResourceHandle<unknown>>();
+    const userUsageHandles = new Map<
+      string,
+      ResourceHandle<FeatureUserUsage>
+    >();
     return {
       actions: rejectingActions(
         (name) => new Error(BILLING_ACTION_UNAVAILABLE_MESSAGE(name)),
@@ -194,13 +214,29 @@ export function BillingDataProvider({
         handles.set(name, handle);
         return handle as never;
       },
+      subscribeFeatureUserUsage: () => () => {},
+      featureUserUsage: (featureId) => {
+        const cached = userUsageHandles.get(featureId);
+        if (cached !== undefined) {
+          return cached;
+        }
+        const value = featureUserUsage?.[featureId];
+        const handle = {
+          data: value,
+          error: undefined,
+          isPending: value === undefined,
+          refetch: () => {},
+        };
+        userUsageHandles.set(featureId, handle);
+        return handle;
+      },
       loadMoreInvoices: (query) => {
         onLoadMoreInvoices?.(query);
         return Promise.resolve();
       },
       invalidateAll: () => {},
     };
-  }, [actions, data, onLoadMoreInvoices, onRefetch, status]);
+  }, [actions, data, featureUserUsage, onLoadMoreInvoices, onRefetch, status]);
 
   return (
     <BillingDataContext.Provider value={source}>
