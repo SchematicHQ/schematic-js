@@ -192,6 +192,7 @@ export function BillingProvider({
           store.setDefaultPaymentMethod(externalId),
         removePaymentMethod: (id) => store.removePaymentMethod(id),
         createSetupIntent: () => store.createSetupIntent(),
+        updateTaxId: (taxId) => store.updateTaxId(taxId),
         createCheckout: (selections) => store.createCheckout(selections),
         getCheckout: (id) => store.getCheckout(id),
         updateCheckout: (id, version, selections) =>

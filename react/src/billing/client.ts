@@ -29,6 +29,8 @@ import type {
   InvoiceQuery,
   PaymentMethod,
   SetupIntent,
+  TaxId,
+  TaxIdInput,
   UpcomingInvoice,
 } from "./contract";
 import {
@@ -148,6 +150,7 @@ interface HeldSeed {
   upcomingInvoice?: UpcomingInvoice | null;
   paymentMethods?: PaymentMethod[];
   featureUsage?: FeatureUsage[];
+  taxIds?: TaxId[];
 }
 
 /**
@@ -155,7 +158,7 @@ interface HeldSeed {
  * over a `BillingProviderClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
  * resource. The catalog, the company, invoices, the upcoming invoice, the
- * payment methods and feature usage so far; the rest join with their
+ * payment methods, feature usage and tax IDs so far; the rest join with their
  * elements.
  *
  * `featureUserUsage` is keyed by feature and is not a resource name: a
@@ -181,6 +184,7 @@ export class BillingStore {
     Record<string, never>
   >;
   readonly featureUsage: KeyedResource<FeatureUsage[], Record<string, never>>;
+  readonly taxIds: KeyedResource<TaxId[], Record<string, never>>;
   readonly featureUserUsage: KeyedResource<
     FeatureUserUsage,
     FeatureUserUsageParams
@@ -234,6 +238,9 @@ export class BillingStore {
       () => this._client.fetchFeatureUsage(),
       { readiness },
     );
+    this.taxIds = new KeyedResource(() => this._client.fetchTaxIds(), {
+      readiness,
+    });
     this.featureUserUsage = new KeyedResource(
       ({ featureId }) =>
         this._client.fetchFeatureUserUsage({
@@ -277,13 +284,17 @@ export class BillingStore {
     if (initialData.featureUsage !== undefined) {
       held.featureUsage = initialData.featureUsage;
     }
+    if (initialData.taxIds !== undefined) {
+      held.taxIds = initialData.taxIds;
+    }
     if (
       held.catalog !== undefined ||
       held.company !== undefined ||
       held.invoices !== undefined ||
       held.upcomingInvoice !== undefined ||
       held.paymentMethods !== undefined ||
-      held.featureUsage !== undefined
+      held.featureUsage !== undefined ||
+      held.taxIds !== undefined
     ) {
       this._held = held;
       this._settleSeed(claimFrom(options.session) ?? claimOf(this._client));
@@ -373,6 +384,9 @@ export class BillingStore {
       }
       if (held.featureUsage !== undefined) {
         this.featureUsage.seed(SINGLETON, held.featureUsage);
+      }
+      if (held.taxIds !== undefined) {
+        this.taxIds.seed(SINGLETON, held.taxIds);
       }
       this._seedKey = held.key;
       this._seeded = true;
@@ -478,6 +492,15 @@ export class BillingStore {
    */
   createSetupIntent(): Promise<SetupIntent> {
     return this._client.createSetupIntent();
+  }
+
+  /**
+   * Sets the company's tax ID. The write answers with every ID now on file,
+   * so the list takes that rather than a second request.
+   */
+  async updateTaxId(taxId: TaxIdInput): Promise<void> {
+    const taxIds = await this._client.updateTaxId(taxId);
+    this.taxIds.seed(SINGLETON, taxIds);
   }
 
   /**
@@ -588,4 +611,5 @@ export const RESOURCE_NAMES: readonly BillingResourceName[] = [
   "upcomingInvoice",
   "paymentMethods",
   "featureUsage",
+  "taxIds",
 ];
