@@ -1,4 +1,5 @@
 import type { Catalog, CatalogQuery } from "./catalog";
+import type { Company } from "./company";
 import type { FeatureUsage } from "./featureUsage";
 import type { InvoicePage, InvoiceQuery } from "./invoices";
 import type { PaymentMethod } from "./paymentMethods";
@@ -26,6 +27,8 @@ export interface BillingResources {
    * `catalogId`: the catalog as the company sees it.
    */
   catalog: Catalog;
+  /** `GET /company`: the plan and add-ons the company holds, and its subscription. */
+  company: Company;
   /** `GET /company/invoices?limit&offset&include_pending`. */
   invoices: InvoicePage;
   /**
@@ -49,6 +52,7 @@ export interface BillingResources {
 /** `Record<string, never>` marks a singleton; anything else is keyed. */
 export interface BillingResourceParams {
   catalog: CatalogQuery;
+  company: Record<string, never>;
   invoices: InvoiceQuery;
   upcomingInvoice: Record<string, never>;
   paymentMethods: Record<string, never>;

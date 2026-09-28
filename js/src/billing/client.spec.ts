@@ -1,5 +1,5 @@
 import { SchematicBillingClient, fetchBillingData } from "./client";
-import { fakeFetch, tokens, wireCatalogView } from "./testing";
+import { fakeFetch, tokens, wireCatalogView, wireCompany } from "./testing";
 import { SchematicApiError, SchematicSession } from "./session";
 
 const wireInvoices = {
@@ -1003,5 +1003,56 @@ describe("catalog view", () => {
     ]);
     expect(data.catalog?.plans).toHaveLength(1);
     expect(data.params).toEqual({ catalog: { catalogId: "cat_2" } });
+  });
+});
+
+describe("company", () => {
+  it("reads the company and decodes its plan and subscription", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireCompany }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const company = await client.fetchCompany();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/company",
+      method: "GET",
+    });
+    expect(company.plan).toMatchObject({
+      id: "plan_fw7bhwPVFas",
+      catalogId: "cat_fw7bhwPVFas",
+      isAddOn: false,
+    });
+    expect(company.addOns).toEqual([]);
+    expect(company.subscription).toMatchObject({
+      currency: "usd",
+      interval: "month",
+      intervalCount: 1,
+      trialing: false,
+    });
+    expect(company.subscription?.currentPeriodEnd).toBeInstanceOf(Date);
+  });
+
+  it("reports a malformed company rather than reading it as none", async () => {
+    for (const body of [null, { data: null }, { nope: 1 }]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchCompany()).rejects.toThrow(/Malformed response/);
+    }
+  });
+
+  it("prefetches the company", async () => {
+    const { fetchImpl } = fakeFetch(
+      byPath({ "/company": { body: wireCompany } }),
+    );
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const data = await fetchBillingData(client, { names: ["company"] });
+    expect(data.company?.id).toBe("comp_fw7bhwPVFas");
   });
 });

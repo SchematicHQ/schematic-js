@@ -8,6 +8,7 @@
 
 import {
   CompanyCatalogResponseDataFromJSON,
+  CompanyContextResponseDataFromJSON,
   CreateSetupIntentResponseFromJSON,
   GetCompanyFeatureUsageResponseFromJSON,
   GetCompanyFeatureUserUsageResponseFromJSON,
@@ -20,6 +21,7 @@ import type {
   BillingResourceName,
   Catalog,
   CatalogQuery,
+  Company,
   FeatureUsage,
   FeatureUserUsage,
   InvoicePage,
@@ -64,6 +66,7 @@ export interface FeatureUserUsageRequest {
 export interface BillingClient {
   /** The environment's catalog, or the one `catalogId` names. */
   fetchCatalog(query?: CatalogQuery): Promise<Catalog>;
+  fetchCompany(): Promise<Company>;
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult>;
   /** `null` when the company has no next bill. */
   fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
@@ -144,6 +147,24 @@ export class SchematicBillingClient implements BillingClient {
         throw new Error(`Malformed response from ${path}`);
       }
       return CompanyCatalogResponseDataFromJSON(
+        (body as { data: unknown }).data,
+      );
+    });
+  }
+
+  fetchCompany(): Promise<Company> {
+    const path = "/company";
+    // A 404 is the account being off the company-context-api flag.
+    return this.session.request(path).then((body) => {
+      if (
+        body === null ||
+        typeof body !== "object" ||
+        !("data" in body) ||
+        (body as { data: unknown }).data == null
+      ) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return CompanyContextResponseDataFromJSON(
         (body as { data: unknown }).data,
       );
     });
@@ -335,6 +356,10 @@ export async function fetchBillingData(
         switch (name) {
           case "catalog": {
             data.catalog = await client.fetchCatalog(catalog ?? {});
+            break;
+          }
+          case "company": {
+            data.company = await client.fetchCompany();
             break;
           }
           case "invoices": {
