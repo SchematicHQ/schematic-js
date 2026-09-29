@@ -29,6 +29,7 @@ import type {
   GetCheckoutResponse,
   GetCheckoutTaxIDResponse,
   GetCompanyInvoicesResponse,
+  GetCompanyPaymentMethodsResponse,
   GetCompanyUpcomingInvoiceResponse,
   GetCreditUsageByUserResponse,
   GetFeatureUsageByUserResponse,
@@ -79,6 +80,8 @@ import {
   GetCheckoutTaxIDResponseToJSON,
   GetCompanyInvoicesResponseFromJSON,
   GetCompanyInvoicesResponseToJSON,
+  GetCompanyPaymentMethodsResponseFromJSON,
+  GetCompanyPaymentMethodsResponseToJSON,
   GetCompanyUpcomingInvoiceResponseFromJSON,
   GetCompanyUpcomingInvoiceResponseToJSON,
   GetCreditUsageByUserResponseFromJSON,
@@ -723,6 +726,47 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
       requestParameters,
       initOverrides,
     );
+    return await response.value();
+  }
+
+  /**
+   * Get company payment methods
+   */
+  async getCompanyPaymentMethodsRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyPaymentMethodsResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/payment-methods`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyPaymentMethodsResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get company payment methods
+   */
+  async getCompanyPaymentMethods(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyPaymentMethodsResponse> {
+    const response = await this.getCompanyPaymentMethodsRaw(initOverrides);
     return await response.value();
   }
 
