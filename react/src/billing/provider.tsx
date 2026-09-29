@@ -178,6 +178,12 @@ export function BillingProvider({
       handle,
       loadMoreInvoices: (query) => store.loadMoreInvoices(query),
       invalidateAll: () => store.invalidateAll(),
+      actions: {
+        setDefaultPaymentMethod: (externalId) =>
+          store.setDefaultPaymentMethod(externalId),
+        removePaymentMethod: (id) => store.removePaymentMethod(id),
+        createSetupIntent: () => store.createSetupIntent(),
+      },
     };
   }, [store]);
 
@@ -206,7 +212,11 @@ export function BillingProvider({
   );
 }
 
-/** A source over prefetched data alone (no client): serves it, never fetches. */
+/**
+ * A source over prefetched data alone (no client): serves it, never fetches.
+ * No `actions`: with nothing to write through, the hooks reject every write
+ * as unavailable.
+ */
 function staticSource(data: BillingData): BillingDataSource {
   const handles = new Map<BillingResourceName, ResourceHandle<unknown>>();
   return {

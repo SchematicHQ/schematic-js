@@ -5,8 +5,9 @@
  * client method this release does not read, and typing the store by the
  * whole would make each addition there a compile error here, so that taking
  * a newer schematic-js meant adopting whatever it added. A resource joins
- * this list with the hook that reads it. The invoices and upcoming-invoice
- * slices so far; the rest of the contract ships with its elements.
+ * this list with the hook that reads it. The invoices, upcoming-invoice and
+ * payment-methods slices so far; the rest of the contract ships with its
+ * elements.
  */
 import { normalizeInvoiceQuery as normalize } from "@schematichq/schematic-js";
 
@@ -26,12 +27,15 @@ export {
   type InvoicePage,
   type Discount,
   type InvoiceQuery,
+  type PaymentMethod,
   type ResourceState,
+  type SetupIntent,
   type UpcomingInvoice,
 } from "@schematichq/schematic-js";
 
 /** The resources this package serves; a key of schematic-js's contract. */
-export type BillingResourceName = "invoices" | "upcomingInvoice";
+export type BillingResourceName =
+  "invoices" | "upcomingInvoice" | "paymentMethods";
 export type BillingResources = Pick<ContractResources, BillingResourceName>;
 export type BillingResourceParams = Pick<
   ContractResourceParams,
@@ -39,8 +43,9 @@ export type BillingResourceParams = Pick<
 >;
 
 /**
- * What `BillingProvider` asks of its client: the session it reads under, and
- * the fetch behind each resource above. schematic-js's `SchematicBillingClient`
+ * What `BillingProvider` asks of its client: the session it reads under, the
+ * fetch behind each resource above, and the payment-method actions the hooks
+ * expose. schematic-js's `SchematicBillingClient`
  * satisfies it, and so does a host's own client that implements only this
  * much. Named apart from schematic-js's `BillingClient`, which is the whole
  * interface; this is the part the hooks here call.
@@ -53,6 +58,10 @@ export type BillingProviderClient = Pick<
   | "onSessionChange"
   | "fetchInvoices"
   | "fetchUpcomingInvoice"
+  | "fetchPaymentMethods"
+  | "createSetupIntent"
+  | "updatePaymentMethod"
+  | "deletePaymentMethod"
 >;
 
 /**

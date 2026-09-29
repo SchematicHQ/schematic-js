@@ -9,10 +9,25 @@ import type {
   BillingResources,
   InvoiceQuery,
   ResourceState,
+  SetupIntent,
 } from "./contract";
 
 export interface ResourceHandle<T> extends ResourceState<T> {
   refetch: () => void;
+}
+
+/**
+ * The writes a source can carry out. Each rejects with the failure; a source
+ * that reads only (a prefetch with no client) leaves the object off, and the
+ * hooks reject every write with `BILLING_ACTION_UNAVAILABLE_MESSAGE`.
+ */
+export interface BillingActions {
+  /** Makes `externalId` the default payment method and reloads the list. */
+  setDefaultPaymentMethod(externalId: string): Promise<void>;
+  /** Removes payment method `id` and reloads the list. */
+  removePaymentMethod(id: string): Promise<void>;
+  /** Mints a new setup intent every call; nothing is cached. */
+  createSetupIntent(): Promise<SetupIntent>;
 }
 
 /**
@@ -36,6 +51,8 @@ export interface BillingDataSource {
   /** Never rejects: a failure lands on the resource's `error`. */
   loadMoreInvoices: (query: InvoiceQuery) => Promise<void>;
   invalidateAll: () => void;
+  /** Absent on a source that only reads. */
+  actions?: BillingActions;
 }
 
 export const BillingDataContext = createContext<BillingDataSource | undefined>(
@@ -46,6 +63,39 @@ export const MISSING_BILLING_SOURCE_MESSAGE =
   "Schematic billing hooks need a SchematicProvider with a session, billingClient, or initialData, or a BillingDataProvider.";
 
 const missingSourceError = new Error(MISSING_BILLING_SOURCE_MESSAGE);
+
+export const BILLING_ACTION_UNAVAILABLE_MESSAGE = (
+  name: keyof BillingActions,
+): string =>
+  `Schematic billing action ${name} is not available: the provider only reads. Writes need a SchematicProvider with a session or billingClient, or a BillingDataProvider given \`actions\`.`;
+
+const ACTION_NAMES: readonly (keyof BillingActions)[] = [
+  "setDefaultPaymentMethod",
+  "removePaymentMethod",
+  "createSetupIntent",
+];
+
+/** Every action rejects with `reason(name)`; `given` overrides per action. */
+function rejectingActions(
+  reason: (name: keyof BillingActions) => Error,
+  given: Partial<BillingActions> = {},
+): BillingActions {
+  const actions: Partial<Record<keyof BillingActions, unknown>> = {};
+  for (const name of ACTION_NAMES) {
+    actions[name] =
+      given[name] ?? ((): Promise<never> => Promise.reject(reason(name)));
+  }
+  return actions as BillingActions;
+}
+
+const unavailableActions = rejectingActions(
+  (name) => new Error(BILLING_ACTION_UNAVAILABLE_MESSAGE(name)),
+);
+
+/** The source's actions, or ones that reject saying the source cannot write. */
+export function actionsOf(source: BillingDataSource): BillingActions {
+  return source.actions ?? unavailableActions;
+}
 
 // `useSyncExternalStore` requires `getSnapshot` to return the same reference
 // while nothing changed, so every source hands out cached handles.
@@ -66,6 +116,9 @@ export const missingBillingSource: BillingDataSource = {
   handle: () => missingHandle,
   loadMoreInvoices: () => Promise.resolve(),
   invalidateAll: () => {},
+  // The same error a read reports, so a write outside any provider names
+  // the misconfiguration rather than a source that only reads.
+  actions: rejectingActions(() => missingSourceError),
 };
 
 export function useBillingDataSource(): BillingDataSource {
@@ -87,6 +140,13 @@ interface BillingDataProviderDataProps {
   status?: BillingDataStatus;
   onRefetch?: (name: BillingResourceName) => void;
   onLoadMoreInvoices?: (query: InvoiceQuery) => void;
+  /**
+   * What the write hooks call. Each rejects on its own; an action left out
+   * rejects with `BILLING_ACTION_UNAVAILABLE_MESSAGE`. Nothing here touches
+   * `data`: a fixture that wants the list to change after a write hands in
+   * new `data`.
+   */
+  actions?: Partial<BillingActions>;
   children?: React.ReactNode;
 }
 
@@ -99,6 +159,7 @@ export type BillingDataProviderProps = BillingDataProviderDataProps &
   SchematicI18nConfig;
 
 export function BillingDataProvider({
+  actions,
   children,
   data,
   locale,
@@ -112,6 +173,10 @@ export function BillingDataProvider({
   const source = useMemo<BillingDataSource>(() => {
     const handles = new Map<BillingResourceName, ResourceHandle<unknown>>();
     return {
+      actions: rejectingActions(
+        (name) => new Error(BILLING_ACTION_UNAVAILABLE_MESSAGE(name)),
+        actions,
+      ),
       subscribe: () => () => {},
       handle: (name) => {
         const cached = handles.get(name);
@@ -135,7 +200,7 @@ export function BillingDataProvider({
       },
       invalidateAll: () => {},
     };
-  }, [data, onLoadMoreInvoices, onRefetch, status]);
+  }, [actions, data, onLoadMoreInvoices, onRefetch, status]);
 
   return (
     <BillingDataContext.Provider value={source}>
