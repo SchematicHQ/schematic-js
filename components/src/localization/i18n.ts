@@ -1,6 +1,7 @@
 import { createInstance, type i18n as I18n } from "i18next";
 
 import en from "./en";
+import it from "./it";
 import type { SchematicTranslations } from "./types";
 
 /**
@@ -14,6 +15,11 @@ export const DEFAULT_LANGUAGE = "en";
 
 /** The English bundle, for a host to translate from. */
 export const schematicTranslationsEn: Readonly<SchematicTranslations> = en;
+
+/**
+ * The Italian bundle, for `translations={{ it: schematicTranslationsIt }}`.
+ */
+export const schematicTranslationsIt: Readonly<SchematicTranslations> = it;
 
 /**
  * Our keys are English sentences, so a `.` or `:` inside one must not be read
