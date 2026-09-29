@@ -68,6 +68,8 @@ models/CompanyInvoiceResponseData.ts
 models/CompanyInvoicesResponseData.ts
 models/CompanyOverrideNoteResponseData.ts
 models/CompanyOverrideResponseData.ts
+models/CompanyPaymentMethodResponseData.ts
+models/CompanyPaymentMethodsResponseData.ts
 models/CompanyPlanCreditGrantView.ts
 models/CompanyPlanDetailResponseData.ts
 models/CompanyPlanInvalidReason.ts
@@ -139,6 +141,7 @@ models/GetCheckoutResponse.ts
 models/GetCheckoutTaxIDResponse.ts
 models/GetCompanyInvoicesParams.ts
 models/GetCompanyInvoicesResponse.ts
+models/GetCompanyPaymentMethodsResponse.ts
 models/GetCompanyUpcomingInvoiceResponse.ts
 models/GetCreditUsageByUserParams.ts
 models/GetCreditUsageByUserResponse.ts
