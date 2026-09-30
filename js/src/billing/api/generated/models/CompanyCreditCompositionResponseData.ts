@@ -68,7 +68,7 @@ export interface CompanyCreditCompositionResponseData {
    */
   period: string;
   /**
-   * The next bill's due date, when there is a next bill.
+   * When the company's next bill renews the plan: the subscription's period end, else the stored next bill's due date. Null when the subscription cancels at period end, its trial cancels, or neither is known.
    * @type {Date}
    * @memberof CompanyCreditCompositionResponseData
    */
