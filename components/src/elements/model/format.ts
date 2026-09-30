@@ -199,6 +199,34 @@ export function formatShortDate(date: Date, locale: string): string {
 }
 
 /**
+ * "08/2027": a card's expiry as the locale writes a month and year. Empty
+ * for a month outside 1–12 or a year that is not a whole number, which is
+ * what a malformed row carries.
+ */
+export function formatMonthYear(
+  month: number,
+  year: number,
+  locale: string,
+): string {
+  if (
+    !Number.isInteger(month) ||
+    month < 1 ||
+    month > 12 ||
+    !Number.isInteger(year)
+  ) {
+    return "";
+  }
+
+  // Pinned to UTC: the value is a calendar month, not an instant, and a
+  // viewer west of Greenwich would otherwise see the month before.
+  return new Intl.DateTimeFormat(usableLocale(locale), {
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
+/**
  * The singular or plural name of a feature or credit for a count.
  *
  * Configured forms win. Without a `pluralName`, English locales inflect the

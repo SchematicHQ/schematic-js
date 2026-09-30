@@ -35,4 +35,33 @@ describe("wire round trip", () => {
       expect(decoded).toEqual(bill);
     },
   );
+
+  test.each(Object.keys(SCENARIOS) as ScenarioName[])(
+    "%s, the payment methods",
+    (name) => {
+      const methods = SCENARIOS[name]().paymentMethods ?? [];
+      const wire = methods.map((method) =>
+        billingApi.CompanyPaymentMethodResponseDataToJSON(method),
+      );
+      expect(JSON.stringify(wire)).not.toMatch(/"[a-z]+[A-Z]/);
+      const decoded = JSON.parse(JSON.stringify(wire)).map(
+        billingApi.CompanyPaymentMethodResponseDataFromJSON,
+      );
+      expect(decoded).toEqual(methods);
+    },
+  );
+
+  test("a payment method's fields are snake_case on the wire", () => {
+    const [card] = SCENARIOS.paymentMethods().paymentMethods ?? [];
+    const wire = billingApi.CompanyPaymentMethodResponseDataToJSON(card);
+    expect(wire).toMatchObject({
+      external_id: "pm_card_ext",
+      is_default: true,
+      can_remove: true,
+      card_brand: "visa",
+      card_last4: "4444",
+      card_exp_month: 8,
+      card_exp_year: 2027,
+    });
+  });
 });

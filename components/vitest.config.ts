@@ -24,6 +24,10 @@ export default defineConfig({
     },
   },
   test: {
+    // icons.test.ts reads the icon package's stylesheet as text (`?raw`).
+    // Vitest replaces every stylesheet it is not told to process with an
+    // empty string, the query notwithstanding, so that one is opted in.
+    css: { include: [/schematic-icons\.css/] },
     environment: "jsdom",
     environmentOptions: {
       jsdom: {
