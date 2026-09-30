@@ -219,8 +219,8 @@ to change that:
 <EmbedProvider
   accessToken={accessToken}
   i18n={i18next}
-  translations={{ it: schematicIt }}
-  locale="it-IT"
+  translations={{ de: schematicDe }}
+  locale="de-DE"
 >
 ```
 
@@ -242,10 +242,10 @@ key and a `count`:
 ```ts
 import type { SchematicTranslations } from '@schematichq/schematic-components';
 
-export const schematicIt: SchematicTranslations = {
-  'Cancel subscription': 'Annulla abbonamento',
-  'Discount for months_one': '{{discount}} per il prossimo mese',
-  'Discount for months_other': '{{discount}} per i prossimi {{count, number}} mesi',
+export const schematicDe: SchematicTranslations = {
+  'Cancel subscription': 'Abonnement kündigen',
+  'Discount for months_one': '{{discount}} für den nächsten Monat',
+  'Discount for months_other': '{{discount}} für die nächsten {{count, number}} Monate',
 };
 ```
 
@@ -253,7 +253,7 @@ With an `i18n` instance, register the same bundle under the `schematic`
 namespace:
 
 ```ts
-i18next.addResourceBundle('it', 'schematic', schematicIt);
+i18next.addResourceBundle('de', 'schematic', schematicDe);
 ```
 
 Passing both `i18n` and `translations` is unusual. If you do, the instance
@@ -269,6 +269,34 @@ Feature names and their plural forms come from your Schematic account, not the
 bundle, so set them there in the language you need. In a language other than
 English, a name with no plural form set is shown as entered for every count,
 rather than with an English plural ending added.
+
+### Italian
+
+The package includes an Italian bundle, `schematicTranslationsIt`:
+
+```tsx
+import {
+  EmbedProvider,
+  schematicTranslationsIt,
+} from '@schematichq/schematic-components';
+
+<EmbedProvider
+  accessToken={accessToken}
+  translations={{ it: schematicTranslationsIt }}
+  locale="it-IT"
+>
+```
+
+It uses the informal "tu" and leaves "Add-on" and "Billing" in English. To
+change a string, spread the bundle and override its key:
+
+```ts
+const it = { ...schematicTranslationsIt, 'Cancel subscription': 'Disdici' };
+```
+
+A string added to the components after the bundle was translated shows in
+English until the bundle catches up. An app that never imports the bundle
+doesn't carry it: bundlers drop it from the build.
 
 ## License
 
