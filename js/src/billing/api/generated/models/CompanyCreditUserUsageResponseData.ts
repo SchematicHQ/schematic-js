@@ -28,7 +28,7 @@ import {
  */
 export interface CompanyCreditUserUsageResponseData {
   /**
-   * How many users consumed the credit in the span, across every page; unattributed consumption is not a user and is not counted.
+   * How many of the company's users the breakdown lists across every page, including those who consumed none of the credit in the span; 0 for a credit with no live grant. Unattributed consumption is not a user and is not counted.
    * @type {number}
    * @memberof CompanyCreditUserUsageResponseData
    */
