@@ -28,7 +28,7 @@ import {
  */
 export interface CompanyFeatureUserUsageResponseData {
   /**
-   * How many users have usage in the period, across every page; unattributed usage is not a user and is not counted.
+   * How many of the company's users the breakdown lists across every page, including those without usage in the period; unattributed usage is not a user and is not counted.
    * @type {number}
    * @memberof CompanyFeatureUserUsageResponseData
    */
