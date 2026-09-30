@@ -144,6 +144,39 @@ export type CreditBalance = {
 /** A company's lease-aware credit balances keyed by credit ID */
 export type CreditBalances = Record<string, CreditBalance>;
 
+/** How a spend policy applies its limit. Unknown kinds are carried, not dropped:
+ * the server may ship a kind this SDK version predates. */
+export type CreditSpendPolicyKind = "per_draw" | "window" | (string & {});
+
+/** Whether a spend policy limits the company or one user */
+export type CreditSpendPolicyScope = "company" | "user" | (string & {});
+
+/** The period a windowed spend policy accumulates over */
+export type CreditSpendWindow = {
+  unit: string;
+  count: number;
+};
+
+/** One limit on spending a credit */
+export type CreditSpendPolicy = {
+  id: string;
+  creditId: string;
+  kind: CreditSpendPolicyKind;
+  scope: CreditSpendPolicyScope;
+  label?: string;
+  /** The ceiling, in credits */
+  limit: number;
+  /** How much of the limit is already spent in the current period; 0 for per_draw */
+  consumed: number;
+  /** For windowed kinds, when the current period ends and consumed no longer applies */
+  resetsAt?: Date;
+  /** Set for windowed kinds only */
+  window?: CreditSpendWindow;
+};
+
+/** Every spend policy binding the current context, company-scope first */
+export type CreditSpendPolicies = CreditSpendPolicy[];
+
 /** Optional type for implementing custom client-side storage */
 export type StoragePersister = {
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -240,6 +273,12 @@ export type PlanListenerFn = CheckPlanReturnListenerFn | EmptyListenerFn;
 export type CreditBalancesListenerFn = (value: CreditBalances) => void;
 export type CreditBalanceListenerFn =
   | CreditBalancesListenerFn
+  | EmptyListenerFn;
+export type CreditSpendPoliciesListenerFn = (
+  value: CreditSpendPolicies,
+) => void;
+export type CreditSpendPolicyListenerFn =
+  | CreditSpendPoliciesListenerFn
   | EmptyListenerFn;
 
 export const CheckFlagReturnFromJSON = (
@@ -362,6 +401,100 @@ export const CreditBalancesFromJSON = (
   }
 
   return balances;
+};
+
+export const CreditSpendPoliciesFromJSON = (
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+  json: any,
+): CreditSpendPolicies => {
+  if (!Array.isArray(json)) {
+    return [];
+  }
+
+  const policies: CreditSpendPolicies = [];
+  for (const raw of json) {
+    if (raw == null || typeof raw !== "object") continue;
+
+    const id = raw.id;
+    const creditId = raw.credit_id ?? raw.creditId;
+    const kind = raw.kind;
+    const scope = raw.scope;
+    const limit = raw.limit;
+
+    // Tolerant reader, same contract as CreditBalancesFromJSON: skip an entry
+    // missing the fields a limit is meaningless without, rather than
+    // zero-filling. A fabricated limit of 0 would read as "refuse everything".
+    if (
+      typeof id !== "string" ||
+      typeof creditId !== "string" ||
+      typeof kind !== "string" ||
+      typeof scope !== "string" ||
+      typeof limit !== "number"
+    ) {
+      continue;
+    }
+
+    // An unknown kind is carried through rather than dropped, so a consumer can
+    // show it. Only the engine decides whether it binds.
+    const policy: CreditSpendPolicy = {
+      id,
+      creditId,
+      kind,
+      scope,
+      limit,
+      consumed: typeof raw.consumed === "number" ? raw.consumed : 0,
+    };
+
+    if (typeof raw.label === "string") {
+      policy.label = raw.label;
+    }
+
+    const window = raw.window;
+    if (
+      window != null &&
+      typeof window === "object" &&
+      typeof window.unit === "string" &&
+      typeof window.count === "number"
+    ) {
+      policy.window = { unit: window.unit, count: window.count };
+    }
+
+    const resetsAt = raw.resets_at ?? raw.resetsAt;
+    if (typeof resetsAt === "string" || resetsAt instanceof Date) {
+      const parsed = new Date(resetsAt);
+      if (!Number.isNaN(parsed.getTime())) {
+        policy.resetsAt = parsed;
+      }
+    }
+
+    policies.push(policy);
+  }
+
+  return policies;
+};
+
+/** Compare two policy sets by value, so an unchanged restream skips the notify. */
+export const creditSpendPoliciesEqual = (
+  a: CreditSpendPolicies,
+  b: CreditSpendPolicies,
+): boolean => {
+  if (a.length !== b.length) return false;
+
+  return a.every((x, i) => {
+    const y = b[i];
+    return (
+      x.id === y.id &&
+      x.creditId === y.creditId &&
+      x.kind === y.kind &&
+      x.scope === y.scope &&
+      x.label === y.label &&
+      x.limit === y.limit &&
+      x.consumed === y.consumed &&
+      x.resetsAt?.getTime() === y.resetsAt?.getTime() &&
+      x.window?.unit === y.window?.unit &&
+      x.window?.count === y.window?.count
+    );
+  });
 };
 
 export type { EventBodyFlagCheck } from "./api/models/EventBodyFlagCheck";
