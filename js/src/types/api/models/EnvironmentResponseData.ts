@@ -53,6 +53,12 @@ export interface EnvironmentResponseData {
   name: string;
   /**
    *
+   * @type {boolean}
+   * @memberof EnvironmentResponseData
+   */
+  requireContextSignature: boolean;
+  /**
+   *
    * @type {Date}
    * @memberof EnvironmentResponseData
    */
@@ -70,6 +76,11 @@ export function instanceOfEnvironmentResponseData(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
+  if (
+    !("requireContextSignature" in value) ||
+    value["requireContextSignature"] === undefined
+  )
+    return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   return true;
 }
@@ -92,6 +103,7 @@ export function EnvironmentResponseDataFromJSONTyped(
     environmentType: EnvironmentTypeFromJSON(json["environment_type"]),
     id: json["id"],
     name: json["name"],
+    requireContextSignature: json["require_context_signature"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -115,6 +127,7 @@ export function EnvironmentResponseDataToJSONTyped(
     environment_type: EnvironmentTypeToJSON(value["environmentType"]),
     id: value["id"],
     name: value["name"],
+    require_context_signature: value["requireContextSignature"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }

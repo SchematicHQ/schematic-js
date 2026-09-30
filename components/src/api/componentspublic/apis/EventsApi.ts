@@ -66,6 +66,11 @@ export class EventsApi extends runtime.BaseAPI {
     headerParameters["Content-Type"] = "application/json";
 
     if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Context-Sig"] =
+        await this.configuration.apiKey("X-Schematic-Context-Sig"); // ContextSignature authentication
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
       headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
         "X-Schematic-Api-Key",
       ); // ApiKeyAuth authentication
@@ -122,6 +127,11 @@ export class EventsApi extends runtime.BaseAPI {
     const headerParameters: runtime.HTTPHeaders = {};
 
     headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Context-Sig"] =
+        await this.configuration.apiKey("X-Schematic-Context-Sig"); // ContextSignature authentication
+    }
 
     if (this.configuration && this.configuration.apiKey) {
       headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(

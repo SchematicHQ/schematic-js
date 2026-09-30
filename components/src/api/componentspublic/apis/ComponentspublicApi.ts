@@ -36,6 +36,11 @@ export class ComponentspublicApi extends runtime.BaseAPI {
     const headerParameters: runtime.HTTPHeaders = {};
 
     if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Context-Sig"] =
+        await this.configuration.apiKey("X-Schematic-Context-Sig"); // ContextSignature authentication
+    }
+
+    if (this.configuration && this.configuration.apiKey) {
       headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
         "X-Schematic-Api-Key",
       ); // ApiKeyAuth authentication
