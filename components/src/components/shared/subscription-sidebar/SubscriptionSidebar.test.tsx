@@ -131,14 +131,16 @@ function renderSidebar(
   addOns: SelectedPlan[],
   usageBasedEntitlements: UsageBasedEntitlement[] = [],
   selectedPlan?: SelectedPlan,
+  {
+    currency,
+    hydrateData = structuredClone(hydrateResponse.data),
+  }: { currency?: string; hydrateData?: unknown } = {},
 ) {
   return render(
     <EmbedContext.Provider
       value={{
         ...initialContext,
-        data: ComponentHydrateResponseDataFromJSON(
-          structuredClone(hydrateResponse.data),
-        ),
+        data: ComponentHydrateResponseDataFromJSON(hydrateData),
         layout: "checkout",
         setLayout: () => {},
         setCheckoutState: () => {},
@@ -156,6 +158,7 @@ function renderSidebar(
         setError={() => {}}
         setIsLoading={() => {}}
         setConfirmPaymentIntent={() => {}}
+        currency={currency}
       />
     </EmbedContext.Provider>,
   );
@@ -244,5 +247,35 @@ describe("`SubscriptionSidebar` tiered pay-in-advance entitlements", () => {
     );
 
     expect(screen.getByText(/You will be billed \$5\.00/)).toBeInTheDocument();
+  });
+});
+
+describe("`SubscriptionSidebar` total currency", () => {
+  function hydrateWithCompany(company: Json) {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    raw.company = { ...(raw.company as Json), ...company };
+    return raw;
+  }
+
+  it("formats the total in the checkout currency when no plan is selected", () => {
+    renderSidebar([], [], undefined, {
+      currency: "EUR",
+      hydrateData: hydrateWithCompany({ plan: null }),
+    });
+
+    expect(screen.getByText(/You will be billed €0\.00/)).toBeInTheDocument();
+  });
+
+  it("formats the current plan's total in its subscription currency", () => {
+    const raw = hydrateWithCompany({});
+    const company = raw.company as Json;
+    company.billing_subscription = {
+      ...(company.billing_subscription as Json),
+      currency: "eur",
+    };
+
+    renderSidebar([], [], undefined, { currency: "EUR", hydrateData: raw });
+
+    expect(screen.getByText(/You will be billed €5\.00/)).toBeInTheDocument();
   });
 });

@@ -257,7 +257,12 @@ export const SubscriptionSidebar = forwardRef<
           resolvedCurrency = planBillingPrice?.currency;
         } else if (typeof currentPlan?.planPrice === "number") {
           planPrice = currentPlan.planPrice;
+          resolvedCurrency = billingSubscription?.currency;
         }
+
+        // With no plan picked yet, fall back to the checkout's currency so the
+        // total isn't formatted in the USD default.
+        resolvedCurrency ??= currency;
 
         let total = 0;
 
@@ -309,6 +314,7 @@ export const SubscriptionSidebar = forwardRef<
       }, [
         selectedPlan,
         currentPlan,
+        billingSubscription?.currency,
         planPeriod,
         addOns,
         payInAdvanceEntitlements,
