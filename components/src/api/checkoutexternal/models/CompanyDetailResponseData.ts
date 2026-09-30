@@ -125,6 +125,12 @@ export interface CompanyDetailResponseData {
   billingCreditBalances?: { [key: string]: number } | null;
   /**
    *
+   * @type {string}
+   * @memberof CompanyDetailResponseData
+   */
+  billingEmail?: string | null;
+  /**
+   *
    * @type {CompanyBillingProfileResponseData}
    * @memberof CompanyDetailResponseData
    */
@@ -333,6 +339,8 @@ export function CompanyDetailResponseDataFromJSONTyped(
       json["billing_credit_balances"] == null
         ? undefined
         : json["billing_credit_balances"],
+    billingEmail:
+      json["billing_email"] == null ? undefined : json["billing_email"],
     billingProfile:
       json["billing_profile"] == null
         ? undefined
@@ -416,6 +424,7 @@ export function CompanyDetailResponseDataToJSONTyped(
       CompanyPlanWithBillingSubViewToJSON,
     ),
     billing_credit_balances: value["billingCreditBalances"],
+    billing_email: value["billingEmail"],
     billing_profile: CompanyBillingProfileResponseDataToJSON(
       value["billingProfile"],
     ),
