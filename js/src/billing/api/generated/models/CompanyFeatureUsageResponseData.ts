@@ -83,7 +83,7 @@ export interface CompanyFeatureUsageResponseData {
    */
   access: boolean;
   /**
-   * The entitlement's own limit before any price behavior applies: the numeric value, or the trait's value for a trait-based entitlement. Null for unlimited and boolean entitlements.
+   * The entitlement's own limit before any price behavior applies: the numeric value, or the trait's value for a trait-based entitlement. For a credit entitlement, the credits granted in the current billing period (all time without a subscription). Null for unlimited and boolean entitlements.
    * @type {number}
    * @memberof CompanyFeatureUsageResponseData
    */
@@ -131,7 +131,7 @@ export interface CompanyFeatureUsageResponseData {
    */
   creditSingularName?: string | null;
   /**
-   * What the feature costs at price, in its minor units: the allocation for pay_in_advance, usage for tier and pay_as_you_go, and usage above soft_limit for overage. Null when nothing is billable.
+   * What the feature costs at price, in its minor units: the allocation for pay_in_advance, usage for tier and pay_as_you_go, and usage above soft_limit for overage. Null when there is no price, the price behavior bills nothing, or there is nothing yet to bill it on (no allocation for pay_in_advance, unknown usage for tier, no usage for pay_as_you_go and overage); tier at zero usage, and overage within soft_limit, cost 0.
    * @type {number}
    * @memberof CompanyFeatureUsageResponseData
    */
@@ -221,7 +221,7 @@ export interface CompanyFeatureUsageResponseData {
    */
   planEntitlementId?: string | null;
   /**
-   * The metered price the company is billed at: the slot for its billing period, in the subscription's currency when the entitlement is priced in it. Null when the feature has no price for that period.
+   * The metered price the company is billed at: the slot for its billing period, in the subscription's currency, or in none when the price predates multi-currency (any currency without a subscription). Null when the feature has no such price for that period.
    * @type {CatalogPriceResponseData}
    * @memberof CompanyFeatureUsageResponseData
    */
