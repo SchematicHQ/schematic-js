@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   ContextSignatureManager,
@@ -112,5 +112,56 @@ describe("ContextSignatureManager", () => {
     expect(await manager.getSignature(context)).toBe("not-a-valid-signature");
     await manager.getSignature(context);
     expect(provider).toHaveBeenCalledTimes(2);
+  });
+  describe("eviction", () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    const companyContext = (i: number) => ({ company: { id: `comp_${i}` } });
+
+    it("evicts the least recently used context past the size cap", async () => {
+      const provider = vi.fn(async () => signatureWithTtl(600));
+      const manager = new ContextSignatureManager(provider, noopDebug);
+
+      for (let i = 0; i < 50; i++) {
+        await manager.getSignature(companyContext(i));
+      }
+      // Touch comp_0 so comp_1 becomes the least recently used.
+      await manager.getSignature(companyContext(0));
+      await manager.getSignature(companyContext(50));
+      expect(provider).toHaveBeenCalledTimes(51);
+
+      await manager.getSignature(companyContext(0));
+      expect(provider).toHaveBeenCalledTimes(51);
+
+      await manager.getSignature(companyContext(1));
+      expect(provider).toHaveBeenCalledTimes(52);
+    });
+
+    it("drops expired signatures when caching a new one", async () => {
+      vi.useFakeTimers();
+      const provider = vi.fn(async () => signatureWithTtl(600));
+      const manager = new ContextSignatureManager(provider, noopDebug);
+
+      await manager.getSignature(companyContext(0));
+      vi.advanceTimersByTime(601_000);
+      await manager.getSignature(companyContext(1));
+
+      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+      const cache = (manager as any).cache as Map<string, unknown>;
+      expect(cache.size).toBe(1);
+    });
+
+    it("clear drops all cached signatures", async () => {
+      const provider = vi.fn(async () => signatureWithTtl(600));
+      const manager = new ContextSignatureManager(provider, noopDebug);
+
+      await manager.getSignature(context);
+      manager.clear();
+      await manager.getSignature(context);
+
+      expect(provider).toHaveBeenCalledTimes(2);
+    });
   });
 });

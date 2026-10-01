@@ -627,8 +627,11 @@ export class Schematic {
     }
     return this.contextSignatureManager
       .getSignature(context)
-      .then((signature): Record<string, string> =>
-        signature === undefined ? {} : { [contextSignatureHeader]: signature },
+      .then(
+        (signature): Record<string, string> =>
+          signature === undefined
+            ? {}
+            : { [contextSignatureHeader]: signature },
       );
   }
 
@@ -1800,6 +1803,8 @@ export class Schematic {
    * In offline mode, this is a no-op.
    */
   cleanup = async (): Promise<void> => {
+    this.contextSignatureManager?.clear();
+
     // In offline mode, no need to clean up connections since none are made
     if (this.isOffline()) {
       this.debug("cleanup: skipped (offline mode)");

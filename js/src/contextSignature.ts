@@ -12,6 +12,13 @@ export const contextSignatureHeader = "X-Schematic-Context-Sig";
 const refreshSkewMs = 60_000;
 
 /**
+ * Maximum number of contexts to keep signatures for. A long-lived app that
+ * cycles through many companies/users would otherwise grow the cache without
+ * bound; the least recently used entry is evicted past this size.
+ */
+const maxCachedSignatures = 50;
+
+/**
  * Function supplied by the integrating application that returns an HMAC context
  * signature (`iat.exp.sig`) for the given context.
  *
@@ -94,13 +101,17 @@ export class ContextSignatureManager {
    * (and logs a warning) if the provider throws, so callers can degrade
    * gracefully by sending the request without a signature.
    */
-  async getSignature(
-    context: SchematicContext,
-  ): Promise<string | undefined> {
+  async getSignature(context: SchematicContext): Promise<string | undefined> {
     const key = contextString(context);
 
     const cached = this.cache.get(key);
-    if (cached !== undefined && Date.now() < cached.expiresAtMs - refreshSkewMs) {
+    if (
+      cached !== undefined &&
+      Date.now() < cached.expiresAtMs - refreshSkewMs
+    ) {
+      // Re-insert so Map iteration order tracks recency for LRU eviction.
+      this.cache.delete(key);
+      this.cache.set(key, cached);
       return cached.signature;
     }
 
@@ -121,6 +132,26 @@ export class ContextSignatureManager {
     this.cache.clear();
   }
 
+  /**
+   * Drop expired signatures, then the least recently used ones until the cache
+   * is within `maxCachedSignatures`.
+   */
+  private evict(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache) {
+      if (now >= entry.expiresAtMs) {
+        this.cache.delete(key);
+      }
+    }
+
+    for (const key of this.cache.keys()) {
+      if (this.cache.size <= maxCachedSignatures) {
+        break;
+      }
+      this.cache.delete(key);
+    }
+  }
+
   private async fetchSignature(
     key: string,
     context: SchematicContext,
@@ -138,7 +169,9 @@ export class ContextSignatureManager {
         return signature;
       }
 
+      this.cache.delete(key);
       this.cache.set(key, { signature, expiresAtMs });
+      this.evict();
       return signature;
     } catch (error) {
       console.warn("Failed to obtain context signature:", error);
