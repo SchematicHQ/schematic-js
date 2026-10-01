@@ -17,6 +17,10 @@ import {
   CreditBalances,
   CreditBalancesFromJSON,
   CreditBalancesListenerFn,
+  CreditSpendPolicies,
+  CreditSpendPoliciesFromJSON,
+  CreditSpendPolicyListenerFn,
+  creditSpendPoliciesEqual,
   EmptyListenerFn,
   Event,
   EventBody,
@@ -47,6 +51,7 @@ type CachedContextEntry = {
   checks: Record<string, CheckFlagReturn>;
   plan?: CheckPlanReturn;
   creditBalances?: CreditBalances;
+  creditSpendPolicies?: CreditSpendPolicies;
   updatedAt: number;
 };
 
@@ -55,10 +60,13 @@ type CachedFlagState = {
   contexts: Record<string, CachedContextEntry>;
 };
 
-// Shared stable empty reference returned by getCreditBalances() when a context
-// has no balances, so callers using it in React's useSyncExternalStore don't
-// see a new object on every render.
+// Shared stable empty references returned by getCreditBalances() and
+// getCreditSpendPolicies() when a context has none, so callers using them in
+// React's useSyncExternalStore don't see a new object on every render.
 const emptyCreditBalances: CreditBalances = Object.freeze({});
+// Module-level so the reference is stable across calls; Object.freeze would
+// type this readonly, which CreditSpendPolicies is not.
+const emptyCreditSpendPolicies: CreditSpendPolicies = [];
 
 /* @preserve */
 export class Schematic {
@@ -78,6 +86,8 @@ export class Schematic {
   private isPendingListeners: Set<PendingListenerFn> = new Set();
   private planListeners: Set<PlanListenerFn> = new Set();
   private creditBalanceListeners: Set<CreditBalanceListenerFn> = new Set();
+  private creditSpendPolicyListeners: Set<CreditSpendPolicyListenerFn> =
+    new Set();
   private storage: StoragePersister | undefined;
   private persistFlagState: boolean = true;
   private flagStateCacheKey: string;
@@ -94,6 +104,8 @@ export class Schematic {
   > = {};
   private planChecks: Record<string, CheckPlanReturn | undefined> = {};
   private creditBalances: Record<string, CreditBalances | undefined> = {};
+  private creditSpendPolicies: Record<string, CreditSpendPolicies | undefined> =
+    {};
   private webSocketUrl = "wss://api.schematichq.com";
   private webSocketConnectionTimeout = 10000;
   private webSocketReconnect = true;
@@ -641,6 +653,29 @@ export class Schematic {
           );
 
           this.notifyCreditBalanceListeners(merged);
+        }
+      }
+
+      // Spend policies arrive as the actor's whole set, never a delta: a
+      // deleted policy has nothing to send, so only a wholesale replace can
+      // clear one. Compare by value so an unchanged restream skips the notify.
+      if (
+        message.credit_spend_policies !== undefined &&
+        message.credit_spend_policies !== null
+      ) {
+        const contextStr = contextString(context);
+        const next = CreditSpendPoliciesFromJSON(message.credit_spend_policies);
+        const previous = this.creditSpendPolicies[contextStr] ?? [];
+
+        if (!creditSpendPoliciesEqual(previous, next)) {
+          this.creditSpendPolicies[contextStr] = next;
+
+          this.debug(
+            `WebSocket credit spend policy update received. Notifying listeners`,
+            { creditSpendPolicies: next },
+          );
+
+          this.notifyCreditSpendPolicyListeners(next);
         }
       }
 
@@ -1336,10 +1371,25 @@ export class Schematic {
         }
       }
 
+      let revivedCreditSpendPolicies: CreditSpendPolicies | undefined;
+      if (
+        entry.creditSpendPolicies !== undefined &&
+        entry.creditSpendPolicies !== null
+      ) {
+        // The reader is already strict per entry, so a partly-corrupt cache
+        // loses the bad policies rather than the whole set.
+        const policies = CreditSpendPoliciesFromJSON(entry.creditSpendPolicies);
+        if (policies.length > 0) {
+          revivedCreditSpendPolicies = policies;
+          this.creditSpendPolicies[contextStr] = policies;
+        }
+      }
+
       fresh[contextStr] = {
         checks: revivedChecks,
         plan: revivedPlan,
         creditBalances: revivedCreditBalances,
+        creditSpendPolicies: revivedCreditSpendPolicies,
         updatedAt: entry.updatedAt,
       };
       contextsLoaded += 1;
@@ -1355,10 +1405,12 @@ export class Schematic {
     const checksForContext = this.checks[contextStr];
     const planForContext = this.planChecks[contextStr];
     const creditBalancesForContext = this.creditBalances[contextStr];
+    const creditSpendPoliciesForContext = this.creditSpendPolicies[contextStr];
     if (
       checksForContext === undefined &&
       planForContext === undefined &&
-      creditBalancesForContext === undefined
+      creditBalancesForContext === undefined &&
+      creditSpendPoliciesForContext === undefined
     ) {
       return;
     }
@@ -1385,6 +1437,7 @@ export class Schematic {
       checks: cleanChecks,
       plan: planForContext,
       creditBalances: creditBalancesForContext,
+      creditSpendPolicies: creditSpendPoliciesForContext,
       updatedAt: Date.now(),
     };
 
@@ -1405,6 +1458,9 @@ export class Schematic {
       }
       for (const key of Object.keys(this.creditBalances)) {
         if (!survivorKeys.has(key)) delete this.creditBalances[key];
+      }
+      for (const key of Object.keys(this.creditSpendPolicies)) {
+        if (!survivorKeys.has(key)) delete this.creditSpendPolicies[key];
       }
 
       this.cachedFlagState = {
@@ -2235,6 +2291,21 @@ export class Schematic {
     return this.creditBalances[contextStr]?.[creditId];
   };
 
+  /** Get every credit spend policy binding the current context, company-scope first */
+  getCreditSpendPolicies = (): CreditSpendPolicies => {
+    const contextStr = contextString(this.context);
+    return this.creditSpendPolicies[contextStr] ?? emptyCreditSpendPolicies;
+  };
+
+  /** Get the spend policies binding a single credit type in the current context */
+  getCreditSpendPoliciesForCredit = (creditId: string): CreditSpendPolicies => {
+    const policies = this.getCreditSpendPolicies().filter(
+      (policy) => policy.creditId === creditId,
+    );
+
+    return policies.length > 0 ? policies : emptyCreditSpendPolicies;
+  };
+
   // flag checks state
   getFlagCheck = (flagKey: string): CheckFlagReturn | undefined => {
     const contextStr = contextString(this.context);
@@ -2330,6 +2401,15 @@ export class Schematic {
     };
   };
 
+  /** Register an event listener that will be notified with the context's credit spend policies whenever the set changes */
+  addCreditSpendPolicyListener = (listener: CreditSpendPolicyListenerFn) => {
+    this.creditSpendPolicyListeners.add(listener);
+
+    return () => {
+      this.creditSpendPolicyListeners.delete(listener);
+    };
+  };
+
   private notifyFlagCheckListeners = (
     flagKey: string,
     check: CheckFlagReturn,
@@ -2410,6 +2490,18 @@ export class Schematic {
       this.debug(`Listener ${index} for plan completed`, {
         value,
       });
+    });
+  };
+
+  private notifyCreditSpendPolicyListeners = (value: CreditSpendPolicies) => {
+    const listeners = this.creditSpendPolicyListeners ?? [];
+    listeners.forEach((listener) => {
+      if (listener.length > 0) {
+        (listener as (value: CreditSpendPolicies) => void)(value);
+        return;
+      }
+
+      (listener as () => void)();
     });
   };
 

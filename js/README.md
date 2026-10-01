@@ -115,6 +115,21 @@ if (check?.creditId) {
 
 The entitlement refreshes with each flag check. `getCreditBalance` also updates on the credit partials that arrive between checks, so prefer it for a balance you render.
 
+### Credit spend policies
+
+In websocket mode, the client also tracks the credit spend policies that bind the current company and user, company-scope first. Each update replaces the whole set, so a policy deleted in the dashboard disappears here too:
+
+```typescript
+const policies = schematic.getCreditSpendPolicies();
+const forCredit = schematic.getCreditSpendPoliciesForCredit("credit-id");
+
+const unsubscribe = schematic.addCreditSpendPolicyListener((policies) => {
+    console.log(policies.map((policy) => `${policy.scope}: ${policy.limit}`));
+});
+```
+
+The policies are advisory here: a flag check names no draw amount, so its value does not reflect them. Use them to show an end user their limits before they spend.
+
 ### Usage warnings
 
 If a usage warning is configured on the entitlement, `getFlagCheck` returns it as `warningTiers`, so you can warn a customer before they hit the limit rather than after. Each tier is a `{ key, value }` pair in the entitlement's usage units, and the dashboard writes a single tier under the key `default`. The field is `undefined` when no warning is configured.
