@@ -280,6 +280,43 @@ const CreditMeter = () => {
 
 While `creditId` is `undefined`, the hook reports the client's loading state and a balance of `0`.
 
+### Credit spend policies
+
+To show the spend limits that bind the current company and user, use the `useSchematicCreditSpendPolicies` hook. It updates over the DataStream, so a policy edited or deleted in the dashboard reaches the component without a refetch:
+
+```tsx
+import { useSchematicCreditSpendPolicies } from "@schematichq/schematic-react";
+
+const SpendLimits = () => {
+    const { policies, isLoading } = useSchematicCreditSpendPolicies();
+
+    if (isLoading) {
+        return <div>Loading…</div>;
+    }
+
+    return (
+        <ul>
+            {policies.map((policy) => (
+                <li key={policy.id}>
+                    {policy.kind === "window" && policy.window
+                        ? `${policy.scope} limit: ${policy.consumed} of ${policy.limit} credits used this ${policy.window.unit}`
+                        : `${policy.scope} limit: ${policy.limit} credits per request`}
+                </li>
+            ))}
+        </ul>
+    );
+};
+```
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `policies` | `CreditSpendPolicies` | Company-scope policies first, then the user's own; empty when none bind |
+| `isLoading` | `boolean` | `true` while the policies are still loading and nothing has arrived yet |
+
+A `per_draw` policy caps a single draw. A `window` policy caps what can be spent in one period: `consumed` is what the current period has spent, `resetsAt` is when the period ends, and `window` names the period. Each new spend sends an updated `consumed`. Once `resetsAt` has passed, read `consumed` as `0` until the next update arrives.
+
+The policies are advisory for display: the server and the flag check enforce them.
+
 ## Fallback Behavior
 
 The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).

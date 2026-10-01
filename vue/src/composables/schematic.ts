@@ -354,6 +354,69 @@ export const useSchematicCreditBalance = (
 };
 
 /**
+ * Get every credit spend policy binding the current context.
+ * Returns reactive computed refs for the policies and a loading flag.
+ *
+ * Company-scope policies come first, then the user's own. The list updates
+ * as partials arrive over the DataStream, so a policy edited or deleted in the
+ * dashboard reaches the component without a refetch. A window policy also
+ * carries `consumed` and `resetsAt`, which update as credits are spent.
+ *
+ * @param opts - Optional configuration including a client override
+ * @returns Object with `policies` and `isLoading` computed refs
+ *
+ * @example
+ * ```typescript
+ * const { policies, isLoading } = useSchematicCreditSpendPolicies()
+ *
+ * // In template
+ * <div v-if="isLoading">Loading…</div>
+ * <ul v-else>
+ *   <li v-for="policy in policies" :key="policy.id">
+ *     {{ policy.scope }} limit: {{ policy.limit }} credits
+ *   </li>
+ * </ul>
+ * ```
+ */
+export const useSchematicCreditSpendPolicies = (
+  opts?: SchematicComposableOpts,
+) => {
+  const client = useSchematicClient(opts);
+
+  const policies = ref<SchematicJS.CreditSpendPolicies>(
+    client.getCreditSpendPolicies(),
+  );
+  const isPending = ref<boolean>(client.getIsPending());
+
+  let unsubscribePolicies: (() => void) | null = null;
+  let unsubscribePending: (() => void) | null = null;
+
+  onMounted(() => {
+    policies.value = client.getCreditSpendPolicies();
+
+    unsubscribePolicies = client.addCreditSpendPolicyListener(() => {
+      policies.value = client.getCreditSpendPolicies();
+    });
+    unsubscribePending = client.addIsPendingListener(() => {
+      isPending.value = client.getIsPending();
+      policies.value = client.getCreditSpendPolicies();
+    });
+  });
+
+  onScopeDispose(() => {
+    unsubscribePolicies?.();
+    unsubscribePending?.();
+  });
+
+  return {
+    /** Company-scope policies first, then the user's own; empty when none bind */
+    policies: computed(() => policies.value),
+    /** True while the policies are still loading and nothing has arrived yet */
+    isLoading: computed(() => policies.value.length === 0 && isPending.value),
+  };
+};
+
+/**
  * Check if Schematic data is still loading
  * Returns a reactive ref that is true while initial flag data is being fetched
  *

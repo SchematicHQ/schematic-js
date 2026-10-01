@@ -19,6 +19,14 @@ export type SchematicCreditBalance = {
   isLoading: boolean;
 };
 
+/** The credit spend policies binding the current context, plus a loading flag */
+export type SchematicCreditSpendPolicies = {
+  /** Company-scope policies first, then the user's own; empty when none bind */
+  policies: SchematicJS.CreditSpendPolicies;
+  /** True while the policies are still loading and nothing has arrived yet */
+  isLoading: boolean;
+};
+
 function shallowEqual<T extends Record<string, unknown>>(
   a: T | undefined,
   b: T | undefined,
@@ -51,6 +59,7 @@ export class SchematicService {
     string,
     Observable<SchematicCreditBalance>
   >();
+  private creditSpendPoliciesCache?: Observable<SchematicCreditSpendPolicies>;
   private planCache?: Observable<SchematicJS.CheckPlanReturn | undefined>;
   private isPendingCache?: Observable<boolean>;
 
@@ -229,6 +238,49 @@ export class SchematicService {
 
     this.creditBalanceCache.set(creditId, cached);
     return cached;
+  }
+
+  /**
+   * Observe every credit spend policy binding the current context, company-scope
+   * first. It emits as partials arrive over the DataStream, so a policy edited
+   * or deleted in the dashboard arrives without a refetch. A window policy also
+   * carries `consumed` and `resetsAt`, which move as credits are spent.
+   */
+  creditSpendPolicies$(): Observable<SchematicCreditSpendPolicies> {
+    if (this.creditSpendPoliciesCache) return this.creditSpendPoliciesCache;
+
+    this.creditSpendPoliciesCache =
+      new Observable<SchematicCreditSpendPolicies>((subscriber) => {
+        const emit = () => {
+          const policies = this.client.getCreditSpendPolicies();
+          subscriber.next({
+            policies,
+            isLoading: policies.length === 0 && this.client.getIsPending(),
+          });
+        };
+
+        emit();
+
+        const unsubscribePolicies = this.client.addCreditSpendPolicyListener(
+          () => emit(),
+        );
+        const unsubscribePending = this.client.addIsPendingListener(() =>
+          emit(),
+        );
+
+        return () => {
+          unsubscribePolicies();
+          unsubscribePending();
+        };
+      }).pipe(
+        distinctUntilChanged(shallowEqual),
+        shareReplay({ bufferSize: 1, refCount: true }),
+        finalize(() => {
+          this.creditSpendPoliciesCache = undefined;
+        }),
+      );
+
+    return this.creditSpendPoliciesCache;
   }
 
   isPending$(): Observable<boolean> {

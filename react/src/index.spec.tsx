@@ -1,7 +1,11 @@
 import { vi } from "vitest";
 import React from "react";
 import { act, render, renderHook } from "@testing-library/react";
-import { Schematic, type CreditBalances } from "@schematichq/schematic-js";
+import {
+  Schematic,
+  type CreditBalances,
+  type CreditSpendPolicies,
+} from "@schematichq/schematic-js";
 import {
   DEFAULT_INVOICE_QUERY,
   INVOICE_PAGE_SIZE,
@@ -9,6 +13,7 @@ import {
   SchematicProvider,
   normalizeInvoiceQuery,
   useSchematicCreditBalance,
+  useSchematicCreditSpendPolicies,
   useSchematicFlag,
 } from "./index";
 
@@ -80,14 +85,20 @@ describe("schematic-react", () => {
   it("should export useSchematicCreditBalance hook", () => {
     expect(useSchematicCreditBalance).toBeDefined();
   });
+
+  it("should export useSchematicCreditSpendPolicies hook", () => {
+    expect(useSchematicCreditSpendPolicies).toBeDefined();
+  });
 });
 
 // A minimal controllable client that satisfies the methods the credit balance
 // hook reads, so we can drive DataStream-style updates without websockets.
 const createFakeClient = () => {
   let balances: CreditBalances = {};
+  let policies: CreditSpendPolicies = [];
   let isPending = true;
   const balanceListeners = new Set<() => void>();
+  const policyListeners = new Set<() => void>();
   const pendingListeners = new Set<() => void>();
 
   return {
@@ -96,6 +107,11 @@ const createFakeClient = () => {
     addCreditBalanceListener: (cb: () => void) => {
       balanceListeners.add(cb);
       return () => balanceListeners.delete(cb);
+    },
+    getCreditSpendPolicies: () => policies,
+    addCreditSpendPolicyListener: (cb: () => void) => {
+      policyListeners.add(cb);
+      return () => policyListeners.delete(cb);
     },
     getIsPending: () => isPending,
     addIsPendingListener: (cb: () => void) => {
@@ -106,6 +122,10 @@ const createFakeClient = () => {
     __emitBalances: (next: CreditBalances) => {
       balances = next;
       balanceListeners.forEach((cb) => cb());
+    },
+    __emitPolicies: (next: CreditSpendPolicies) => {
+      policies = next;
+      policyListeners.forEach((cb) => cb());
     },
     __setPending: (next: boolean) => {
       isPending = next;
@@ -235,6 +255,109 @@ const createFakeClient = () => {
       rerender({ creditId: "credit-abc" });
 
       expect(result.current).toEqual({ balance: 3442, isLoading: false });
+    });
+  },
+);
+
+(isDOMEnvironment ? describe : describe.skip)(
+  "useSchematicCreditSpendPolicies",
+  () => {
+    const companyPolicy = {
+      id: "csp_company",
+      creditId: "credit-abc",
+      kind: "per_draw",
+      scope: "company",
+      limit: 500,
+      consumed: 0,
+    };
+    const userPolicy = {
+      id: "csp_user",
+      creditId: "credit-abc",
+      kind: "per_draw",
+      scope: "user",
+      limit: 50,
+      consumed: 0,
+    };
+
+    const renderPolicies = (client: ReturnType<typeof createFakeClient>) =>
+      renderHook(() => useSchematicCreditSpendPolicies(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <SchematicProvider client={client as unknown as Schematic}>
+            {children}
+          </SchematicProvider>
+        ),
+      });
+
+    it("reports isLoading until the first check settles", () => {
+      const client = createFakeClient();
+      const { result } = renderPolicies(client);
+
+      expect(result.current).toEqual({ policies: [], isLoading: true });
+    });
+
+    it("returns an empty set (not loading) when no policy binds", () => {
+      const client = createFakeClient();
+      const { result } = renderPolicies(client);
+
+      act(() => {
+        client.__setPending(false);
+      });
+
+      expect(result.current).toEqual({ policies: [], isLoading: false });
+    });
+
+    it("re-renders when a window policy's consumption moves", () => {
+      const client = createFakeClient();
+      const { result } = renderPolicies(client);
+      const resetsAt = new Date("2026-10-02T00:00:00Z");
+      const windowPolicy = {
+        id: "csp_window",
+        creditId: "credit-abc",
+        kind: "window",
+        scope: "company",
+        limit: 100,
+        consumed: 40,
+        resetsAt,
+        window: { unit: "day", count: 1 },
+      };
+
+      act(() => {
+        client.__setPending(false);
+        client.__emitPolicies([windowPolicy]);
+      });
+      expect(result.current.policies[0].consumed).toBe(40);
+
+      act(() => {
+        client.__emitPolicies([{ ...windowPolicy, consumed: 70 }]);
+      });
+      expect(result.current.policies[0]).toEqual({
+        ...windowPolicy,
+        consumed: 70,
+      });
+    });
+
+    it("re-renders with each streamed set, so a deleted policy clears", () => {
+      const client = createFakeClient();
+      const { result } = renderPolicies(client);
+
+      act(() => {
+        client.__setPending(false);
+        client.__emitPolicies([companyPolicy, userPolicy]);
+      });
+      expect(result.current.policies).toEqual([companyPolicy, userPolicy]);
+
+      act(() => {
+        client.__emitPolicies([companyPolicy]);
+      });
+      expect(result.current).toEqual({
+        policies: [companyPolicy],
+        isLoading: false,
+      });
+
+      act(() => {
+        client.__emitPolicies([]);
+      });
+      expect(result.current).toEqual({ policies: [], isLoading: false });
     });
   },
 );

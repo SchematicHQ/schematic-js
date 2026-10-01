@@ -66,6 +66,7 @@ The library is built on Angular's dependency injection pattern:
    - `entitlement$(key)`: Check entitlements with usage data (returns `Observable<CheckFlagReturn>`)
    - `plan$()`: Get plan information (returns `Observable<CheckPlanReturn | undefined>`)
    - `creditBalance$(creditId)`: Read a company's live, lease-aware credit balance by credit ID (returns `Observable<SchematicCreditBalance>`)
+   - `creditSpendPolicies$()`: Read the credit spend policies binding the current context (returns `Observable<SchematicCreditSpendPolicies>`)
    - `isPending$()`: Check if data is still loading (returns `Observable<boolean>`)
    - `setContext(ctx)`: Set the evaluation context
    - `identify(body)`: Identify users/companies

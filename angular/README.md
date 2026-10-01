@@ -376,6 +376,54 @@ export class CreditMeterComponent {
 
 It switches to the new credit as the source emits. While the ID is `undefined`, it emits the client's loading state and a balance of `0`.
 
+### Credit spend policies
+
+Use `creditSpendPolicies$` to observe the spend limits that bind the current company and user. It emits over the DataStream, so a policy edited or deleted in the dashboard arrives without a refetch:
+
+```typescript
+import { Component, inject } from "@angular/core";
+import { AsyncPipe } from "@angular/common";
+import { SchematicService } from "@schematichq/schematic-angular";
+
+@Component({
+  selector: "app-spend-limits",
+  standalone: true,
+  imports: [AsyncPipe],
+  template: `
+    @if (spendPolicies$ | async; as spend) {
+      @if (spend.isLoading) {
+        <div>Loading…</div>
+      } @else {
+        <ul>
+          @for (policy of spend.policies; track policy.id) {
+            <li>
+              @if (policy.kind === "window" && policy.window) {
+                {{ policy.scope }} limit: {{ policy.consumed }} of {{ policy.limit }} credits used this {{ policy.window.unit }}
+              } @else {
+                {{ policy.scope }} limit: {{ policy.limit }} credits per request
+              }
+            </li>
+          }
+        </ul>
+      }
+    }
+  `,
+})
+export class SpendLimitsComponent {
+  private schematic = inject(SchematicService);
+  spendPolicies$ = this.schematic.creditSpendPolicies$();
+}
+```
+
+`creditSpendPolicies$` emits an object with the following properties:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `policies` | `CreditSpendPolicies` | Company-scope policies first, then the user's own; empty when none bind |
+| `isLoading` | `boolean` | `true` while the policies are still loading and nothing has arrived yet |
+
+A `per_draw` policy caps a single draw. A `window` policy caps what can be spent in one period: `consumed` is what the current period has spent, `resetsAt` is when the period ends, and `window` names the period. Each new spend sends an updated `consumed`. Once `resetsAt` has passed, read `consumed` as `0` until the next update arrives.
+
 ## API Reference
 
 ### `provideSchematic(config)`
@@ -396,6 +444,7 @@ Injectable service providing all Schematic functionality:
 | `entitlement$(key, fallback?)` | `Observable<CheckFlagReturn>` | Observe detailed entitlement data |
 | `plan$()` | `Observable<CheckPlanReturn \| undefined>` | Observe plan information |
 | `creditBalance$(creditId)` | `Observable<SchematicCreditBalance>` | Observe a company's lease-aware credit balance. Takes a credit ID or an Observable of credit IDs |
+| `creditSpendPolicies$()` | `Observable<SchematicCreditSpendPolicies>` | Observe the credit spend policies binding the current context |
 | `isPending$()` | `Observable<boolean>` | Observe loading state |
 
 ### `SCHEMATIC_CLIENT`

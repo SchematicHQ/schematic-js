@@ -18,6 +18,18 @@ export type UseSchematicPlanOpts = SchematicHookOpts & {
   fallback?: SchematicJS.CheckPlanReturn;
 };
 
+/** The credit spend policies binding the current context, plus a loading flag */
+export type SchematicCreditSpendPolicies = {
+  /** Company-scope policies first, then the actor's own; empty when none bind */
+  policies: SchematicJS.CreditSpendPolicies;
+  /** True while the policies are still loading and nothing has arrived yet */
+  isLoading: boolean;
+};
+
+// Stable empty reference for the server snapshot, so useSyncExternalStore does
+// not see a new array on every render.
+const emptyPolicies: SchematicJS.CreditSpendPolicies = [];
+
 /** A company's credit balance for a single credit type, plus a loading flag */
 export type SchematicCreditBalance = {
   /** The spendable balance; 0 while loading or when the company holds no balance in this credit */
@@ -191,6 +203,45 @@ export const useSchematicCreditBalance = (
       isLoading: balance === undefined && isPending,
     }),
     [balance, isPending],
+  );
+};
+
+/** Every credit spend policy binding the current context, company-scope first.
+ * Streams over the websocket, so an edit in the dashboard lands here without a
+ * refetch. */
+export const useSchematicCreditSpendPolicies = (
+  opts?: SchematicHookOpts,
+): SchematicCreditSpendPolicies => {
+  const client = useSchematicClient(opts);
+
+  const subscribe = useCallback(
+    (callback: () => void) => client.addCreditSpendPolicyListener(callback),
+    [client],
+  );
+
+  const policies = useSyncExternalStore(
+    subscribe,
+    () => client.getCreditSpendPolicies(),
+    () => emptyPolicies,
+  );
+
+  const isPendingSubscribe = useCallback(
+    (callback: () => void) => client.addIsPendingListener(callback),
+    [client],
+  );
+
+  const isPending = useSyncExternalStore(
+    isPendingSubscribe,
+    () => client.getIsPending(),
+    () => true,
+  );
+
+  return useMemo(
+    () => ({
+      policies,
+      isLoading: policies.length === 0 && isPending,
+    }),
+    [policies, isPending],
   );
 };
 

@@ -4,10 +4,12 @@ import {
   Schematic,
   type CheckFlagReturn,
   type CreditBalances,
+  type CreditSpendPolicies,
 } from "@schematichq/schematic-js";
 import {
   SchematicPlugin,
   useSchematicCreditBalance,
+  useSchematicCreditSpendPolicies,
   useSchematicEntitlement,
   useSchematicFlag,
 } from "./index";
@@ -74,15 +76,21 @@ describe("schematic-vue", () => {
   it("should export useSchematicCreditBalance composable", () => {
     expect(useSchematicCreditBalance).toBeDefined();
   });
+
+  it("should export useSchematicCreditSpendPolicies composable", () => {
+    expect(useSchematicCreditSpendPolicies).toBeDefined();
+  });
 });
 
 // A minimal controllable client that satisfies the methods the credit balance
 // composable reads, so we can drive DataStream-style updates without websockets.
 const createFakeClient = () => {
   let balances: CreditBalances = {};
+  let policies: CreditSpendPolicies = [];
   let isPending = true;
   let check: CheckFlagReturn | undefined;
   const balanceListeners = new Set<() => void>();
+  const policyListeners = new Set<() => void>();
   const pendingListeners = new Set<() => void>();
   const checkListeners = new Set<(check: CheckFlagReturn) => void>();
 
@@ -101,6 +109,11 @@ const createFakeClient = () => {
       balanceListeners.add(cb);
       return () => balanceListeners.delete(cb);
     },
+    getCreditSpendPolicies: () => policies,
+    addCreditSpendPolicyListener: (cb: () => void) => {
+      policyListeners.add(cb);
+      return () => policyListeners.delete(cb);
+    },
     getIsPending: () => isPending,
     addIsPendingListener: (cb: () => void) => {
       pendingListeners.add(cb);
@@ -110,6 +123,10 @@ const createFakeClient = () => {
     __emitBalances: (next: CreditBalances) => {
       balances = next;
       balanceListeners.forEach((cb) => cb());
+    },
+    __emitPolicies: (next: CreditSpendPolicies) => {
+      policies = next;
+      policyListeners.forEach((cb) => cb());
     },
     __setPending: (next: boolean) => {
       isPending = next;
@@ -290,6 +307,90 @@ describe("useSchematicCreditBalance", () => {
     await nextTick();
 
     expect(result).toEqual({ balance: 3442, isLoading: false });
+  });
+});
+
+describe("useSchematicCreditSpendPolicies", () => {
+  const companyPolicy = {
+    id: "csp_company",
+    creditId: "credit-abc",
+    kind: "per_draw",
+    scope: "company",
+    limit: 500,
+    consumed: 0,
+  };
+  const windowPolicy = {
+    id: "csp_window",
+    creditId: "credit-abc",
+    kind: "window",
+    scope: "user",
+    limit: 100,
+    consumed: 40,
+    resetsAt: new Date("2026-10-02T00:00:00Z"),
+    window: { unit: "day", count: 1 },
+  };
+
+  const mountPolicies = (client: ReturnType<typeof createFakeClient>) => {
+    const result: { policies: CreditSpendPolicies; isLoading: boolean } = {
+      policies: [],
+      isLoading: false,
+    };
+
+    const TestComponent = defineComponent({
+      setup() {
+        const { policies, isLoading } = useSchematicCreditSpendPolicies();
+        return () => {
+          result.policies = policies.value;
+          result.isLoading = isLoading.value;
+          return h("div");
+        };
+      },
+    });
+
+    mount(TestComponent, {
+      global: {
+        plugins: [
+          [SchematicPlugin, { client: client as unknown as Schematic }],
+        ],
+      },
+    });
+
+    return result;
+  };
+
+  it("reports isLoading until the first check settles", () => {
+    const client = createFakeClient();
+    const result = mountPolicies(client);
+
+    expect(result).toEqual({ policies: [], isLoading: true });
+  });
+
+  it("returns an empty set (not loading) when no policy binds", async () => {
+    const client = createFakeClient();
+    const result = mountPolicies(client);
+
+    client.__setPending(false);
+    await nextTick();
+
+    expect(result).toEqual({ policies: [], isLoading: false });
+  });
+
+  it("re-renders with each streamed set, so consumption moves and a deleted policy clears", async () => {
+    const client = createFakeClient();
+    const result = mountPolicies(client);
+
+    client.__setPending(false);
+    client.__emitPolicies([companyPolicy, windowPolicy]);
+    await nextTick();
+    expect(result.policies).toEqual([companyPolicy, windowPolicy]);
+
+    client.__emitPolicies([companyPolicy, { ...windowPolicy, consumed: 70 }]);
+    await nextTick();
+    expect(result.policies[1].consumed).toBe(70);
+
+    client.__emitPolicies([]);
+    await nextTick();
+    expect(result).toEqual({ policies: [], isLoading: false });
   });
 });
 

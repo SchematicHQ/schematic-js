@@ -15,8 +15,8 @@ importers:
   .:
     dependencies:
       '@schematichq/schematic-js':
-        specifier: ^1.8.0
-        version: 1.8.0
+        specifier: ^1.10.0
+        version: 1.10.0
     devDependencies:
       '@angular/compiler':
         specifier: ^22.2.0
@@ -651,8 +651,8 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@schematichq/schematic-js@1.8.0':
-    resolution: {integrity: sha512-tkWlZfyRMw6OGa8F+VGBQolVK/OABNAboe9dvAcF0WrGWXP+JB2wuFd4qcTqFDMN+MmuKpXWgMvE8Un2p6Q69g==}
+  '@schematichq/schematic-js@1.10.0':
+    resolution: {integrity: sha512-xxaKUs20Kcg7N/wpEwfCwGF8riTgb+bUYmVX9MsnoacY0B/GiXW5aWx0peavY72FzAEMwqFE7QhBBDg4vQttNg==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -2969,7 +2969,7 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@schematichq/schematic-js@1.8.0':
+  '@schematichq/schematic-js@1.10.0':
     dependencies:
       cross-fetch: 4.1.0
       uuid: 14.0.2

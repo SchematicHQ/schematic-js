@@ -280,6 +280,41 @@ const { balance, isLoading } = useSchematicCreditBalance(creditId);
 
 The composable re-keys to the new credit whenever the source resolves to a different ID. While it resolves to `undefined`, it reports the client's loading state and a balance of `0`.
 
+### Credit spend policies
+
+To show the spend limits that bind the current company and user, use the `useSchematicCreditSpendPolicies` composable. It updates over the DataStream, so a policy edited or deleted in the dashboard reaches the component without a refetch:
+
+```vue
+<script setup lang="ts">
+import { useSchematicCreditSpendPolicies } from "@schematichq/schematic-vue";
+
+const { policies, isLoading } = useSchematicCreditSpendPolicies();
+</script>
+
+<template>
+  <div v-if="isLoading">Loading…</div>
+  <ul v-else>
+    <li v-for="policy in policies" :key="policy.id">
+      <template v-if="policy.kind === 'window' && policy.window">
+        {{ policy.scope }} limit: {{ policy.consumed }} of {{ policy.limit }} credits used this {{ policy.window.unit }}
+      </template>
+      <template v-else>
+        {{ policy.scope }} limit: {{ policy.limit }} credits per request
+      </template>
+    </li>
+  </ul>
+</template>
+```
+
+The composable returns an object with the following reactive properties:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `policies` | `ComputedRef<CreditSpendPolicies>` | Company-scope policies first, then the user's own; empty when none bind |
+| `isLoading` | `ComputedRef<boolean>` | `true` while the policies are still loading and nothing has arrived yet |
+
+A `per_draw` policy caps a single draw. A `window` policy caps what can be spent in one period: `consumed` is what the current period has spent, `resetsAt` is when the period ends, and `window` names the period. Each new spend sends an updated `consumed`. Once `resetsAt` has passed, read `consumed` as `0` until the next update arrives.
+
 ## Fallback Behavior
 
 The SDK includes built-in fallback behavior you can use to ensure your application continues to function even when unable to reach Schematic (e.g., during service disruptions or network issues).
