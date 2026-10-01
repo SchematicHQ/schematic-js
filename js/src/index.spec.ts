@@ -3503,6 +3503,60 @@ describe("Credit balances over WebSocket", () => {
     await schematic.cleanup();
   });
 
+  it("should clear the set when the last policy is deleted", async () => {
+    let sendUpdate: (() => void) | undefined;
+
+    mockServer.on("connection", (socket) => {
+      socket.on("message", () => {
+        socket.send(
+          JSON.stringify({
+            flags: [{ flag: "credits-feature", value: true }],
+            credit_spend_policies: [
+              {
+                id: "csp_a",
+                credit_id: "credit-abc",
+                kind: "per_draw",
+                scope: "company",
+                limit: 500,
+              },
+            ],
+          }),
+        );
+      });
+
+      sendUpdate = () => {
+        socket.send(
+          JSON.stringify({
+            flags: [{ flag: "credits-feature", value: true }],
+            credit_spend_policies: [],
+          }),
+        );
+      };
+    });
+
+    const schematic = new Schematic("API_KEY", {
+      useWebSocket: true,
+      webSocketUrl: TEST_WS_URL,
+    });
+
+    await schematic.checkFlag({ key: "credits-feature", context });
+    expect(schematic.getCreditSpendPolicies()).toHaveLength(1);
+
+    const notified: number[] = [];
+    schematic.addCreditSpendPolicyListener((policies) => {
+      notified.push(policies.length);
+    });
+
+    sendUpdate?.();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(schematic.getCreditSpendPolicies()).toEqual([]);
+    expect(schematic.getCreditSpendPoliciesForCredit("credit-abc")).toEqual([]);
+    expect(notified).toEqual([0]);
+
+    await schematic.cleanup();
+  });
+
   it("should not notify policy listeners when an identical set restreams", async () => {
     let sendUpdate: (() => void) | undefined;
 
@@ -4196,6 +4250,70 @@ describe("Persistent flag state cache", () => {
       );
 
       await client.cleanup();
+    });
+
+    it("does not revive a deleted last spend policy from storage", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: { flag: "FEATURE_X", value: true, reason: "cached" },
+              },
+              creditSpendPolicies: [
+                {
+                  id: "csp_a",
+                  creditId: "credit-abc",
+                  kind: "per_draw",
+                  scope: "company",
+                  limit: 500,
+                  consumed: 0,
+                },
+              ],
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                { flag: "FEATURE_X", value: true, reason: "Matched rule" },
+              ],
+              credit_spend_policies: [],
+            }),
+          );
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+
+      const pending = client.setContext(ctxA);
+      expect(client.getCreditSpendPolicies()).toHaveLength(1);
+
+      await pending;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(client.getCreditSpendPolicies()).toEqual([]);
+      const parsed = JSON.parse(storage.getItem(cacheKey)!);
+      expect(parsed.contexts[contextString(ctxA)].creditSpendPolicies).toEqual(
+        [],
+      );
+
+      await client.cleanup();
+
+      const reloaded = new Schematic("API_KEY", { storage });
+      await reloaded.setContext(ctxA);
+
+      expect(reloaded.getCreditSpendPolicies()).toEqual([]);
     });
 
     it("evicts least-recently-updated contexts when more than 10 are written", async () => {
