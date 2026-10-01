@@ -20,6 +20,13 @@ import {
   CompanyPlanInvalidReasonToJSON,
   CompanyPlanInvalidReasonToJSONTyped,
 } from "./CompanyPlanInvalidReason";
+import type { EstimatedPlanTotal } from "./EstimatedPlanTotal";
+import {
+  EstimatedPlanTotalFromJSON,
+  EstimatedPlanTotalFromJSONTyped,
+  EstimatedPlanTotalToJSON,
+  EstimatedPlanTotalToJSONTyped,
+} from "./EstimatedPlanTotal";
 import type { BillingCreditResponseData } from "./BillingCreditResponseData";
 import {
   BillingCreditResponseDataFromJSON,
@@ -306,6 +313,12 @@ export interface CompanyPlanDetailResponseData {
   entitlements?: Array<PlanEntitlementResponseData> | null;
   /**
    *
+   * @type {Array<EstimatedPlanTotal>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  estimatedTotals?: Array<EstimatedPlanTotal>;
+  /**
+   *
    * @type {Array<FeatureInPlanResponseData>}
    * @memberof CompanyPlanDetailResponseData
    */
@@ -559,6 +572,12 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         : (json["entitlements"] as Array<any>).map(
             PlanEntitlementResponseDataFromJSON,
           ),
+    estimatedTotals:
+      json["estimated_totals"] == null
+        ? undefined
+        : (json["estimated_totals"] as Array<any>).map(
+            EstimatedPlanTotalFromJSON,
+          ),
     features: (json["features"] as Array<any>).map(
       FeatureInPlanResponseDataFromJSON,
     ),
@@ -664,6 +683,12 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
         ? undefined
         : (value["entitlements"] as Array<any>).map(
             PlanEntitlementResponseDataToJSON,
+          ),
+    estimated_totals:
+      value["estimatedTotals"] == null
+        ? undefined
+        : (value["estimatedTotals"] as Array<any>).map(
+            EstimatedPlanTotalToJSON,
           ),
     features: (value["features"] as Array<any>).map(
       FeatureInPlanResponseDataToJSON,
