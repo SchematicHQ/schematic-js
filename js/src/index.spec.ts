@@ -402,6 +402,7 @@ describe("Schematic", () => {
       };
       const expectedResponse = {
         data: {
+          credit_spend_policies: [],
           flags: [
             {
               companyId: "comp_YRucCyZ3us4",
@@ -456,6 +457,7 @@ describe("Schematic", () => {
       };
       const expectedResponse = {
         data: {
+          credit_spend_policies: [],
           flags: [
             {
               companyId: "comp_YRucCyZ3us4",
