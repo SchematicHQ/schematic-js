@@ -12,6 +12,7 @@ import {
   formatCurrency,
   getAutoTopupAmount,
   getAutoTopupThresholdCredits,
+  getPlanEstimatedPrice,
   getPlanPrice,
   groupPlanCreditGrants,
   hexToHSL,
@@ -23,6 +24,7 @@ import {
   AutoTopupNotice,
   ExpandListToggle,
   PlanCreditText,
+  PlanEstimatedTotal,
 } from "../../../shared";
 import { Box, Flex, Icon, Text } from "../../../ui";
 
@@ -115,7 +117,10 @@ export const Plan = ({
         const hasUsageBasedEntitlements = (plan.entitlements ?? []).some(
           (entitlement) => !!entitlement.priceBehavior,
         );
-        const isFreePlan = planPrice === 0;
+        const headlinePrice =
+          getPlanEstimatedPrice(plan, planPeriod, planPrice, planCurrency) ??
+          planPrice;
+        const isFreePlan = headlinePrice === 0;
         const isUsageBasedPlan = isFreePlan && hasUsageBasedEntitlements;
         const headerPriceFontStyle = settings.theme.typography.heading2;
 
@@ -183,18 +188,18 @@ export const Plan = ({
                         ? t("Free")
                         : showAsMonthlyPrices &&
                             planPeriod === BillingProductPriceInterval.Year
-                          ? formatCurrency((planPrice ?? 0) / 12, {
+                          ? formatCurrency((headlinePrice ?? 0) / 12, {
                               locale,
                               currency: planCurrency,
                               testSignificantDigits: false,
                             })
                           : showAsMonthlyPrices && planPeriod === "quarter"
-                            ? formatCurrency((planPrice ?? 0) / 3, {
+                            ? formatCurrency((headlinePrice ?? 0) / 3, {
                                 locale,
                                 currency: planCurrency,
                                 testSignificantDigits: false,
                               })
-                            : formatCurrency(planPrice ?? 0, {
+                            : formatCurrency(headlinePrice ?? 0, {
                                 locale,
                                 currency: planCurrency,
                               })}
@@ -217,6 +222,13 @@ export const Plan = ({
                   </Text>
                 )}
               </Box>
+
+              <PlanEstimatedTotal
+                plan={plan}
+                period={planPeriod}
+                planPrice={planPrice}
+                currency={planCurrency}
+              />
 
               {showCredits && credits.length > 0 && (
                 <Flex

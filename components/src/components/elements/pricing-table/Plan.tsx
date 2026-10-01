@@ -10,6 +10,7 @@ import {
 import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
+  getPlanEstimatedPrice,
   getPlanPrice,
   getSubscriptionPeriod,
   groupPlanCreditGrants,
@@ -19,6 +20,7 @@ import { cardBoxShadow } from "../../layout";
 import {
   ExpandListToggle,
   PlanCreditText,
+  PlanEstimatedTotal,
   UsageViolationText,
 } from "../../shared";
 import { Box, Button, Flex, Icon, Text } from "../../ui";
@@ -101,7 +103,10 @@ export const Plan = ({
   const hasUsageBasedEntitlements = (plan.entitlements ?? []).some(
     (entitlement) => !!entitlement.priceBehavior,
   );
-  const isFreePlan = planPrice === 0;
+  const headlinePrice =
+    getPlanEstimatedPrice(plan, selectedPeriod, planPrice, planCurrency) ??
+    planPrice;
+  const isFreePlan = headlinePrice === 0;
   const isUsageBasedPlan = isFreePlan && hasUsageBasedEntitlements;
   const headerPriceFontStyle =
     settings.theme.typography[layout.plans.name.fontStyle];
@@ -176,18 +181,18 @@ export const Plan = ({
                   ? t("Free")
                   : showAsMonthlyPrices &&
                       selectedPeriod === BillingProductPriceInterval.Year
-                    ? formatCurrency((planPrice ?? 0) / 12, {
+                    ? formatCurrency((headlinePrice ?? 0) / 12, {
                         locale,
                         currency: planCurrency,
                         testSignificantDigits: false,
                       })
                     : showAsMonthlyPrices && selectedPeriod === "quarter"
-                      ? formatCurrency((planPrice ?? 0) / 3, {
+                      ? formatCurrency((headlinePrice ?? 0) / 3, {
                           locale,
                           currency: planCurrency,
                           testSignificantDigits: false,
                         })
-                      : formatCurrency(planPrice ?? 0, {
+                      : formatCurrency(headlinePrice ?? 0, {
                           locale,
                           currency: planCurrency,
                         })}
@@ -204,6 +209,13 @@ export const Plan = ({
             )}
           </Text>
         </Box>
+
+        <PlanEstimatedTotal
+          plan={plan}
+          period={selectedPeriod}
+          planPrice={planPrice}
+          currency={planCurrency}
+        />
 
         {showCredits && credits.length > 0 && (
           <Flex
