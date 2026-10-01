@@ -56,6 +56,9 @@ models/CreateEventRequestBody.ts
 models/CreateEventResponse.ts
 models/CreditCurrencyPrice.ts
 models/CreditCurrencyPriceResponseData.ts
+models/CreditSpendPolicy.ts
+models/CreditSpendPolicyScope.ts
+models/CreditSpendWindow.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DatastreamCompanyPlan.ts
