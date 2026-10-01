@@ -36,6 +36,12 @@ export interface ComponentDisplaySettings {
    * @type {boolean}
    * @memberof ComponentDisplaySettings
    */
+  showEstimatedTotal: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof ComponentDisplaySettings
+   */
   showFeatureDescription: boolean;
   /**
    *
@@ -71,6 +77,11 @@ export function instanceOfComponentDisplaySettings(
   if (!("showCredits" in value) || value["showCredits"] === undefined)
     return false;
   if (
+    !("showEstimatedTotal" in value) ||
+    value["showEstimatedTotal"] === undefined
+  )
+    return false;
+  if (
     !("showFeatureDescription" in value) ||
     value["showFeatureDescription"] === undefined
   )
@@ -103,6 +114,7 @@ export function ComponentDisplaySettingsFromJSONTyped(
   return {
     showAsMonthlyPrices: json["show_as_monthly_prices"],
     showCredits: json["show_credits"],
+    showEstimatedTotal: json["show_estimated_total"],
     showFeatureDescription: json["show_feature_description"],
     showHardLimit: json["show_hard_limit"],
     showPeriodToggle: json["show_period_toggle"],
@@ -127,6 +139,7 @@ export function ComponentDisplaySettingsToJSONTyped(
   return {
     show_as_monthly_prices: value["showAsMonthlyPrices"],
     show_credits: value["showCredits"],
+    show_estimated_total: value["showEstimatedTotal"],
     show_feature_description: value["showFeatureDescription"],
     show_hard_limit: value["showHardLimit"],
     show_period_toggle: value["showPeriodToggle"],
