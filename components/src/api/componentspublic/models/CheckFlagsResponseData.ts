@@ -27,6 +27,13 @@ import {
   DatastreamCompanyPlanToJSON,
   DatastreamCompanyPlanToJSONTyped,
 } from "./DatastreamCompanyPlan";
+import type { CreditSpendPolicy } from "./CreditSpendPolicy";
+import {
+  CreditSpendPolicyFromJSON,
+  CreditSpendPolicyFromJSONTyped,
+  CreditSpendPolicyToJSON,
+  CreditSpendPolicyToJSONTyped,
+} from "./CreditSpendPolicy";
 import type { CheckFlagResponseData } from "./CheckFlagResponseData";
 import {
   CheckFlagResponseDataFromJSON,
@@ -48,6 +55,12 @@ export interface CheckFlagsResponseData {
    */
   creditBalances?: { [key: string]: CompanyCreditBalance };
   /**
+   * Credit spend policies binding the evaluated company and user; empty when none bind. Each response carries the whole set, so replace any previously received set with it. Advisory: the flag values do not reflect them, since a check names no draw amount
+   * @type {Array<CreditSpendPolicy>}
+   * @memberof CheckFlagsResponseData
+   */
+  creditSpendPolicies: Array<CreditSpendPolicy>;
+  /**
    *
    * @type {Array<CheckFlagResponseData>}
    * @memberof CheckFlagsResponseData
@@ -67,6 +80,11 @@ export interface CheckFlagsResponseData {
 export function instanceOfCheckFlagsResponseData(
   value: object,
 ): value is CheckFlagsResponseData {
+  if (
+    !("creditSpendPolicies" in value) ||
+    value["creditSpendPolicies"] === undefined
+  )
+    return false;
   if (!("flags" in value) || value["flags"] === undefined) return false;
   return true;
 }
@@ -89,6 +107,9 @@ export function CheckFlagsResponseDataFromJSONTyped(
       json["credit_balances"] == null
         ? undefined
         : mapValues(json["credit_balances"], CompanyCreditBalanceFromJSON),
+    creditSpendPolicies: (json["credit_spend_policies"] as Array<any>).map(
+      CreditSpendPolicyFromJSON,
+    ),
     flags: (json["flags"] as Array<any>).map(CheckFlagResponseDataFromJSON),
     plan:
       json["plan"] == null
@@ -116,6 +137,9 @@ export function CheckFlagsResponseDataToJSONTyped(
       value["creditBalances"] == null
         ? undefined
         : mapValues(value["creditBalances"], CompanyCreditBalanceToJSON),
+    credit_spend_policies: (value["creditSpendPolicies"] as Array<any>).map(
+      CreditSpendPolicyToJSON,
+    ),
     flags: (value["flags"] as Array<any>).map(CheckFlagResponseDataToJSON),
     plan: DatastreamCompanyPlanToJSON(value["plan"]),
   };

@@ -54,6 +54,12 @@ export interface CustomPlanBillingResponseData {
    */
   billingCycleAnchor?: Date | null;
   /**
+   * The date the contract term starts, when the operator pinned one. A past date was backdated onto the subscription so the first period runs from the contract date rather than from finalization.
+   * @type {Date}
+   * @memberof CustomPlanBillingResponseData
+   */
+  billingStartDate?: Date | null;
+  /**
    *
    * @type {string}
    * @memberof CustomPlanBillingResponseData
@@ -189,6 +195,10 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
       json["billing_cycle_anchor"] == null
         ? undefined
         : new Date(json["billing_cycle_anchor"]),
+    billingStartDate:
+      json["billing_start_date"] == null
+        ? undefined
+        : new Date(json["billing_start_date"]),
     companyId: json["company_id"],
     createdAt: new Date(json["created_at"]),
     daysUntilDue: json["days_until_due"],
@@ -238,6 +248,10 @@ export function CustomPlanBillingResponseDataToJSONTyped(
       value["billingCycleAnchor"] == null
         ? undefined
         : (value["billingCycleAnchor"] as any).toISOString(),
+    billing_start_date:
+      value["billingStartDate"] == null
+        ? undefined
+        : (value["billingStartDate"] as any).toISOString(),
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
     days_until_due: value["daysUntilDue"],
