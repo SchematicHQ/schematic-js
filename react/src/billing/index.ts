@@ -32,10 +32,12 @@ export {
   useInvoices,
   usePaymentMethods,
   useSetupIntent,
+  useUnsubscribe,
   useUpcomingInvoice,
   type InvoicesHandle,
   type PaymentMethodsHandle,
   type SetupIntentHandle,
+  type UnsubscribeHandle,
 } from "./hooks";
 export { BillingProvider, type BillingProviderProps } from "./provider";
 // `Resource`, `KeyedResource`, `BillingStore` and `BillingDataContext` stay

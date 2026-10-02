@@ -481,6 +481,20 @@ export class BillingStore {
   }
 
   /**
+   * Cancels the company's subscription at the end of its billing period,
+   * then reloads what that changes: the company, its next bill, and its
+   * credits' renewals. Rejects as `setDefaultPaymentMethod` does.
+   */
+  async unsubscribe(): Promise<void> {
+    await this._client.cancelSubscription();
+    await Promise.all([
+      this._reload(this.company),
+      this._reload(this.creditBalances),
+      this._reload(this.upcomingInvoice),
+    ]);
+  }
+
+  /**
    * Mints a setup intent for adding a payment method. Nothing in the store
    * changes until the provider confirms it and the host reloads the list,
    * so this is a pass-through to the client.
@@ -498,11 +512,17 @@ export class BillingStore {
    * when someone does. One that is loaded, or subscribed and waiting on a
    * failed load, is fetched again; `refetch` never rejects.
    */
-  private async _reloadPaymentMethods(): Promise<void> {
-    if (!this.paymentMethods.has(SINGLETON)) {
+  private _reloadPaymentMethods(): Promise<void> {
+    return this._reload(this.paymentMethods);
+  }
+
+  private async _reload<T>(
+    keyed: KeyedResource<T, Record<string, never>>,
+  ): Promise<void> {
+    if (!keyed.has(SINGLETON)) {
       return;
     }
-    const resource = this.paymentMethods.get(SINGLETON);
+    const resource = keyed.get(SINGLETON);
     if (resource.snapshot.data !== undefined || resource.subscriberCount > 0) {
       await resource.refetch();
     }

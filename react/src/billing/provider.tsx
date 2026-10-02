@@ -197,6 +197,7 @@ export function BillingProvider({
           store.setDefaultPaymentMethod(externalId),
         removePaymentMethod: (id) => store.removePaymentMethod(id),
         createSetupIntent: () => store.createSetupIntent(),
+        unsubscribe: () => store.unsubscribe(),
       },
     };
   }, [store]);
