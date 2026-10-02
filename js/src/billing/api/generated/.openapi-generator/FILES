@@ -3,6 +3,7 @@ apis/CheckoutexternalApi.ts
 apis/index.ts
 index.ts
 models/ApiError.ts
+models/BillingCreditGrantReason.ts
 models/BillingPlanCreditGrantResetCadence.ts
 models/BillingPriceScheme.ts
 models/BillingProductPriceInterval.ts
@@ -11,6 +12,12 @@ models/BillingTiersMode.ts
 models/CatalogCreditGrantResponseData.ts
 models/CatalogPriceResponseData.ts
 models/CatalogPriceTierResponseData.ts
+models/CompanyCreditBalanceResponseData.ts
+models/CompanyCreditBalancesResponseData.ts
+models/CompanyCreditCompositionResponseData.ts
+models/CompanyCreditGrantResponseData.ts
+models/CompanyCreditUserUsageResponseData.ts
+models/CompanyCreditUserUsageRowResponseData.ts
 models/CompanyDiscountResponseData.ts
 models/CompanyFeatureUsageListResponseData.ts
 models/CompanyFeatureUsageResponseData.ts
@@ -28,6 +35,9 @@ models/EntitlementPriceBehavior.ts
 models/EntitlementType.ts
 models/EntitlementValueType.ts
 models/FeatureType.ts
+models/GetCompanyCreditBalancesResponse.ts
+models/GetCompanyCreditUserUsageParams.ts
+models/GetCompanyCreditUserUsageResponse.ts
 models/GetCompanyFeatureUsageResponse.ts
 models/GetCompanyFeatureUserUsageParams.ts
 models/GetCompanyFeatureUserUsageResponse.ts

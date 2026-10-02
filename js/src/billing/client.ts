@@ -8,6 +8,8 @@
 
 import {
   CreateSetupIntentResponseFromJSON,
+  GetCompanyCreditBalancesResponseFromJSON,
+  GetCompanyCreditUserUsageResponseFromJSON,
   GetCompanyFeatureUsageResponseFromJSON,
   GetCompanyFeatureUserUsageResponseFromJSON,
   GetCompanyInvoicesResponseFromJSON,
@@ -17,6 +19,8 @@ import {
 import type {
   BillingData,
   BillingResourceName,
+  CreditBalanceEntry,
+  CreditUserUsage,
   FeatureUsage,
   FeatureUserUsage,
   InvoicePage,
@@ -44,6 +48,13 @@ export interface InvoicesRequest extends InvoiceQuery {
  * the page's, and only the caller knows its offset.
  */
 export type InvoicesResult = Omit<InvoicePage, "hasMore">;
+
+export interface CreditUserUsageRequest {
+  creditId: string;
+  /** Users per page; the server's default when omitted. */
+  limit?: number;
+  offset?: number;
+}
 
 export interface FeatureUserUsageRequest {
   featureId: string;
@@ -76,6 +87,12 @@ export interface BillingClient {
   fetchFeatureUserUsage(
     params: FeatureUserUsageRequest,
   ): Promise<FeatureUserUsage>;
+  /** Empty when the company holds no credits and its plan draws on none. */
+  fetchCreditBalances(): Promise<CreditBalanceEntry[]>;
+  /** One credit's consumption by user over the span of its live grants. */
+  fetchCreditUserUsage(
+    params: CreditUserUsageRequest,
+  ): Promise<CreditUserUsage>;
 
   readonly sessionStatus: SessionStatus;
 
@@ -236,6 +253,46 @@ export class SchematicBillingClient implements BillingClient {
     });
   }
 
+  fetchCreditBalances(): Promise<CreditBalanceEntry[]> {
+    const path = "/company/credits";
+    // No credits is a 200 with an empty list. A 404 is the account being
+    // off the flag, and stays the error it is.
+    return this.session.request(path).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      const data = (body as { data: unknown }).data as {
+        balances?: unknown;
+      } | null;
+      if (data == null || data.balances == null) {
+        return [];
+      }
+      return GetCompanyCreditBalancesResponseFromJSON(body).data.balances;
+    });
+  }
+
+  fetchCreditUserUsage(
+    params: CreditUserUsageRequest,
+  ): Promise<CreditUserUsage> {
+    const query = new URLSearchParams();
+    if (params.limit !== undefined) {
+      query.set("limit", String(params.limit));
+    }
+    if (params.offset !== undefined) {
+      query.set("offset", String(params.offset));
+    }
+    const search = query.toString();
+    const path = `/company/credits/${encodeURIComponent(params.creditId)}/users${search === "" ? "" : `?${search}`}`;
+    // A credit the company has no claim to is a 404; a plan credit it holds
+    // no grant of is an empty breakdown.
+    return this.session.request(path).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return GetCompanyCreditUserUsageResponseFromJSON(body).data;
+    });
+  }
+
   fetchFeatureUserUsage(
     params: FeatureUserUsageRequest,
   ): Promise<FeatureUserUsage> {
@@ -325,6 +382,10 @@ export async function fetchBillingData(
           }
           case "featureUsage": {
             data.featureUsage = await client.fetchFeatureUsage();
+            break;
+          }
+          case "creditBalances": {
+            data.creditBalances = await client.fetchCreditBalances();
             break;
           }
         }
