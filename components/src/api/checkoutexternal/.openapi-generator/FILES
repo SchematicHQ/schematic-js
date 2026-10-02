@@ -162,6 +162,7 @@ models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
 models/MetricPeriod.ts
 models/MetricPeriodMonthReset.ts
+models/MigrationProrationBehavior.ts
 models/PaymentMethodResponseData.ts
 models/PendingMigrationResponseData.ts
 models/PlanBillingSource.ts
@@ -176,6 +177,7 @@ models/PlanIcon.ts
 models/PlanPriceCadence.ts
 models/PlanResponseData.ts
 models/PlanType.ts
+models/PlanVersionMigrationStrategy.ts
 models/PlanVersionResponseData.ts
 models/PlanVersionStatus.ts
 models/PreviewCheckoutResponse.ts
