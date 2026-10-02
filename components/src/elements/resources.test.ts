@@ -3,6 +3,7 @@ import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
 import { MeteredFeatures } from "./MeteredFeatures";
 import { PaymentMethods } from "./PaymentMethods";
+import { PlanManager } from "./PlanManager";
 import { UpcomingBill } from "./UpcomingBill";
 import { billingResources, type ReadsBillingResources } from "./common";
 
@@ -20,6 +21,11 @@ describe("what the elements read", () => {
     expect(IncludedFeatures.resources).toEqual(["featureUsage"]);
     expect(MeteredFeatures.resources).toEqual(["featureUsage"]);
     expect(CreditUsage.resources).toEqual(["creditBalances"]);
+    expect(PlanManager.resources).toEqual([
+      "company",
+      "featureUsage",
+      "creditBalances",
+    ]);
   });
 
   test("billingResources collects them once each, in the order given", () => {

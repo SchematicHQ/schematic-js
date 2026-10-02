@@ -124,6 +124,49 @@ export type ElementStrings = {
   creditUsageCompanyGrant: string;
   creditUsageRenewsOn: string;
 
+  planManagerLoading: string;
+  planManagerError: string;
+  planManagerUnavailable: string;
+  planManagerTrialEndsIn: string;
+  planManagerDays: string;
+  planManagerHours: string;
+  planManagerMinutes: string;
+  planManagerSeconds: string;
+  planManagerCanceled: string;
+  planManagerAccessEnds: string;
+  planManagerPlanFallback: string;
+  planManagerCustomAwaiting: string;
+  planManagerCustomAwaitingDescription: string;
+  planManagerCustomDue: string;
+  planManagerCustomDueDescription: string;
+  planManagerYourPlan: string;
+  planManagerPayNow: string;
+  planManagerDowngradeScheduled: string;
+  planManagerUsageBased: string;
+  planManagerFree: string;
+  planManagerAddOns: string;
+  planManagerAdditional: string;
+  planManagerTierBased: string;
+  planManagerCreditsInPlan: string;
+  planManagerTopUps: string;
+  planManagerCreditBundles: string;
+  planManagerPromotionalCredits: string;
+  planManagerChangePlan: string;
+  planManagerCredits: string;
+  planManagerCreditsPerPeriod: string;
+  planManagerCreditsPerLicense: string;
+  planManagerCreditsPlusPerPeriod: string;
+  planManagerLicensesTimesCredits: string;
+  planManagerLicensesTimesCreditsPlusCompany: string;
+  planManagerUsed: string;
+  planManagerAutoTopup: string;
+  planManagerAutoTopupDisabled: string;
+  planManagerAutoTopupAdds: string;
+  planManagerAutoTopupTip: string;
+  planManagerEdit: string;
+  planManagerSeeAll: string;
+  planManagerHideAll: string;
+
   usageByUserHeader: string;
   usageByUserTotal: string;
   usageByUserError: string;
@@ -155,6 +198,11 @@ export type ElementStrings = {
   periodMonthShort: string;
   periodQuarterShort: string;
   periodYearShort: string;
+  periodDay: string;
+  periodWeek: string;
+  periodMonth: string;
+  periodQuarter: string;
+  periodYear: string;
 };
 
 export type StringKey = keyof ElementStrings;
@@ -314,6 +362,64 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   creditUsageCompanyGrant: "{{amount}} company grant",
   creditUsageRenewsOn: "Renews on the {{day}}.",
 
+  planManagerLoading: "Loading your plan",
+  planManagerError: "There was a problem retrieving your plan.",
+  planManagerUnavailable: "Your plan is not available for this account.",
+  planManagerTrialEndsIn: "Trial ends in {{amount}} {{units}}",
+  // The trial countdown's units, looked up by the bare key with `{ count }`.
+  planManagerDays: "days",
+  planManagerDays_one: "day",
+  planManagerDays_other: "days",
+  planManagerHours: "hours",
+  planManagerHours_one: "hour",
+  planManagerHours_other: "hours",
+  planManagerMinutes: "minutes",
+  planManagerMinutes_one: "minute",
+  planManagerMinutes_other: "minutes",
+  planManagerSeconds: "seconds",
+  planManagerSeconds_one: "second",
+  planManagerSeconds_other: "seconds",
+  planManagerCanceled: "Subscription canceled",
+  planManagerAccessEnds: "Access to {{plan}} will end on {{date}}.",
+  planManagerPlanFallback: "plan",
+  planManagerCustomAwaiting: "Pay to activate {{plan}}",
+  planManagerCustomAwaitingDescription:
+    "Pay the invoice to activate your custom plan. Due by {{date}}.",
+  planManagerCustomDue: "Pay by {{date}} to keep {{plan}}",
+  planManagerCustomDueDescription:
+    "Access to {{plan}} will end on {{date}} unless the invoice is paid.",
+  planManagerYourPlan: "your plan",
+  planManagerPayNow: "Pay now",
+  planManagerDowngradeScheduled: "Downgrade to {{plan}} scheduled",
+  planManagerUsageBased: "Usage-based",
+  planManagerFree: "Free",
+  planManagerAddOns: "Add-ons",
+  planManagerAdditional: "Additional",
+  planManagerTierBased: "Tier-based",
+  planManagerCreditsInPlan: "Credits in plan",
+  planManagerTopUps: "Top-ups",
+  planManagerCreditBundles: "Credit bundles",
+  planManagerPromotionalCredits: "Promotional credits",
+  planManagerChangePlan: "Change plan",
+  planManagerCredits: "{{amount}} {{creditName}}",
+  planManagerCreditsPerPeriod: "{{amount}} {{creditName}} per {{period}}",
+  planManagerCreditsPerLicense: "{{amount}} {{creditName}} per {{licenseName}}",
+  planManagerCreditsPlusPerPeriod: "+ {{amount}} {{creditName}} per {{period}}",
+  planManagerLicensesTimesCredits:
+    "{{quantity}} {{licenseName}} × {{perUnit}} = {{total}} {{creditName}}/{{period}}",
+  planManagerLicensesTimesCreditsPlusCompany:
+    "{{quantity}} {{licenseName}} × {{perUnit}} + {{fixed}} = {{total}} {{creditName}}/{{period}}",
+  planManagerUsed: "{{amount}} used",
+  planManagerAutoTopup: "Auto top-up",
+  planManagerAutoTopupDisabled: "Auto top-up disabled for {{unit}}",
+  planManagerAutoTopupAdds:
+    "Adds {{amount}} {{unit}} when {{threshold}} remaining in balance",
+  planManagerAutoTopupTip:
+    "When credit balance reaches {{threshold}} remaining, an auto top-up of {{amount}} credits will be processed.",
+  planManagerEdit: "Edit",
+  planManagerSeeAll: "See all ({{total}})",
+  planManagerHideAll: "Hide all",
+
   usageByUserHeader: "Usage by user",
   usageByUserTotal: "{{amount}} used by your team this period",
   usageByUserError: "There was a problem retrieving usage by user.",
@@ -351,6 +457,11 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   periodMonthShort: "mo",
   periodQuarterShort: "qtr",
   periodYearShort: "yr",
+  periodDay: "day",
+  periodWeek: "week",
+  periodMonth: "month",
+  periodQuarter: "quarter",
+  periodYear: "year",
 };
 
 /**
