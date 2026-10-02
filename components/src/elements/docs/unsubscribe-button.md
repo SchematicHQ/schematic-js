@@ -1,6 +1,6 @@
 # UnsubscribeButton
 
-A button that cancels the company's subscription at the end of its billing period, after a confirmation that says when access ends and what the subscription costs.
+A button, in a card as the embed draws it, that cancels the company's subscription at the end of its billing period, after a confirmation that says when access ends and what the subscription costs.
 
 ## Hooks and derivation
 
