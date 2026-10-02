@@ -12,6 +12,9 @@ import type {
 import {
   bankPaymentMethod,
   cardPaymentMethod,
+  company,
+  companyPlan,
+  companySubscription,
   creditBalance,
   creditGrant,
   daysFromNow,
@@ -312,6 +315,115 @@ export function creditsScenario(): BillingData {
   };
 }
 
+/**
+ * Pro with two add-ons, the usage-based features, and credits from every
+ * source: the plan's AI credits per seat, with a self-service auto top-up;
+ * a bundle bought twice; two auto top-ups; and a promotional grant.
+ */
+export function planManagerScenario(): BillingData {
+  return {
+    company: company({
+      addOns: [
+        companyPlan({
+          description: undefined,
+          id: "plan_seats",
+          name: "Extra seats",
+          price: 1000,
+        }),
+        companyPlan({
+          description: undefined,
+          id: "plan_onboarding",
+          name: "Onboarding",
+          period: "one-time",
+          price: 50000,
+        }),
+      ],
+      plan: companyPlan({ id: "plan_pro", includedCreditIds: ["bcr_ai"] }),
+    }),
+    creditBalances: [
+      creditBalance({
+        autoTopup: {
+          amount: 500,
+          enabled: true,
+          selfService: true,
+          thresholdCredits: 50,
+        },
+        composition: {
+          fixedQuantity: 100,
+          licenseId: "lic_seats",
+          licenseName: "Seat",
+          licenseQuantity: 12,
+          perLicenseAmount: 10,
+          period: "month",
+          renewsAt: daysFromNow(10),
+          total: 220,
+        },
+        creditId: "bcr_ai",
+        grants: [
+          creditGrant({
+            bundleId: "bcb_pack",
+            bundleName: "500 credit pack",
+            createdAt: daysFromNow(-2),
+            grantReason: "purchased",
+            quantityUsed: 0,
+          }),
+          creditGrant({
+            bundleId: "bcb_pack",
+            bundleName: "500 credit pack",
+            createdAt: daysFromNow(-12),
+            grantReason: "purchased",
+            quantityUsed: 40,
+          }),
+          creditGrant({
+            bundleId: "bcb_topup",
+            createdAt: daysFromNow(-3),
+            grantReason: "billing_credit_auto_topup",
+            quantity: 500,
+            quantityUsed: 0,
+          }),
+          creditGrant({
+            bundleId: "bcb_topup",
+            createdAt: daysFromNow(-6),
+            grantReason: "billing_credit_auto_topup",
+            quantity: 500,
+            quantityUsed: 500,
+          }),
+          creditGrant({ quantity: 220, quantityUsed: 150 }),
+        ],
+      }),
+      creditBalance({
+        creditId: "bcr_export",
+        creditIcon: undefined,
+        creditName: "Export credit",
+        grants: [
+          creditGrant({
+            createdAt: daysFromNow(-1),
+            grantReason: "free",
+            quantity: 25,
+            quantityUsed: 5,
+          }),
+        ],
+        purchasable: false,
+      }),
+    ],
+    featureUsage: featureUsageSet(),
+  };
+}
+
+/** Pro in its trial, two weeks to go. */
+export function planManagerTrialingScenario(): BillingData {
+  return {
+    ...planManagerScenario(),
+    company: company({
+      plan: companyPlan({ id: "plan_pro" }),
+      subscription: companySubscription({
+        status: "trialing",
+        trialEnd: daysFromNow(14),
+      }),
+    }),
+  };
+}
+
 /** Entitled to nothing: a loaded, empty list. */
 export function featureUsageEmpty(): BillingData {
   return { featureUsage: [] };
@@ -327,6 +439,8 @@ export const SCENARIOS = {
   featureUsage: featureUsageScenario,
   featureUsageEmpty,
   credits: creditsScenario,
+  planManager: planManagerScenario,
+  planManagerTrialing: planManagerTrialingScenario,
 } satisfies Record<string, () => BillingData>;
 
 export type ScenarioName = keyof typeof SCENARIOS;
