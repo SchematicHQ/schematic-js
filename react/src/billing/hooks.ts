@@ -10,6 +10,8 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  FeatureUsage,
+  FeatureUserUsage,
   InvoicePage,
   InvoiceQuery,
   PaymentMethod,
@@ -31,8 +33,9 @@ import { hashKey } from "./store";
 /**
  * Hooks never fetch during server rendering: without `initialData` they
  * report pending on the server and load on the client. `useInvoices`,
- * `useUpcomingInvoice` and `usePaymentMethods` so far; the other resource
- * hooks ship with their elements.
+ * `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage` and
+ * `useFeatureUserUsage` so far; the other resource hooks ship with their
+ * elements.
  */
 
 /** The same object until the hash of `params` changes. */
@@ -190,6 +193,35 @@ export function useSetupIntent(): SetupIntentHandle {
     () => ({ create: () => actionsOf(source).createSetupIntent() }),
     [source],
   );
+}
+
+/**
+ * Every feature the company is entitled to, with its usage. `data` is empty
+ * when it is entitled to nothing; `undefined` is what means not loaded yet.
+ */
+export function useFeatureUsage(): ResourceHandle<FeatureUsage[]> {
+  return useBillingResource("featureUsage", SINGLETON);
+}
+
+/**
+ * One event-based feature's usage by user over its metric period: the
+ * heaviest users, how many there are in all, and usage sent without a user.
+ * A feature the company has no event-based entitlement to fails with a 404.
+ */
+export function useFeatureUserUsage(
+  featureId: string,
+): ResourceHandle<FeatureUserUsage> {
+  const source = useBillingDataSource();
+  const subscribe = useCallback(
+    (listener: () => void) =>
+      source.subscribeFeatureUserUsage(featureId, listener),
+    [featureId, source],
+  );
+  const getSnapshot = useCallback(
+    () => source.featureUserUsage(featureId),
+    [featureId, source],
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 /** Reloads every loaded billing resource (after a plan change, for instance). */

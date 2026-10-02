@@ -4,6 +4,7 @@
 // union, so a host implementing either has to be able to name it.
 export * from "./contract";
 export {
+  FEATURE_USER_USAGE_LIMIT,
   INVOICE_PAGE_SIZE,
   type AccessToken,
   type AccessTokenProvider,
@@ -22,6 +23,8 @@ export {
   type ResourceHandle,
 } from "./context";
 export {
+  useFeatureUsage,
+  useFeatureUserUsage,
   useInvalidateBillingData,
   useInvoices,
   usePaymentMethods,
