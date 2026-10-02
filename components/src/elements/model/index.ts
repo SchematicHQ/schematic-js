@@ -6,3 +6,4 @@ export * from "./paymentMethods";
 export * from "./featureUsage";
 export * from "./includedFeatures";
 export * from "./meteredFeatures";
+export * from "./creditUsage";
