@@ -112,13 +112,23 @@ export const creditUsageCss = `
   padding: 0;
 }
 
+/* The grant on the left, its date on the right; where both do not fit, the
+   date drops to its own line rather than running out of the panel. */
 .schematic-credit-usage__grant {
   display: flex;
-  gap: var(--schematic-space);
+  flex-wrap: wrap;
+  gap: 0.25rem var(--schematic-space);
   justify-content: space-between;
 }
 
+.schematic-credit-usage__grant-text {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .schematic-credit-usage__grant-date {
+  margin-inline-start: auto;
   text-align: end;
   white-space: nowrap;
 }

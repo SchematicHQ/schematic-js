@@ -90,7 +90,14 @@ export const meteredFeaturesCss = `
 
 @container (max-width: 30rem) {
   .schematic-metered-features__figures {
+    min-width: 0;
     text-align: start;
+  }
+
+  /* A card this narrow has no room to keep "1,300 GB of storage used" on one
+     line. */
+  .schematic-metered-features__headline {
+    white-space: normal;
   }
 }
 

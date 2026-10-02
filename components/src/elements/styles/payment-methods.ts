@@ -30,12 +30,21 @@ export const paymentMethodsCss = `
   padding: calc(var(--schematic-space) / 2.25) var(--schematic-space);
 }
 
+/* One line: a label too long for the space truncates rather than wrapping
+   "Card ending in" away from its digits or widening the dialog. */
 .schematic-payment-methods__method {
   align-items: center;
   display: inline-flex;
   flex-grow: 1;
-  flex-wrap: wrap;
   gap: 0.25em;
+  min-width: 0;
+}
+
+.schematic-payment-methods__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* The brand's mark before the label, in the label's colour. */
@@ -47,6 +56,7 @@ export const paymentMethodsCss = `
 }
 
 .schematic-payment-methods__last4 {
+  flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -124,6 +134,12 @@ export const paymentMethodsCss = `
   flex-wrap: wrap;
   gap: calc(var(--schematic-space) / 2) var(--schematic-space);
   padding: calc(var(--schematic-space) / 2) 0;
+}
+
+/* The name takes the line's room first; the actions wrap under it before
+   the name is cut short. */
+.schematic-payment-methods__row .schematic-payment-methods__method {
+  flex: 1 1 10rem;
 }
 
 .schematic-payment-methods__expires {

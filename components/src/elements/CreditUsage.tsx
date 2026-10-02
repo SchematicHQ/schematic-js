@@ -254,7 +254,7 @@ function Ledger({ credit, t }: { credit: CreditUsageRow; t: Translator }) {
                 data-testid="schematic-credit-grant"
                 key={row.id}
               >
-                <span>
+                <span className="schematic-credit-usage__grant-text">
                   {t(GRANT_KEY[row.kind], {
                     amount: row.amount,
                     createdAt: row.createdAt,
