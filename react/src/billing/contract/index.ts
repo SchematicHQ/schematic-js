@@ -6,7 +6,7 @@
  * whole would make each addition there a compile error here, so that taking
  * a newer schematic-js meant adopting whatever it added. A resource joins
  * this list with the hook that reads it. The invoices, upcoming-invoice,
- * payment-methods and feature-usage slices so far; the rest of the contract
+ * payment-methods, feature-usage and credits slices so far; the rest of the contract
  * ships with its elements.
  */
 import { normalizeInvoiceQuery as normalize } from "@schematichq/schematic-js";
@@ -23,6 +23,11 @@ export {
   InvoiceStatus,
   SINGLETON,
   type BillingData,
+  type CreditBalanceEntry,
+  type CreditComposition,
+  type CreditGrant,
+  type CreditUserUsage,
+  type CreditUserUsageRow,
   type FeatureUsage,
   type FeatureUserUsage,
   type Invoice,
@@ -40,7 +45,11 @@ export {
 
 /** The resources this package serves; a key of schematic-js's contract. */
 export type BillingResourceName =
-  "invoices" | "upcomingInvoice" | "paymentMethods" | "featureUsage";
+  | "invoices"
+  | "upcomingInvoice"
+  | "paymentMethods"
+  | "featureUsage"
+  | "creditBalances";
 export type BillingResources = Pick<ContractResources, BillingResourceName>;
 export type BillingResourceParams = Pick<
   ContractResourceParams,
@@ -69,6 +78,8 @@ export type BillingProviderClient = Pick<
   | "deletePaymentMethod"
   | "fetchFeatureUsage"
   | "fetchFeatureUserUsage"
+  | "fetchCreditBalances"
+  | "fetchCreditUserUsage"
 >;
 
 /**

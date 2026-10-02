@@ -16,6 +16,7 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  CreditUserUsage,
   FeatureUserUsage,
   ResourceState,
 } from "./contract";
@@ -185,6 +186,10 @@ export function BillingProvider({
         store.featureUserUsage.subscribe({ featureId }, listener),
       featureUserUsage: (featureId) =>
         handleOf(store.featureUserUsage.get({ featureId })),
+      subscribeCreditUserUsage: (creditId, listener) =>
+        store.creditUserUsage.subscribe({ creditId }, listener),
+      creditUserUsage: (creditId) =>
+        handleOf(store.creditUserUsage.get({ creditId })),
       loadMoreInvoices: (query) => store.loadMoreInvoices(query),
       invalidateAll: () => store.invalidateAll(),
       actions: {
@@ -236,9 +241,17 @@ function staticSource(data: BillingData): BillingDataSource {
     isPending: true,
     refetch: () => {},
   };
+  const pendingCreditUsage: ResourceHandle<CreditUserUsage> = {
+    data: undefined,
+    error: undefined,
+    isPending: true,
+    refetch: () => {},
+  };
   return {
     subscribeFeatureUserUsage: () => () => {},
     featureUserUsage: () => pendingUserUsage,
+    subscribeCreditUserUsage: () => () => {},
+    creditUserUsage: () => pendingCreditUsage,
     subscribe: () => () => {},
     handle: (name) => {
       const cached = handles.get(name);
