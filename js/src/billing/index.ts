@@ -1,5 +1,12 @@
 export * from "./contract";
 export {
+  CheckoutDraft,
+  type CheckoutDraftOptions,
+  type CheckoutDraftState,
+  type CheckoutTransport,
+} from "./cart";
+export {
+  CHECKOUT_SESSION_HEADER,
   INVOICE_MAX_PAGE_SIZE,
   INVOICE_PAGE_SIZE,
   SchematicBillingClient,

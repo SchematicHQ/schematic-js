@@ -1,6 +1,9 @@
+import type { Catalog, CatalogQuery } from "./catalog";
+import type { Company } from "./company";
 import type { FeatureUsage } from "./featureUsage";
 import type { InvoicePage, InvoiceQuery } from "./invoices";
 import type { PaymentMethod } from "./paymentMethods";
+import type { TaxId } from "./taxId";
 import type { UpcomingInvoice } from "./upcoming";
 
 export interface ResourceState<T> {
@@ -20,6 +23,13 @@ export interface ResourceState<T> {
  * session's data keys it by that and serves only the active one.
  */
 export interface BillingResources {
+  /**
+   * `GET /catalog/view`, or `GET /catalogs/{catalog_id}/view` for a
+   * `catalogId`: the catalog as the company sees it.
+   */
+  catalog: Catalog;
+  /** `GET /company`: the plan and add-ons the company holds, and its subscription. */
+  company: Company;
   /** `GET /company/invoices?limit&offset&include_pending`. */
   invoices: InvoicePage;
   /**
@@ -38,14 +48,22 @@ export interface BillingResources {
    * to nothing — so only `undefined` means not loaded.
    */
   featureUsage: FeatureUsage[];
+  /**
+   * `GET /checkout/tax-id`. Empty is a loaded value — the company has none on
+   * file — so only `undefined` means not loaded.
+   */
+  taxIds: TaxId[];
 }
 
 /** `Record<string, never>` marks a singleton; anything else is keyed. */
 export interface BillingResourceParams {
+  catalog: CatalogQuery;
+  company: Record<string, never>;
   invoices: InvoiceQuery;
   upcomingInvoice: Record<string, never>;
   paymentMethods: Record<string, never>;
   featureUsage: Record<string, never>;
+  taxIds: Record<string, never>;
 }
 
 /** The params of every singleton resource. */
