@@ -28,6 +28,8 @@ import type {
   FinalizeCheckoutResponse,
   GetCheckoutResponse,
   GetCheckoutTaxIDResponse,
+  GetCompanyFeatureUsageResponse,
+  GetCompanyFeatureUserUsageResponse,
   GetCompanyInvoicesResponse,
   GetCompanyPaymentMethodsResponse,
   GetCompanyUpcomingInvoiceResponse,
@@ -78,6 +80,10 @@ import {
   GetCheckoutResponseToJSON,
   GetCheckoutTaxIDResponseFromJSON,
   GetCheckoutTaxIDResponseToJSON,
+  GetCompanyFeatureUsageResponseFromJSON,
+  GetCompanyFeatureUsageResponseToJSON,
+  GetCompanyFeatureUserUsageResponseFromJSON,
+  GetCompanyFeatureUserUsageResponseToJSON,
   GetCompanyInvoicesResponseFromJSON,
   GetCompanyInvoicesResponseToJSON,
   GetCompanyPaymentMethodsResponseFromJSON,
@@ -139,6 +145,12 @@ export interface FinalizeCheckoutOperationRequest {
 
 export interface GetCheckoutRequest {
   checkoutId: string;
+}
+
+export interface GetCompanyFeatureUserUsageRequest {
+  featureId: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface GetCompanyInvoicesRequest {
@@ -668,6 +680,111 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<GetCheckoutTaxIDResponse> {
     const response = await this.getCheckoutTaxIDRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get company feature usage
+   */
+  async getCompanyFeatureUsageRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyFeatureUsageResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/usage`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyFeatureUsageResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get company feature usage
+   */
+  async getCompanyFeatureUsage(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyFeatureUsageResponse> {
+    const response = await this.getCompanyFeatureUsageRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get company feature user usage
+   */
+  async getCompanyFeatureUserUsageRaw(
+    requestParameters: GetCompanyFeatureUserUsageRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyFeatureUserUsageResponse>> {
+    if (requestParameters["featureId"] == null) {
+      throw new runtime.RequiredError(
+        "featureId",
+        'Required parameter "featureId" was null or undefined when calling getCompanyFeatureUserUsage().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
+    }
+
+    if (requestParameters["offset"] != null) {
+      queryParameters["offset"] = requestParameters["offset"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/usage/{feature_id}/users`.replace(
+          `{${"feature_id"}}`,
+          encodeURIComponent(String(requestParameters["featureId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyFeatureUserUsageResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get company feature user usage
+   */
+  async getCompanyFeatureUserUsage(
+    requestParameters: GetCompanyFeatureUserUsageRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyFeatureUserUsageResponse> {
+    const response = await this.getCompanyFeatureUserUsageRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 
