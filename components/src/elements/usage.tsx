@@ -1,5 +1,18 @@
-import { formatCurrency, type TierRange } from "./model";
+import { useMemo, useState } from "react";
+
+import { cx } from "./common";
+import {
+  featureName,
+  formatCurrency,
+  formatNumber,
+  type TierRange,
+} from "./model";
 import type { Translator } from "./strings";
+
+/** Users shown before the per-user list is expanded. */
+const COLLAPSED_USER_COUNT = 3;
+/** Users the expanded list holds; the rest are reported as a count. */
+const EXPANDED_USER_COUNT = 20;
 
 /**
  * Pieces the usage elements share: the pricing-tiers table a tooltip holds,
@@ -95,5 +108,162 @@ export function PriceTiers({
         </span>
       )}
     </span>
+  );
+}
+
+/** A breakdown by user, whichever resource it is of. */
+export interface UserBreakdownData {
+  /** Users in all, across pages; unattributed usage is not one. */
+  count: number;
+  total: number;
+  unattributed: number | null;
+  users: { amount: number; id: string; label: string }[];
+}
+
+/**
+ * Who on the team used a feature or a credit, heaviest first: three, then up
+ * to twenty with the rest as a count. Says nothing while it loads or when
+ * nobody has, and offers a retry on a failure without taking the card down
+ * with it.
+ */
+export function UserBreakdown({
+  breakdown,
+  error,
+  locale,
+  onRetry,
+  t,
+  unit,
+}: {
+  breakdown: UserBreakdownData | undefined;
+  error: Error | undefined;
+  locale: string;
+  onRetry: () => void;
+  t: Translator;
+  /** What every amount is counted in. */
+  unit: {
+    name: string;
+    singularName?: string | null;
+    pluralName?: string | null;
+  };
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const users = useMemo(
+    () => [...(breakdown?.users ?? [])].sort((a, b) => b.amount - a.amount),
+    [breakdown?.users],
+  );
+
+  const amount = (value: number) =>
+    `${formatNumber(value, locale)} ${featureName(unit, value, locale)}`;
+
+  if (breakdown === undefined && error !== undefined) {
+    return (
+      <div className="schematic-usage-by-user" role="alert">
+        <span className="schematic-usage-by-user__title">
+          {t("usageByUserHeader")}
+        </span>
+        <span className="schematic-error">{t("usageByUserError")}</span>
+        <button
+          className="schematic-link-button schematic-status__retry"
+          type="button"
+          onClick={onRetry}
+        >
+          {t("retry")}
+        </button>
+      </div>
+    );
+  }
+
+  const unattributed = breakdown?.unattributed ?? null;
+  if (
+    breakdown === undefined ||
+    (users.length === 0 && unattributed === null)
+  ) {
+    return null;
+  }
+
+  const visible = users.slice(
+    0,
+    expanded ? EXPANDED_USER_COUNT : COLLAPSED_USER_COUNT,
+  );
+  const remaining = Math.max(breakdown.count - visible.length, 0);
+  const hidden = Math.max(
+    Math.min(breakdown.count, EXPANDED_USER_COUNT) -
+      Math.min(users.length, COLLAPSED_USER_COUNT),
+    0,
+  );
+  const expandLabel =
+    breakdown.count > EXPANDED_USER_COUNT
+      ? t("usageByUserShowTop", {
+          count: EXPANDED_USER_COUNT,
+          shown: formatNumber(EXPANDED_USER_COUNT, locale),
+        })
+      : hidden > 0
+        ? t("usageByUserShowAllCount", {
+            count: breakdown.count,
+            shown: formatNumber(breakdown.count, locale),
+          })
+        : t("usageByUserShowAll");
+
+  const user = (key: string, label: string, value: number, muted = false) => (
+    <li className="schematic-usage-by-user__user" key={key}>
+      <span aria-hidden="true" className="schematic-usage-by-user__avatar">
+        {muted ? "?" : (label.trim()[0] ?? "?").toUpperCase()}
+      </span>
+      <span
+        className={cx(
+          "schematic-usage-by-user__name",
+          muted && "schematic-muted",
+        )}
+      >
+        {label}
+      </span>
+      <span className="schematic-muted schematic-usage-by-user__amount">
+        {amount(value)}
+      </span>
+    </li>
+  );
+
+  return (
+    <div className="schematic-usage-by-user">
+      <span className="schematic-usage-by-user__title">
+        {t("usageByUserHeader")}
+      </span>
+      <span className="schematic-muted">
+        {t("usageByUserTotal", { amount: amount(breakdown.total) })}
+      </span>
+      <ul className="schematic-usage-by-user__list">
+        {visible.map((entry) => user(entry.id, entry.label, entry.amount))}
+        {expanded &&
+          unattributed !== null &&
+          user(
+            "unattributed",
+            t("usageByUserUnattributed"),
+            unattributed,
+            true,
+          )}
+      </ul>
+      {expanded && remaining > 0 && (
+        <span className="schematic-muted">
+          {t("usageByUserMore", {
+            count: remaining,
+            shown: formatNumber(remaining, locale),
+          })}
+        </span>
+      )}
+      {(hidden > 0 || unattributed !== null) && (
+        <button
+          aria-expanded={expanded}
+          className="schematic-link-button schematic-usage-by-user__toggle"
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+        >
+          <i
+            aria-hidden="true"
+            className={`schematic-icon schematic-icon--${expanded ? "chevron-up" : "chevron-down"}`}
+          />
+          {expanded ? t("usageByUserShowFewer") : expandLabel}
+        </button>
+      )}
+    </div>
   );
 }

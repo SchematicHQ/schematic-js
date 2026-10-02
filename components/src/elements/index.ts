@@ -45,6 +45,7 @@ export {
   currentTier,
   deriveIncludedFeatures,
   deriveInvoiceList,
+  deriveMeteredFeatures,
   derivePaymentMethods,
   deriveUpcomingInvoice,
   featureName,
@@ -67,6 +68,7 @@ export {
   type BillLine,
   type DeriveIncludedFeaturesOptions,
   type DeriveInvoiceListOptions,
+  type DeriveMeteredFeaturesOptions,
   type DerivePaymentMethodsOptions,
   type DeriveUpcomingInvoiceOptions,
   type DerivedPaymentMethods,
@@ -77,6 +79,12 @@ export {
   type InvoiceFormatters,
   type InvoiceList,
   type InvoiceRow,
+  type MeterTone,
+  type MeteredFeatureRow,
+  type MeteredHeadline,
+  type MeteredLimit,
+  type MeteredMeter,
+  type MeteredPriceDetails,
   type PaymentMethodExpiry,
   type PaymentMethodExpiryWarning,
   type PaymentMethodIcon,
@@ -111,6 +119,7 @@ export {
   type IncludedFeaturesProps,
 } from "./IncludedFeatures";
 export { Invoices, type InvoicesProps } from "./Invoices";
+export { MeteredFeatures, type MeteredFeaturesProps } from "./MeteredFeatures";
 export {
   PaymentMethods,
   type PaymentMethodsCheckoutPrefill,
