@@ -14,6 +14,7 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  Company,
   CreditBalanceEntry,
   CreditUserUsage,
   FeatureUsage,
@@ -141,14 +142,15 @@ interface HeldSeed {
   paymentMethods?: PaymentMethod[];
   featureUsage?: FeatureUsage[];
   creditBalances?: CreditBalanceEntry[];
+  company?: Company;
 }
 
 /**
  * The store for one session: a `KeyedResource` per billing resource, built
  * over a `BillingProviderClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
- * resource. Invoices, the upcoming invoice, the payment methods and feature
- * usage so far; the rest join with their elements.
+ * resource. Invoices, the upcoming invoice, the payment methods, feature
+ * usage, credits and the company so far; the rest join with their elements.
  *
  * `featureUserUsage` and `creditUserUsage` are keyed by feature and credit
  * and are not resource names: a prefetch or fixture holds one value per
@@ -176,6 +178,7 @@ export class BillingStore {
     CreditBalanceEntry[],
     Record<string, never>
   >;
+  readonly company: KeyedResource<Company, Record<string, never>>;
   readonly creditUserUsage: KeyedResource<
     CreditUserUsage,
     CreditUserUsageParams
@@ -238,6 +241,9 @@ export class BillingStore {
       () => this._client.fetchCreditBalances(),
       { readiness },
     );
+    this.company = new KeyedResource(() => this._client.fetchCompany(), {
+      readiness,
+    });
     this.creditUserUsage = new KeyedResource(
       ({ creditId }) =>
         this._client.fetchCreditUserUsage({
@@ -273,12 +279,16 @@ export class BillingStore {
     if (initialData.creditBalances !== undefined) {
       held.creditBalances = initialData.creditBalances;
     }
+    if (initialData.company !== undefined) {
+      held.company = initialData.company;
+    }
     if (
       held.invoices !== undefined ||
       held.upcomingInvoice !== undefined ||
       held.paymentMethods !== undefined ||
       held.featureUsage !== undefined ||
-      held.creditBalances !== undefined
+      held.creditBalances !== undefined ||
+      held.company !== undefined
     ) {
       this._held = held;
       this._settleSeed(claimFrom(options.session) ?? claimOf(this._client));
@@ -365,6 +375,9 @@ export class BillingStore {
       }
       if (held.creditBalances !== undefined) {
         this.creditBalances.seed(SINGLETON, held.creditBalances);
+      }
+      if (held.company !== undefined) {
+        this.company.seed(SINGLETON, held.company);
       }
       this._seedKey = held.key;
       this._seeded = true;
@@ -550,4 +563,5 @@ export const RESOURCE_NAMES: readonly BillingResourceName[] = [
   "paymentMethods",
   "featureUsage",
   "creditBalances",
+  "company",
 ];
