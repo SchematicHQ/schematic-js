@@ -44,6 +44,9 @@ models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionTrialEndSetting.ts
 models/BillingSubscriptionView.ts
 models/BillingTiersMode.ts
+models/CatalogCreditGrantResponseData.ts
+models/CatalogPriceResponseData.ts
+models/CatalogPriceTierResponseData.ts
 models/ChangeSubscriptionRequestBody.ts
 models/ChargeType.ts
 models/CheckoutBundlePurchaseBehavior.ts
@@ -64,6 +67,9 @@ models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts
 models/CompanyDiscountResponseData.ts
 models/CompanyEventPeriodMetricsResponseData.ts
+models/CompanyFeatureUsageListResponseData.ts
+models/CompanyFeatureUsageResponseData.ts
+models/CompanyFeatureUserUsageResponseData.ts
 models/CompanyInvoiceResponseData.ts
 models/CompanyInvoicesResponseData.ts
 models/CompanyOverrideNoteResponseData.ts
@@ -78,6 +84,7 @@ models/CompanyResponseData.ts
 models/CompanySubscriptionResponseData.ts
 models/CompanyTaxIDView.ts
 models/CompanyUpcomingInvoiceResponseData.ts
+models/CompanyUserUsageResponseData.ts
 models/ComparableOperator.ts
 models/CompatiblePlans.ts
 models/ComponentCapabilities.ts
@@ -140,6 +147,9 @@ models/FlagType.ts
 models/GenericPreviewObject.ts
 models/GetCheckoutResponse.ts
 models/GetCheckoutTaxIDResponse.ts
+models/GetCompanyFeatureUsageResponse.ts
+models/GetCompanyFeatureUserUsageParams.ts
+models/GetCompanyFeatureUserUsageResponse.ts
 models/GetCompanyInvoicesParams.ts
 models/GetCompanyInvoicesResponse.ts
 models/GetCompanyPaymentMethodsResponse.ts
