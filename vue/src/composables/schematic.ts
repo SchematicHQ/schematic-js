@@ -329,6 +329,7 @@ export const useSchematicCreditBalance = (
   onMounted(() => {
     // A partial may have landed between setup and mount.
     creditBalance.value = readBalance();
+    isPending.value = client.getIsPending();
 
     unsubscribeBalance = client.addCreditBalanceListener(() => {
       creditBalance.value = readBalance();
@@ -393,6 +394,7 @@ export const useSchematicCreditSpendPolicies = (
 
   onMounted(() => {
     policies.value = client.getCreditSpendPolicies();
+    isPending.value = client.getIsPending();
 
     unsubscribePolicies = client.addCreditSpendPolicyListener(() => {
       policies.value = client.getCreditSpendPolicies();

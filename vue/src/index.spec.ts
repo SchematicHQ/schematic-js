@@ -227,6 +227,34 @@ describe("useSchematicCreditBalance", () => {
     expect(result).toEqual({ balance: 0, isLoading: false });
   });
 
+  it("picks up a pending change that lands between setup and mount", async () => {
+    const client = createFakeClient();
+    const result = { balance: -1, isLoading: true };
+
+    const TestComponent = defineComponent({
+      setup() {
+        const { balance, isLoading } = useSchematicCreditBalance("credit-abc");
+        client.__setPending(false);
+        return () => {
+          result.balance = balance.value;
+          result.isLoading = isLoading.value;
+          return h("div");
+        };
+      },
+    });
+
+    mount(TestComponent, {
+      global: {
+        plugins: [
+          [SchematicPlugin, { client: client as unknown as Schematic }],
+        ],
+      },
+    });
+    await nextTick();
+
+    expect(result).toEqual({ balance: 0, isLoading: false });
+  });
+
   it("reports isLoading while the credit ID is still undefined", () => {
     // An entitlement's creditId is undefined until the check arrives.
     const client = createFakeClient();
@@ -363,6 +391,34 @@ describe("useSchematicCreditSpendPolicies", () => {
     const result = mountPolicies(client);
 
     expect(result).toEqual({ policies: [], isLoading: true });
+  });
+
+  it("picks up a pending change that lands between setup and mount", async () => {
+    const client = createFakeClient();
+    const result = { policies: [] as CreditSpendPolicies, isLoading: false };
+
+    const TestComponent = defineComponent({
+      setup() {
+        const { policies, isLoading } = useSchematicCreditSpendPolicies();
+        client.__setPending(false);
+        return () => {
+          result.policies = policies.value;
+          result.isLoading = isLoading.value;
+          return h("div");
+        };
+      },
+    });
+
+    mount(TestComponent, {
+      global: {
+        plugins: [
+          [SchematicPlugin, { client: client as unknown as Schematic }],
+        ],
+      },
+    });
+    await nextTick();
+
+    expect(result).toEqual({ policies: [], isLoading: false });
   });
 
   it("returns an empty set (not loading) when no policy binds", async () => {
