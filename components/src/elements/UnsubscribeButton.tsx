@@ -94,7 +94,7 @@ export function UnsubscribeButton({
   const per = shortPeriod(view.period, t);
 
   return (
-    <div className={cx("schematic-unsubscribe", className)}>
+    <div className={cx("schematic-card", "schematic-unsubscribe", className)}>
       <button
         className="schematic-cta schematic-unsubscribe__open"
         type="button"
