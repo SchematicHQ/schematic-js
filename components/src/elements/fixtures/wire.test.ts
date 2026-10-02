@@ -64,4 +64,19 @@ describe("wire round trip", () => {
       card_exp_year: 2027,
     });
   });
+
+  test.each(Object.keys(SCENARIOS) as ScenarioName[])(
+    "%s, the feature usage",
+    (name) => {
+      const rows = SCENARIOS[name]().featureUsage ?? [];
+      const wire = rows.map((row) =>
+        billingApi.CompanyFeatureUsageResponseDataToJSON(row),
+      );
+      expect(JSON.stringify(wire)).not.toMatch(/"[a-z]+[A-Z]/);
+      const decoded = JSON.parse(JSON.stringify(wire)).map(
+        billingApi.CompanyFeatureUsageResponseDataFromJSON,
+      );
+      expect(decoded).toEqual(rows);
+    },
+  );
 });

@@ -81,6 +81,37 @@ export type ElementStrings = {
   paymentMethodsSaveError: string;
   paymentMethodsSetDefaultError: string;
   paymentMethodsRemoveError: string;
+
+  includedFeaturesLoading: string;
+  includedFeaturesHeader: string;
+  includedFeaturesError: string;
+  includedFeaturesUnavailable: string;
+  includedFeaturesSeeAll: string;
+  includedFeaturesHideAll: string;
+  includedFeaturesExpires: string;
+  includedFeaturesPerLicense: string;
+
+  usageUnits: string;
+  usagePerUnit: string;
+  usagePerPackage: string;
+  usageTierUpTo: string;
+  usageTierUnlimited: string;
+  usagePerUse: string;
+  usageUnlimited: string;
+  usageUnitPricePerPeriod: string;
+  usagePackagePricePerPeriod: string;
+  usageUsed: string;
+  usageResets: string;
+  usageLimited: string;
+  usageUnlimitedUsed: string;
+  usageHardLimitLabel: string;
+  usageHardLimit: string;
+  usageTieredPricingLabel: string;
+  usageTiersVolume: string;
+  usageTiersGraduated: string;
+  periodMonthShort: string;
+  periodQuarterShort: string;
+  periodYearShort: string;
 };
 
 export type StringKey = keyof ElementStrings;
@@ -193,6 +224,39 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   paymentMethodsSetDefaultError:
     "Error updating payment method. Please try again.",
   paymentMethodsRemoveError: "Error deleting payment method. Please try again.",
+
+  includedFeaturesLoading: "Loading features",
+  includedFeaturesHeader: "Included features",
+  includedFeaturesError: "There was a problem retrieving your features.",
+  includedFeaturesUnavailable: "Features are not available for this account.",
+  includedFeaturesSeeAll: "See all",
+  includedFeaturesHideAll: "Hide all",
+  includedFeaturesExpires: "Expires {{date}}",
+  includedFeaturesPerLicense:
+    "Includes {{amount}} {{creditName}} per {{licenseName}}",
+
+  // Shared by the usage elements.
+  usageUnits: "{{amount}} {{units}}",
+  usagePerUnit: "{{cost}} per {{unit}}",
+  usagePerPackage: "{{cost}} per {{size}} {{units}}",
+  usageTierUpTo: "Up to {{amount}} {{feature}} in this tier",
+  usageTierUnlimited: "Unlimited {{feature}} in this tier",
+  usagePerUse: "{{amount}} {{units}} per use",
+  usageUnlimited: "Unlimited {{item}}",
+  usageUnitPricePerPeriod: "{{cost}}/{{unit}}/{{period}}",
+  usagePackagePricePerPeriod: "{{cost}}/{{size}} {{units}}/{{period}}",
+  usageUsed: "{{amount}} {{units}} used",
+  usageResets: "Resets {{date}}",
+  usageLimited: "{{amount}} of {{allocation}} used",
+  usageUnlimitedUsed: "{{amount}} used",
+  usageHardLimitLabel: "Limit",
+  usageHardLimit: "Up to a limit of {{amount}} {{units}}",
+  usageTieredPricingLabel: "Tiered pricing",
+  usageTiersVolume: "Price by unit based on final tier reached.",
+  usageTiersGraduated: "Tiers apply progressively as quantity increases.",
+  periodMonthShort: "mo",
+  periodQuarterShort: "qtr",
+  periodYearShort: "yr",
 };
 
 /**
