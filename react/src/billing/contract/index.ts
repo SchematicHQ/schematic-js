@@ -5,24 +5,51 @@
  * client method this release does not read, and typing the store by the
  * whole would make each addition there a compile error here, so that taking
  * a newer schematic-js meant adopting whatever it added. A resource joins
- * this list with the hook that reads it. The invoices, upcoming-invoice,
- * payment-methods and feature-usage slices so far; the rest of the contract
- * ships with its elements.
+ * this list with the hook that reads it. The catalog, company, invoices,
+ * upcoming-invoice, payment-methods, feature-usage and tax-ID slices so far;
+ * the rest of the contract ships with its elements.
  */
-import { normalizeInvoiceQuery as normalize } from "@schematichq/schematic-js";
+import {
+  normalizeCatalogQuery as normalizeCatalog,
+  normalizeInvoiceQuery as normalize,
+} from "@schematichq/schematic-js";
 
 import type {
   BillingClient as ContractClient,
   BillingResourceParams as ContractResourceParams,
   BillingResources as ContractResources,
+  CatalogQuery,
   InvoiceQuery,
 } from "@schematichq/schematic-js";
 
 export {
+  CheckoutDraft,
+  CheckoutProblemCode,
+  CheckoutStatus,
+  checkoutProblemsOf,
+  DEFAULT_CATALOG_QUERY,
   DEFAULT_INVOICE_QUERY,
   InvoiceStatus,
   SINGLETON,
   type BillingData,
+  type Catalog,
+  type CatalogAutoTopup,
+  type CatalogCheckoutField,
+  type CatalogCreditBundle,
+  type CatalogEntitlement,
+  type CatalogPlan,
+  type CatalogQuery,
+  type Checkout,
+  type CheckoutDraftState,
+  type CheckoutPriceSnapshot,
+  type CheckoutProblem,
+  type CheckoutResult,
+  type CheckoutSelections,
+  type CheckoutTransport,
+  type CheckoutWrite,
+  type Company,
+  type CompanyPlan,
+  type CompanySubscription,
   type FeatureUsage,
   type FeatureUserUsage,
   type Invoice,
@@ -34,13 +61,21 @@ export {
   type PerLicenseCreditGrant,
   type ResourceState,
   type SetupIntent,
+  type TaxId,
+  type TaxIdInput,
   type UpcomingInvoice,
   type UserUsage,
 } from "@schematichq/schematic-js";
 
 /** The resources this package serves; a key of schematic-js's contract. */
 export type BillingResourceName =
-  "invoices" | "upcomingInvoice" | "paymentMethods" | "featureUsage";
+  | "catalog"
+  | "company"
+  | "invoices"
+  | "upcomingInvoice"
+  | "paymentMethods"
+  | "featureUsage"
+  | "taxIds";
 export type BillingResources = Pick<ContractResources, BillingResourceName>;
 export type BillingResourceParams = Pick<
   ContractResourceParams,
@@ -49,8 +84,8 @@ export type BillingResourceParams = Pick<
 
 /**
  * What `BillingProvider` asks of its client: the session it reads under, the
- * fetch behind each resource above, and the payment-method actions the hooks
- * expose. schematic-js's `SchematicBillingClient`
+ * fetch behind each resource above, and the payment-method and checkout
+ * actions the hooks expose. schematic-js's `SchematicBillingClient`
  * satisfies it, and so does a host's own client that implements only this
  * much. Named apart from schematic-js's `BillingClient`, which is the whole
  * interface; this is the part the hooks here call.
@@ -61,6 +96,12 @@ export type BillingProviderClient = Pick<
   | "sessionKey"
   | "setSession"
   | "onSessionChange"
+  | "fetchCatalog"
+  | "fetchCompany"
+  | "createCheckout"
+  | "getCheckout"
+  | "updateCheckout"
+  | "finalizeCheckout"
   | "fetchInvoices"
   | "fetchUpcomingInvoice"
   | "fetchPaymentMethods"
@@ -69,6 +110,8 @@ export type BillingProviderClient = Pick<
   | "deletePaymentMethod"
   | "fetchFeatureUsage"
   | "fetchFeatureUserUsage"
+  | "fetchTaxIds"
+  | "updateTaxId"
 >;
 
 /**
@@ -81,4 +124,10 @@ export function normalizeInvoiceQuery(query: InvoiceQuery): InvoiceQuery {
   return normalize(query).includePending === true
     ? { includePending: true }
     : {};
+}
+
+/** As `normalizeInvoiceQuery`: only the catalog id keys a catalog. */
+export function normalizeCatalogQuery(query: CatalogQuery): CatalogQuery {
+  const { catalogId } = normalizeCatalog(query);
+  return catalogId === undefined ? {} : { catalogId };
 }

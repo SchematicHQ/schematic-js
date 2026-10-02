@@ -23,16 +23,23 @@ export {
   type ResourceHandle,
 } from "./context";
 export {
+  useCatalog,
+  useCheckout,
+  useCompany,
   useFeatureUsage,
   useFeatureUserUsage,
   useInvalidateBillingData,
   useInvoices,
   usePaymentMethods,
   useSetupIntent,
+  useTaxIds,
   useUpcomingInvoice,
+  type CheckoutHandle,
   type InvoicesHandle,
   type PaymentMethodsHandle,
   type SetupIntentHandle,
+  type TaxIdsHandle,
+  type UseCheckoutOptions,
 } from "./hooks";
 export { BillingProvider, type BillingProviderProps } from "./provider";
 // `Resource`, `KeyedResource`, `BillingStore` and `BillingDataContext` stay

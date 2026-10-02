@@ -19,11 +19,16 @@ import {
   normalizeInvoiceQuery,
   type BillingData,
   type BillingProviderClient,
+  type Catalog,
+  type Checkout,
+  type CheckoutResult,
+  type Company,
   type FeatureUsage,
   type FeatureUserUsage,
   type Invoice,
   type PaymentMethod,
   type SetupIntent,
+  type TaxId,
   type UpcomingInvoice,
 } from "./contract";
 import {
@@ -33,11 +38,15 @@ import {
   useBillingDataSource,
 } from "./context";
 import {
+  useCatalog,
+  useCheckout,
+  useCompany,
   useFeatureUsage,
   useFeatureUserUsage,
   useInvoices,
   usePaymentMethods,
   useSetupIntent,
+  useTaxIds,
   useUpcomingInvoice,
 } from "./hooks";
 import { BillingProvider, SESSION_REPLACED_MESSAGE } from "./provider";
@@ -105,6 +114,29 @@ const userUsage = (featureId: string): FeatureUserUsage =>
     users: [{ userId: `user_${featureId}`, usage: 5 }],
   }) as unknown as FeatureUserUsage;
 
+/** Only the fields the tests read; the rest of the wire shape is the API's. */
+const catalog = (id: string): Catalog =>
+  ({
+    id,
+    name: id,
+    plans: [],
+    addOns: [],
+    creditBundles: [],
+  }) as unknown as Catalog;
+
+const company = (id: string): Company =>
+  ({ id, name: id, addOns: [] }) as unknown as Company;
+
+const draftCheckout = (version: number): Checkout =>
+  ({
+    id: "chk_1",
+    version,
+    status: "open",
+    problems: [],
+  }) as unknown as Checkout;
+
+const charged = { id: "bilsub_1" } as unknown as CheckoutResult;
+
 type SessionListener = (event: SessionEvent) => void;
 
 function fakeClient(
@@ -117,6 +149,21 @@ function fakeClient(
     listeners,
     sessionStatus: "active",
     sessionKey: undefined,
+    fetchCatalog: vi.fn(async (query) =>
+      catalog(query?.catalogId ?? "cat_env"),
+    ),
+    fetchCompany: vi.fn(async () => company("comp_a")),
+    createCheckout: vi.fn(async () => ({ checkout: draftCheckout(1) })),
+    getCheckout: vi.fn(async () => draftCheckout(1)),
+    updateCheckout: vi.fn(async (_id, version) => ({
+      checkout: draftCheckout(version + 1),
+      sessionId: `cs_${version + 1}`,
+    })),
+    finalizeCheckout: vi.fn(async () => charged),
+    fetchTaxIds: vi.fn(async () => []),
+    updateTaxId: vi.fn(async (taxId) => [
+      { country: "DE", id: "txi_1", ...taxId } as TaxId,
+    ]),
     fetchInvoices: vi.fn(async () => rowsOf()),
     fetchUpcomingInvoice: vi.fn(async () => null),
     fetchPaymentMethods: vi.fn(async () => []),
@@ -2278,5 +2325,299 @@ describe("useFeatureUserUsage", () => {
       ),
     });
     expect(result.current).toMatchObject({ data: undefined, isPending: true });
+  });
+});
+
+describe("useCatalog", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_("loads the environment's catalog once for every reader", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(
+      () => [useCatalog(), useCatalog({})] as const,
+      {
+        wrapper: wrap(client),
+      },
+    );
+    expect(result.current[0].isPending).toBe(true);
+    await flush();
+    expect(result.current[0].data?.id).toBe("cat_env");
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(client.fetchCatalog).toHaveBeenCalledTimes(1);
+    expect(client.fetchCatalog).toHaveBeenCalledWith({});
+  });
+
+  it_(
+    "keys each catalog by its id, and an explicit undefined as none",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(
+        () =>
+          [
+            useCatalog({ catalogId: "cat_2" }),
+            useCatalog({ catalogId: undefined }),
+          ] as const,
+        { wrapper: wrap(client) },
+      );
+      await flush();
+      expect(result.current[0].data?.id).toBe("cat_2");
+      expect(result.current[1].data?.id).toBe("cat_env");
+      expect(client.fetchCatalog).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it_(
+    "serves a prefetched catalog under the query it was fetched for",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(() => useCatalog({ catalogId: "cat_2" }), {
+        wrapper: wrap(client, {
+          catalog: catalog("seeded"),
+          params: { catalog: { catalogId: "cat_2" } },
+        }),
+      });
+      expect(result.current.data?.id).toBe("seeded");
+      await flush();
+      expect(client.fetchCatalog).not.toHaveBeenCalled();
+    },
+  );
+
+  it_("serves fixture data", () => {
+    const { result } = renderHook(() => useCatalog(), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <BillingDataProvider data={{ catalog: catalog("fixture") }}>
+          {children}
+        </BillingDataProvider>
+      ),
+    });
+    expect(result.current.data?.id).toBe("fixture");
+  });
+});
+
+describe("useCompany", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_("loads the company once for every reader", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => [useCompany(), useCompany()] as const, {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current[0].data?.id).toBe("comp_a");
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(client.fetchCompany).toHaveBeenCalledTimes(1);
+  });
+
+  it_("serves a prefetched company without a request", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => useCompany(), {
+      wrapper: wrap(client, { company: company("seeded") }),
+    });
+    expect(result.current.data?.id).toBe("seeded");
+    await flush();
+    expect(client.fetchCompany).not.toHaveBeenCalled();
+  });
+});
+
+describe("useCheckout", () => {
+  const wrap = (client: BillingProviderClient, strict = false) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      const tree = (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      );
+      return strict ? <StrictMode>{tree}</StrictMode> : tree;
+    }
+    return Wrapper;
+  };
+
+  it_(
+    "opens the checkout, re-prices it, and finalizes under the last session",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(() => useCheckout(), {
+        wrapper: wrap(client),
+      });
+      expect(result.current.checkout).toBeUndefined();
+
+      await act(() => result.current.setSelections({ planId: "plan_1" }));
+      expect(client.createCheckout).toHaveBeenCalledWith({ planId: "plan_1" });
+      expect(result.current.checkout?.version).toBe(1);
+
+      await act(() => result.current.setSelections({ planId: "plan_2" }));
+      expect(client.updateCheckout).toHaveBeenCalledWith("chk_1", 1, {
+        planId: "plan_2",
+      });
+
+      let charge: CheckoutResult | undefined;
+      await act(async () => {
+        charge = await result.current.finalize();
+      });
+      expect(client.finalizeCheckout).toHaveBeenCalledWith("chk_1", 2, {
+        sessionId: "cs_2",
+      });
+      expect(charge).toBe(charged);
+      expect(result.current.result).toBe(charged);
+    },
+  );
+
+  it_("reloads what the purchase changed once it lands", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(
+      () => [useCheckout(), useCompany()] as const,
+      {
+        wrapper: wrap(client),
+      },
+    );
+    await flush();
+    expect(client.fetchCompany).toHaveBeenCalledTimes(1);
+    await act(() => result.current[0].setSelections({ planId: "plan_1" }));
+    await act(() => result.current[0].finalize());
+    await flush();
+    expect(
+      (client.fetchCompany as ReturnType<typeof vi.fn>).mock.calls.length,
+    ).toBeGreaterThan(1);
+  });
+
+  it_("keeps one checkout under StrictMode", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => useCheckout(), {
+      wrapper: wrap(client, true),
+    });
+    await act(() => result.current.setSelections({ planId: "plan_1" }));
+    await act(() => result.current.setSelections({ planId: "plan_2" }));
+    expect(client.createCheckout).toHaveBeenCalledTimes(1);
+    expect(client.updateCheckout).toHaveBeenCalledTimes(1);
+  });
+
+  it_(
+    "drops the checkout when the session changes to somebody else",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(() => useCheckout(), {
+        wrapper: wrap(client),
+      });
+      await act(() => result.current.setSelections({ planId: "plan_1" }));
+      expect(result.current.checkout).toBeDefined();
+      act(() => client.listeners.forEach((l) => l({ type: "changed" })));
+      expect(result.current.checkout).toBeUndefined();
+    },
+  );
+
+  it_("resumes a checkout by id", async () => {
+    const client = fakeClient({
+      getCheckout: vi.fn(async () => draftCheckout(7)),
+    });
+    const { result } = renderHook(() => useCheckout({ checkoutId: "chk_1" }), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current.checkout?.version).toBe(7);
+    await act(() => result.current.setSelections({ planId: "plan_1" }));
+    expect(client.updateCheckout).toHaveBeenCalledWith("chk_1", 7, {
+      planId: "plan_1",
+    });
+  });
+
+  it_(
+    "writes through a fixture's actions, and refuses on a source that only reads",
+    async () => {
+      const createCheckout = vi.fn(async () => ({
+        checkout: draftCheckout(1),
+      }));
+      const { result } = renderHook(() => useCheckout(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingDataProvider data={{}} actions={{ createCheckout }}>
+            {children}
+          </BillingDataProvider>
+        ),
+      });
+      await act(() => result.current.setSelections({ planId: "plan_1" }));
+      expect(createCheckout).toHaveBeenCalledTimes(1);
+
+      const { result: readOnly } = renderHook(() => useCheckout(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingDataProvider data={{}}>{children}</BillingDataProvider>
+        ),
+      });
+      await act(async () => {
+        await expect(
+          readOnly.current.setSelections({ planId: "plan_1" }),
+        ).rejects.toThrow(BILLING_ACTION_UNAVAILABLE_MESSAGE("createCheckout"));
+      });
+      expect(readOnly.current.error?.message).toBe(
+        BILLING_ACTION_UNAVAILABLE_MESSAGE("createCheckout"),
+      );
+    },
+  );
+});
+
+describe("useTaxIds", () => {
+  const wrap = (client: BillingProviderClient) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_(
+    "loads the tax IDs, and takes what a write answers without a second read",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(() => useTaxIds(), {
+        wrapper: wrap(client),
+      });
+      await flush();
+      expect(result.current).toMatchObject({ data: [], isPending: false });
+
+      await act(() =>
+        result.current.update({ type: "eu_vat", value: "DE123456789" }),
+      );
+      expect(client.updateTaxId).toHaveBeenCalledWith({
+        type: "eu_vat",
+        value: "DE123456789",
+      });
+      expect(result.current.data?.[0]).toMatchObject({ value: "DE123456789" });
+      expect(client.fetchTaxIds).toHaveBeenCalledTimes(1);
+      expect(result.current.isMutating).toBe(false);
+    },
+  );
+
+  it_("records a refused write on mutationError, not on the list", async () => {
+    const client = fakeClient({
+      updateTaxId: vi.fn(async () => {
+        throw new Error("That tax ID is not valid.");
+      }),
+    });
+    const { result } = renderHook(() => useTaxIds(), { wrapper: wrap(client) });
+    await flush();
+    await act(async () => {
+      await expect(
+        result.current.update({ type: "eu_vat", value: "x" }),
+      ).rejects.toThrow("That tax ID is not valid.");
+    });
+    expect(result.current.mutationError?.message).toBe(
+      "That tax ID is not valid.",
+    );
+    expect(result.current.error).toBeUndefined();
   });
 });
