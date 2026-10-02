@@ -1,3 +1,4 @@
+import type { Company } from "./company";
 import type { CreditBalanceEntry } from "./credits";
 import type { FeatureUsage } from "./featureUsage";
 import type { InvoicePage, InvoiceQuery } from "./invoices";
@@ -45,6 +46,8 @@ export interface BillingResources {
    * loaded.
    */
   creditBalances: CreditBalanceEntry[];
+  /** `GET /company`. */
+  company: Company;
 }
 
 /** `Record<string, never>` marks a singleton; anything else is keyed. */
@@ -54,6 +57,7 @@ export interface BillingResourceParams {
   paymentMethods: Record<string, never>;
   featureUsage: Record<string, never>;
   creditBalances: Record<string, never>;
+  company: Record<string, never>;
 }
 
 /** The params of every singleton resource. */
