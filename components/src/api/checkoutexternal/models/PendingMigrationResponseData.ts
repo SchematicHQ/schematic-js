@@ -13,6 +13,21 @@
  */
 
 import { mapValues } from "../runtime";
+import type { MigrationProrationBehavior } from "./MigrationProrationBehavior";
+import {
+  MigrationProrationBehaviorFromJSON,
+  MigrationProrationBehaviorFromJSONTyped,
+  MigrationProrationBehaviorToJSON,
+  MigrationProrationBehaviorToJSONTyped,
+} from "./MigrationProrationBehavior";
+import type { PlanVersionMigrationStrategy } from "./PlanVersionMigrationStrategy";
+import {
+  PlanVersionMigrationStrategyFromJSON,
+  PlanVersionMigrationStrategyFromJSONTyped,
+  PlanVersionMigrationStrategyToJSON,
+  PlanVersionMigrationStrategyToJSONTyped,
+} from "./PlanVersionMigrationStrategy";
+
 /**
  *
  * @export
@@ -20,17 +35,36 @@ import { mapValues } from "../runtime";
  */
 export interface PendingMigrationResponseData {
   /**
+   * When the company moves to the new version: the migration's date for a scheduled migration, or the end of the company's current billing period. Null when no date can be named yet, for example when the company's only subscription is past due or set to cancel; the company then moves at the next opportunity.
+   * @type {Date}
+   * @memberof PendingMigrationResponseData
+   */
+  effectiveAt?: Date | null;
+  /**
    *
    * @type {string}
    * @memberof PendingMigrationResponseData
    */
   migrationId: string;
   /**
-   *
-   * @type {Date}
+   * How the price difference is billed when the company moves. Always none for an end-of-billing-period migration.
+   * @type {MigrationProrationBehavior}
    * @memberof PendingMigrationResponseData
    */
+  prorationBehavior?: MigrationProrationBehavior | null;
+  /**
+   * Deprecated; use effective_at, which carries the same value.
+   * @type {Date}
+   * @memberof PendingMigrationResponseData
+   * @deprecated
+   */
   scheduledFor?: Date | null;
+  /**
+   * Whether the company moves at the end of its billing period (end_of_billing_period) or on a specific date (scheduled). The type is shared with plan version migrations, but only those two values appear here: an immediate migration never pends.
+   * @type {PlanVersionMigrationStrategy}
+   * @memberof PendingMigrationResponseData
+   */
+  strategy: PlanVersionMigrationStrategy;
   /**
    *
    * @type {string}
@@ -65,6 +99,7 @@ export function instanceOfPendingMigrationResponseData(
 ): value is PendingMigrationResponseData {
   if (!("migrationId" in value) || value["migrationId"] === undefined)
     return false;
+  if (!("strategy" in value) || value["strategy"] === undefined) return false;
   if (!("toPlanId" in value) || value["toPlanId"] === undefined) return false;
   if (!("toPlanName" in value) || value["toPlanName"] === undefined)
     return false;
@@ -87,11 +122,18 @@ export function PendingMigrationResponseDataFromJSONTyped(
     return json;
   }
   return {
+    effectiveAt:
+      json["effective_at"] == null ? undefined : new Date(json["effective_at"]),
     migrationId: json["migration_id"],
+    prorationBehavior:
+      json["proration_behavior"] == null
+        ? undefined
+        : MigrationProrationBehaviorFromJSON(json["proration_behavior"]),
     scheduledFor:
       json["scheduled_for"] == null
         ? undefined
         : new Date(json["scheduled_for"]),
+    strategy: PlanVersionMigrationStrategyFromJSON(json["strategy"]),
     toPlanId: json["to_plan_id"],
     toPlanName: json["to_plan_name"],
     toPlanVersionId: json["to_plan_version_id"],
@@ -117,11 +159,19 @@ export function PendingMigrationResponseDataToJSONTyped(
   }
 
   return {
+    effective_at:
+      value["effectiveAt"] == null
+        ? undefined
+        : (value["effectiveAt"] as any).toISOString(),
     migration_id: value["migrationId"],
+    proration_behavior: MigrationProrationBehaviorToJSON(
+      value["prorationBehavior"],
+    ),
     scheduled_for:
       value["scheduledFor"] == null
         ? undefined
         : (value["scheduledFor"] as any).toISOString(),
+    strategy: PlanVersionMigrationStrategyToJSON(value["strategy"]),
     to_plan_id: value["toPlanId"],
     to_plan_name: value["toPlanName"],
     to_plan_version_id: value["toPlanVersionId"],
