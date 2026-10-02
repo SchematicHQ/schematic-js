@@ -8,6 +8,7 @@ import type {
   CheckFlagReturn,
   CheckPlanReturn,
   CreditBalance,
+  CreditSpendPolicies,
 } from "@schematichq/schematic-js";
 
 const mockFetch = vi.fn();
@@ -19,6 +20,7 @@ function createMockClient() {
     flagCheck: new Set(),
     plan: new Set(),
     creditBalance: new Set(),
+    creditSpendPolicy: new Set(),
     isPending: new Set(),
   };
 
@@ -29,6 +31,7 @@ function createMockClient() {
     getCreditBalance: vi
       .fn()
       .mockReturnValue(undefined as CreditBalance | undefined),
+    getCreditSpendPolicies: vi.fn().mockReturnValue([] as CreditSpendPolicies),
     getIsPending: vi.fn().mockReturnValue(true),
     setContext: vi.fn(),
     identify: vi.fn(),
@@ -54,6 +57,12 @@ function createMockClient() {
       (callback: (...args: unknown[]) => void) => {
         listeners.creditBalance.add(callback);
         return () => listeners.creditBalance.delete(callback);
+      },
+    ),
+    addCreditSpendPolicyListener: vi.fn(
+      (callback: (...args: unknown[]) => void) => {
+        listeners.creditSpendPolicy.add(callback);
+        return () => listeners.creditSpendPolicy.delete(callback);
       },
     ),
     addIsPendingListener: vi.fn((callback: (...args: unknown[]) => void) => {
@@ -425,6 +434,85 @@ describe("SchematicService", () => {
         { balance: 0, isLoading: false },
         { balance: 3442, isLoading: false },
       ]);
+    });
+  });
+
+  describe("creditSpendPolicies$", () => {
+    const companyPolicy = {
+      id: "csp_company",
+      creditId: "credit-abc",
+      kind: "per_draw",
+      scope: "company",
+      limit: 500,
+      consumed: 0,
+    };
+    const windowPolicy = {
+      id: "csp_window",
+      creditId: "credit-abc",
+      kind: "window",
+      scope: "user",
+      limit: 100,
+      consumed: 40,
+      resetsAt: new Date("2026-10-02T00:00:00Z"),
+      window: { unit: "day", count: 1 },
+    };
+
+    it("should report isLoading until the first check settles", async () => {
+      const result = await firstValueFrom(service.creditSpendPolicies$());
+      expect(result).toEqual({ policies: [], isLoading: true });
+    });
+
+    it("should emit an empty set (not loading) when no policy binds", async () => {
+      mockClient.getIsPending.mockReturnValue(false);
+      const result = await firstValueFrom(service.creditSpendPolicies$());
+      expect(result).toEqual({ policies: [], isLoading: false });
+    });
+
+    it("should emit each streamed set, so consumption moves and a deleted policy clears", async () => {
+      mockClient.getIsPending.mockReturnValue(false);
+      const first = [companyPolicy, windowPolicy];
+      mockClient.getCreditSpendPolicies.mockReturnValue(first);
+
+      const valuesPromise = firstValueFrom(
+        service.creditSpendPolicies$().pipe(take(3), toArray()),
+      );
+
+      const moved = [companyPolicy, { ...windowPolicy, consumed: 70 }];
+      mockClient.getCreditSpendPolicies.mockReturnValue(moved);
+      mockClient._notify("creditSpendPolicy");
+
+      const cleared: CreditSpendPolicies = [];
+      mockClient.getCreditSpendPolicies.mockReturnValue(cleared);
+      mockClient._notify("creditSpendPolicy");
+
+      const values = await valuesPromise;
+      expect(values).toEqual([
+        { policies: first, isLoading: false },
+        { policies: moved, isLoading: false },
+        { policies: cleared, isLoading: false },
+      ]);
+    });
+
+    it("should not emit again when the same set is re-read", async () => {
+      mockClient.getIsPending.mockReturnValue(false);
+      const policies = [companyPolicy];
+      mockClient.getCreditSpendPolicies.mockReturnValue(policies);
+
+      const values: unknown[] = [];
+      const subscription = service
+        .creditSpendPolicies$()
+        .subscribe((value) => values.push(value));
+
+      mockClient._notify("isPending");
+      subscription.unsubscribe();
+
+      expect(values).toEqual([{ policies, isLoading: false }]);
+    });
+
+    it("should return cached observable", () => {
+      const obs1 = service.creditSpendPolicies$();
+      const obs2 = service.creditSpendPolicies$();
+      expect(obs1).toBe(obs2);
     });
   });
 

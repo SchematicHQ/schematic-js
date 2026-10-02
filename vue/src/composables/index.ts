@@ -2,6 +2,7 @@ export {
   useSchematicClient,
   useSchematicContext,
   useSchematicCreditBalance,
+  useSchematicCreditSpendPolicies,
   useSchematicEntitlement,
   useSchematicEvents,
   useSchematicFlag,
