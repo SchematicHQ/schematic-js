@@ -30,6 +30,8 @@ export interface BillingActions {
   removePaymentMethod(id: string): Promise<void>;
   /** Mints a new setup intent every call; nothing is cached. */
   createSetupIntent(): Promise<SetupIntent>;
+  /** Cancels the subscription at period end and reloads the company. */
+  unsubscribe(): Promise<void>;
 }
 
 /**
@@ -88,6 +90,7 @@ const ACTION_NAMES: readonly (keyof BillingActions)[] = [
   "setDefaultPaymentMethod",
   "removePaymentMethod",
   "createSetupIntent",
+  "unsubscribe",
 ];
 
 /** Every action rejects with `reason(name)`; `given` overrides per action. */
