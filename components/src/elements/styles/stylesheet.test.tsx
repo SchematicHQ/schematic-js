@@ -5,10 +5,30 @@ import {
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
+import { Checkout } from "../Checkout";
 import { Invoices } from "../Invoices";
 import { PaymentMethods } from "../PaymentMethods";
 import { UpcomingBill } from "../UpcomingBill";
-import { cardPaymentMethod, invoice, invoicePage } from "../fixtures/builders";
+import {
+  cardPaymentMethod,
+  daysFromNow,
+  invoice,
+  invoicePage,
+} from "../fixtures/builders";
+import {
+  autoTopup,
+  catalog,
+  catalogAddOn,
+  catalogPlan,
+  checkoutDraft,
+  checkoutField,
+  company,
+  creditBundle,
+  monthly,
+  payInAdvanceEntitlement,
+  priceSnapshot,
+  problem,
+} from "../fixtures/checkout";
 import { SCENARIOS, paymentMethodSet } from "../fixtures/scenarios";
 
 import { withTokenDefaults } from "./tokens";
@@ -24,7 +44,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped; `schematic-badge` is among them, worn only by the plan cards.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|checkout|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -155,6 +175,130 @@ function adding() {
   return root;
 }
 
+/**
+ * A catalog with something in every step: a plan with a top-up and seats, one
+ * the company is over the limit for, one it can trial, an add-on with seats of
+ * its own, a bundle, and a payment step that collects a tax ID, a custom field
+ * and an agreement.
+ */
+function checkoutData(individual = false): BillingData {
+  const seats = payInAdvanceEntitlement();
+  const main = catalogPlan({
+    autoTopups: [autoTopup()],
+    current: true,
+    currencyPrices: [{ currency: "eur", monthlyPrice: monthly(2300, "eur") }],
+    description: "For growing teams",
+    entitlements: [seats],
+    id: "plan_main",
+  });
+  const base = catalog({
+    addOns: [
+      catalogAddOn({
+        current: true,
+        entitlements: [payInAdvanceEntitlement()],
+      }),
+    ],
+    creditBundles: [creditBundle()],
+    plans: [
+      main,
+      catalogPlan({
+        invalidReason: "feature_usage_exceeded",
+        name: "Legacy",
+        valid: false,
+      }),
+      catalogPlan({
+        companyCanTrial: true,
+        id: "plan_trial",
+        isTrialable: true,
+        name: "Trial",
+        trialDays: 14,
+      }),
+    ],
+  });
+  return {
+    catalog: {
+      ...base,
+      checkoutSettings: {
+        ...base.checkoutSettings,
+        bundlePurchaseBehavior: individual ? "individual" : "quantity",
+        collectTaxId: true,
+        customFields: [
+          checkoutField({ helperText: "From your PO", required: true }),
+        ],
+      },
+    },
+    company: company(),
+    featureUsage: [],
+    paymentMethods: [cardPaymentMethod({ isDefault: true })],
+    taxIds: [],
+  };
+}
+
+/** A checkout priced with every total, a blocking problem and an advisory. */
+const checkoutActions = () => ({
+  createCheckout: vi.fn(async () => ({
+    checkout: checkoutDraft({
+      priceSnapshot: priceSnapshot({
+        discountAmount: 200,
+        isScheduledDowngrade: true,
+        optInRequired: true,
+        optInText: "I agree to the terms.",
+        optInTitle: "Terms",
+        proration: -100,
+        scheduledChangeTime: daysFromNow(30),
+        taxAmount: 50,
+        trialEnd: daysFromNow(14),
+      }),
+      problems: [
+        problem(),
+        problem({ blocking: false, code: "plan_unavailable" }),
+      ],
+    }),
+  })),
+});
+
+/** The checkout on `initial`, once it has priced. */
+async function checkoutAt(
+  props: Partial<React.ComponentProps<typeof Checkout>>,
+  data: BillingData = checkoutData(),
+) {
+  const root = tree(
+    <Checkout locale="en-US" open onOpenChange={() => {}} {...props} />,
+    data,
+    undefined,
+    checkoutActions() as never,
+  );
+  await waitFor(() =>
+    expect(root.querySelector(".schematic-checkout__totals")).not.toBeNull(),
+  );
+  return root;
+}
+
+/** Every checkout render that reaches a selector in the sheet. */
+async function everyCheckout() {
+  return [
+    await checkoutAt({ selection: { planId: "plan_main" } }),
+    await checkoutAt({ selection: { planId: "plan_trial" } }),
+    await checkoutAt({ steps: { initial: "autoTopup" } }),
+    await checkoutAt({ steps: { initial: "usage", skip: ["autoTopup"] } }),
+    await checkoutAt({ steps: { initial: "addOns" } }),
+    await checkoutAt({ steps: { initial: "addOnUsage" } }),
+    await checkoutAt({ steps: { initial: "credits" } }),
+    await checkoutAt({ steps: { initial: "credits" } }, checkoutData(true)),
+    await checkoutAt({ steps: { initial: "payment" } }),
+    await checkoutAt({
+      selection: { promoCode: "SAVE10" },
+      steps: { initial: "payment" },
+    }),
+    tree(<Checkout locale="en-US" open onOpenChange={() => {}} />, {
+      ...checkoutData(),
+      catalog: catalog({
+        capabilities: { badgeVisibility: false, checkout: false },
+      }),
+    }),
+  ];
+}
+
 /** Every render that reaches a selector in the sheet. */
 async function everyCard() {
   const noUrl = SCENARIOS.pro();
@@ -170,7 +314,11 @@ async function everyCard() {
     ],
   });
 
+  // First: they wait on a price, and a render made before them would have
+  // moved past the state it was staged in by the time they are done.
+  const checkouts = await everyCheckout();
   return [
+    ...checkouts,
     tree(<PaymentMethods locale="en-US" />, everyExpiry()),
     unfold(tree(<PaymentMethods locale="en-US" />, everyExpiry())),
     tree(

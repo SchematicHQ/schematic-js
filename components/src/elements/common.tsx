@@ -154,7 +154,7 @@ export interface CtaProps {
  * the read can throw, and that counts as production: silence is the safe
  * default for a dev-only log.
  */
-const isDevelopment = ((): boolean => {
+export const isDevelopment = ((): boolean => {
   try {
     return process.env.NODE_ENV !== "production";
   } catch {
