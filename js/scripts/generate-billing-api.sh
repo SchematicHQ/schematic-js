@@ -1,7 +1,7 @@
 #!/bin/bash
 # Regenerates the narrow billing API client (src/billing/api/generated)
 # from the temporary-access-token OpenAPI spec, filtered to the surface this
-# branch ships (/company/invoices, /company/upcoming-invoice,
+# branch ships (/company, /company/invoices, /company/upcoming-invoice,
 # /company/payment-methods and its writes, /company/usage and
 # /company/credits with their per-user breakdowns; hydrate, checkout and the
 # rest join with their elements).
@@ -23,7 +23,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 # which would sidestep the minimumReleaseAge guard in pnpm-workspace.yaml.
 pnpm exec js-yaml "$SPEC_DIR/temporaryaccesstoken.yml" > "$TMP_DIR/spec.json"
 node scripts/filter-openapi.mjs "$TMP_DIR/spec.json" "$TMP_DIR/spec.filtered.json" \
-  /company/invoices /company/upcoming-invoice /company/payment-methods \
+  /company /company/invoices /company/upcoming-invoice /company/payment-methods \
   /company/usage '/company/usage/{feature_id}/users' \
   /company/credits '/company/credits/{credit_id}/users' \
   /checkout/paymentmethod/update '/checkout/paymentmethod/{checkout_id}' \
