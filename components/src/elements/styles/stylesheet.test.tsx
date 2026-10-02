@@ -11,6 +11,7 @@ import { Invoices } from "../Invoices";
 import { MeteredFeatures } from "../MeteredFeatures";
 import { PaymentMethods } from "../PaymentMethods";
 import { PlanManager } from "../PlanManager";
+import { UnsubscribeButton } from "../UnsubscribeButton";
 import { UpcomingBill } from "../UpcomingBill";
 import {
   cardPaymentMethod,
@@ -37,7 +38,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped; `schematic-badge` is among them, worn only by the plan cards.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|included-features|metered-features|credit-usage|plan-manager|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|included-features|metered-features|credit-usage|plan-manager|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -247,6 +248,18 @@ function planManagerOpen() {
   return root;
 }
 
+/** The unsubscribe confirmation, open, with the way back to the plans. */
+function unsubscribeOpen() {
+  const root = tree(
+    <UnsubscribeButton locale="en-US" managePlanUrl="/plans" />,
+    SCENARIOS.planManager(),
+  );
+  fireEvent.click(
+    root.querySelector(".schematic-unsubscribe__open") as Element,
+  );
+  return root;
+}
+
 /** Every render that reaches a selector in the sheet. */
 async function everyCard() {
   const noUrl = SCENARIOS.pro();
@@ -328,6 +341,7 @@ async function everyCard() {
     } as never),
     await creditsOpen(),
     planManagerOpen(),
+    unsubscribeOpen(),
     tree(<PlanManager locale="en-US" />, {}, {
       company: { isPending: true },
     } as never),

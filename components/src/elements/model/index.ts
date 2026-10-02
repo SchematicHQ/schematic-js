@@ -8,3 +8,4 @@ export * from "./includedFeatures";
 export * from "./meteredFeatures";
 export * from "./creditUsage";
 export * from "./planManager";
+export * from "./unsubscribe";
