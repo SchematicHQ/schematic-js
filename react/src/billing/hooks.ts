@@ -237,7 +237,7 @@ export function useCreditBalances(): ResourceHandle<CreditBalanceEntry[]> {
 /**
  * One credit's consumption by user over the span of its live grants: the
  * heaviest users, how many there are in all, and consumption sent without a
- * user. Empty for a plan credit the company holds no grant of.
+ * user. Empty for a credit the company holds no live grant of.
  */
 export function useCreditUserUsage(
   creditId: string,
