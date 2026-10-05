@@ -63,6 +63,12 @@ models/CheckoutStatus.ts
 models/CheckoutTaxIDView.ts
 models/CheckoutUnsubscribeResponse.ts
 models/CompanyBillingProfileResponseData.ts
+models/CompanyCreditBalanceResponseData.ts
+models/CompanyCreditBalancesResponseData.ts
+models/CompanyCreditCompositionResponseData.ts
+models/CompanyCreditGrantResponseData.ts
+models/CompanyCreditUserUsageResponseData.ts
+models/CompanyCreditUserUsageRowResponseData.ts
 models/CompanyCustomerBalance.ts
 models/CompanyDetailResponseData.ts
 models/CompanyDiscountResponseData.ts
@@ -147,6 +153,9 @@ models/FlagType.ts
 models/GenericPreviewObject.ts
 models/GetCheckoutResponse.ts
 models/GetCheckoutTaxIDResponse.ts
+models/GetCompanyCreditBalancesResponse.ts
+models/GetCompanyCreditUserUsageParams.ts
+models/GetCompanyCreditUserUsageResponse.ts
 models/GetCompanyFeatureUsageResponse.ts
 models/GetCompanyFeatureUserUsageParams.ts
 models/GetCompanyFeatureUserUsageResponse.ts
