@@ -27,6 +27,12 @@ const state = vi.hoisted(() => ({
   canCheckout: false,
 }));
 
+// `UsageByUser` fetches on mount; these tests assert on the credit ledger, so
+// resolve empty and let it render nothing.
+const getCreditUsageByUser = vi.hoisted(() =>
+  vi.fn(() => Promise.resolve(undefined)),
+);
+
 vi.mock("../../../hooks", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../../hooks")>();
   return {
@@ -47,9 +53,7 @@ vi.mock("../../../hooks", async (importOriginal) => {
       },
       settings: defaultSettings,
       setCheckoutState: vi.fn(),
-      // `UsageByUser` fetches on mount; these tests assert on the credit
-      // ledger, so resolve empty and let it render nothing.
-      getCreditUsageByUser: vi.fn(() => Promise.resolve(undefined)),
+      getCreditUsageByUser,
       getFeatureUsageByUser: vi.fn(() => Promise.resolve(undefined)),
     }),
     useIsLightBackground: () => true,
@@ -130,6 +134,7 @@ beforeEach(() => {
   state.includedCreditGrants = [];
   state.planId = undefined;
   state.canCheckout = false;
+  getCreditUsageByUser.mockClear();
 });
 
 describe("`MeteredFeatures` grant ledger truncation", () => {
@@ -305,6 +310,27 @@ describe("`MeteredFeatures` plan credits without a balance", () => {
 
     expect(screen.getByText("Tokens")).toBeInTheDocument();
     expect(screen.queryByText("Buy More")).not.toBeInTheDocument();
+  });
+
+  test("does not request usage by user for an empty balance", () => {
+    state.features = [creditBurndownEntitlement];
+
+    render(<MeteredFeatures />);
+
+    expect(screen.getByText("Tokens")).toBeInTheDocument();
+    expect(getCreditUsageByUser).not.toHaveBeenCalled();
+  });
+
+  test("requests usage by user for a credit the company holds", () => {
+    state.features = [creditBurndownEntitlement];
+    state.creditGrants = grantsFor(1);
+
+    render(<MeteredFeatures />);
+
+    expect(getCreditUsageByUser).toHaveBeenCalledWith(
+      CREDIT_ID,
+      expect.any(Number),
+    );
   });
 });
 

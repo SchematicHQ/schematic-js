@@ -834,7 +834,8 @@ export const MeteredFeatures = forwardRef<
                 />
               )}
 
-              {props.usageByUser.isVisible && (
+              {/* The API 404s for a credit with no grants: it has no window to break down. */}
+              {props.usageByUser.isVisible && hasGrants && (
                 <UsageByUser
                   source={{ kind: "credit", id: credit.id }}
                   unit={credit}
