@@ -834,7 +834,8 @@ export const MeteredFeatures = forwardRef<
                 />
               )}
 
-              {props.usageByUser.isVisible && (
+              {/* Like the ledger, an empty balance has no usage to break down. */}
+              {props.usageByUser.isVisible && hasGrants && (
                 <UsageByUser
                   source={{ kind: "credit", id: credit.id }}
                   unit={credit}
