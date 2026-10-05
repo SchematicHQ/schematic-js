@@ -32,7 +32,9 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
     "hsla(0, 0%, 0%, 0.175)",
     "hsla(0, 0%, 100%, 0.2)",
   ),
-  "--schematic-card-padding": "2.8125rem",
+  // 45px from a 750px viewport up; narrower screens give the content the
+  // room instead (about 22px on a 375px phone).
+  "--schematic-card-padding": "min(2.8125rem, 6vw)",
   "--schematic-danger": ld("#d75a5c", "#ff6b6e"),
   "--schematic-font-body": '"Public Sans", system-ui, sans-serif',
   "--schematic-font-heading": '"Manrope", system-ui, sans-serif',
