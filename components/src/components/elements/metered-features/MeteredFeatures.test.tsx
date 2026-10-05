@@ -312,8 +312,6 @@ describe("`MeteredFeatures` plan credits without a balance", () => {
     expect(screen.queryByText("Buy More")).not.toBeInTheDocument();
   });
 
-  // The API holds no window to break an ungranted credit down over, and answers
-  // 404 — which the element would report as an error under a zero balance.
   test("does not request usage by user for an empty balance", () => {
     state.features = [creditBurndownEntitlement];
 

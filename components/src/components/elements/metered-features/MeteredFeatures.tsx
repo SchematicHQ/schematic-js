@@ -834,7 +834,7 @@ export const MeteredFeatures = forwardRef<
                 />
               )}
 
-              {/* Like the ledger, an empty balance has no usage to break down. */}
+              {/* The API 404s for a credit with no grants: it has no window to break down. */}
               {props.usageByUser.isVisible && hasGrants && (
                 <UsageByUser
                   source={{ kind: "credit", id: credit.id }}
