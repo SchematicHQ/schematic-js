@@ -56,6 +56,15 @@ jobs:
       - name: Enable corepack
         run: corepack enable pnpm
 
+      - name: Wait for version on npm
+        run: |
+          # The registry can lag the publish job by a minute or two.
+          for i in $(seq 1 30); do
+            npm view @schematichq/schematic-components@${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }} version && exit 0
+            sleep 10
+          done
+          exit 1
+
       - name: Update example app dependencies
         run: |
           cd schematic-next-example
@@ -114,6 +123,15 @@ jobs:
           node-version: 24.x
       - name: Enable corepack
         run: corepack enable pnpm
+
+      - name: Wait for version on npm
+        run: |
+          # The registry can lag the publish job by a minute or two.
+          for i in $(seq 1 30); do
+            npm view @schematichq/schematic-components@${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }} version && exit 0
+            sleep 10
+          done
+          exit 1
 
       - name: Update example app dependencies
         run: |
