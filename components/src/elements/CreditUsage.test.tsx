@@ -151,11 +151,17 @@ describe("CreditUsage", () => {
     ).toHaveLength(3);
   });
 
-  test("a plan credit held none of is a zero balance with no ledger", () => {
-    renderCredits();
+  test("a plan credit held none of is a zero balance with no ledger or usage by user", () => {
+    // Data waiting for it, so a rendered breakdown would show.
+    renderCredits(
+      undefined,
+      {},
+      { creditUserUsage: { bcr_seat: creditUserUsage() } },
+    );
     const seat = section("Seat credit");
     expect(seat).toHaveTextContent("0 Seat credits remaining");
     expect(within(seat).queryByText("See balance details")).toBeNull();
+    expect(seat.querySelector(".schematic-usage-by-user")).toBeNull();
   });
 
   test("consumption by user lists who spent the credit", () => {

@@ -184,7 +184,8 @@ export function CreditUsage({
               </div>
             </div>
             {credit.ledger.length > 0 && <Ledger credit={credit} t={t} />}
-            {showUsageByUser && (
+            {/* As in the embed: without grants there is no span to break down. */}
+            {showUsageByUser && credit.ledger.length > 0 && (
               <CreditUserBreakdown credit={credit} locale={locale} t={t} />
             )}
           </section>

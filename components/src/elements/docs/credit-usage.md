@@ -16,7 +16,7 @@ The server has done what the embed used to do with the raw ledger:
 
 `deriveCreditUsage` turns the balances into display parts: each credit's remaining amount (to ten fraction digits), its ledger rows by `kind` (`plan`, `bundle`, `autoTopup`, `promotional`) with their dates, and the composition, where the renewal day is an ordinal.
 
-`useCreditUserUsage(creditId)` serves `GET /company/credits/:credit_id/users`: the heaviest 20 users of a credit over the span of its live grants. A plan credit the company holds none of gets an empty breakdown.
+`useCreditUserUsage(creditId)` serves `GET /company/credits/:credit_id/users`: the heaviest 20 users of a credit over the span of its live grants. A credit the company holds no live grant of gets an empty breakdown, so the element doesn't ask for one.
 
 ```tsx
 import {
@@ -56,7 +56,7 @@ function Credits() {
 | `className`, `locale`         | —       | Root class; BCP 47 tag for formatting.                          |
 | `strings`                     | —       | Copy for this card by key; wins over the provider's.            |
 
-"Buy More" shows only on a credit a bundle sells to the company's plan, and only when the host gives it somewhere to go. "See balance details" opens the ledger, three grants at a time. A company with no credits, and a plan that draws on none, renders nothing.
+"Buy More" shows only on a credit a bundle sells to the company's plan, and only when the host gives it somewhere to go. "See balance details" opens the ledger, three grants at a time; a credit with no grants shows neither the ledger nor usage by user. A company with no credits, and a plan that draws on none, renders nothing.
 
 ## Localizing it
 
