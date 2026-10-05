@@ -14,6 +14,8 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  FeatureUsage,
+  FeatureUserUsage,
   Invoice,
   InvoicePage,
   InvoiceQuery,
@@ -100,6 +102,17 @@ export type {
  */
 export { INVOICE_PAGE_SIZE };
 
+/**
+ * Users fetched for one feature's breakdown. The breakdown is read once, not
+ * paged: it lists the heaviest users and says how many more there are.
+ */
+export const FEATURE_USER_USAGE_LIMIT = 20;
+
+/** Which feature's usage by user. */
+export interface FeatureUserUsageParams {
+  featureId: string;
+}
+
 export interface BillingStoreOptions {
   pageSize?: number;
   /**
@@ -119,14 +132,19 @@ interface HeldSeed {
   /** `null` is a company with no next bill, and worth seeding. */
   upcomingInvoice?: UpcomingInvoice | null;
   paymentMethods?: PaymentMethod[];
+  featureUsage?: FeatureUsage[];
 }
 
 /**
  * The store for one session: a `KeyedResource` per billing resource, built
  * over a `BillingProviderClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
- * resource. Invoices, the upcoming invoice and the payment methods so far;
- * the rest join with their elements.
+ * resource. Invoices, the upcoming invoice, the payment methods and feature
+ * usage so far; the rest join with their elements.
+ *
+ * `featureUserUsage` is keyed by feature and is not a resource name: a
+ * prefetch or fixture holds one value per name, which a per-feature list
+ * cannot fit. It resets, clears, resumes and invalidates with the rest.
  *
  * Nothing loads before `connect()`: a store that is not listening for the
  * session would fetch under whatever the client held when a subscriber
@@ -143,6 +161,11 @@ export class BillingStore {
   readonly paymentMethods: KeyedResource<
     PaymentMethod[],
     Record<string, never>
+  >;
+  readonly featureUsage: KeyedResource<FeatureUsage[], Record<string, never>>;
+  readonly featureUserUsage: KeyedResource<
+    FeatureUserUsage,
+    FeatureUserUsageParams
   >;
   private readonly _pageSize: number;
   private _unsubscribe: (() => void) | undefined;
@@ -182,6 +205,18 @@ export class BillingStore {
       () => this._client.fetchPaymentMethods(),
       { readiness },
     );
+    this.featureUsage = new KeyedResource(
+      () => this._client.fetchFeatureUsage(),
+      { readiness },
+    );
+    this.featureUserUsage = new KeyedResource(
+      ({ featureId }) =>
+        this._client.fetchFeatureUserUsage({
+          featureId,
+          limit: FEATURE_USER_USAGE_LIMIT,
+        }),
+      { readiness },
+    );
 
     const held: HeldSeed = { key: initialData.sessionKey };
     if (initialData.invoices !== undefined) {
@@ -203,10 +238,14 @@ export class BillingStore {
     if (initialData.paymentMethods !== undefined) {
       held.paymentMethods = initialData.paymentMethods;
     }
+    if (initialData.featureUsage !== undefined) {
+      held.featureUsage = initialData.featureUsage;
+    }
     if (
       held.invoices !== undefined ||
       held.upcomingInvoice !== undefined ||
-      held.paymentMethods !== undefined
+      held.paymentMethods !== undefined ||
+      held.featureUsage !== undefined
     ) {
       this._held = held;
       this._settleSeed(claimFrom(options.session) ?? claimOf(this._client));
@@ -288,6 +327,9 @@ export class BillingStore {
       if (held.paymentMethods !== undefined) {
         this.paymentMethods.seed(SINGLETON, held.paymentMethods);
       }
+      if (held.featureUsage !== undefined) {
+        this.featureUsage.seed(SINGLETON, held.featureUsage);
+      }
       this._seedKey = held.key;
       this._seeded = true;
     }
@@ -307,6 +349,7 @@ export class BillingStore {
     for (const name of RESOURCE_NAMES) {
       this[name].resetAll();
     }
+    this.featureUserUsage.resetAll();
   }
 
   /** Forgets every resource and leaves them empty; nothing reloads. */
@@ -314,6 +357,7 @@ export class BillingStore {
     for (const name of RESOURCE_NAMES) {
       this[name].clearAll();
     }
+    this.featureUserUsage.clearAll();
   }
 
   /** Loads every resource that is subscribed and has nothing yet. */
@@ -321,6 +365,7 @@ export class BillingStore {
     for (const name of RESOURCE_NAMES) {
       this[name].resumeAll();
     }
+    this.featureUserUsage.resumeAll();
   }
 
   /** Reloads every resource that has been loaded, keeping its current data. */
@@ -328,6 +373,7 @@ export class BillingStore {
     for (const name of RESOURCE_NAMES) {
       this[name].invalidateAll();
     }
+    this.featureUserUsage.invalidateAll();
   }
 
   /**
@@ -462,4 +508,5 @@ export const RESOURCE_NAMES: readonly BillingResourceName[] = [
   "invoices",
   "upcomingInvoice",
   "paymentMethods",
+  "featureUsage",
 ];

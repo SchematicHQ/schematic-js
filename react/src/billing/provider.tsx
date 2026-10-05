@@ -16,6 +16,7 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  FeatureUserUsage,
   ResourceState,
 } from "./contract";
 import type { Resource } from "./store";
@@ -155,27 +156,35 @@ export function BillingProvider({
       Resource<unknown>,
       { snapshot: ResourceState<unknown>; handle: ResourceHandle<unknown> }
     >();
-    const handle = <K extends BillingResourceName>(
-      name: K,
-      params: BillingResourceParams[K],
-    ): ResourceHandle<BillingResources[K]> => {
-      const resource = store.resource(name).get(params) as Resource<unknown>;
+    const handleOf = <T,>(resource: Resource<T>): ResourceHandle<T> => {
       const snapshot = resource.getSnapshot();
-      const cached = handles.get(resource);
+      const cached = handles.get(resource as Resource<unknown>);
       if (cached !== undefined && cached.snapshot === snapshot) {
-        return cached.handle as ResourceHandle<BillingResources[K]>;
+        return cached.handle as ResourceHandle<T>;
       }
-      const next: ResourceHandle<unknown> = {
+      const next: ResourceHandle<T> = {
         ...snapshot,
         refetch: () => void resource.refetch(),
       };
-      handles.set(resource, { snapshot, handle: next });
-      return next as ResourceHandle<BillingResources[K]>;
+      handles.set(resource as Resource<unknown>, {
+        snapshot,
+        handle: next as ResourceHandle<unknown>,
+      });
+      return next;
     };
+    const handle = <K extends BillingResourceName>(
+      name: K,
+      params: BillingResourceParams[K],
+    ): ResourceHandle<BillingResources[K]> =>
+      handleOf(store.resource(name).get(params));
     return {
       subscribe: (name, params, listener) =>
         store.resource(name).subscribe(params, listener),
       handle,
+      subscribeFeatureUserUsage: (featureId, listener) =>
+        store.featureUserUsage.subscribe({ featureId }, listener),
+      featureUserUsage: (featureId) =>
+        handleOf(store.featureUserUsage.get({ featureId })),
       loadMoreInvoices: (query) => store.loadMoreInvoices(query),
       invalidateAll: () => store.invalidateAll(),
       actions: {
@@ -219,7 +228,17 @@ export function BillingProvider({
  */
 function staticSource(data: BillingData): BillingDataSource {
   const handles = new Map<BillingResourceName, ResourceHandle<unknown>>();
+  // A prefetch carries no usage by user, and with no client there is nothing
+  // to fetch it with: every feature's breakdown stays pending.
+  const pendingUserUsage: ResourceHandle<FeatureUserUsage> = {
+    data: undefined,
+    error: undefined,
+    isPending: true,
+    refetch: () => {},
+  };
   return {
+    subscribeFeatureUserUsage: () => () => {},
+    featureUserUsage: () => pendingUserUsage,
     subscribe: () => () => {},
     handle: (name) => {
       const cached = handles.get(name);
