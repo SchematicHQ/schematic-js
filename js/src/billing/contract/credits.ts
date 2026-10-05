@@ -44,7 +44,7 @@ export type CreditComposition = CompanyCreditCompositionResponseData;
  * One credit's consumption by user over the span of its live grants: a page
  * of `users`, heaviest first; `count` users in all; the span's `total`; and
  * `unattributed` consumption from events sent without a user. Empty for a
- * plan credit the company holds no grant of.
+ * credit the company holds no live grant of.
  */
 export type CreditUserUsage = CompanyCreditUserUsageResponseData;
 

@@ -34,13 +34,13 @@ export interface CompanyCreditUserUsageResponseData {
    */
   count: number;
   /**
-   * End of the span; null for a credit the company holds no grant of.
+   * End of the span; the time of the request for a credit the company holds no live grant of.
    * @type {Date}
    * @memberof CompanyCreditUserUsageResponseData
    */
   endTime?: Date | null;
   /**
-   * Start of the span; null for a credit the company holds no grant of.
+   * Start of the span; equal to end_time for a credit the company holds no live grant of.
    * @type {Date}
    * @memberof CompanyCreditUserUsageResponseData
    */
