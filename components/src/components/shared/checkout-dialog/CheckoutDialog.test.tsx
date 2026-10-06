@@ -143,6 +143,7 @@ function buildPreviewResponse(): PreviewCheckoutResponse {
       paymentMethodRequired: true,
       percentOff: 0,
       periodStart: now,
+      problems: [],
       promoCodeApplied: false,
       proration: 0,
       usageViolations: [],
