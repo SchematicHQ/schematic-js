@@ -1,3 +1,4 @@
+export * from "./company";
 export * from "./credits";
 export * from "./data";
 export * from "./featureUsage";
