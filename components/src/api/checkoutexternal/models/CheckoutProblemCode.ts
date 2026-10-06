@@ -17,6 +17,7 @@
  * @export
  */
 export const CheckoutProblemCode = {
+  AddOnRequiresBilledPlan: "add_on_requires_billed_plan",
   BillingCycleAnchorConflictsWithTrial:
     "billing_cycle_anchor_conflicts_with_trial",
   BillingCycleAnchorMustBeFuture: "billing_cycle_anchor_must_be_future",

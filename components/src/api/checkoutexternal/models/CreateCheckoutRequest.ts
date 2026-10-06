@@ -48,6 +48,13 @@ import {
   CurrencyToJSON,
   CurrencyToJSONTyped,
 } from "./Currency";
+import type { CheckoutIntent } from "./CheckoutIntent";
+import {
+  CheckoutIntentFromJSON,
+  CheckoutIntentFromJSONTyped,
+  CheckoutIntentToJSON,
+  CheckoutIntentToJSONTyped,
+} from "./CheckoutIntent";
 import type { UpdateAutoTopupOverrideRequestBody } from "./UpdateAutoTopupOverrideRequestBody";
 import {
   UpdateAutoTopupOverrideRequestBodyFromJSON,
@@ -110,6 +117,12 @@ export interface CreateCheckoutRequest {
    * @memberof CreateCheckoutRequest
    */
   customFieldValues: Array<CheckoutFieldValue>;
+  /**
+   * What the checkout does to the subscription: change it to the cart's contents, or cancel it. Defaults to change.
+   * @type {CheckoutIntent}
+   * @memberof CreateCheckoutRequest
+   */
+  intent?: CheckoutIntent | null;
   /**
    *
    * @type {string}
@@ -217,6 +230,10 @@ export function CreateCheckoutRequestFromJSONTyped(
     customFieldValues: (json["custom_field_values"] as Array<any>).map(
       CheckoutFieldValueFromJSON,
     ),
+    intent:
+      json["intent"] == null
+        ? undefined
+        : CheckoutIntentFromJSON(json["intent"]),
     newPlanId: json["new_plan_id"],
     newPriceId: json["new_price_id"],
     optInAccepted:
@@ -260,6 +277,7 @@ export function CreateCheckoutRequestToJSONTyped(
     custom_field_values: (value["customFieldValues"] as Array<any>).map(
       CheckoutFieldValueToJSON,
     ),
+    intent: CheckoutIntentToJSON(value["intent"]),
     new_plan_id: value["newPlanId"],
     new_price_id: value["newPriceId"],
     opt_in_accepted: value["optInAccepted"],

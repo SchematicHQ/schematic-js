@@ -34,13 +34,13 @@ import {
   CheckoutSelectionsResponseDataToJSON,
   CheckoutSelectionsResponseDataToJSONTyped,
 } from "./CheckoutSelectionsResponseData";
-import type { Problem } from "./Problem";
+import type { CheckoutProblemResponseData } from "./CheckoutProblemResponseData";
 import {
-  ProblemFromJSON,
-  ProblemFromJSONTyped,
-  ProblemToJSON,
-  ProblemToJSONTyped,
-} from "./Problem";
+  CheckoutProblemResponseDataFromJSON,
+  CheckoutProblemResponseDataFromJSONTyped,
+  CheckoutProblemResponseDataToJSON,
+  CheckoutProblemResponseDataToJSONTyped,
+} from "./CheckoutProblemResponseData";
 
 /**
  *
@@ -98,10 +98,10 @@ export interface CheckoutDraftResponseData {
   pricedAt?: Date | null;
   /**
    *
-   * @type {Array<Problem>}
+   * @type {Array<CheckoutProblemResponseData>}
    * @memberof CheckoutDraftResponseData
    */
-  problems: Array<Problem>;
+  problems: Array<CheckoutProblemResponseData>;
   /**
    *
    * @type {CheckoutSelectionsResponseData}
@@ -182,7 +182,9 @@ export function CheckoutDraftResponseDataFromJSONTyped(
         : CheckoutPriceSnapshotFromJSON(json["price_snapshot"]),
     pricedAt:
       json["priced_at"] == null ? undefined : new Date(json["priced_at"]),
-    problems: (json["problems"] as Array<any>).map(ProblemFromJSON),
+    problems: (json["problems"] as Array<any>).map(
+      CheckoutProblemResponseDataFromJSON,
+    ),
     selections: CheckoutSelectionsResponseDataFromJSON(json["selections"]),
     shareToken: json["share_token"] == null ? undefined : json["share_token"],
     status: CheckoutStatusFromJSON(json["status"]),
@@ -223,7 +225,9 @@ export function CheckoutDraftResponseDataToJSONTyped(
       value["pricedAt"] == null
         ? undefined
         : (value["pricedAt"] as any).toISOString(),
-    problems: (value["problems"] as Array<any>).map(ProblemToJSON),
+    problems: (value["problems"] as Array<any>).map(
+      CheckoutProblemResponseDataToJSON,
+    ),
     selections: CheckoutSelectionsResponseDataToJSON(value["selections"]),
     share_token: value["shareToken"],
     status: CheckoutStatusToJSON(value["status"]),

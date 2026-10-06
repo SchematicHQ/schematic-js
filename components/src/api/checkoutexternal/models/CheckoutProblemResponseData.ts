@@ -38,87 +38,89 @@ import {
 /**
  *
  * @export
- * @interface Problem
+ * @interface CheckoutProblemResponseData
  */
-export interface Problem {
+export interface CheckoutProblemResponseData {
   /**
-   *
+   * Whether completing the checkout would be refused while this stands.
    * @type {boolean}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   blocking: boolean;
   /**
    *
    * @type {string}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   bundleId?: string | null;
   /**
    *
    * @type {CheckoutProblemCode}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   code: CheckoutProblemCode;
   /**
-   *
+   * The currency this problem is about, when it is about one.
    * @type {Currency}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   currency?: Currency;
   /**
-   *
+   * Diagnostic detail for operators, including what the billing provider said. Never shown to a customer.
    * @type {string}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   detail?: string;
   /**
    *
    * @type {string}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   featureId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   fieldId?: string | null;
   /**
-   *
+   * What is wrong, in words safe for anyone allowed to read the checkout.
    * @type {string}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   message: string;
   /**
    *
    * @type {string}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   paymentMethodId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   planId?: string | null;
   /**
    *
    * @type {string}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   priceId?: string | null;
   /**
    *
    * @type {CheckoutProblemSource}
-   * @memberof Problem
+   * @memberof CheckoutProblemResponseData
    */
   source: CheckoutProblemSource;
 }
 
 /**
- * Check if a given object implements the Problem interface.
+ * Check if a given object implements the CheckoutProblemResponseData interface.
  */
-export function instanceOfProblem(value: object): value is Problem {
+export function instanceOfCheckoutProblemResponseData(
+  value: object,
+): value is CheckoutProblemResponseData {
   if (!("blocking" in value) || value["blocking"] === undefined) return false;
   if (!("code" in value) || value["code"] === undefined) return false;
   if (!("message" in value) || value["message"] === undefined) return false;
@@ -126,14 +128,16 @@ export function instanceOfProblem(value: object): value is Problem {
   return true;
 }
 
-export function ProblemFromJSON(json: any): Problem {
-  return ProblemFromJSONTyped(json, false);
+export function CheckoutProblemResponseDataFromJSON(
+  json: any,
+): CheckoutProblemResponseData {
+  return CheckoutProblemResponseDataFromJSONTyped(json, false);
 }
 
-export function ProblemFromJSONTyped(
+export function CheckoutProblemResponseDataFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): Problem {
+): CheckoutProblemResponseData {
   if (json == null) {
     return json;
   }
@@ -155,12 +159,14 @@ export function ProblemFromJSONTyped(
   };
 }
 
-export function ProblemToJSON(json: any): Problem {
-  return ProblemToJSONTyped(json, false);
+export function CheckoutProblemResponseDataToJSON(
+  json: any,
+): CheckoutProblemResponseData {
+  return CheckoutProblemResponseDataToJSONTyped(json, false);
 }
 
-export function ProblemToJSONTyped(
-  value?: Problem | null,
+export function CheckoutProblemResponseDataToJSONTyped(
+  value?: CheckoutProblemResponseData | null,
   ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
