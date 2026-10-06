@@ -149,6 +149,12 @@ export interface CompanyOverrideResponseData {
    */
   notes: Array<CompanyOverrideNoteResponseData>;
   /**
+   * Credits per unit of the quantity (per token for inference features), keyed by quantity key. Absent when the entitlement prices requests only.
+   * @type {{ [key: string]: number; }}
+   * @memberof CompanyOverrideResponseData
+   */
+  quantityRates?: { [key: string]: number };
+  /**
    *
    * @type {string}
    * @memberof CompanyOverrideResponseData
@@ -272,6 +278,8 @@ export function CompanyOverrideResponseDataFromJSONTyped(
     notes: (json["notes"] as Array<any>).map(
       CompanyOverrideNoteResponseDataFromJSON,
     ),
+    quantityRates:
+      json["quantity_rates"] == null ? undefined : json["quantity_rates"],
     ruleId: json["rule_id"] == null ? undefined : json["rule_id"],
     ruleIdUsageExceeded:
       json["rule_id_usage_exceeded"] == null
@@ -331,6 +339,7 @@ export function CompanyOverrideResponseDataToJSONTyped(
     notes: (value["notes"] as Array<any>).map(
       CompanyOverrideNoteResponseDataToJSON,
     ),
+    quantity_rates: value["quantityRates"],
     rule_id: value["ruleId"],
     rule_id_usage_exceeded: value["ruleIdUsageExceeded"],
     updated_at: value["updatedAt"].toISOString(),

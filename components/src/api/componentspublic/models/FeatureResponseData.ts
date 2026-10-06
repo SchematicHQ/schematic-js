@@ -20,6 +20,13 @@ import {
   FeatureTypeToJSON,
   FeatureTypeToJSONTyped,
 } from "./FeatureType";
+import type { FeatureEventSource } from "./FeatureEventSource";
+import {
+  FeatureEventSourceFromJSON,
+  FeatureEventSourceFromJSONTyped,
+  FeatureEventSourceToJSON,
+  FeatureEventSourceToJSONTyped,
+} from "./FeatureEventSource";
 import type { FeatureLifecyclePhase } from "./FeatureLifecyclePhase";
 import {
   FeatureLifecyclePhaseFromJSON,
@@ -46,6 +53,12 @@ export interface FeatureResponseData {
    * @memberof FeatureResponseData
    */
   description: string;
+  /**
+   * Which event stream meters this feature. Track features are metered by track events; inference features are metered by inference events whose event label matches event_subtype, and meter through credits only.
+   * @type {FeatureEventSource}
+   * @memberof FeatureResponseData
+   */
+  eventSource: FeatureEventSource;
   /**
    *
    * @type {string}
@@ -135,6 +148,8 @@ export function instanceOfFeatureResponseData(
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
+  if (!("eventSource" in value) || value["eventSource"] === undefined)
+    return false;
   if (!("featureType" in value) || value["featureType"] === undefined)
     return false;
   if (!("icon" in value) || value["icon"] === undefined) return false;
@@ -158,6 +173,7 @@ export function FeatureResponseDataFromJSONTyped(
   return {
     createdAt: new Date(json["created_at"]),
     description: json["description"],
+    eventSource: FeatureEventSourceFromJSON(json["event_source"]),
     eventSubtype:
       json["event_subtype"] == null ? undefined : json["event_subtype"],
     featureType: FeatureTypeFromJSON(json["feature_type"]),
@@ -200,6 +216,7 @@ export function FeatureResponseDataToJSONTyped(
   return {
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
+    event_source: FeatureEventSourceToJSON(value["eventSource"]),
     event_subtype: value["eventSubtype"],
     feature_type: FeatureTypeToJSON(value["featureType"]),
     icon: value["icon"],

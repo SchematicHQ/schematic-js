@@ -240,6 +240,12 @@ export interface PlanEntitlementResponseData {
    */
   priceBehavior?: EntitlementPriceBehavior | null;
   /**
+   * Credits per unit of the quantity (per token for inference features), keyed by quantity key. Absent when the entitlement prices requests only.
+   * @type {{ [key: string]: number; }}
+   * @memberof PlanEntitlementResponseData
+   */
+  quantityRates?: { [key: string]: number };
+  /**
    *
    * @type {string}
    * @memberof PlanEntitlementResponseData
@@ -411,6 +417,8 @@ export function PlanEntitlementResponseDataFromJSONTyped(
       json["price_behavior"] == null
         ? undefined
         : EntitlementPriceBehaviorFromJSON(json["price_behavior"]),
+    quantityRates:
+      json["quantity_rates"] == null ? undefined : json["quantity_rates"],
     ruleId: json["rule_id"],
     ruleIdUsageExceeded:
       json["rule_id_usage_exceeded"] == null
@@ -490,6 +498,7 @@ export function PlanEntitlementResponseDataToJSONTyped(
     plan: PlanResponseDataToJSON(value["plan"]),
     plan_id: value["planId"],
     price_behavior: EntitlementPriceBehaviorToJSON(value["priceBehavior"]),
+    quantity_rates: value["quantityRates"],
     rule_id: value["ruleId"],
     rule_id_usage_exceeded: value["ruleIdUsageExceeded"],
     soft_limit: value["softLimit"],

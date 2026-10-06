@@ -74,6 +74,7 @@ models/EventBodyTrack.ts
 models/EventSummaryResponseData.ts
 models/EventType.ts
 models/FeatureEntitlement.ts
+models/FeatureEventSource.ts
 models/FeatureInPlanResponseData.ts
 models/FeatureLifecyclePhase.ts
 models/FeatureResponseData.ts
