@@ -1099,3 +1099,150 @@ describe("credits", () => {
     expect("creditBalances" in failed).toBe(false);
   });
 });
+
+const wireCompany = {
+  data: {
+    add_ons: [
+      {
+        description: null,
+        id: "plan_seats",
+        included_credit_ids: [],
+        name: "Extra seats",
+        period: "one-time",
+        price: 500,
+      },
+    ],
+    custom_plan_billing: {
+      activation_strategy: "on_payment",
+      due_at: "2026-10-08T00:00:00Z",
+      invoice_url: "https://invoice.example.com/pay",
+      plan_id: "plan_custom",
+      plan_name: "Enterprise",
+    },
+    id: "comp_a",
+    name: "Acme",
+    plan: {
+      description: "For teams",
+      id: "plan_pro",
+      included_credit_ids: ["bcr_ai"],
+      name: "Pro",
+      period: "month",
+      price: 2900,
+    },
+    scheduled_downgrade: null,
+    subscription: {
+      cancel_at: null,
+      cancel_at_period_end: false,
+      currency: "usd",
+      next_bill_at: "2026-11-01T00:00:00Z",
+      period: "month",
+      period_end: "2026-11-01T00:00:00Z",
+      status: "trialing",
+      trial_end: "2026-11-01T00:00:00Z",
+    },
+  },
+};
+
+describe("company", () => {
+  it("decodes the company", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireCompany }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const company = await client.fetchCompany();
+    expect(calls[0].url).toBe("https://api.schematichq.com/company");
+    expect(company.plan).toMatchObject({
+      includedCreditIds: ["bcr_ai"],
+      name: "Pro",
+      price: 2900,
+    });
+    expect(company.addOns[0]).toMatchObject({ period: "one-time" });
+    expect(company.subscription).toMatchObject({
+      cancelAtPeriodEnd: false,
+      status: "trialing",
+    });
+    expect(company.subscription?.trialEnd).toEqual(
+      new Date("2026-11-01T00:00:00Z"),
+    );
+    expect(company.customPlanBilling).toMatchObject({
+      activationStrategy: "on_payment",
+      planName: "Enterprise",
+    });
+    expect(company.customPlanBilling?.dueAt).toEqual(
+      new Date("2026-10-08T00:00:00Z"),
+    );
+    expect(company.scheduledDowngrade).toBeUndefined();
+  });
+
+  it("refuses a company-less body", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ body: { data: null } }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(client.fetchCompany()).rejects.toThrow(
+      "Malformed response from /company",
+    );
+  });
+
+  it("keeps a 404 on the company the failure it is", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client.fetchCompany().catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({ status: 404, path: "/company" });
+  });
+
+  it("seeds the company", async () => {
+    const { fetchImpl } = fakeFetch(
+      byPath({ "/company": { body: wireCompany } }),
+    );
+    const data = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      }),
+      { names: ["company"] },
+    );
+    expect(data.company?.name).toBe("Acme");
+  });
+
+  it("decodes a credit's auto top-up", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      body: {
+        data: {
+          count: 1,
+          balances: [
+            {
+              ...wireCredits.data.balances[1],
+              auto_topup: {
+                amount: 500,
+                enabled: true,
+                self_service: true,
+                threshold_credits: 10,
+              },
+            },
+          ],
+        },
+      },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const [balance] = await client.fetchCreditBalances();
+    expect(balance.autoTopup).toEqual({
+      amount: 500,
+      enabled: true,
+      selfService: true,
+      thresholdCredits: 10,
+    });
+  });
+});
