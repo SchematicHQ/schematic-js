@@ -75,6 +75,7 @@ export * from "./EventBodyTrack";
 export * from "./EventSummaryResponseData";
 export * from "./EventType";
 export * from "./FeatureEntitlement";
+export * from "./FeatureEventSource";
 export * from "./FeatureInPlanResponseData";
 export * from "./FeatureLifecyclePhase";
 export * from "./FeatureResponseData";

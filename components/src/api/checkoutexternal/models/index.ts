@@ -136,6 +136,7 @@ export * from "./EntityType";
 export * from "./EstimatedPlanTotal";
 export * from "./EventSummaryResponseData";
 export * from "./FeatureEntitlement";
+export * from "./FeatureEventSource";
 export * from "./FeatureInPlanResponseData";
 export * from "./FeatureLifecyclePhase";
 export * from "./FeatureResponseData";

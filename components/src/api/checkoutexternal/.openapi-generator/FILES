@@ -138,6 +138,7 @@ models/EntityType.ts
 models/EstimatedPlanTotal.ts
 models/EventSummaryResponseData.ts
 models/FeatureEntitlement.ts
+models/FeatureEventSource.ts
 models/FeatureInPlanResponseData.ts
 models/FeatureLifecyclePhase.ts
 models/FeatureResponseData.ts

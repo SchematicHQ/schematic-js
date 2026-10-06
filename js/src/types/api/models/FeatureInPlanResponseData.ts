@@ -27,6 +27,13 @@ import {
   EntityTraitDefinitionResponseDataToJSON,
   EntityTraitDefinitionResponseDataToJSONTyped,
 } from "./EntityTraitDefinitionResponseData";
+import type { FeatureEventSource } from "./FeatureEventSource";
+import {
+  FeatureEventSourceFromJSON,
+  FeatureEventSourceFromJSONTyped,
+  FeatureEventSourceToJSON,
+  FeatureEventSourceToJSONTyped,
+} from "./FeatureEventSource";
 import type { PreviewObject } from "./PreviewObject";
 import {
   PreviewObjectFromJSON,
@@ -87,6 +94,12 @@ export interface FeatureInPlanResponseData {
    * @memberof FeatureInPlanResponseData
    */
   description: string;
+  /**
+   * Which event stream meters this feature. Track features are metered by track events; inference features are metered by inference events whose event label matches event_subtype, and meter through credits only.
+   * @type {FeatureEventSource}
+   * @memberof FeatureInPlanResponseData
+   */
+  eventSource: FeatureEventSource;
   /**
    *
    * @type {string}
@@ -200,6 +213,8 @@ export function instanceOfFeatureInPlanResponseData(
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
+  if (!("eventSource" in value) || value["eventSource"] === undefined)
+    return false;
   if (!("featureType" in value) || value["featureType"] === undefined)
     return false;
   if (!("flags" in value) || value["flags"] === undefined) return false;
@@ -233,6 +248,7 @@ export function FeatureInPlanResponseDataFromJSONTyped(
           ),
     createdAt: new Date(json["created_at"]),
     description: json["description"],
+    eventSource: FeatureEventSourceFromJSON(json["event_source"]),
     eventSubtype:
       json["event_subtype"] == null ? undefined : json["event_subtype"],
     eventSummary:
@@ -290,6 +306,7 @@ export function FeatureInPlanResponseDataToJSONTyped(
     ),
     created_at: value["createdAt"].toISOString(),
     description: value["description"],
+    event_source: FeatureEventSourceToJSON(value["eventSource"]),
     event_subtype: value["eventSubtype"],
     event_summary: EventSummaryResponseDataToJSON(value["eventSummary"]),
     feature_type: FeatureTypeToJSON(value["featureType"]),
