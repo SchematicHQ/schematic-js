@@ -9,10 +9,6 @@ export const upcomingBillCss = `
   margin-bottom: 0;
 }
 
-.schematic-upcoming-bill .schematic-header__title {
-  margin-bottom: 0;
-}
-
 .schematic-upcoming-bill__amount {
   align-items: flex-start;
   display: flex;
@@ -22,14 +18,14 @@ export const upcomingBillCss = `
 
 .schematic-upcoming-bill__total {
   font-family: var(--schematic-font-heading);
-  font-size: 1.8125rem;
+  font-size: 2.3125rem;
   font-variant-numeric: tabular-nums;
   font-weight: 800;
   line-height: 1;
 }
 
 .schematic-upcoming-bill__estimate {
-  font-weight: 600;
+  color: var(--schematic-muted);
   max-width: 10rem;
   text-align: end;
 }

@@ -352,6 +352,7 @@ function PaymentMethodsDialog({
                 choosing
                   ? "schematic-icon--chevron-up"
                   : "schematic-icon--chevron-down",
+                "schematic-chevron",
                 "schematic-payment-methods__chevron",
               )}
             />
@@ -427,7 +428,7 @@ function PaymentMethodsDialog({
           </span>
           {onRetry !== undefined && (
             <button
-              className="schematic-link-button schematic-payment-methods__error-retry"
+              className="schematic-cta schematic-cta--small schematic-cta--ghost schematic-payment-methods__error-retry"
               disabled={isMutating}
               type="button"
               onClick={onRetry}

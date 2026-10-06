@@ -26,6 +26,7 @@ export const invoicesCss = `
 
 .schematic-invoices__link {
   color: var(--schematic-accent);
+  font-family: var(--schematic-font-link);
   text-decoration: none;
 }
 
@@ -41,10 +42,6 @@ export const invoicesCss = `
   text-align: end;
 }
 
-.schematic-invoices__credit {
-  color: var(--schematic-muted);
-}
-
 .schematic-invoices__actions {
   align-items: center;
   display: flex;
@@ -55,23 +52,12 @@ export const invoicesCss = `
 .schematic-invoices__see-more {
   align-items: center;
   display: inline-flex;
-  gap: 0.375rem;
+  gap: calc(var(--schematic-space) / 2);
 }
 
-/* A chevron drawn from two borders. The vertical nudge lives in the
-   transform with the rotation so one transition carries both. */
+/* Cancels the glyph's side bearing, so the chevron sits flush. */
 .schematic-invoices__chevron {
-  border-block-end: 2px solid var(--schematic-muted);
-  border-inline-end: 2px solid var(--schematic-muted);
-  display: inline-block;
-  height: 0.5em;
-  transform: translateY(-0.125em) rotate(45deg);
-  transition: transform 0.15s;
-  width: 0.5em;
-}
-
-.schematic-invoices__see-more[aria-expanded="true"] .schematic-invoices__chevron {
-  transform: translateY(0.125em) rotate(-135deg);
+  margin-inline-start: -0.333rem;
 }
 
 .schematic-invoices__empty {

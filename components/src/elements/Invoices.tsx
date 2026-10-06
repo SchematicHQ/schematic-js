@@ -174,11 +174,20 @@ export function Invoices({
                   type="button"
                   onClick={() => setExpanded((value) => !value)}
                 >
-                  <span
+                  <i
                     aria-hidden="true"
-                    className="schematic-invoices__chevron"
+                    className={cx(
+                      "schematic-icon",
+                      expanded
+                        ? "schematic-icon--chevron-up"
+                        : "schematic-icon--chevron-down",
+                      "schematic-chevron",
+                      "schematic-invoices__chevron",
+                    )}
                   />
-                  {expanded ? t("invoicesSeeLess") : t("invoicesSeeMore")}
+                  <span className="schematic-link-button__label">
+                    {expanded ? t("invoicesSeeLess") : t("invoicesSeeMore")}
+                  </span>
                 </button>
               )}
               {showingAll && list.hasMore && (

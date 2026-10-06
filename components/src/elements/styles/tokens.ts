@@ -32,13 +32,15 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
     "hsla(0, 0%, 0%, 0.175)",
     "hsla(0, 0%, 100%, 0.2)",
   ),
-  "--schematic-card-padding": "2.8125rem",
+  // 45px from a 750px viewport up; narrower screens give the content the
+  // room instead (about 22px on a 375px phone).
+  "--schematic-card-padding": "min(2.8125rem, 6vw)",
   "--schematic-danger": ld("#d75a5c", "#ff6b6e"),
   "--schematic-font-body": '"Public Sans", system-ui, sans-serif',
   "--schematic-font-heading": '"Manrope", system-ui, sans-serif',
   // Link buttons' face: Edit, Set default, Try again, and the rest.
   "--schematic-font-link": '"Inter", system-ui, sans-serif',
-  "--schematic-line-height": "1.5",
+  "--schematic-line-height": "1.375",
   "--schematic-line-height-heading": "1.2",
   "--schematic-meter-track": ld("#f2f4f7", "#26282d"),
   "--schematic-muted": ld("#8a8a8a", "#a1a1a1"),

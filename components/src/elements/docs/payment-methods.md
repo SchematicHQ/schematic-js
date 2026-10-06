@@ -290,7 +290,7 @@ tell them apart. The dialog renders inside the root while it is open.
         </span>
         <!-- chevron-down while folded -->
         <i
-          class="schematic-icon schematic-icon--chevron-up schematic-payment-methods__chevron"
+          class="schematic-icon schematic-icon--chevron-up schematic-chevron schematic-payment-methods__chevron"
           aria-hidden="true"
         ></i>
       </button>
@@ -380,7 +380,7 @@ tell them apart. The dialog renders inside the root while it is open.
       >
         <span class="schematic-payment-methods__error-message">…</span>
         <button
-          class="schematic-link-button schematic-payment-methods__error-retry"
+          class="schematic-cta schematic-cta--small schematic-cta--ghost schematic-payment-methods__error-retry"
         >
           Try again
         </button>
@@ -412,7 +412,9 @@ tell them apart. The dialog renders inside the root while it is open.
     <span class="schematic-error schematic-status__message">
       Could not load payment methods
     </span>
-    <button class="schematic-link-button schematic-status__retry">
+    <button
+      class="schematic-cta schematic-cta--small schematic-cta--ghost schematic-status__retry"
+    >
       Try again
     </button>
   </div>

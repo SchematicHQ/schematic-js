@@ -77,8 +77,11 @@ describe("Invoices markup contract", () => {
     expect(root.className).toBe("schematic-card schematic-invoices");
     expect(root).toHaveAttribute("data-state", "ready");
     expect(classNames(root)).toEqual([
+      "schematic-chevron",
       "schematic-header",
       "schematic-header__title",
+      "schematic-icon",
+      "schematic-icon--chevron-down",
       "schematic-invoices__actions",
       "schematic-invoices__amount",
       "schematic-invoices__chevron",
@@ -88,6 +91,7 @@ describe("Invoices markup contract", () => {
       "schematic-invoices__row",
       "schematic-invoices__see-more",
       "schematic-link-button",
+      "schematic-link-button__label",
     ]);
     expect(screen.getByTestId("schematic-invoice")).toBeInTheDocument();
     expect(root.querySelector(".schematic-invoices__see-more")).toHaveAttribute(
@@ -167,8 +171,10 @@ describe("Invoices markup contract", () => {
     expect(root.className).toBe("schematic-card schematic-invoices");
     expect(root).toHaveAttribute("data-state", "error");
     expect(classNames(root)).toEqual([
+      "schematic-cta",
+      "schematic-cta--ghost",
+      "schematic-cta--small",
       "schematic-error",
-      "schematic-link-button",
       "schematic-status",
       "schematic-status__message",
       "schematic-status__retry",
@@ -264,8 +270,10 @@ describe("UpcomingBill markup contract", () => {
     expect(root.className).toBe("schematic-card schematic-upcoming-bill");
     expect(root).toHaveAttribute("data-state", "error");
     expect(classNames(root)).toEqual([
+      "schematic-cta",
+      "schematic-cta--ghost",
+      "schematic-cta--small",
       "schematic-error",
-      "schematic-link-button",
       "schematic-status",
       "schematic-status__message",
       "schematic-status__retry",
@@ -376,6 +384,7 @@ describe("PaymentMethods markup contract", () => {
     );
     expect(dialog).toHaveAttribute("open");
     expect(classNames(dialog)).toEqual([
+      "schematic-chevron",
       "schematic-cta",
       "schematic-dialog__body",
       "schematic-dialog__close",
@@ -476,8 +485,10 @@ describe("PaymentMethods markup contract", () => {
     expect(root.className).toBe("schematic-card schematic-payment-methods");
     expect(root).toHaveAttribute("data-state", "error");
     expect(classNames(root)).toEqual([
+      "schematic-cta",
+      "schematic-cta--ghost",
+      "schematic-cta--small",
       "schematic-error",
-      "schematic-link-button",
       "schematic-status",
       "schematic-status__message",
       "schematic-status__retry",
