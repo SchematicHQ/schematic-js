@@ -10,6 +10,7 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  Company,
   CreditBalanceEntry,
   CreditUserUsage,
   FeatureUsage,
@@ -36,8 +37,8 @@ import { hashKey } from "./store";
  * Hooks never fetch during server rendering: without `initialData` they
  * report pending on the server and load on the client. `useInvoices`,
  * `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`,
- * `useFeatureUserUsage`, `useCreditBalances` and `useCreditUserUsage` so
- * far; the other resource hooks ship with their elements.
+ * `useFeatureUserUsage`, `useCreditBalances`, `useCreditUserUsage` and
+ * `useCompany` so far; the other resource hooks ship with their elements.
  */
 
 /** The same object until the hash of `params` changes. */
@@ -224,6 +225,15 @@ export function useFeatureUserUsage(
     [featureId, source],
   );
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
+/**
+ * The company's plan and add-ons at their billed prices, its subscription,
+ * any scheduled downgrade and any pending custom plan billing. `undefined`
+ * means not loaded.
+ */
+export function useCompany(): ResourceHandle<Company> {
+  return useBillingResource("company", SINGLETON);
 }
 
 /**
