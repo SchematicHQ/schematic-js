@@ -17,6 +17,7 @@
  * @export
  */
 export const PlanBillingSource = {
+  Amendment: "amendment",
   CustomPlan: "custom_plan",
   ManagePlan: "manage_plan",
 } as const;

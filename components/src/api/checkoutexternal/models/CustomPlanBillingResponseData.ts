@@ -90,13 +90,19 @@ export interface CustomPlanBillingResponseData {
    */
   id: string;
   /**
+   * The plan version migration this amendment invoice belongs to. Null for a first publish or a plan assigned through Manage Plan.
+   * @type {string}
+   * @memberof CustomPlanBillingResponseData
+   */
+  migrationId?: string | null;
+  /**
    *
    * @type {Date}
    * @memberof CustomPlanBillingResponseData
    */
   paidAt?: Date | null;
   /**
-   * The flow that created this billing record: a custom plan, or a standard plan assigned by invoice through Manage Plan.
+   * The flow that created this billing record: a custom plan's first publish, an amendment of a live custom plan, or a standard plan assigned by invoice through Manage Plan.
    * @type {PlanBillingSource}
    * @memberof CustomPlanBillingResponseData
    */
@@ -207,6 +213,8 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
         ? undefined
         : json["external_invoice_id"],
     id: json["id"],
+    migrationId:
+      json["migration_id"] == null ? undefined : json["migration_id"],
     paidAt: json["paid_at"] == null ? undefined : new Date(json["paid_at"]),
     planBillingSource: PlanBillingSourceFromJSON(json["plan_billing_source"]),
     planId: json["plan_id"],
@@ -257,6 +265,7 @@ export function CustomPlanBillingResponseDataToJSONTyped(
     days_until_due: value["daysUntilDue"],
     external_invoice_id: value["externalInvoiceId"],
     id: value["id"],
+    migration_id: value["migrationId"],
     paid_at:
       value["paidAt"] == null
         ? undefined
