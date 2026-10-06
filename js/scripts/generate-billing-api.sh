@@ -26,7 +26,7 @@ node scripts/filter-openapi.mjs "$TMP_DIR/spec.json" "$TMP_DIR/spec.filtered.jso
   /company /company/invoices /company/upcoming-invoice /company/payment-methods \
   /company/usage '/company/usage/{feature_id}/users' \
   /company/credits '/company/credits/{credit_id}/users' \
-  /checkout/paymentmethod/update '/checkout/paymentmethod/{checkout_id}' \
+  /checkout/paymentmethod/update '/checkout/paymentmethod/{checkout_id}' /checkout/unsubscribe \
   /components/setup-intent
 rm -rf src/billing/api/generated
 pnpm exec openapi-generator-cli generate -c src/billing/api/config.yml \

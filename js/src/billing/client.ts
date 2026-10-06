@@ -83,6 +83,12 @@ export interface BillingClient {
   updatePaymentMethod(externalId: string): Promise<void>;
   /** Removes the method, by Schematic's id (`id`). */
   deletePaymentMethod(id: string): Promise<void>;
+  /**
+   * Cancels the company's subscription at the end of its billing period.
+   * Rejects when it has no single active subscription, or that one is
+   * already set to cancel.
+   */
+  cancelSubscription(): Promise<void>;
   /** Empty when the company is entitled to nothing. */
   fetchFeatureUsage(): Promise<FeatureUsage[]>;
   /** One event-based feature's usage by user over its metric period. */
@@ -236,6 +242,12 @@ export class SchematicBillingClient implements BillingClient {
       .request(`/checkout/paymentmethod/${encodeURIComponent(id)}`, {
         method: "DELETE",
       })
+      .then(() => undefined);
+  }
+
+  cancelSubscription(): Promise<void> {
+    return this.session
+      .request("/checkout/unsubscribe", { method: "DELETE" })
       .then(() => undefined);
   }
 

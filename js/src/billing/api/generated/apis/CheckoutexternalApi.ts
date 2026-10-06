@@ -15,6 +15,7 @@
 import * as runtime from "../runtime";
 import type {
   ApiError,
+  CheckoutUnsubscribeResponse,
   CreateSetupIntentResponse,
   DeletePaymentMethodResponse,
   GetCompanyCreditBalancesResponse,
@@ -31,6 +32,8 @@ import type {
 import {
   ApiErrorFromJSON,
   ApiErrorToJSON,
+  CheckoutUnsubscribeResponseFromJSON,
+  CheckoutUnsubscribeResponseToJSON,
   CreateSetupIntentResponseFromJSON,
   CreateSetupIntentResponseToJSON,
   DeletePaymentMethodResponseFromJSON,
@@ -87,6 +90,47 @@ export interface UpdatePaymentMethodRequest {
  *
  */
 export class CheckoutexternalApi extends runtime.BaseAPI {
+  /**
+   * Checkout unsubscribe
+   */
+  async checkoutUnsubscribeRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<CheckoutUnsubscribeResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/checkout/unsubscribe`,
+        method: "DELETE",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      CheckoutUnsubscribeResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Checkout unsubscribe
+   */
+  async checkoutUnsubscribe(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<CheckoutUnsubscribeResponse> {
+    const response = await this.checkoutUnsubscribeRaw(initOverrides);
+    return await response.value();
+  }
+
   /**
    * Create setup intent
    */
