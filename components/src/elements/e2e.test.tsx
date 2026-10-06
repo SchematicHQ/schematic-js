@@ -13,6 +13,7 @@ import { Invoices } from "./Invoices";
 import { MeteredFeatures } from "./MeteredFeatures";
 import { PaymentMethods } from "./PaymentMethods";
 import { PlanManager } from "./PlanManager";
+import { UnsubscribeButton } from "./UnsubscribeButton";
 import { UpcomingBill } from "./UpcomingBill";
 import { billingResources } from "./common";
 import { featureUserUsage, invoice } from "./fixtures/builders";
@@ -40,7 +41,7 @@ function serve(
   const methods = scenario.paymentMethods ?? [];
   const features = scenario.featureUsage ?? [];
   const balances = scenario.creditBalances ?? [];
-  const held = scenario.company;
+  let held = scenario.company;
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
     const perUser = /^\/company\/usage\/([^/]+)\/users$/.exec(url.pathname);
@@ -52,6 +53,25 @@ function serve(
           ),
           params: { limit: Number(url.searchParams.get("limit")) },
         }),
+        { status: 200 },
+      );
+    }
+    if (
+      flagged &&
+      held?.subscription &&
+      url.pathname === "/checkout/unsubscribe"
+    ) {
+      // Stripe answers with the cancellation date; the next read carries it.
+      held = {
+        ...held,
+        subscription: {
+          ...held.subscription,
+          cancelAt: new Date("2026-10-01T00:00:00Z"),
+          cancelAtPeriodEnd: true,
+        },
+      };
+      return new Response(
+        JSON.stringify({ data: { deleted: true }, params: {} }),
         { status: 200 },
       );
     }
@@ -196,6 +216,21 @@ describe("end to end", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Add-ons" })).toHaveTextContent(
       "Extra seats",
+    );
+  });
+
+  test("UnsubscribeButton cancels, and goes once the company says so", async () => {
+    renderStack(
+      <UnsubscribeButton locale="en-US" />,
+      "tok",
+      SCENARIOS.planManager(),
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "Unsubscribe" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Cancel subscription" }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Unsubscribe" })).toBeNull(),
     );
   });
 

@@ -170,6 +170,22 @@ export type ElementStrings = {
   planManagerSeeAll: string;
   planManagerHideAll: string;
 
+  unsubscribeButton: string;
+  unsubscribeTitle: string;
+  unsubscribeAccessUntil: string;
+  unsubscribeNotReady: string;
+  unsubscribeManagePlan: string;
+  unsubscribePlan: string;
+  unsubscribeAddOns: string;
+  unsubscribeMonthlyTotal: string;
+  unsubscribeQuarterlyTotal: string;
+  unsubscribeYearlyTotal: string;
+  unsubscribeConfirm: string;
+  unsubscribeFailed: string;
+  unsubscribeClose: string;
+  unsubscribeError: string;
+  unsubscribeUnavailable: string;
+
   usageByUserHeader: string;
   usageByUserTotal: string;
   usageByUserError: string;
@@ -424,6 +440,24 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   planManagerEdit: "Edit",
   planManagerSeeAll: "See all ({{total}})",
   planManagerHideAll: "Hide all",
+
+  unsubscribeButton: "Unsubscribe",
+  unsubscribeTitle: "Cancel subscription",
+  unsubscribeAccessUntil:
+    "You will retain access to your plan until the end of the billing period, on {{date}}",
+  unsubscribeNotReady: "Not ready to cancel?",
+  unsubscribeManagePlan: "Manage plan",
+  unsubscribePlan: "Plan",
+  unsubscribeAddOns: "Add-ons",
+  unsubscribeMonthlyTotal: "Monthly total:",
+  unsubscribeQuarterlyTotal: "Quarterly total:",
+  unsubscribeYearlyTotal: "Yearly total:",
+  unsubscribeConfirm: "Cancel subscription",
+  unsubscribeFailed: "Unsubscribe failed",
+  unsubscribeClose: "Close",
+  unsubscribeError: "There was a problem retrieving your subscription.",
+  unsubscribeUnavailable:
+    "Your subscription is not available for this account.",
 
   usageByUserHeader: "Usage by user",
   usageByUserTotal: "{{amount}} used by your team this period",
