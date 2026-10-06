@@ -44,6 +44,7 @@ import {
   useInvoices,
   usePaymentMethods,
   useSetupIntent,
+  useUnsubscribe,
   useUpcomingInvoice,
 } from "./hooks";
 import { BillingProvider, SESSION_REPLACED_MESSAGE } from "./provider";
@@ -151,6 +152,7 @@ function fakeClient(
     fetchCreditBalances: vi.fn(async () => []),
     fetchCreditUserUsage: vi.fn(async ({ creditId }) => creditUsage(creditId)),
     fetchCompany: vi.fn(async () => company("Acme")),
+    cancelSubscription: vi.fn(async () => {}),
     onSessionChange: (listener) => {
       listeners.push(listener);
       return () => {};
@@ -2432,5 +2434,62 @@ describe("useCompany", () => {
     });
     await flush();
     expect(client.fetchCompany).not.toHaveBeenCalled();
+  });
+});
+
+describe("useUnsubscribe", () => {
+  it_("rejects outside any provider", async () => {
+    const { result } = renderHook(() => useUnsubscribe());
+    await expect(result.current.unsubscribe()).rejects.toThrow(
+      MISSING_BILLING_SOURCE_MESSAGE,
+    );
+  });
+
+  it_("cancels, then reloads the company it changed", async () => {
+    const client = fakeClient({
+      fetchCompany: vi
+        .fn<() => Promise<Company>>()
+        .mockResolvedValueOnce(company("Before"))
+        .mockResolvedValueOnce(company("After")),
+    });
+    const { result } = renderHook(
+      () => ({ company: useCompany(), handle: useUnsubscribe() }),
+      {
+        wrapper: ({ children }) => (
+          <BillingProvider billingClient={client}>{children}</BillingProvider>
+        ),
+      },
+    );
+    await flush();
+    expect(result.current.company.data?.name).toBe("Before");
+    await act(async () => {
+      await result.current.handle.unsubscribe();
+    });
+    expect(client.cancelSubscription).toHaveBeenCalledOnce();
+    expect(result.current.company.data?.name).toBe("After");
+    // Nothing read the credits, so nothing reloads them.
+    expect(client.fetchCreditBalances).not.toHaveBeenCalled();
+  });
+
+  it_("records the failure and rejects with it", async () => {
+    const client = fakeClient({
+      cancelSubscription: vi.fn(async () => {
+        throw new Error("company has no active subscriptions");
+      }),
+    });
+    const { result } = renderHook(() => useUnsubscribe(), {
+      wrapper: ({ children }) => (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      ),
+    });
+    await act(async () => {
+      await expect(result.current.unsubscribe()).rejects.toThrow(
+        "company has no active subscriptions",
+      );
+    });
+    expect(result.current).toMatchObject({
+      isMutating: false,
+      mutationError: { message: "company has no active subscriptions" },
+    });
   });
 });
