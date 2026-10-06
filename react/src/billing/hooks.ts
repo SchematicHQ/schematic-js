@@ -269,3 +269,46 @@ export function useCreditUserUsage(
 export function useInvalidateBillingData(): () => void {
   return useBillingDataSource().invalidateAll;
 }
+
+export interface UnsubscribeHandle {
+  /**
+   * Cancels the subscription at period end; the company, its next bill and
+   * its credits reload once it lands. Rejects with the failure and records
+   * it on `mutationError`.
+   */
+  unsubscribe: () => Promise<void>;
+  /** The cancellation is in flight. */
+  isMutating: boolean;
+  /** The last attempt's failure; cleared when the next one starts. */
+  mutationError: Error | undefined;
+}
+
+/**
+ * Cancels the company's subscription. Subscribes to no resource: read the
+ * subscription's state from `useCompany`, which reloads once this lands.
+ */
+export function useUnsubscribe(): UnsubscribeHandle {
+  const source = useBillingDataSource();
+  const [mutation, setMutation] = useState<Mutation>(IDLE);
+
+  const unsubscribe = useCallback(async () => {
+    setMutation((m) => ({ inflight: m.inflight + 1, error: undefined }));
+    try {
+      await actionsOf(source).unsubscribe();
+    } catch (cause: unknown) {
+      const error = cause instanceof Error ? cause : new Error(String(cause));
+      setMutation((m) => ({ inflight: m.inflight - 1, error }));
+      throw error;
+    }
+    setMutation((m) => ({ inflight: m.inflight - 1, error: undefined }));
+  }, [source]);
+
+  return useMemo(
+    () => ({
+      unsubscribe,
+      isMutating: mutation.inflight > 0,
+      mutationError: mutation.error,
+    }),
+    [mutation, unsubscribe],
+  );
+}
