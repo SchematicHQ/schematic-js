@@ -87,11 +87,11 @@ const mockAddOn = {
   ],
   monthlyPrice: {
     price: 999,
-    currency: "USD",
+    currency: "usd",
   },
   yearlyPrice: {
     price: 9999,
-    currency: "USD",
+    currency: "usd",
   },
 } satisfies DeepPartial<SelectedPlan> as SelectedPlan;
 

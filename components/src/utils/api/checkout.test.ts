@@ -84,7 +84,7 @@ function makeBillingPriceView(
   return {
     billingScheme: "per_unit" as any,
     createdAt: new Date(),
-    currency: "USD",
+    currency: "usd",
     id: "price-view-1",
     interval: "month" as any,
     intervalCount: 1,
@@ -405,7 +405,7 @@ describe("buildAddOnRequestBody", () => {
         monthlyPrice: {
           id: "mp-1",
           price: 500,
-          currency: "USD",
+          currency: "usd",
           externalPriceId: "ext-1",
           interval: "month" as any,
           intervalCount: 1,
@@ -431,7 +431,7 @@ describe("buildAddOnRequestBody", () => {
         monthlyPrice: {
           id: "mp-1",
           price: 500,
-          currency: "USD",
+          currency: "usd",
           externalPriceId: "ext-1",
           interval: "month" as any,
           intervalCount: 1,
@@ -457,7 +457,7 @@ describe("buildAddOnRequestBody", () => {
         monthlyPrice: {
           id: "mp-1",
           price: 500,
-          currency: "USD",
+          currency: "usd",
           externalPriceId: "ext-1",
           interval: "month" as any,
           intervalCount: 1,
@@ -483,7 +483,7 @@ describe("buildAddOnRequestBody", () => {
         yearlyPrice: {
           id: "yp-1",
           price: 5000,
-          currency: "USD",
+          currency: "usd",
           externalPriceId: "ext-1",
           interval: "year" as any,
           intervalCount: 1,
@@ -509,7 +509,7 @@ describe("buildAddOnRequestBody", () => {
         monthlyPrice: {
           id: "mp-1",
           price: 0,
-          currency: "USD",
+          currency: "usd",
           externalPriceId: "ext-1",
           interval: "month" as any,
           intervalCount: 1,
@@ -554,7 +554,7 @@ describe("buildAddOnRequestBody", () => {
         oneTimePrice: {
           id: "otp-1",
           price: 2000,
-          currency: "USD",
+          currency: "usd",
           externalPriceId: "ext-1",
           interval: "month" as any,
           intervalCount: 1,
@@ -589,7 +589,7 @@ describe("buildAddOnRequestBody", () => {
         monthlyPrice: {
           id: "mp-1",
           price: 500,
-          currency: "USD",
+          currency: "usd",
           externalPriceId: "ext-1",
           interval: "month" as any,
           intervalCount: 1,
@@ -603,7 +603,7 @@ describe("buildAddOnRequestBody", () => {
         monthlyPrice: {
           id: "mp-2",
           price: 300,
-          currency: "USD",
+          currency: "usd",
           externalPriceId: "ext-2",
           interval: "month" as any,
           intervalCount: 1,
@@ -617,7 +617,7 @@ describe("buildAddOnRequestBody", () => {
         monthlyPrice: {
           id: "mp-3",
           price: 700,
-          currency: "USD",
+          currency: "usd",
           externalPriceId: "ext-3",
           interval: "month" as any,
           intervalCount: 1,

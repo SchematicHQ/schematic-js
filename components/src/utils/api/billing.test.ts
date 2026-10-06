@@ -118,7 +118,7 @@ describe("getEntitlementPrice", () => {
       const entitlement = makeOverageEntitlement({
         currencyPrices: [
           {
-            currency: "USD",
+            currency: "usd",
             monthlyPrice: makeTieredOveragePriceView(9),
           } as EntitlementCurrencyPricesResponseData,
         ],
@@ -164,7 +164,7 @@ describe("getEntitlementPrice", () => {
       const entitlement = makeOverageEntitlement({
         currencyPrices: [
           {
-            currency: "EUR",
+            currency: "eur",
             monthlyPrice: makeTieredOveragePriceView(8),
           } as EntitlementCurrencyPricesResponseData,
         ],
@@ -188,7 +188,7 @@ describe("getEntitlementPrice", () => {
       const entitlement = makeOverageEntitlement({
         currencyPrices: [
           {
-            currency: "USD",
+            currency: "usd",
             quarterlyPrice: makeTieredOveragePriceView(27),
           } as EntitlementCurrencyPricesResponseData,
         ],
@@ -201,7 +201,7 @@ describe("getEntitlementPrice", () => {
 });
 
 describe("getDefaultPlanPeriod", () => {
-  const usd = { currency: "USD", price: 1000 } as BillingPriceResponseData;
+  const usd = { currency: "usd", price: 1000 } as BillingPriceResponseData;
 
   it("prefers monthly when any plan is priced monthly", () => {
     expect(
