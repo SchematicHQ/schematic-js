@@ -20,6 +20,13 @@ import {
   PreviewSubscriptionFinanceResponseDataToJSON,
   PreviewSubscriptionFinanceResponseDataToJSONTyped,
 } from "./PreviewSubscriptionFinanceResponseData";
+import type { CheckoutProblemResponseData } from "./CheckoutProblemResponseData";
+import {
+  CheckoutProblemResponseDataFromJSON,
+  CheckoutProblemResponseDataFromJSONTyped,
+  CheckoutProblemResponseDataToJSON,
+  CheckoutProblemResponseDataToJSONTyped,
+} from "./CheckoutProblemResponseData";
 import type { FeatureUsageResponseData } from "./FeatureUsageResponseData";
 import {
   FeatureUsageResponseDataFromJSON,
@@ -107,6 +114,12 @@ export interface PreviewSubscriptionChangeResponseData {
   periodStart: Date;
   /**
    *
+   * @type {Array<CheckoutProblemResponseData>}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  problems: Array<CheckoutProblemResponseData>;
+  /**
+   *
    * @type {boolean}
    * @memberof PreviewSubscriptionChangeResponseData
    * @deprecated
@@ -166,6 +179,7 @@ export function instanceOfPreviewSubscriptionChangeResponseData(
     return false;
   if (!("periodStart" in value) || value["periodStart"] === undefined)
     return false;
+  if (!("problems" in value) || value["problems"] === undefined) return false;
   if (!("promoCodeApplied" in value) || value["promoCodeApplied"] === undefined)
     return false;
   if (!("proration" in value) || value["proration"] === undefined) return false;
@@ -202,6 +216,9 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
     paymentMethodRequired: json["payment_method_required"],
     percentOff: json["percent_off"],
     periodStart: new Date(json["period_start"]),
+    problems: (json["problems"] as Array<any>).map(
+      CheckoutProblemResponseDataFromJSON,
+    ),
     promoCodeApplied: json["promo_code_applied"],
     proration: json["proration"],
     scheduledChangeTime:
@@ -242,6 +259,9 @@ export function PreviewSubscriptionChangeResponseDataToJSONTyped(
     payment_method_required: value["paymentMethodRequired"],
     percent_off: value["percentOff"],
     period_start: value["periodStart"].toISOString(),
+    problems: (value["problems"] as Array<any>).map(
+      CheckoutProblemResponseDataToJSON,
+    ),
     promo_code_applied: value["promoCodeApplied"],
     proration: value["proration"],
     scheduled_change_time:

@@ -53,8 +53,10 @@ models/CheckoutBundlePurchaseBehavior.ts
 models/CheckoutDraftResponseData.ts
 models/CheckoutFieldValue.ts
 models/CheckoutFieldWithValue.ts
+models/CheckoutIntent.ts
 models/CheckoutPriceSnapshot.ts
 models/CheckoutProblemCode.ts
+models/CheckoutProblemResponseData.ts
 models/CheckoutProblemSource.ts
 models/CheckoutResponse.ts
 models/CheckoutResponseData.ts
@@ -208,7 +210,6 @@ models/PreviewSubscriptionChangeResponseData.ts
 models/PreviewSubscriptionDiscountResponseData.ts
 models/PreviewSubscriptionFinanceResponseData.ts
 models/PreviewSubscriptionUpcomingInvoiceLineItems.ts
-models/Problem.ts
 models/ProrationBehavior.ts
 models/Rule.ts
 models/RuleConditionDetailResponseData.ts
