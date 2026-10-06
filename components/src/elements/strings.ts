@@ -104,6 +104,27 @@ export type ElementStrings = {
   meteredFeaturesAdditional: string;
   meteredFeaturesTier: string;
 
+  creditUsageLoading: string;
+  creditUsageHeader: string;
+  creditUsageError: string;
+  creditUsageUnavailable: string;
+  creditUsageRemaining: string;
+  creditUsageBuyMore: string;
+  creditUsageSeeDetails: string;
+  creditUsageHideDetails: string;
+  creditUsageSeeAll: string;
+  creditUsageHideAll: string;
+  creditUsageGrantPlan: string;
+  creditUsageGrantBundle: string;
+  creditUsageGrantAutoTopup: string;
+  creditUsageGrantPromotional: string;
+  creditUsageResets: string;
+  creditUsageExpires: string;
+  creditUsageComposition: string;
+  creditUsagePerLicense: string;
+  creditUsageCompanyGrant: string;
+  creditUsageRenewsOn: string;
+
   usageByUserHeader: string;
   usageByUserTotal: string;
   usageByUserError: string;
@@ -270,6 +291,30 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   meteredFeaturesAddMore: "Add More",
   meteredFeaturesAdditional: "Additional",
   meteredFeaturesTier: "Tier",
+
+  creditUsageLoading: "Loading credits",
+  creditUsageHeader: "Credits",
+  creditUsageError: "There was a problem retrieving your credits.",
+  creditUsageUnavailable: "Credits are not available for this account.",
+  creditUsageRemaining: "{{amount}} {{units}} remaining",
+  creditUsageBuyMore: "Buy More",
+  creditUsageSeeDetails: "See balance details",
+  creditUsageHideDetails: "Hide balance details",
+  creditUsageSeeAll: "See all ({{total}})",
+  creditUsageHideAll: "Hide all",
+  creditUsageGrantPlan: "{{amount}} {{item}} included in plan",
+  creditUsageGrantBundle: "{{amount}} {{item}} bundle purchased {{createdAt}}",
+  creditUsageGrantAutoTopup:
+    "{{amount}} {{item}} auto-topup purchased {{createdAt}}",
+  creditUsageGrantPromotional:
+    "{{amount}} promotional {{item}} granted {{createdAt}}",
+  creditUsageResets: "Resets {{date}}",
+  creditUsageExpires: "Expires {{date}}",
+  creditUsageComposition:
+    "Your plan includes {{total}} {{creditName}}/{{period}}{{composition}}.",
+  creditUsagePerLicense: "{{quantity}} {{licenseName}} × {{perUnit}}",
+  creditUsageCompanyGrant: "{{amount}} company grant",
+  creditUsageRenewsOn: "Renews on the {{day}}.",
 
   usageByUserHeader: "Usage by user",
   usageByUserTotal: "{{amount}} used by your team this period",

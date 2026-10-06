@@ -12,6 +12,8 @@ import type {
 import {
   bankPaymentMethod,
   cardPaymentMethod,
+  creditBalance,
+  creditGrant,
   daysFromNow,
   discount,
   featureUsage,
@@ -260,6 +262,56 @@ export function featureUsageScenario(): BillingData {
   return { featureUsage: featureUsageSet() };
 }
 
+/**
+ * AI credits with a plan grant, a bundle and a per-license composition; a
+ * credit bought with four grants, so its ledger truncates; and a plan
+ * credit held none of, as a zero balance with nothing to buy.
+ */
+export function creditsScenario(): BillingData {
+  return {
+    creditBalances: [
+      creditBalance({
+        creditId: "bcr_ai",
+        composition: {
+          fixedQuantity: 100,
+          licenseId: "lic_seats",
+          licenseName: "Seat",
+          licenseQuantity: 12,
+          perLicenseAmount: 10,
+          period: "month",
+          renewsAt: new Date("2026-09-01T12:00:00.000Z"),
+          total: 220,
+        },
+      }),
+      creditBalance({
+        creditId: "bcr_export",
+        creditIcon: undefined,
+        creditName: "Export credit",
+        grants: [
+          creditGrant({ grantReason: "free", quantity: 5 }),
+          creditGrant({ grantReason: "billing_credit_auto_topup" }),
+          creditGrant({ grantReason: "purchased" }),
+          creditGrant(),
+        ],
+        purchasable: false,
+      }),
+      creditBalance({
+        creditId: "bcr_seat",
+        creditDescription: "",
+        creditIcon: undefined,
+        creditName: "Seat credit",
+        expiresAt: undefined,
+        grants: [],
+        purchasable: false,
+        remaining: 0,
+        resetsAt: undefined,
+        total: 0,
+        used: 0,
+      }),
+    ],
+  };
+}
+
 /** Entitled to nothing: a loaded, empty list. */
 export function featureUsageEmpty(): BillingData {
   return { featureUsage: [] };
@@ -274,6 +326,7 @@ export const SCENARIOS = {
   paymentMethodsNoDefault,
   featureUsage: featureUsageScenario,
   featureUsageEmpty,
+  credits: creditsScenario,
 } satisfies Record<string, () => BillingData>;
 
 export type ScenarioName = keyof typeof SCENARIOS;

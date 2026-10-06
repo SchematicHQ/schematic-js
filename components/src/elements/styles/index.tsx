@@ -1,5 +1,6 @@
 import React from "react";
 
+import { creditUsageCss } from "./credit-usage";
 import { dialogCss } from "./dialog";
 import { iconsCss } from "./icons";
 import { includedFeaturesCss } from "./included-features";
@@ -567,6 +568,7 @@ ${paymentMethodsCss}
 ${tooltipCss}
 ${includedFeaturesCss}
 ${meteredFeaturesCss}
+${creditUsageCss}
 `;
 
 /**
