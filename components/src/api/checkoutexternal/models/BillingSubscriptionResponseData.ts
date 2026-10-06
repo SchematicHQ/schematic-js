@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingSubscriptionTrialEndSetting } from "./BillingSubscriptionTrialEndSetting";
 import {
   BillingSubscriptionTrialEndSettingFromJSON,
@@ -66,10 +73,10 @@ export interface BillingSubscriptionResponseData {
   createdAt: Date;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof BillingSubscriptionResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {string}
@@ -212,7 +219,7 @@ export function BillingSubscriptionResponseDataFromJSONTyped(
     cancelAtPeriodEnd: json["cancel_at_period_end"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
     createdAt: new Date(json["created_at"]),
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     customerExternalId: json["customer_external_id"],
     defaultPaymentMethodId:
       json["default_payment_method_id"] == null
@@ -257,7 +264,7 @@ export function BillingSubscriptionResponseDataToJSONTyped(
     cancel_at_period_end: value["cancelAtPeriodEnd"],
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     customer_external_id: value["customerExternalId"],
     default_payment_method_id: value["defaultPaymentMethodId"],
     expired_at:

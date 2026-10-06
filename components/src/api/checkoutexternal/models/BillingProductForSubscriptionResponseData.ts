@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingProductPriceTierResponseData } from "./BillingProductPriceTierResponseData";
 import {
   BillingProductPriceTierResponseDataFromJSON,
@@ -68,10 +75,10 @@ export interface BillingProductForSubscriptionResponseData {
   createdAt: Date;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof BillingProductForSubscriptionResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {string}
@@ -240,7 +247,7 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
     billingThreshold:
       json["billing_threshold"] == null ? undefined : json["billing_threshold"],
     createdAt: new Date(json["created_at"]),
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     environmentId: json["environment_id"],
     externalId: json["external_id"],
     id: json["id"],
@@ -288,7 +295,7 @@ export function BillingProductForSubscriptionResponseDataToJSONTyped(
     billing_scheme: BillingPriceSchemeToJSON(value["billingScheme"]),
     billing_threshold: value["billingThreshold"],
     created_at: value["createdAt"].toISOString(),
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     environment_id: value["environmentId"],
     external_id: value["externalId"],
     id: value["id"],

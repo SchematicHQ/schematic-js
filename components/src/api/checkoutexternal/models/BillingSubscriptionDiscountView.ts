@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
+
 /**
  *
  * @export
@@ -39,10 +47,10 @@ export interface BillingSubscriptionDiscountView {
   couponName: string;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof BillingSubscriptionDiscountView
    */
-  currency?: string | null;
+  currency?: Currency | null;
   /**
    *
    * @type {string}
@@ -147,7 +155,8 @@ export function BillingSubscriptionDiscountViewFromJSONTyped(
     amountOff: json["amount_off"] == null ? undefined : json["amount_off"],
     couponId: json["coupon_id"],
     couponName: json["coupon_name"],
-    currency: json["currency"] == null ? undefined : json["currency"],
+    currency:
+      json["currency"] == null ? undefined : CurrencyFromJSON(json["currency"]),
     customerFacingCode:
       json["customer_facing_code"] == null
         ? undefined
@@ -188,7 +197,7 @@ export function BillingSubscriptionDiscountViewToJSONTyped(
     amount_off: value["amountOff"],
     coupon_id: value["couponId"],
     coupon_name: value["couponName"],
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     customer_facing_code: value["customerFacingCode"],
     discount_external_id: value["discountExternalId"],
     duration: value["duration"],

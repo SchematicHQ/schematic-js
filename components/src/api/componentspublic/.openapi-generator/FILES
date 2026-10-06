@@ -59,6 +59,7 @@ models/CreditCurrencyPriceResponseData.ts
 models/CreditSpendPolicy.ts
 models/CreditSpendPolicyScope.ts
 models/CreditSpendWindow.ts
+models/Currency.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
 models/DatastreamCompanyPlan.ts

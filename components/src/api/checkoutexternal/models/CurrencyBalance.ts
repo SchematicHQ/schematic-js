@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
+
 /**
  *
  * @export
@@ -27,10 +35,10 @@ export interface CurrencyBalance {
   balance: number;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CurrencyBalance
    */
-  currency: string;
+  currency: Currency;
 }
 
 /**
@@ -57,7 +65,7 @@ export function CurrencyBalanceFromJSONTyped(
   }
   return {
     balance: json["balance"],
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
   };
 }
 
@@ -75,6 +83,6 @@ export function CurrencyBalanceToJSONTyped(
 
   return {
     balance: value["balance"],
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
   };
 }

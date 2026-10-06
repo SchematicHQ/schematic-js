@@ -20,6 +20,13 @@ import {
   BillingProductPriceIntervalToJSON,
   BillingProductPriceIntervalToJSONTyped,
 } from "./BillingProductPriceInterval";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingProductPriceTierResponseData } from "./BillingProductPriceTierResponseData";
 import {
   BillingProductPriceTierResponseDataFromJSON,
@@ -76,10 +83,10 @@ export interface BillingPriceView {
   createdAt: Date;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof BillingPriceView
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {string}
@@ -259,7 +266,7 @@ export function BillingPriceViewFromJSONTyped(
   return {
     billingScheme: BillingPriceSchemeFromJSON(json["billing_scheme"]),
     createdAt: new Date(json["created_at"]),
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     id: json["id"],
     interval: BillingProductPriceIntervalFromJSON(json["interval"]),
     intervalCount: json["interval_count"],
@@ -309,7 +316,7 @@ export function BillingPriceViewToJSONTyped(
   return {
     billing_scheme: BillingPriceSchemeToJSON(value["billingScheme"]),
     created_at: value["createdAt"].toISOString(),
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     id: value["id"],
     interval: BillingProductPriceIntervalToJSON(value["interval"]),
     interval_count: value["intervalCount"],

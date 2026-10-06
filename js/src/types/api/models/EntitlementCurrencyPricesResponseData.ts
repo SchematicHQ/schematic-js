@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -29,10 +36,10 @@ import {
 export interface EntitlementCurrencyPricesResponseData {
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof EntitlementCurrencyPricesResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {BillingPriceView}
@@ -77,7 +84,7 @@ export function EntitlementCurrencyPricesResponseDataFromJSONTyped(
     return json;
   }
   return {
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     monthlyPrice:
       json["monthly_price"] == null
         ? undefined
@@ -108,7 +115,7 @@ export function EntitlementCurrencyPricesResponseDataToJSONTyped(
   }
 
   return {
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     monthly_price: BillingPriceViewToJSON(value["monthlyPrice"]),
     quarterly_price: BillingPriceViewToJSON(value["quarterlyPrice"]),
     yearly_price: BillingPriceViewToJSON(value["yearlyPrice"]),

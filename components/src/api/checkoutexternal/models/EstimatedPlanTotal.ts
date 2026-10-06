@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { PlanPriceCadence } from "./PlanPriceCadence";
 import {
   PlanPriceCadenceFromJSON,
@@ -35,10 +42,10 @@ export interface EstimatedPlanTotal {
   amount: number;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof EstimatedPlanTotal
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {PlanPriceCadence}
@@ -72,7 +79,7 @@ export function EstimatedPlanTotalFromJSONTyped(
   }
   return {
     amount: json["amount"],
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     period: PlanPriceCadenceFromJSON(json["period"]),
   };
 }
@@ -91,7 +98,7 @@ export function EstimatedPlanTotalToJSONTyped(
 
   return {
     amount: value["amount"],
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     period: PlanPriceCadenceToJSON(value["period"]),
   };
 }

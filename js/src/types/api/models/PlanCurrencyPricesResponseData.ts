@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
@@ -29,10 +36,10 @@ import {
 export interface PlanCurrencyPricesResponseData {
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof PlanCurrencyPricesResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {BillingPriceResponseData}
@@ -83,7 +90,7 @@ export function PlanCurrencyPricesResponseDataFromJSONTyped(
     return json;
   }
   return {
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     monthlyPrice:
       json["monthly_price"] == null
         ? undefined
@@ -118,7 +125,7 @@ export function PlanCurrencyPricesResponseDataToJSONTyped(
   }
 
   return {
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     monthly_price: BillingPriceResponseDataToJSON(value["monthlyPrice"]),
     one_time_price: BillingPriceResponseDataToJSON(value["oneTimePrice"]),
     quarterly_price: BillingPriceResponseDataToJSON(value["quarterlyPrice"]),

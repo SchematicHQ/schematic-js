@@ -20,6 +20,13 @@ import {
   BillingProductPriceIntervalToJSON,
   BillingProductPriceIntervalToJSONTyped,
 } from "./BillingProductPriceInterval";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
@@ -43,10 +50,10 @@ import {
 export interface BillingPriceResponseData {
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof BillingPriceResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {string}
@@ -137,7 +144,7 @@ export function BillingPriceResponseDataFromJSONTyped(
     return json;
   }
   return {
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     externalPriceId: json["external_price_id"],
     id: json["id"],
     interval: BillingProductPriceIntervalFromJSON(json["interval"]),
@@ -166,7 +173,7 @@ export function BillingPriceResponseDataToJSONTyped(
   }
 
   return {
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     external_price_id: value["externalPriceId"],
     id: value["id"],
     interval: BillingProductPriceIntervalToJSON(value["interval"]),

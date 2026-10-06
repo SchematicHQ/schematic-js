@@ -40,7 +40,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         monthlyUsageBasedPrice: {
           price: 100,
           priceId: "price1",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
       },
     ];
@@ -62,7 +62,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         monthlyUsageBasedPrice: {
           price: 100,
           priceId: "price1",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
       },
     ];
@@ -90,7 +90,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         yearlyUsageBasedPrice: {
           price: 1000,
           priceId: "price2",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
       },
     ];
@@ -118,7 +118,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         yearlyUsageBasedPrice: {
           price: 1000,
           priceId: "price1",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
       },
     ];
@@ -140,7 +140,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         monthlyUsageBasedPrice: {
           price: 100,
           priceId: "price1",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
       },
     ];
@@ -167,7 +167,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         monthlyUsageBasedPrice: {
           price: 100,
           priceId: "price1",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
       },
     ];
@@ -189,7 +189,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         monthlyUsageBasedPrice: {
           price: 100,
           priceId: "price1",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
       },
     ];
@@ -211,7 +211,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         monthlyUsageBasedPrice: {
           price: 100,
           priceId: "price1",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
       },
       {
@@ -235,7 +235,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         yearlyUsageBasedPrice: {
           price: 2000,
           priceId: "price3",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
       },
     ];
@@ -262,7 +262,7 @@ describe("calculateCurrentUsageBasedEntitlements", () => {
         monthlyUsageBasedPrice: {
           price: 100,
           priceId: "price1",
-          currency: "USD",
+          currency: "usd",
         } as BillingPriceView,
         feature: {
           id: "feat1",

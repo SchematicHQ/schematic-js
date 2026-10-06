@@ -113,6 +113,7 @@ export * from "./CreditGrantDetail";
 export * from "./CreditTransferView";
 export * from "./CreditUsageAggregation";
 export * from "./CreditUserUsageResponseData";
+export * from "./Currency";
 export * from "./CurrencyBalance";
 export * from "./CustomPlanActivationStrategy";
 export * from "./CustomPlanBillingResponseData";

@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { CompanyDiscountResponseData } from "./CompanyDiscountResponseData";
 import {
   CompanyDiscountResponseDataFromJSON,
@@ -35,10 +42,10 @@ export interface CompanyUpcomingInvoiceResponseData {
   amountDue: number;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CompanyUpcomingInvoiceResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    * How much of the company's existing balance this invoice consumes.
    * @type {number}
@@ -109,7 +116,7 @@ export function CompanyUpcomingInvoiceResponseDataFromJSONTyped(
   }
   return {
     amountDue: json["amount_due"],
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     customerBalanceApplied: json["customer_balance_applied"],
     customerBalanceRemaining: json["customer_balance_remaining"],
     discounts: (json["discounts"] as Array<any>).map(
@@ -136,7 +143,7 @@ export function CompanyUpcomingInvoiceResponseDataToJSONTyped(
 
   return {
     amount_due: value["amountDue"],
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     customer_balance_applied: value["customerBalanceApplied"],
     customer_balance_remaining: value["customerBalanceRemaining"],
     discounts: (value["discounts"] as Array<any>).map(

@@ -20,6 +20,13 @@ import {
   PreviewSubscriptionUpcomingInvoiceLineItemsToJSON,
   PreviewSubscriptionUpcomingInvoiceLineItemsToJSONTyped,
 } from "./PreviewSubscriptionUpcomingInvoiceLineItems";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { PreviewSubscriptionDiscountResponseData } from "./PreviewSubscriptionDiscountResponseData";
 import {
   PreviewSubscriptionDiscountResponseDataFromJSON,
@@ -42,10 +49,10 @@ export interface PreviewSubscriptionFinanceResponseData {
   amountOff: number;
   /**
    * ISO 4217 currency every amount in this block is denominated in.
-   * @type {string}
+   * @type {Currency}
    * @memberof PreviewSubscriptionFinanceResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {number}
@@ -199,7 +206,7 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
   }
   return {
     amountOff: json["amount_off"],
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     discountAmount: json["discount_amount"],
     discounts: (json["discounts"] as Array<any>).map(
       PreviewSubscriptionDiscountResponseDataFromJSON,
@@ -244,7 +251,7 @@ export function PreviewSubscriptionFinanceResponseDataToJSONTyped(
 
   return {
     amount_off: value["amountOff"],
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     discount_amount: value["discountAmount"],
     discounts: (value["discounts"] as Array<any>).map(
       PreviewSubscriptionDiscountResponseDataToJSON,
