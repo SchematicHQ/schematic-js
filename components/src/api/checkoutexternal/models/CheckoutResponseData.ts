@@ -20,6 +20,13 @@ import {
   ScheduledDowngradeConfigBehaviorToJSON,
   ScheduledDowngradeConfigBehaviorToJSONTyped,
 } from "./ScheduledDowngradeConfigBehavior";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingSubscriptionTrialEndSetting } from "./BillingSubscriptionTrialEndSetting";
 import {
   BillingSubscriptionTrialEndSettingFromJSON,
@@ -85,10 +92,10 @@ export interface CheckoutResponseData {
   createdAt: Date;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CheckoutResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {string}
@@ -249,7 +256,7 @@ export function CheckoutResponseDataFromJSONTyped(
         ? undefined
         : json["confirm_payment_intent_id"],
     createdAt: new Date(json["created_at"]),
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     customerExternalId: json["customer_external_id"],
     defaultPaymentMethodId:
       json["default_payment_method_id"] == null
@@ -305,7 +312,7 @@ export function CheckoutResponseDataToJSONTyped(
       value["confirmPaymentIntentClientSecret"],
     confirm_payment_intent_id: value["confirmPaymentIntentId"],
     created_at: value["createdAt"].toISOString(),
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     customer_external_id: value["customerExternalId"],
     default_payment_method_id: value["defaultPaymentMethodId"],
     expired_at:

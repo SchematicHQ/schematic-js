@@ -41,6 +41,13 @@ import {
   UpdateAddOnRequestBodyToJSON,
   UpdateAddOnRequestBodyToJSONTyped,
 } from "./UpdateAddOnRequestBody";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { UpdateAutoTopupOverrideRequestBody } from "./UpdateAutoTopupOverrideRequestBody";
 import {
   UpdateAutoTopupOverrideRequestBodyFromJSON,
@@ -87,10 +94,10 @@ export interface UpdateCheckoutRequest {
   creditBundles: Array<UpdateCreditBundleRequestBody>;
   /**
    * ISO 4217 currency this cart is being built in. Prices are still selected by id; this records the intent, and a cart that prices in another currency is reported as a problem.
-   * @type {string}
+   * @type {Currency}
    * @memberof UpdateCheckoutRequest
    */
-  currency?: string | null;
+  currency?: Currency | null;
   /**
    *
    * @type {Array<CheckoutFieldValue>}
@@ -205,7 +212,8 @@ export function UpdateCheckoutRequestFromJSONTyped(
     creditBundles: (json["credit_bundles"] as Array<any>).map(
       UpdateCreditBundleRequestBodyFromJSON,
     ),
-    currency: json["currency"] == null ? undefined : json["currency"],
+    currency:
+      json["currency"] == null ? undefined : CurrencyFromJSON(json["currency"]),
     customFieldValues: (json["custom_field_values"] as Array<any>).map(
       CheckoutFieldValueFromJSON,
     ),
@@ -248,7 +256,7 @@ export function UpdateCheckoutRequestToJSONTyped(
     credit_bundles: (value["creditBundles"] as Array<any>).map(
       UpdateCreditBundleRequestBodyToJSON,
     ),
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     custom_field_values: (value["customFieldValues"] as Array<any>).map(
       CheckoutFieldValueToJSON,
     ),

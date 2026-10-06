@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
+
 /**
  *
  * @export
@@ -21,10 +29,10 @@ import { mapValues } from "../runtime";
 export interface ScheduledDowngradeResponseData {
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof ScheduledDowngradeResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {Date}
@@ -127,7 +135,7 @@ export function ScheduledDowngradeResponseDataFromJSONTyped(
     return json;
   }
   return {
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     effectiveAfter: new Date(json["effective_after"]),
     fromPlanId: json["from_plan_id"],
     fromPlanName: json["from_plan_name"],
@@ -160,7 +168,7 @@ export function ScheduledDowngradeResponseDataToJSONTyped(
   }
 
   return {
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     effective_after: value["effectiveAfter"].toISOString(),
     from_plan_id: value["fromPlanId"],
     from_plan_name: value["fromPlanName"],

@@ -115,6 +115,7 @@ models/CreditGrantDetail.ts
 models/CreditTransferView.ts
 models/CreditUsageAggregation.ts
 models/CreditUserUsageResponseData.ts
+models/Currency.ts
 models/CurrencyBalance.ts
 models/CustomPlanActivationStrategy.ts
 models/CustomPlanBillingResponseData.ts

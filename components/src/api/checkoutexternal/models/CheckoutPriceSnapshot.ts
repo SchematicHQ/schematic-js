@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
+
 /**
  *
  * @export
@@ -27,10 +35,10 @@ export interface CheckoutPriceSnapshot {
   amountOff: number;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CheckoutPriceSnapshot
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {number}
@@ -171,7 +179,7 @@ export function CheckoutPriceSnapshotFromJSONTyped(
   }
   return {
     amountOff: json["amount_off"],
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     dueNow: json["due_now"],
     isScheduledDowngrade: json["is_scheduled_downgrade"],
     newCharges: json["new_charges"],
@@ -207,7 +215,7 @@ export function CheckoutPriceSnapshotToJSONTyped(
 
   return {
     amount_off: value["amountOff"],
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     due_now: value["dueNow"],
     is_scheduled_downgrade: value["isScheduledDowngrade"],
     new_charges: value["newCharges"],

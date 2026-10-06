@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingProviderType } from "./BillingProviderType";
 import {
   BillingProviderTypeFromJSON,
@@ -72,10 +79,10 @@ export interface InvoiceResponseData {
   createdAt: Date;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof InvoiceResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {string}
@@ -220,7 +227,7 @@ export function InvoiceResponseDataFromJSONTyped(
     collectionMethod: json["collection_method"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
     createdAt: new Date(json["created_at"]),
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     customerExternalId: json["customer_external_id"],
     dueDate: json["due_date"] == null ? undefined : new Date(json["due_date"]),
     endingBalance: json["ending_balance"],
@@ -267,7 +274,7 @@ export function InvoiceResponseDataToJSONTyped(
     collection_method: value["collectionMethod"],
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     customer_external_id: value["customerExternalId"],
     due_date:
       value["dueDate"] == null

@@ -20,6 +20,13 @@ import {
   CheckoutProblemSourceToJSON,
   CheckoutProblemSourceToJSONTyped,
 } from "./CheckoutProblemSource";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { CheckoutProblemCode } from "./CheckoutProblemCode";
 import {
   CheckoutProblemCodeFromJSON,
@@ -54,10 +61,10 @@ export interface Problem {
   code: CheckoutProblemCode;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof Problem
    */
-  currency?: string;
+  currency?: Currency;
   /**
    *
    * @type {string}
@@ -134,7 +141,8 @@ export function ProblemFromJSONTyped(
     blocking: json["blocking"],
     bundleId: json["bundle_id"] == null ? undefined : json["bundle_id"],
     code: CheckoutProblemCodeFromJSON(json["code"]),
-    currency: json["currency"] == null ? undefined : json["currency"],
+    currency:
+      json["currency"] == null ? undefined : CurrencyFromJSON(json["currency"]),
     detail: json["detail"] == null ? undefined : json["detail"],
     featureId: json["feature_id"] == null ? undefined : json["feature_id"],
     fieldId: json["field_id"] == null ? undefined : json["field_id"],
@@ -163,7 +171,7 @@ export function ProblemToJSONTyped(
     blocking: value["blocking"],
     bundle_id: value["bundleId"],
     code: CheckoutProblemCodeToJSON(value["code"]),
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     detail: value["detail"],
     feature_id: value["featureId"],
     field_id: value["fieldId"],

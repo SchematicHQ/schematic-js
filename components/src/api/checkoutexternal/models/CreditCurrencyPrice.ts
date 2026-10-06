@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingPriceView } from "./BillingPriceView";
 import {
   BillingPriceViewFromJSON,
@@ -29,10 +36,10 @@ import {
 export interface CreditCurrencyPrice {
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CreditCurrencyPrice
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {BillingPriceView}
@@ -63,7 +70,7 @@ export function CreditCurrencyPriceFromJSONTyped(
     return json;
   }
   return {
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     price:
       json["price"] == null
         ? undefined
@@ -84,7 +91,7 @@ export function CreditCurrencyPriceToJSONTyped(
   }
 
   return {
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     price: BillingPriceViewToJSON(value["price"]),
   };
 }

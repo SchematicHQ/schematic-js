@@ -20,6 +20,13 @@ import {
   BillingProductForSubscriptionResponseDataToJSON,
   BillingProductForSubscriptionResponseDataToJSONTyped,
 } from "./BillingProductForSubscriptionResponseData";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingSubscriptionDiscountView } from "./BillingSubscriptionDiscountView";
 import {
   BillingSubscriptionDiscountViewFromJSON,
@@ -94,10 +101,10 @@ export interface BillingSubscriptionView {
   createdAt: Date;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof BillingSubscriptionView
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {string}
@@ -266,7 +273,7 @@ export function BillingSubscriptionViewFromJSONTyped(
     cancelAtPeriodEnd: json["cancel_at_period_end"],
     companyId: json["company_id"] == null ? undefined : json["company_id"],
     createdAt: new Date(json["created_at"]),
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     customerExternalId: json["customer_external_id"],
     defaultPaymentMethodId:
       json["default_payment_method_id"] == null
@@ -325,7 +332,7 @@ export function BillingSubscriptionViewToJSONTyped(
     cancel_at_period_end: value["cancelAtPeriodEnd"],
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     customer_external_id: value["customerExternalId"],
     default_payment_method_id: value["defaultPaymentMethodId"],
     discounts: (value["discounts"] as Array<any>).map(

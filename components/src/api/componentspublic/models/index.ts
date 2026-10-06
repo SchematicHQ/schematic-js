@@ -54,6 +54,7 @@ export * from "./CreditCurrencyPriceResponseData";
 export * from "./CreditSpendPolicy";
 export * from "./CreditSpendPolicyScope";
 export * from "./CreditSpendWindow";
+export * from "./Currency";
 export * from "./CustomPlanConfig";
 export * from "./CustomPlanViewConfigResponseData";
 export * from "./DatastreamCompanyPlan";

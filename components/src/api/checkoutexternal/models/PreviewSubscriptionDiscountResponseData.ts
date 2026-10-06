@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
+
 /**
  *
  * @export
@@ -33,10 +41,10 @@ export interface PreviewSubscriptionDiscountResponseData {
   couponName: string;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof PreviewSubscriptionDiscountResponseData
    */
-  currency?: string | null;
+  currency?: Currency | null;
   /**
    *
    * @type {string}
@@ -117,7 +125,8 @@ export function PreviewSubscriptionDiscountResponseDataFromJSONTyped(
   return {
     amountOff: json["amount_off"] == null ? undefined : json["amount_off"],
     couponName: json["coupon_name"],
-    currency: json["currency"] == null ? undefined : json["currency"],
+    currency:
+      json["currency"] == null ? undefined : CurrencyFromJSON(json["currency"]),
     customerFacingCode:
       json["customer_facing_code"] == null
         ? undefined
@@ -155,7 +164,7 @@ export function PreviewSubscriptionDiscountResponseDataToJSONTyped(
   return {
     amount_off: value["amountOff"],
     coupon_name: value["couponName"],
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     customer_facing_code: value["customerFacingCode"],
     duration: value["duration"],
     duration_in_months: value["durationInMonths"],

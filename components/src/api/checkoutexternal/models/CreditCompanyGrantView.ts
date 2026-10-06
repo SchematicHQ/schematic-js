@@ -34,6 +34,13 @@ import {
   BillingCreditGrantZeroedOutReasonToJSON,
   BillingCreditGrantZeroedOutReasonToJSONTyped,
 } from "./BillingCreditGrantZeroedOutReason";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingProductPriceResponseData } from "./BillingProductPriceResponseData";
 import {
   BillingProductPriceResponseDataFromJSON,
@@ -138,10 +145,10 @@ export interface CreditCompanyGrantView {
   creditName: string;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CreditCompanyGrantView
    */
-  currency?: string | null;
+  currency?: Currency | null;
   /**
    *
    * @type {Date}
@@ -216,10 +223,10 @@ export interface CreditCompanyGrantView {
   postpaidChargeAmount?: number | null;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CreditCompanyGrantView
    */
-  postpaidChargeCurrency?: string | null;
+  postpaidChargeCurrency?: Currency | null;
   /**
    *
    * @type {number}
@@ -413,7 +420,8 @@ export function CreditCompanyGrantViewFromJSONTyped(
     creditDescription: json["credit_description"],
     creditIcon: json["credit_icon"] == null ? undefined : json["credit_icon"],
     creditName: json["credit_name"],
-    currency: json["currency"] == null ? undefined : json["currency"],
+    currency:
+      json["currency"] == null ? undefined : CurrencyFromJSON(json["currency"]),
     exhaustedAt:
       json["exhausted_at"] == null ? undefined : new Date(json["exhausted_at"]),
     expiresAt:
@@ -442,7 +450,7 @@ export function CreditCompanyGrantViewFromJSONTyped(
     postpaidChargeCurrency:
       json["postpaid_charge_currency"] == null
         ? undefined
-        : json["postpaid_charge_currency"],
+        : CurrencyFromJSON(json["postpaid_charge_currency"]),
     postpaidChargedCredits:
       json["postpaid_charged_credits"] == null
         ? undefined
@@ -519,7 +527,7 @@ export function CreditCompanyGrantViewToJSONTyped(
     credit_description: value["creditDescription"],
     credit_icon: value["creditIcon"],
     credit_name: value["creditName"],
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     exhausted_at:
       value["exhaustedAt"] == null
         ? undefined
@@ -538,7 +546,7 @@ export function CreditCompanyGrantViewToJSONTyped(
     plan_name: value["planName"],
     plural_name: value["pluralName"],
     postpaid_charge_amount: value["postpaidChargeAmount"],
-    postpaid_charge_currency: value["postpaidChargeCurrency"],
+    postpaid_charge_currency: CurrencyToJSON(value["postpaidChargeCurrency"]),
     postpaid_charged_credits: value["postpaidChargedCredits"],
     postpaid_period_end:
       value["postpaidPeriodEnd"] == null
