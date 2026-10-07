@@ -12,6 +12,7 @@ import {
   formatCurrency,
   getAutoTopupAmount,
   getAutoTopupThresholdCredits,
+  getDisplayedPlanCreditGrants,
   getPlanEstimatedPrice,
   getPlanPrice,
   groupPlanCreditGrants,
@@ -113,7 +114,9 @@ export const Plan = ({
             { useSelectedPeriod: true },
             currency,
           ) || {};
-        const credits = groupPlanCreditGrants(plan.includedCreditGrants);
+        const credits = groupPlanCreditGrants(
+          getDisplayedPlanCreditGrants(plan),
+        );
         const hasUsageBasedEntitlements = (plan.entitlements ?? []).some(
           (entitlement) => !!entitlement.priceBehavior,
         );

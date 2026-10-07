@@ -10,6 +10,7 @@ import {
 import type { SelectedPlan } from "../../../types";
 import {
   formatCurrency,
+  getDisplayedPlanCreditGrants,
   getPlanEstimatedPrice,
   getPlanPrice,
   getSubscriptionPeriod,
@@ -98,7 +99,7 @@ export const Plan = ({
   const { price: planPrice, currency: planCurrency } =
     getPlanPrice(plan, selectedPeriod, { useSelectedPeriod: true }, currency) ||
     {};
-  const credits = groupPlanCreditGrants(plan.includedCreditGrants);
+  const credits = groupPlanCreditGrants(getDisplayedPlanCreditGrants(plan));
 
   const hasUsageBasedEntitlements = (plan.entitlements ?? []).some(
     (entitlement) => !!entitlement.priceBehavior,
