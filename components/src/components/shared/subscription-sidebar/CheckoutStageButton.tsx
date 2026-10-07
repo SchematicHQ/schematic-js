@@ -10,6 +10,7 @@ type NoPaymentRequiredProps = {
   isSticky?: boolean;
   willScheduleDowngrade?: boolean;
   isCreditOnlyPurchase?: boolean;
+  isOneTimeOnlyPurchase?: boolean;
   onClick: () => Promise<void>;
 };
 
@@ -19,6 +20,7 @@ const NoPaymentRequired = ({
   isSticky = false,
   willScheduleDowngrade = false,
   isCreditOnlyPurchase = false,
+  isOneTimeOnlyPurchase = false,
   onClick,
 }: NoPaymentRequiredProps) => {
   const { t } = useTranslation();
@@ -36,7 +38,9 @@ const NoPaymentRequired = ({
         ? t("Buy credits")
         : willScheduleDowngrade
           ? t("Schedule downgrade")
-          : t("Subscribe and close")}
+          : isOneTimeOnlyPurchase
+            ? t("Pay and close")
+            : t("Subscribe and close")}
     </Button>
   );
 };
@@ -63,6 +67,7 @@ type CheckoutStageButtonProps = {
   willScheduleDowngrade: boolean;
   hasIncompleteRequiredCustomFields?: boolean;
   isCreditOnlyPurchase?: boolean;
+  isOneTimeOnlyPurchase?: boolean;
 };
 
 export const CheckoutStageButton = ({
@@ -86,6 +91,7 @@ export const CheckoutStageButton = ({
   willScheduleDowngrade,
   hasIncompleteRequiredCustomFields = false,
   isCreditOnlyPurchase = false,
+  isOneTimeOnlyPurchase = false,
 }: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
 
@@ -167,6 +173,7 @@ export const CheckoutStageButton = ({
           onClick={checkout}
           isSticky={isSticky}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
+          isOneTimeOnlyPurchase={isOneTimeOnlyPurchase}
         />
       );
     }
@@ -201,6 +208,7 @@ export const CheckoutStageButton = ({
           onClick={checkout}
           isSticky={isSticky}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
+          isOneTimeOnlyPurchase={isOneTimeOnlyPurchase}
         />
       );
     }
@@ -240,6 +248,7 @@ export const CheckoutStageButton = ({
           onClick={checkout}
           isSticky={isSticky}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
+          isOneTimeOnlyPurchase={isOneTimeOnlyPurchase}
         />
       );
     }
@@ -279,6 +288,7 @@ export const CheckoutStageButton = ({
           onClick={checkout}
           isSticky={isSticky}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
+          isOneTimeOnlyPurchase={isOneTimeOnlyPurchase}
         />
       );
     }
@@ -317,6 +327,7 @@ export const CheckoutStageButton = ({
           onClick={checkout}
           isSticky={isSticky}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
+          isOneTimeOnlyPurchase={isOneTimeOnlyPurchase}
         />
       );
     }
@@ -359,6 +370,7 @@ export const CheckoutStageButton = ({
           onClick={checkout}
           isSticky={isSticky}
           isCreditOnlyPurchase={isCreditOnlyPurchase}
+          isOneTimeOnlyPurchase={isOneTimeOnlyPurchase}
         />
       );
     }
@@ -405,6 +417,7 @@ export const CheckoutStageButton = ({
             onClick={checkout}
             isSticky={isSticky}
             isCreditOnlyPurchase={isCreditOnlyPurchase}
+            isOneTimeOnlyPurchase={isOneTimeOnlyPurchase}
           />
           {optInNotice}
         </Flex>
