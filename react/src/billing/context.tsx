@@ -7,6 +7,7 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  CreditUserUsage,
   FeatureUserUsage,
   InvoiceQuery,
   ResourceState,
@@ -59,6 +60,9 @@ export interface BillingDataSource {
     listener: () => void,
   ): () => void;
   featureUserUsage(featureId: string): ResourceHandle<FeatureUserUsage>;
+  /** One credit's consumption by user, keyed like `featureUserUsage`. */
+  subscribeCreditUserUsage(creditId: string, listener: () => void): () => void;
+  creditUserUsage(creditId: string): ResourceHandle<CreditUserUsage>;
   /** Never rejects: a failure lands on the resource's `error`. */
   loadMoreInvoices: (query: InvoiceQuery) => Promise<void>;
   invalidateAll: () => void;
@@ -127,6 +131,8 @@ export const missingBillingSource: BillingDataSource = {
   handle: () => missingHandle,
   subscribeFeatureUserUsage: () => () => {},
   featureUserUsage: () => missingHandle,
+  subscribeCreditUserUsage: () => () => {},
+  creditUserUsage: () => missingHandle,
   loadMoreInvoices: () => Promise.resolve(),
   invalidateAll: () => {},
   // The same error a read reports, so a write outside any provider names
@@ -151,6 +157,8 @@ interface BillingDataProviderDataProps {
   data: BillingData;
   /** Usage by user, by feature id; a feature left out reports as pending. */
   featureUserUsage?: Record<string, FeatureUserUsage>;
+  /** Consumption by user, by credit id; a credit left out reports as pending. */
+  creditUserUsage?: Record<string, CreditUserUsage>;
   /** Simulated loading / failure per resource; wins over `data`. */
   status?: BillingDataStatus;
   onRefetch?: (name: BillingResourceName) => void;
@@ -176,6 +184,7 @@ export type BillingDataProviderProps = BillingDataProviderDataProps &
 export function BillingDataProvider({
   actions,
   children,
+  creditUserUsage,
   data,
   featureUserUsage,
   locale,
@@ -191,6 +200,10 @@ export function BillingDataProvider({
     const userUsageHandles = new Map<
       string,
       ResourceHandle<FeatureUserUsage>
+    >();
+    const creditUsageHandles = new Map<
+      string,
+      ResourceHandle<CreditUserUsage>
     >();
     return {
       actions: rejectingActions(
@@ -230,13 +243,37 @@ export function BillingDataProvider({
         userUsageHandles.set(featureId, handle);
         return handle;
       },
+      subscribeCreditUserUsage: () => () => {},
+      creditUserUsage: (creditId) => {
+        const cached = creditUsageHandles.get(creditId);
+        if (cached !== undefined) {
+          return cached;
+        }
+        const value = creditUserUsage?.[creditId];
+        const handle = {
+          data: value,
+          error: undefined,
+          isPending: value === undefined,
+          refetch: () => {},
+        };
+        creditUsageHandles.set(creditId, handle);
+        return handle;
+      },
       loadMoreInvoices: (query) => {
         onLoadMoreInvoices?.(query);
         return Promise.resolve();
       },
       invalidateAll: () => {},
     };
-  }, [actions, data, featureUserUsage, onLoadMoreInvoices, onRefetch, status]);
+  }, [
+    actions,
+    creditUserUsage,
+    data,
+    featureUserUsage,
+    onLoadMoreInvoices,
+    onRefetch,
+    status,
+  ]);
 
   return (
     <BillingDataContext.Provider value={source}>
