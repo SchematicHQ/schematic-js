@@ -139,6 +139,12 @@ export interface FeatureEntitlement {
    */
   monthReset?: MetricPeriodMonthReset | null;
   /**
+   * If the company has a credit-based entitlement for this feature, the credit cost per unit of each quantity an event carries, keyed by quantity key (per token for inference features). Absent when the entitlement prices requests only
+   * @type {{ [key: string]: number; }}
+   * @memberof FeatureEntitlement
+   */
+  quantityRates?: { [key: string]: number };
+  /**
    * For usage-based pricing, the soft limit for overage charges or the next tier boundary
    * @type {number}
    * @memberof FeatureEntitlement
@@ -219,6 +225,8 @@ export function FeatureEntitlementFromJSONTyped(
       json["month_reset"] == null
         ? undefined
         : MetricPeriodMonthResetFromJSON(json["month_reset"]),
+    quantityRates:
+      json["quantity_rates"] == null ? undefined : json["quantity_rates"],
     softLimit: json["soft_limit"] == null ? undefined : json["soft_limit"],
     usage: json["usage"] == null ? undefined : json["usage"],
     valueType: EntitlementValueTypeFromJSON(json["value_type"]),
@@ -260,6 +268,7 @@ export function FeatureEntitlementToJSONTyped(
         ? undefined
         : (value["metricResetAt"] as any).toISOString(),
     month_reset: MetricPeriodMonthResetToJSON(value["monthReset"]),
+    quantity_rates: value["quantityRates"],
     soft_limit: value["softLimit"],
     usage: value["usage"],
     value_type: EntitlementValueTypeToJSON(value["valueType"]),
