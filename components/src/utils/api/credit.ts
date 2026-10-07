@@ -13,7 +13,6 @@ import {
   type CreditCompanyGrantView,
   type FeatureUsageResponseData,
   type PlanCreditGrantView,
-  type PlanCreditVisibility,
 } from "../../api/checkoutexternal";
 import type { Credit, CreditWithCompanyContext } from "../../types";
 
@@ -45,10 +44,13 @@ function isPerLicenseGrant(grant: Pick<PlanCreditGrantView, "scaling">) {
  * plan's credit from the card (`creditVisibility`), which also keeps its
  * amount out of limits derived from it. The grant itself stays in
  * `includedCreditGrants`, since checkout still prices and configures it.
+ *
+ * `creditVisibility` is typed structurally rather than with the generated
+ * model so this compiles against API specs that predate the field.
  */
 export function getDisplayedPlanCreditGrants(plan: {
   includedCreditGrants: PlanCreditGrantView[];
-  creditVisibility?: PlanCreditVisibility[];
+  creditVisibility?: { creditId: string; visible: boolean }[];
 }) {
   const hidden = new Set(
     (plan.creditVisibility ?? [])
