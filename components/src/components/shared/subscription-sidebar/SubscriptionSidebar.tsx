@@ -577,6 +577,35 @@ export const SubscriptionSidebar = forwardRef<
       [creditBundles],
     );
 
+    // Only one-time charges (one-time add-ons, credit bundles) and no change to
+    // the recurring subscription: same plan, same period, same recurring
+    // add-ons, same pay-in-advance quantities. Nothing is being subscribed to,
+    // so the button should not say "Subscribe".
+    const isOneTimeOnlyPurchase = useMemo(() => {
+      if (!selectedPlan?.current) {
+        return false;
+      }
+
+      const currentPeriod = getSubscriptionPeriod(billingSubscription);
+      if (currentPeriod && currentPeriod !== planPeriod) {
+        return false;
+      }
+
+      if (willAddOnsChange || updatedUsageBasedEntitlements.changed.length) {
+        return false;
+      }
+
+      return selectedOneTimeAddOns.length > 0 || addedCreditBundles.length > 0;
+    }, [
+      selectedPlan,
+      billingSubscription,
+      planPeriod,
+      willAddOnsChange,
+      updatedUsageBasedEntitlements.changed.length,
+      selectedOneTimeAddOns.length,
+      addedCreditBundles.length,
+    ]);
+
     const discountApplied = useMemo(
       () => promoCode && (amountOff > 0 || percentOff > 0),
       [promoCode, amountOff, percentOff],
@@ -833,6 +862,7 @@ export const SubscriptionSidebar = forwardRef<
                 hasIncompleteRequiredCustomFields
               }
               isCreditOnlyPurchase={isCreditOnlyPurchase}
+              isOneTimeOnlyPurchase={isOneTimeOnlyPurchase}
               checkout={handleCheckout}
             />
           );
@@ -879,6 +909,7 @@ export const SubscriptionSidebar = forwardRef<
       payInAdvanceEntitlements,
       addOnPayInAdvanceEntitlements,
       isCreditOnlyPurchase,
+      isOneTimeOnlyPurchase,
       hasIncompleteRequiredCustomFields,
     ]);
 

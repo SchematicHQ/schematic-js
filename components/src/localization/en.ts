@@ -139,6 +139,7 @@ const en = {
     "Pay-in-advance features require a quantity.",
   "Error saving custom field values. Please try again.":
     "Error saving custom field values. Please try again.",
+  "Pay and close": "Pay and close",
   "Pay now": "Pay now",
   "Payment Details": "Payment Details",
   "Payment due": "Payment due {{date}}",

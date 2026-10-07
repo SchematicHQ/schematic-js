@@ -97,6 +97,9 @@ const it: SchematicTranslations = {
     "Errore durante il recupero dei dettagli del piano. Riprova tra qualche istante.",
   "Error updating payment method. Please try again.":
     "Errore durante l'aggiornamento del metodo di pagamento. Riprova.",
+  "Estimated at current usage": "Stima in base al tuo utilizzo attuale",
+  "Estimated at current usage with base price":
+    "Stima in base al tuo utilizzo attuale. Prezzo base {{amount}}/{{period}}",
   "Estimated bill": "Importo stimato",
   "Everything in": "Tutto quanto incluso in {{plan}}, più",
   "Expired": "Scaduta",
@@ -138,6 +141,7 @@ const it: SchematicTranslations = {
     "Le funzionalità a pagamento anticipato richiedono una quantità.",
   "Error saving custom field values. Please try again.":
     "Errore durante il salvataggio dei campi personalizzati. Riprova.",
+  "Pay and close": "Paga e chiudi",
   "Pay now": "Paga ora",
   "Payment Details": "Dati di pagamento",
   "Payment due": "Pagamento entro il {{date}}",

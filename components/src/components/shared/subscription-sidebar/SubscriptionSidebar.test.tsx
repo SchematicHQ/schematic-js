@@ -8,7 +8,11 @@ import {
 import { EmbedContext, initialContext } from "../../../context";
 import hydrateResponse from "../../../test/mocks/handlers/response/hydrate.json";
 import { render } from "../../../test/setup";
-import type { SelectedPlan, UsageBasedEntitlement } from "../../../types";
+import type {
+  CreditBundle,
+  SelectedPlan,
+  UsageBasedEntitlement,
+} from "../../../types";
 
 import { SubscriptionSidebar } from "./SubscriptionSidebar";
 
@@ -118,13 +122,23 @@ function buildTieredPayInAdvanceEntitlement(
   return { ...entitlement, allocation: 0, usage: 0, quantity };
 }
 
-/** The fixture's $5.00/mo Basic plan, as the plan being checked out. */
-function buildSelectedPlan(): SelectedPlan {
+/**
+ * A fixture plan as the plan being checked out. Basic ($5.00/mo) is the
+ * company's current plan.
+ */
+function buildSelectedPlan(name = "Basic"): SelectedPlan {
   const plan = ComponentHydrateResponseDataFromJSON(
     structuredClone(hydrateResponse.data),
-  ).activePlans.find((activePlan) => activePlan.name === "Basic")!;
+  ).activePlans.find((activePlan) => activePlan.name === name)!;
 
   return { ...plan, isSelected: true };
+}
+
+/** The fixture's credit bundle with `count` of it added to the checkout. */
+function buildCreditBundles(count: number): CreditBundle[] {
+  return ComponentHydrateResponseDataFromJSON(
+    structuredClone(hydrateResponse.data),
+  ).creditBundles.map((bundle) => ({ ...bundle, count }));
 }
 
 function renderSidebar(
@@ -134,7 +148,16 @@ function renderSidebar(
   {
     currency,
     hydrateData = structuredClone(hydrateResponse.data),
-  }: { currency?: string; hydrateData?: unknown } = {},
+    planPeriod = "month",
+    creditBundles,
+    checkoutStage,
+  }: {
+    currency?: string;
+    hydrateData?: unknown;
+    planPeriod?: string;
+    creditBundles?: CreditBundle[];
+    checkoutStage?: string;
+  } = {},
 ) {
   return render(
     <EmbedContext.Provider
@@ -149,9 +172,11 @@ function renderSidebar(
       }}
     >
       <SubscriptionSidebar
-        planPeriod="month"
+        planPeriod={planPeriod}
         selectedPlan={selectedPlan}
         addOns={addOns}
+        creditBundles={creditBundles}
+        checkoutStage={checkoutStage}
         usageBasedEntitlements={usageBasedEntitlements}
         isLoading={false}
         isPaymentMethodRequired={false}
@@ -277,5 +302,73 @@ describe("`SubscriptionSidebar` total currency", () => {
     renderSidebar([], [], undefined, { currency: "EUR", hydrateData: raw });
 
     expect(screen.getByText(/You will be billed €5\.00/)).toBeInTheDocument();
+  });
+});
+
+describe("`SubscriptionSidebar` checkout button label", () => {
+  // The button only renders on a checkout stage.
+  const checkoutStage = "checkout";
+
+  // The sidebar renders the button inline and again as a sticky footer.
+  const expectLabel = (label: string, otherLabel: string) => {
+    expect(screen.getAllByText(label).length).toBeGreaterThan(0);
+    expect(screen.queryByText(otherLabel)).not.toBeInTheDocument();
+  };
+
+  const withOnlyOneTimeSelected = () =>
+    buildAddOns().map((addOn) => ({
+      ...addOn,
+      isSelected: addOn.id === ONE_TIME_ADD_ON_ID,
+    }));
+
+  it("says 'Pay and close' when only a one-time add-on is bought on the current plan", () => {
+    renderSidebar(withOnlyOneTimeSelected(), [], buildSelectedPlan(), {
+      checkoutStage,
+    });
+
+    expectLabel("Pay and close", "Subscribe and close");
+  });
+
+  it("says 'Pay and close' when only credit bundles are bought on the current plan", () => {
+    renderSidebar([], [], buildSelectedPlan(), {
+      creditBundles: buildCreditBundles(1),
+      checkoutStage,
+    });
+
+    expectLabel("Pay and close", "Subscribe and close");
+  });
+
+  it("says 'Subscribe and close' when a recurring add-on is also added", () => {
+    renderSidebar(buildAddOns(), [], buildSelectedPlan(), { checkoutStage });
+
+    expectLabel("Subscribe and close", "Pay and close");
+  });
+
+  it("says 'Subscribe and close' when the plan changes", () => {
+    renderSidebar(
+      withOnlyOneTimeSelected(),
+      [],
+      buildSelectedPlan("Standard"),
+      {
+        checkoutStage,
+      },
+    );
+
+    expectLabel("Subscribe and close", "Pay and close");
+  });
+
+  it("says 'Subscribe and close' when the billing period changes", () => {
+    renderSidebar(withOnlyOneTimeSelected(), [], buildSelectedPlan(), {
+      planPeriod: "year",
+      checkoutStage,
+    });
+
+    expectLabel("Subscribe and close", "Pay and close");
+  });
+
+  it("says 'Subscribe and close' when nothing one-time is bought", () => {
+    renderSidebar([], [], buildSelectedPlan(), { checkoutStage });
+
+    expectLabel("Subscribe and close", "Pay and close");
   });
 });

@@ -236,6 +236,52 @@ describe("`CheckoutStageButton` component", () => {
     });
   });
 
+  describe("one-time-only purchase flow", () => {
+    test("shows 'Pay and close' when no payment is required", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="plan"
+          checkoutStages={[{ id: "plan", name: "Plan" }]}
+          isPaymentMethodRequired={false}
+          isOneTimeOnlyPurchase={true}
+        />,
+      );
+
+      expect(screen.getByText("Pay and close")).toBeInTheDocument();
+    });
+
+    test("shows 'Pay and close' on the final checkout stage", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="checkout"
+          isPaymentMethodRequired={false}
+          isOneTimeOnlyPurchase={true}
+        />,
+      );
+
+      expect(screen.getByText("Pay and close")).toBeInTheDocument();
+    });
+
+    test("prefers 'Buy credits' for a credit-only purchase", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="credits"
+          checkoutStages={[
+            { id: "plan", name: "Plan" },
+            { id: "credits", name: "Credits" },
+          ]}
+          isCreditOnlyPurchase={true}
+          isOneTimeOnlyPurchase={true}
+        />,
+      );
+
+      expect(screen.getByText("Buy credits")).toBeInTheDocument();
+    });
+  });
+
   describe("credit-only purchase flow", () => {
     test("shows 'Buy credits' when credits is the final stage and is credit-only", () => {
       render(

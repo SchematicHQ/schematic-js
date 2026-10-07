@@ -355,3 +355,103 @@ describe("`CheckoutDialog` default billing period", () => {
     expect(screen.getAllByText("Standard").length).toBeGreaterThan(0);
   });
 });
+
+describe("`CheckoutDialog` one-time-only purchases", () => {
+  const CURRENT_PLAN_ID = "plan_6Nne9wATKg2";
+  const OTHER_PLAN_ID = "plan_8HMdwCRkuc8";
+  const ONE_TIME_ADD_ON_ID = "plan_S9LDYYDpQ3X";
+
+  /** The fixture company (on Basic, card on file) with no payment step. */
+  function previewWithoutPaymentStep() {
+    return vi.fn(async () => {
+      const response = buildPreviewResponse();
+      response.data.paymentMethodRequired = false;
+      return response;
+    });
+  }
+
+  const renderFixtureCompany = (checkoutState: CheckoutState) => {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    raw.checkout_settings = {
+      ...(raw.checkout_settings as Json),
+      bundle_purchase_behavior: CheckoutBundlePurchaseBehavior.Individual,
+    };
+
+    return renderCheckoutDialog({
+      data: ComponentHydrateResponseDataFromJSON(raw),
+      checkoutState,
+      previewCheckout: previewWithoutPaymentStep(),
+    });
+  };
+
+  /** Clicks "Next" until the checkout can be finalized. */
+  async function advanceToFinalStage() {
+    for (;;) {
+      const next = screen.queryAllByText(/^Next/)[0]?.closest("button");
+      if (!next) return;
+      await act(async () => {
+        fireEvent.click(next);
+      });
+    }
+  }
+
+  const expectLabel = async (label: string, otherLabel: string) => {
+    await waitFor(() => {
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
+    });
+    expect(screen.queryByText(otherLabel)).not.toBeInTheDocument();
+  };
+
+  it("says 'Pay and close' for a one-time add-on chosen from the pricing table", async () => {
+    renderFixtureCompany({
+      period: "month",
+      addOnId: ONE_TIME_ADD_ON_ID,
+      usage: false,
+    });
+
+    await advanceToFinalStage();
+
+    await expectLabel("Pay and close", "Subscribe and close");
+  });
+
+  it("says 'Pay and close' for credit bundles bought on the current plan", async () => {
+    renderFixtureCompany({ credits: true });
+
+    fireEvent.click(await screen.findByText("Choose bundle"));
+    await advanceToFinalStage();
+
+    await expectLabel("Pay and close", "Subscribe and close");
+  });
+
+  it("says 'Pay and close' when initializeWithPlan picks the current plan and a one-time add-on", async () => {
+    renderFixtureCompany({
+      planId: CURRENT_PLAN_ID,
+      addOnIds: [ONE_TIME_ADD_ON_ID],
+      bypassPlanSelection: true,
+      bypassAddOnSelection: true,
+      bypassCreditsSelection: true,
+      bypassUsageSelection: true,
+      bypassAddOnUsageSelection: true,
+    });
+
+    await advanceToFinalStage();
+
+    await expectLabel("Pay and close", "Subscribe and close");
+  });
+
+  it("says 'Subscribe and close' when initializeWithPlan also changes the plan", async () => {
+    renderFixtureCompany({
+      planId: OTHER_PLAN_ID,
+      addOnIds: [ONE_TIME_ADD_ON_ID],
+      bypassPlanSelection: true,
+      bypassAddOnSelection: true,
+      bypassCreditsSelection: true,
+      bypassUsageSelection: true,
+      bypassAddOnUsageSelection: true,
+    });
+
+    await advanceToFinalStage();
+
+    await expectLabel("Subscribe and close", "Pay and close");
+  });
+});
