@@ -17,6 +17,8 @@ import type {
   ApiError,
   CreateSetupIntentResponse,
   DeletePaymentMethodResponse,
+  GetCompanyCreditBalancesResponse,
+  GetCompanyCreditUserUsageResponse,
   GetCompanyFeatureUsageResponse,
   GetCompanyFeatureUserUsageResponse,
   GetCompanyInvoicesResponse,
@@ -32,6 +34,10 @@ import {
   CreateSetupIntentResponseToJSON,
   DeletePaymentMethodResponseFromJSON,
   DeletePaymentMethodResponseToJSON,
+  GetCompanyCreditBalancesResponseFromJSON,
+  GetCompanyCreditBalancesResponseToJSON,
+  GetCompanyCreditUserUsageResponseFromJSON,
+  GetCompanyCreditUserUsageResponseToJSON,
   GetCompanyFeatureUsageResponseFromJSON,
   GetCompanyFeatureUsageResponseToJSON,
   GetCompanyFeatureUserUsageResponseFromJSON,
@@ -50,6 +56,12 @@ import {
 
 export interface DeletePaymentMethodRequest {
   checkoutId: string;
+}
+
+export interface GetCompanyCreditUserUsageRequest {
+  creditId: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface GetCompanyFeatureUserUsageRequest {
@@ -163,6 +175,111 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<DeletePaymentMethodResponse> {
     const response = await this.deletePaymentMethodRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Get company credit balances
+   */
+  async getCompanyCreditBalancesRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyCreditBalancesResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyCreditBalancesResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get company credit balances
+   */
+  async getCompanyCreditBalances(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyCreditBalancesResponse> {
+    const response = await this.getCompanyCreditBalancesRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get company credit user usage
+   */
+  async getCompanyCreditUserUsageRaw(
+    requestParameters: GetCompanyCreditUserUsageRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyCreditUserUsageResponse>> {
+    if (requestParameters["creditId"] == null) {
+      throw new runtime.RequiredError(
+        "creditId",
+        'Required parameter "creditId" was null or undefined when calling getCompanyCreditUserUsage().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
+    }
+
+    if (requestParameters["offset"] != null) {
+      queryParameters["offset"] = requestParameters["offset"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits/{credit_id}/users`.replace(
+          `{${"credit_id"}}`,
+          encodeURIComponent(String(requestParameters["creditId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyCreditUserUsageResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get company credit user usage
+   */
+  async getCompanyCreditUserUsage(
+    requestParameters: GetCompanyCreditUserUsageRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyCreditUserUsageResponse> {
+    const response = await this.getCompanyCreditUserUsageRaw(
       requestParameters,
       initOverrides,
     );
