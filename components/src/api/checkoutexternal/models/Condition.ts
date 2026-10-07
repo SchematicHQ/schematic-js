@@ -129,6 +129,12 @@ export interface Condition {
   operator: ComparableOperator;
   /**
    *
+   * @type {{ [key: string]: number; }}
+   * @memberof Condition
+   */
+  quantityRates?: { [key: string]: number };
+  /**
+   *
    * @type {Array<string>}
    * @memberof Condition
    */
@@ -201,6 +207,8 @@ export function ConditionFromJSONTyped(
     metricValue:
       json["metric_value"] == null ? undefined : json["metric_value"],
     operator: ComparableOperatorFromJSON(json["operator"]),
+    quantityRates:
+      json["quantity_rates"] == null ? undefined : json["quantity_rates"],
     resourceIds: json["resource_ids"],
     traitDefinition:
       json["trait_definition"] == null
@@ -239,6 +247,7 @@ export function ConditionToJSONTyped(
     ),
     metric_value: value["metricValue"],
     operator: ComparableOperatorToJSON(value["operator"]),
+    quantity_rates: value["quantityRates"],
     resource_ids: value["resourceIds"],
     trait_definition: TraitDefinitionToJSON(value["traitDefinition"]),
     trait_value: value["traitValue"],
