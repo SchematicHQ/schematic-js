@@ -13,12 +13,13 @@ is reserved for the offerings resource. The routes those clients call are
 still `/company/*`, and the generated wire models keep their `Company…`
 names — the tier is what `billing` names, not the resource.
 
-| Element          | Hooks                                 | Derivation               | Reads             | Recipe                                         |
-| ---------------- | ------------------------------------- | ------------------------ | ----------------- | ---------------------------------------------- |
-| Invoices         | `useInvoices`                         | `deriveInvoiceList`      | `invoices`        | [invoices.md](./invoices.md)                   |
-| UpcomingBill     | `useUpcomingInvoice`                  | `deriveUpcomingInvoice`  | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md)         |
-| PaymentMethods   | `usePaymentMethods`, `useSetupIntent` | `derivePaymentMethods`   | `paymentMethods`  | [payment-methods.md](./payment-methods.md)     |
-| IncludedFeatures | `useFeatureUsage`                     | `deriveIncludedFeatures` | `featureUsage`    | [included-features.md](./included-features.md) |
+| Element          | Hooks                                    | Derivation               | Reads             | Recipe                                         |
+| ---------------- | ---------------------------------------- | ------------------------ | ----------------- | ---------------------------------------------- |
+| Invoices         | `useInvoices`                            | `deriveInvoiceList`      | `invoices`        | [invoices.md](./invoices.md)                   |
+| UpcomingBill     | `useUpcomingInvoice`                     | `deriveUpcomingInvoice`  | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md)         |
+| PaymentMethods   | `usePaymentMethods`, `useSetupIntent`    | `derivePaymentMethods`   | `paymentMethods`  | [payment-methods.md](./payment-methods.md)     |
+| IncludedFeatures | `useFeatureUsage`                        | `deriveIncludedFeatures` | `featureUsage`    | [included-features.md](./included-features.md) |
+| MeteredFeatures  | `useFeatureUsage`, `useFeatureUserUsage` | `deriveMeteredFeatures`  | `featureUsage`    | [metered-features.md](./metered-features.md)   |
 
 ## Before it can load
 
