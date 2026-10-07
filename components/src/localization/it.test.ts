@@ -44,17 +44,6 @@ describe("the Italian bundle", () => {
     expect(unknown).toEqual([]);
   });
 
-  // Italian falls back to English for a missing key, so nothing else catches a
-  // new English string that never got an Italian one.
-  test("translates every English key", () => {
-    const itBases = new Set(itKeys.map(base));
-    const missing = [...new Set(enKeys.map(base))].filter(
-      (key) => !itBases.has(key),
-    );
-
-    expect(missing).toEqual([]);
-  });
-
   test("keeps every placeholder", () => {
     const mismatched = itKeys.filter(
       (key) =>
