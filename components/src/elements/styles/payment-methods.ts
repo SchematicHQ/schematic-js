@@ -10,10 +10,6 @@ export const paymentMethodsCss = `
   margin-bottom: 0;
 }
 
-.schematic-payment-methods .schematic-header__title {
-  margin-bottom: 0;
-}
-
 .schematic-payment-methods__expiry-warning {
   color: var(--schematic-danger);
   white-space: nowrap;
@@ -30,12 +26,21 @@ export const paymentMethodsCss = `
   padding: calc(var(--schematic-space) / 2.25) var(--schematic-space);
 }
 
+/* One line: a label too long for the space truncates rather than wrapping
+   "Card ending in" away from its digits or widening the dialog. */
 .schematic-payment-methods__method {
   align-items: center;
   display: inline-flex;
   flex-grow: 1;
-  flex-wrap: wrap;
   gap: 0.25em;
+  min-width: 0;
+}
+
+.schematic-payment-methods__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* The brand's mark before the label, in the label's colour. */
@@ -47,6 +52,7 @@ export const paymentMethodsCss = `
 }
 
 .schematic-payment-methods__last4 {
+  flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -60,14 +66,16 @@ export const paymentMethodsCss = `
   white-space: nowrap;
 }
 
-/* The toggle that reveals the other methods, with its chevron: down while
-   folded, up while unfolded, each its own glyph. The chevron sits beside
-   the link in the text colour rather than as part of it. A flex container hands its underline to every item, and an item
-   cannot take it off, so the hover underline goes on the label alone. */
+/* The toggle that reveals the other methods. Its chevron is a glyph per
+   state, down while folded and up while unfolded, and the hover underline
+   goes on the label alone, as on every toggle. */
 .schematic-payment-methods__choose {
   align-items: center;
   align-self: flex-start;
   display: inline-flex;
+  /* A button centres its text; a label that wraps on a phone keeps to the
+     start. */
+  text-align: start;
   gap: calc(var(--schematic-space) / 2);
 }
 
@@ -79,10 +87,6 @@ export const paymentMethodsCss = `
   text-decoration: underline;
 }
 
-.schematic-payment-methods__chevron {
-  color: var(--schematic-text);
-  font-size: 1.5em;
-}
 
 /* A faintly tinted panel, roomier than the shared dialog body, with its
    parts spaced further apart. */
@@ -124,6 +128,12 @@ export const paymentMethodsCss = `
   flex-wrap: wrap;
   gap: calc(var(--schematic-space) / 2) var(--schematic-space);
   padding: calc(var(--schematic-space) / 2) 0;
+}
+
+/* The name takes the line's room first; the actions wrap under it before
+   the name is cut short. */
+.schematic-payment-methods__row .schematic-payment-methods__method {
+  flex: 1 1 10rem;
 }
 
 .schematic-payment-methods__expires {
@@ -199,23 +209,31 @@ export const paymentMethodsCss = `
   white-space: nowrap;
 }
 
+/* Spaced as the embed's form: 24px between parts, and a wider break before
+   Save under the address. */
 .schematic-payment-methods__form {
   display: flex;
   flex-direction: column;
-  gap: var(--schematic-space);
+  gap: calc(var(--schematic-space) * 1.5);
 }
 
-/* The fields the checkout settings add beside Stripe's own. */
+.schematic-payment-methods__address {
+  margin-bottom: calc(var(--schematic-space) * 2);
+}
+
+/* The fields the checkout settings add beside Stripe's own, labelled as
+   Stripe's are. */
 .schematic-payment-methods__field {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--schematic-space) / 2);
+  gap: calc(var(--schematic-space) * 0.75);
 }
 
 .schematic-payment-methods__input {
   background: var(--schematic-background);
   border: 1px solid var(--schematic-border);
-  border-radius: var(--schematic-radius);
+  /* The embed's 8px at the default radius; Stripe's fields take the same. */
+  border-radius: calc(var(--schematic-radius) * 0.8);
   box-sizing: border-box;
   color: var(--schematic-text);
   font: inherit;

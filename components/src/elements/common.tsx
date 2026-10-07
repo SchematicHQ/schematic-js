@@ -226,7 +226,7 @@ export const StatusFrame: React.FC<{
           </span>
           {onRetry !== undefined && (
             <button
-              className="schematic-link-button schematic-status__retry"
+              className="schematic-cta schematic-cta--small schematic-cta--ghost schematic-status__retry"
               type="button"
               onClick={onRetry}
             >
@@ -258,6 +258,38 @@ export const StatusFrame: React.FC<{
         </p>
       )}
     </div>
+  );
+};
+
+/**
+ * An info glyph that shows `children` while hovered or focused. The trigger
+ * is a button so a keyboard reaches it, and the content describes it so a
+ * screen reader reads it on focus.
+ */
+export const Tooltip: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  /** The trigger's accessible name. */
+  label: string;
+}> = ({ children, className, label }) => {
+  const id = useId();
+  return (
+    <span className={cx("schematic-tooltip", className)}>
+      <button
+        aria-describedby={id}
+        aria-label={label}
+        className="schematic-tooltip__trigger"
+        type="button"
+      >
+        <i
+          aria-hidden="true"
+          className="schematic-icon schematic-icon--info-rounded"
+        />
+      </button>
+      <span className="schematic-tooltip__content" id={id} role="tooltip">
+        {children}
+      </span>
+    </span>
   );
 };
 

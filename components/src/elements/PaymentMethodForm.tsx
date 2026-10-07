@@ -69,7 +69,7 @@ const PROBE_CSS = withTokenDefaults(
   [
     "background-color: var(--schematic-background)",
     "border-color: var(--schematic-accent)",
-    "border-radius: var(--schematic-radius)",
+    "border-radius: calc(var(--schematic-radius) * 0.8)",
     "color: var(--schematic-text)",
     "font-family: var(--schematic-font-body)",
     "outline-color: var(--schematic-danger)",
@@ -120,13 +120,28 @@ export function resolveAppearance(host: Element): Appearance {
     fontFamily: style.fontFamily,
   };
   probe.remove();
-  const variables: Record<string, string> = {};
+  // Spaced and labelled as the embed's form.
+  const variables: Record<string, string> = {
+    gridColumnSpacing: "1.5rem",
+    gridRowSpacing: "1.5rem",
+    spacingUnit: "0.25rem",
+  };
   for (const [name, value] of Object.entries(candidates)) {
     if (resolved(value)) {
       variables[name] = value;
     }
   }
-  return { theme: "stripe", variables };
+  return {
+    theme: "stripe",
+    variables,
+    rules: {
+      ".Label": {
+        fontSize: "1rem",
+        fontWeight: "400",
+        marginBottom: "0.75rem",
+      },
+    },
+  };
 }
 
 export function PaymentMethodForm({

@@ -125,8 +125,12 @@ tell them apart.
       class="schematic-link-button schematic-invoices__see-more"
       aria-expanded="false"
     >
-      <span class="schematic-invoices__chevron" aria-hidden="true"></span>
-      See more
+      <!-- chevron-up while expanded -->
+      <i
+        class="schematic-icon schematic-icon--chevron-down schematic-chevron schematic-invoices__chevron"
+        aria-hidden="true"
+      ></i>
+      <span class="schematic-link-button__label">See more</span>
     </button>
     <!-- only once every loaded row is showing and the server has more -->
     <button class="schematic-link-button schematic-invoices__load-more">
@@ -164,7 +168,9 @@ tell them apart.
     <span class="schematic-error schematic-status__message">
       There was a problem retrieving your invoices.
     </span>
-    <button class="schematic-link-button schematic-status__retry">
+    <button
+      class="schematic-cta schematic-cta--small schematic-cta--ghost schematic-status__retry"
+    >
       Try again
     </button>
   </div>

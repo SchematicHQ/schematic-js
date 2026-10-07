@@ -13,11 +13,12 @@ is reserved for the offerings resource. The routes those clients call are
 still `/company/*`, and the generated wire models keep their `Company…`
 names — the tier is what `billing` names, not the resource.
 
-| Element        | Hooks                                 | Derivation              | Reads             | Recipe                                     |
-| -------------- | ------------------------------------- | ----------------------- | ----------------- | ------------------------------------------ |
-| Invoices       | `useInvoices`                         | `deriveInvoiceList`     | `invoices`        | [invoices.md](./invoices.md)               |
-| UpcomingBill   | `useUpcomingInvoice`                  | `deriveUpcomingInvoice` | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md)     |
-| PaymentMethods | `usePaymentMethods`, `useSetupIntent` | `derivePaymentMethods`  | `paymentMethods`  | [payment-methods.md](./payment-methods.md) |
+| Element          | Hooks                                 | Derivation               | Reads             | Recipe                                         |
+| ---------------- | ------------------------------------- | ------------------------ | ----------------- | ---------------------------------------------- |
+| Invoices         | `useInvoices`                         | `deriveInvoiceList`      | `invoices`        | [invoices.md](./invoices.md)                   |
+| UpcomingBill     | `useUpcomingInvoice`                  | `deriveUpcomingInvoice`  | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md)         |
+| PaymentMethods   | `usePaymentMethods`, `useSetupIntent` | `derivePaymentMethods`   | `paymentMethods`  | [payment-methods.md](./payment-methods.md)     |
+| IncludedFeatures | `useFeatureUsage`                     | `deriveIncludedFeatures` | `featureUsage`    | [included-features.md](./included-features.md) |
 
 ## Before it can load
 
@@ -211,33 +212,35 @@ once (exported beside `SchematicStyles`; the font face and one
 package's own `@schematichq/schematic-icons/styles.css` is not a substitute:
 it names its rules `.icon-<name>`, which the elements never use.
 
-| Class                         | Where                                                      |
-| ----------------------------- | ---------------------------------------------------------- |
-| `schematic-card`              | Every element's root, with the element's own class.        |
-| `schematic-header`            | The heading row inside a card.                             |
-| `schematic-header__title`     | The heading itself, whatever `headingLevel` renders.       |
-| `schematic-muted`             | Secondary text.                                            |
-| `schematic-small`             | Smaller text.                                              |
-| `schematic-chip`              | A short status label; the raw value is `[data-status]`.    |
-| `schematic-badge`             | A filled pill.                                             |
-| `schematic-cta`               | Filled action; `--outline` and `--small` modifiers.        |
-| `schematic-link-button`       | Inline text action ("See more", "Try again", "Load more"). |
-| `schematic-icon`              | A glyph from the icon font, always `aria-hidden`.          |
-| `schematic-icon--<name>`      | Which glyph: a brand mark, `close`, `chevron-down`, …      |
-| `schematic-status`            | The error row that replaces a card's content.              |
-| `schematic-status__message`   | The message within it.                                     |
-| `schematic-status__retry`     | Its retry action.                                          |
-| `schematic-error`             | Error text.                                                |
-| `schematic-status-note`       | A failure reported under content that is still on screen.  |
-| `schematic-dialog`            | A modal `<dialog>` an element opens, inside its root.      |
-| `schematic-dialog__header`    | The dialog's title row.                                    |
-| `schematic-dialog__title`     | The title itself, which labels the dialog.                 |
-| `schematic-dialog__close`     | The control in the header that closes it.                  |
-| `schematic-dialog__body`      | Everything beneath the header.                             |
-| `schematic-skeleton`          | The pending placeholder, rendered inside the card.         |
-| `schematic-skeleton__heading` | The bar standing in for a card's heading.                  |
-| `schematic-skeleton__row`     | One row of the pending placeholder.                        |
-| `schematic-skeleton__cell`    | A bar within that row; its column is `[data-column]`.      |
+| Class                          | Where                                                              |
+| ------------------------------ | ------------------------------------------------------------------ |
+| `schematic-card`               | Every element's root, with the element's own class.                |
+| `schematic-header`             | The heading row inside a card.                                     |
+| `schematic-header__title`      | The heading itself, whatever `headingLevel` renders.               |
+| `schematic-muted`              | Secondary text.                                                    |
+| `schematic-small`              | Smaller text.                                                      |
+| `schematic-chip`               | A short status label; the raw value is `[data-status]`.            |
+| `schematic-badge`              | A filled pill.                                                     |
+| `schematic-cta`                | Filled action; `--outline`, `--ghost`, `--small` modifiers.        |
+| `schematic-link-button`        | Inline text action ("See more", "Load more").                      |
+| `schematic-chevron`            | The chevron glyph on an expand/collapse toggle.                    |
+| `schematic-link-button__label` | A toggle's label beside its chevron; it takes the hover underline. |
+| `schematic-icon`               | A glyph from the icon font, always `aria-hidden`.                  |
+| `schematic-icon--<name>`       | Which glyph: a brand mark, `close`, `chevron-down`, …              |
+| `schematic-status`             | The error row that replaces a card's content.                      |
+| `schematic-status__message`    | The message within it.                                             |
+| `schematic-status__retry`      | Its retry action.                                                  |
+| `schematic-error`              | Error text.                                                        |
+| `schematic-status-note`        | A failure reported under content that is still on screen.          |
+| `schematic-dialog`             | A modal `<dialog>` an element opens, inside its root.              |
+| `schematic-dialog__header`     | The dialog's title row.                                            |
+| `schematic-dialog__title`      | The title itself, which labels the dialog.                         |
+| `schematic-dialog__close`      | The control in the header that closes it.                          |
+| `schematic-dialog__body`       | Everything beneath the header.                                     |
+| `schematic-skeleton`           | The pending placeholder, rendered inside the card.                 |
+| `schematic-skeleton__heading`  | The bar standing in for a card's heading.                          |
+| `schematic-skeleton__row`      | One row of the pending placeholder.                                |
+| `schematic-skeleton__cell`     | A bar within that row; its column is `[data-column]`.              |
 
 An element's root keeps the same class list in every state; `data-state` is
 `pending`, `error`, or `ready`.

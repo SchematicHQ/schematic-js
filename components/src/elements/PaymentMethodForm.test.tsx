@@ -207,7 +207,11 @@ describe("PaymentMethodForm", () => {
     });
     expect(stripe.elementsProps).toHaveBeenCalledWith({
       options: {
-        appearance: { theme: "stripe", variables: expect.any(Object) },
+        appearance: {
+          rules: expect.any(Object),
+          theme: "stripe",
+          variables: expect.any(Object),
+        },
         clientSecret: "seti_secret",
       },
       stripe: stripe.instance,
@@ -238,6 +242,16 @@ describe("PaymentMethodForm", () => {
               colorPrimary: "rgb(25, 75, 251)",
               colorText: "rgb(0, 0, 0)",
               fontFamily: '"Public Sans", system-ui, sans-serif',
+              gridColumnSpacing: "1.5rem",
+              gridRowSpacing: "1.5rem",
+              spacingUnit: "0.25rem",
+            },
+            rules: {
+              ".Label": {
+                fontSize: "1rem",
+                fontWeight: "400",
+                marginBottom: "0.75rem",
+              },
             },
           },
         }),

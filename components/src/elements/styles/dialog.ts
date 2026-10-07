@@ -9,15 +9,29 @@ export const dialogCss = `
   border: 0;
   border-radius: 0.5rem;
   box-shadow: var(--schematic-shadow);
+  box-sizing: border-box;
   color: var(--schematic-text);
-  line-height: 1.375;
   margin: auto;
   max-height: calc(100vh - 2 * var(--schematic-space));
-  max-width: 48rem;
+  max-width: none;
   /* No padding of its own: a click on the backdrop lands on the dialog
      itself, and one inside lands on the header or body. */
   padding: 0;
-  width: calc(100% - 2 * var(--schematic-space));
+  /* Never wider than the screen, whatever it holds. */
+  width: min(48rem, calc(100vw - 2 * var(--schematic-space)));
+}
+
+/* Centred by vw on a phone: a host page wider than the screen widens the
+   layout viewport, and auto margins would centre the dialog half off the
+   screen. Desktop keeps auto margins, as vw counts the scrollbar there. */
+@media (max-width: 52rem) {
+  .schematic-dialog {
+    inset-inline: 0 auto;
+    margin-inline: calc(
+        (100vw - min(48rem, calc(100vw - 2 * var(--schematic-space)))) / 2
+      )
+      0;
+  }
 }
 
 .schematic-dialog::backdrop {
@@ -49,7 +63,7 @@ export const dialogCss = `
   font-family: var(--schematic-font-body);
   font-size: 1.125rem;
   font-weight: 400;
-  line-height: var(--schematic-line-height-heading);
+  line-height: var(--schematic-line-height);
   margin: 0;
 }
 
@@ -78,6 +92,8 @@ export const dialogCss = `
   display: flex;
   flex-direction: column;
   gap: var(--schematic-space);
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: calc(var(--schematic-space) * 1.5);
 }
 `;

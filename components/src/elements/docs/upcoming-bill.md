@@ -197,7 +197,9 @@ tell them apart.
     <span class="schematic-error schematic-status__message">
       There was a problem retrieving your upcoming invoice.
     </span>
-    <button class="schematic-link-button schematic-status__retry">
+    <button
+      class="schematic-cta schematic-cta--small schematic-cta--ghost schematic-status__retry"
+    >
       Try again
     </button>
   </div>

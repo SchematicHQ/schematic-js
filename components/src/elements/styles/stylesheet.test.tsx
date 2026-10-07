@@ -5,6 +5,7 @@ import {
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
+import { IncludedFeatures } from "../IncludedFeatures";
 import { Invoices } from "../Invoices";
 import { PaymentMethods } from "../PaymentMethods";
 import { UpcomingBill } from "../UpcomingBill";
@@ -24,7 +25,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped; `schematic-badge` is among them, worn only by the plan cards.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|included-features|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -36,6 +37,7 @@ const UNREACHABLE = new Set([
   ".schematic-skeleton:empty",
   ".schematic-payment-methods__save",
   ".schematic-payment-methods__field",
+  ".schematic-payment-methods__address",
   ".schematic-payment-methods__input",
   ".schematic-payment-methods__input:focus-visible",
   ".schematic-payment-methods__select-existing",
@@ -202,6 +204,25 @@ async function everyCard() {
     tree(<Invoices locale="en-US" />, SCENARIOS.pro(), {
       invoices: { error: boom },
     } as never),
+    tree(
+      <IncludedFeatures locale="en-US" showHardLimit />,
+      SCENARIOS.featureUsage(),
+    ),
+    // The tiered row sits past the first four, hidden until See all.
+    tree(
+      <IncludedFeatures locale="en-US" visibleFeatures={["feat_builds"]} />,
+      SCENARIOS.featureUsage(),
+    ),
+    tree(<IncludedFeatures locale="en-US" />, SCENARIOS.featureUsageEmpty()),
+    tree(<IncludedFeatures locale="en-US" />, {}, {
+      featureUsage: { isPending: true },
+    } as never),
+    tree(<IncludedFeatures locale="en-US" />, {}, {
+      featureUsage: { error: boom },
+    } as never),
+    tree(<IncludedFeatures locale="en-US" />, SCENARIOS.featureUsage(), {
+      featureUsage: { error: boom },
+    } as never),
     tree(<UpcomingBill locale="en-US" />, SCENARIOS.pro()),
     tree(<UpcomingBill locale="en-US" />, SCENARIOS.trialing()),
     tree(<UpcomingBill locale="en-US" />, SCENARIOS.unbilled()),
@@ -226,7 +247,7 @@ describe("the packaged stylesheet", () => {
       // attribute flipped — or the reverse, for a toggle staged open.
       const probe = selector
         .replace(/:not\(:disabled\)/g, "")
-        .replace(/:(hover|focus-visible|disabled)/g, "")
+        .replace(/:(hover|focus-visible|focus-within|disabled)/g, "")
         .replace(/::[a-z-]+/g, "")
         .replace(/\[aria-expanded="(true|false)"\]/, "");
       return !cards.some(

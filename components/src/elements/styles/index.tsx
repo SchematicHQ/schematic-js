@@ -2,9 +2,11 @@ import React from "react";
 
 import { dialogCss } from "./dialog";
 import { iconsCss } from "./icons";
+import { includedFeaturesCss } from "./included-features";
 import { invoicesCss } from "./invoices";
 import { paymentMethodsCss } from "./payment-methods";
 import { withTokenDefaults } from "./tokens";
+import { tooltipCss } from "./tooltip";
 import { upcomingBillCss } from "./upcoming-bill";
 
 export { iconsCss } from "./icons";
@@ -32,6 +34,21 @@ const rulesCss = `
 
 :where([class^="schematic-"]) p {
   margin: 0;
+}
+
+/* Unit suffixes ("/mo", "/seat") sit on the baseline, as in the embed. */
+:where([class^="schematic-"]) sub,
+:where([class^="schematic-"]) sup {
+  line-height: 1;
+  position: static;
+}
+
+:where([class^="schematic-"]) sub {
+  vertical-align: baseline;
+}
+
+:where([class^="schematic-"]) sup {
+  vertical-align: top;
 }
 
 .schematic-card {
@@ -129,6 +146,7 @@ const rulesCss = `
 
 .schematic-error {
   color: var(--schematic-danger);
+  font-weight: 500;
 }
 
 .schematic-status-note {
@@ -191,10 +209,26 @@ const rulesCss = `
   border-color: var(--schematic-primary);
 }
 
+/* The embed's small button: 15px type, 40px tall. */
 .schematic-cta--small {
+  border-radius: 0.375rem;
   font-size: 0.9375rem;
   min-height: 2.5rem;
-  padding: 0.375rem 1rem;
+  padding: 0.4375rem 1.25rem;
+}
+
+/* The embed's ghost button, for secondary actions such as Try again. */
+.schematic-cta--ghost {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--schematic-text) 20%, transparent);
+  color: var(--schematic-text);
+}
+
+.schematic-cta--ghost:hover:not(:disabled) {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--schematic-text) 12.5%, transparent);
+  box-shadow: 0 1px 2px
+    color-mix(in srgb, var(--schematic-text) 7.5%, transparent);
 }
 
 .schematic-link-button {
@@ -208,6 +242,27 @@ const rulesCss = `
 }
 
 .schematic-link-button:hover {
+  text-decoration: underline;
+}
+
+/* Every toggle's chevron: the 24px glyph, muted. */
+.schematic-chevron {
+  color: var(--schematic-muted);
+  font-size: 1.5rem;
+}
+
+/* A toggle underlines its label alone: a flex container hands its underline
+   to every item, the chevron included, and an item cannot take it off. */
+.schematic-link-button:has(.schematic-link-button__label):hover {
+  text-decoration: none;
+}
+
+/* The reset colours every schematic- element; the label keeps the link's. */
+.schematic-link-button__label {
+  color: inherit;
+}
+
+.schematic-link-button:hover .schematic-link-button__label {
   text-decoration: underline;
 }
 
@@ -300,7 +355,7 @@ const rulesCss = `
   font-size: 1.125rem;
   font-weight: 800;
   line-height: var(--schematic-line-height-heading);
-  margin: 0 0 calc(var(--schematic-space) / 2);
+  margin: 0;
 }
 
 /* A label on the left, its value on the right. */
@@ -508,6 +563,8 @@ ${dialogCss}
 ${invoicesCss}
 ${upcomingBillCss}
 ${paymentMethodsCss}
+${tooltipCss}
+${includedFeaturesCss}
 `;
 
 /**
