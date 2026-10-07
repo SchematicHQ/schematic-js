@@ -21,6 +21,7 @@ import {
   findLicenseSource,
   findSoleLicenseSource,
   formatBundleExpiry,
+  getDisplayedPlanCreditGrants,
   getPerLicenseGrantsForFeature,
   getPurchasableCreditIds,
   groupPlanCreditGrants,
@@ -29,6 +30,31 @@ import {
   isSelfServiceAutoTopupAvailable,
   resolvePlanCreditQuantity,
 } from "./credit";
+
+describe("getDisplayedPlanCreditGrants", () => {
+  const grants = [
+    { creditId: "bcred_a", creditAmount: 5000 },
+    { creditId: "bcred_b", creditAmount: 100 },
+  ] as PlanCreditGrantView[];
+
+  it("keeps every grant when the plan carries no overrides", () => {
+    expect(
+      getDisplayedPlanCreditGrants({ includedCreditGrants: grants }),
+    ).toEqual(grants);
+  });
+
+  it("drops only the credits a catalog hid", () => {
+    expect(
+      getDisplayedPlanCreditGrants({
+        includedCreditGrants: grants,
+        creditVisibility: [
+          { creditId: "bcred_a", visible: false },
+          { creditId: "bcred_b", visible: true },
+        ],
+      }),
+    ).toEqual([grants[1]]);
+  });
+});
 
 describe("isAutoTopupOff", () => {
   it("returns true when availability is off", () => {

@@ -190,6 +190,7 @@ export * from "./PlanBillingSource";
 export * from "./PlanCatalogMembershipResponseData";
 export * from "./PlanCreditGrantScaling";
 export * from "./PlanCreditGrantView";
+export * from "./PlanCreditVisibility";
 export * from "./PlanCurrencyPricesResponseData";
 export * from "./PlanDetailResponseData";
 export * from "./PlanEntitlementResponseData";

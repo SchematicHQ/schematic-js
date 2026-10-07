@@ -13,6 +13,7 @@ import {
   type CreditCompanyGrantView,
   type FeatureUsageResponseData,
   type PlanCreditGrantView,
+  type PlanCreditVisibility,
 } from "../../api/checkoutexternal";
 import type { Credit, CreditWithCompanyContext } from "../../types";
 
@@ -37,6 +38,26 @@ function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
  */
 function isPerLicenseGrant(grant: Pick<PlanCreditGrantView, "scaling">) {
   return grant.scaling === PlanCreditGrantScaling.PerLicense;
+}
+
+/**
+ * The included credit grants a plan card should show. A catalog can hide a
+ * plan's credit from the card (`creditVisibility`), which also keeps its
+ * amount out of limits derived from it. The grant itself stays in
+ * `includedCreditGrants`, since checkout still prices and configures it.
+ */
+export function getDisplayedPlanCreditGrants(plan: {
+  includedCreditGrants: PlanCreditGrantView[];
+  creditVisibility?: PlanCreditVisibility[];
+}) {
+  const hidden = new Set(
+    (plan.creditVisibility ?? [])
+      .filter((override) => !override.visible)
+      .map((override) => override.creditId),
+  );
+  return plan.includedCreditGrants.filter(
+    (grant) => !hidden.has(grant.creditId),
+  );
 }
 
 /**

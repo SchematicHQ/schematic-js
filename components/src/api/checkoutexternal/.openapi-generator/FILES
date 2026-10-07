@@ -192,6 +192,7 @@ models/PlanBillingSource.ts
 models/PlanCatalogMembershipResponseData.ts
 models/PlanCreditGrantScaling.ts
 models/PlanCreditGrantView.ts
+models/PlanCreditVisibility.ts
 models/PlanCurrencyPricesResponseData.ts
 models/PlanDetailResponseData.ts
 models/PlanEntitlementResponseData.ts
