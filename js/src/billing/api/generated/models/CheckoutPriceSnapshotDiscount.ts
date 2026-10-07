@@ -24,80 +24,95 @@ import {
 /**
  *
  * @export
- * @interface CompanyDiscountResponseData
+ * @interface CheckoutPriceSnapshotDiscount
  */
-export interface CompanyDiscountResponseData {
+export interface CheckoutPriceSnapshotDiscount {
   /**
    *
    * @type {number}
-   * @memberof CompanyDiscountResponseData
+   * @memberof CheckoutPriceSnapshotDiscount
    */
   amountOff?: number | null;
   /**
    *
    * @type {string}
-   * @memberof CompanyDiscountResponseData
+   * @memberof CheckoutPriceSnapshotDiscount
+   */
+  couponExternalId: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CheckoutPriceSnapshotDiscount
    */
   couponName: string;
   /**
    *
    * @type {Currency}
-   * @memberof CompanyDiscountResponseData
+   * @memberof CheckoutPriceSnapshotDiscount
    */
   currency?: Currency | null;
   /**
    *
    * @type {string}
-   * @memberof CompanyDiscountResponseData
+   * @memberof CheckoutPriceSnapshotDiscount
    */
   customerFacingCode?: string | null;
   /**
-   * Provider vocabulary: once, repeating, or forever.
+   *
    * @type {string}
-   * @memberof CompanyDiscountResponseData
+   * @memberof CheckoutPriceSnapshotDiscount
    */
   duration: string;
   /**
    *
    * @type {number}
-   * @memberof CompanyDiscountResponseData
+   * @memberof CheckoutPriceSnapshotDiscount
    */
   durationInMonths?: number | null;
   /**
    *
    * @type {number}
-   * @memberof CompanyDiscountResponseData
+   * @memberof CheckoutPriceSnapshotDiscount
    */
   percentOff?: number | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CheckoutPriceSnapshotDiscount
+   */
+  promoCodeExternalId?: string | null;
 }
 
 /**
- * Check if a given object implements the CompanyDiscountResponseData interface.
+ * Check if a given object implements the CheckoutPriceSnapshotDiscount interface.
  */
-export function instanceOfCompanyDiscountResponseData(
+export function instanceOfCheckoutPriceSnapshotDiscount(
   value: object,
-): value is CompanyDiscountResponseData {
+): value is CheckoutPriceSnapshotDiscount {
+  if (!("couponExternalId" in value) || value["couponExternalId"] === undefined)
+    return false;
   if (!("couponName" in value) || value["couponName"] === undefined)
     return false;
   if (!("duration" in value) || value["duration"] === undefined) return false;
   return true;
 }
 
-export function CompanyDiscountResponseDataFromJSON(
+export function CheckoutPriceSnapshotDiscountFromJSON(
   json: any,
-): CompanyDiscountResponseData {
-  return CompanyDiscountResponseDataFromJSONTyped(json, false);
+): CheckoutPriceSnapshotDiscount {
+  return CheckoutPriceSnapshotDiscountFromJSONTyped(json, false);
 }
 
-export function CompanyDiscountResponseDataFromJSONTyped(
+export function CheckoutPriceSnapshotDiscountFromJSONTyped(
   json: any,
   ignoreDiscriminator: boolean,
-): CompanyDiscountResponseData {
+): CheckoutPriceSnapshotDiscount {
   if (json == null) {
     return json;
   }
   return {
     amountOff: json["amount_off"] == null ? undefined : json["amount_off"],
+    couponExternalId: json["coupon_external_id"],
     couponName: json["coupon_name"],
     currency:
       json["currency"] == null ? undefined : CurrencyFromJSON(json["currency"]),
@@ -111,17 +126,21 @@ export function CompanyDiscountResponseDataFromJSONTyped(
         ? undefined
         : json["duration_in_months"],
     percentOff: json["percent_off"] == null ? undefined : json["percent_off"],
+    promoCodeExternalId:
+      json["promo_code_external_id"] == null
+        ? undefined
+        : json["promo_code_external_id"],
   };
 }
 
-export function CompanyDiscountResponseDataToJSON(
+export function CheckoutPriceSnapshotDiscountToJSON(
   json: any,
-): CompanyDiscountResponseData {
-  return CompanyDiscountResponseDataToJSONTyped(json, false);
+): CheckoutPriceSnapshotDiscount {
+  return CheckoutPriceSnapshotDiscountToJSONTyped(json, false);
 }
 
-export function CompanyDiscountResponseDataToJSONTyped(
-  value?: CompanyDiscountResponseData | null,
+export function CheckoutPriceSnapshotDiscountToJSONTyped(
+  value?: CheckoutPriceSnapshotDiscount | null,
   ignoreDiscriminator: boolean = false,
 ): any {
   if (value == null) {
@@ -130,11 +149,13 @@ export function CompanyDiscountResponseDataToJSONTyped(
 
   return {
     amount_off: value["amountOff"],
+    coupon_external_id: value["couponExternalId"],
     coupon_name: value["couponName"],
     currency: CurrencyToJSON(value["currency"]),
     customer_facing_code: value["customerFacingCode"],
     duration: value["duration"],
     duration_in_months: value["durationInMonths"],
     percent_off: value["percentOff"],
+    promo_code_external_id: value["promoCodeExternalId"],
   };
 }
