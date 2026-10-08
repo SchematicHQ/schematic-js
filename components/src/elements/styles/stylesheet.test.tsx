@@ -5,6 +5,7 @@ import {
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
+import { CreditUsage } from "../CreditUsage";
 import { IncludedFeatures } from "../IncludedFeatures";
 import { Invoices } from "../Invoices";
 import { MeteredFeatures } from "../MeteredFeatures";
@@ -12,6 +13,7 @@ import { PaymentMethods } from "../PaymentMethods";
 import { UpcomingBill } from "../UpcomingBill";
 import {
   cardPaymentMethod,
+  creditUserUsage,
   featureUserUsage,
   invoice,
   invoicePage,
@@ -31,7 +33,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped; `schematic-badge` is among them, worn only by the plan cards.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|included-features|metered-features|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|included-features|metered-features|credit-usage|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -97,11 +99,15 @@ function tree(
   featureUserUsage?: React.ComponentProps<
     typeof BillingDataProvider
   >["featureUserUsage"],
+  creditUserUsage?: React.ComponentProps<
+    typeof BillingDataProvider
+  >["creditUserUsage"],
 ) {
   const { container } = render(
     <BillingDataProvider
       actions={actions}
       data={data}
+      creditUserUsage={creditUserUsage}
       featureUserUsage={featureUserUsage}
       status={status}
     >
@@ -167,6 +173,27 @@ function adding() {
   );
   fireEvent.click(
     root.querySelector(".schematic-payment-methods__edit") as Element,
+  );
+  return root;
+}
+
+/** The credits card with every ledger open and the long one shown whole. */
+async function creditsOpen() {
+  const root = tree(
+    <CreditUsage buyMoreUrl="/buy" locale="en-US" />,
+    SCENARIOS.credits(),
+    undefined,
+    undefined,
+    undefined,
+    { bcr_ai: creditUserUsage() },
+  );
+  for (const button of Array.from(
+    root.querySelectorAll(".schematic-credit-usage__details"),
+  )) {
+    fireEvent.click(button);
+  }
+  fireEvent.click(
+    root.querySelector(".schematic-credit-usage__see-all") as Element,
   );
   return root;
 }
@@ -249,6 +276,13 @@ async function everyCard() {
     } as never),
     tree(<MeteredFeatures locale="en-US" />, {}, {
       featureUsage: { error: boom },
+    } as never),
+    await creditsOpen(),
+    tree(<CreditUsage locale="en-US" />, {}, {
+      creditBalances: { isPending: true },
+    } as never),
+    tree(<CreditUsage locale="en-US" />, {}, {
+      creditBalances: { error: boom },
     } as never),
     tree(<UpcomingBill locale="en-US" />, SCENARIOS.pro()),
     tree(<UpcomingBill locale="en-US" />, SCENARIOS.trialing()),

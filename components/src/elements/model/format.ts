@@ -136,6 +136,14 @@ export function formatNumber(
   return new Intl.NumberFormat(usableLocale(locale), options).format(value);
 }
 
+/**
+ * A credit quantity. Credits burn at rates with up to ten decimal places, so
+ * a small balance or spend must not round to nothing.
+ */
+export function formatCredits(value: number, locale: string): string {
+  return formatNumber(value, locale, { maximumFractionDigits: 10 });
+}
+
 /** Credits per use, readable down to 1e-10 rather than "0" or "1e-10". */
 export function formatConsumptionRate(rate: number, locale: string): string {
   return formatNumber(rate, locale, {

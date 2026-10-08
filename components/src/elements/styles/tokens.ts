@@ -40,6 +40,9 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-font-heading": '"Manrope", system-ui, sans-serif',
   // Link buttons' face: Edit, Set default, Try again, and the rest.
   "--schematic-font-link": '"Inter", system-ui, sans-serif',
+  // A lighter tint than the surface, for panels set into a card: a credit's
+  // grants, a plan's auto top-up.
+  "--schematic-inset": ld("hsla(0, 0%, 0%, 0.04)", "hsla(0, 0%, 100%, 0.06)"),
   "--schematic-line-height": "1.375",
   "--schematic-line-height-heading": "1.2",
   "--schematic-meter-track": ld("#f2f4f7", "#26282d"),

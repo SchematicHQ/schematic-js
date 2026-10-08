@@ -13,13 +13,14 @@ is reserved for the offerings resource. The routes those clients call are
 still `/company/*`, and the generated wire models keep their `Company…`
 names — the tier is what `billing` names, not the resource.
 
-| Element          | Hooks                                    | Derivation               | Reads             | Recipe                                         |
-| ---------------- | ---------------------------------------- | ------------------------ | ----------------- | ---------------------------------------------- |
-| Invoices         | `useInvoices`                            | `deriveInvoiceList`      | `invoices`        | [invoices.md](./invoices.md)                   |
-| UpcomingBill     | `useUpcomingInvoice`                     | `deriveUpcomingInvoice`  | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md)         |
-| PaymentMethods   | `usePaymentMethods`, `useSetupIntent`    | `derivePaymentMethods`   | `paymentMethods`  | [payment-methods.md](./payment-methods.md)     |
-| IncludedFeatures | `useFeatureUsage`                        | `deriveIncludedFeatures` | `featureUsage`    | [included-features.md](./included-features.md) |
-| MeteredFeatures  | `useFeatureUsage`, `useFeatureUserUsage` | `deriveMeteredFeatures`  | `featureUsage`    | [metered-features.md](./metered-features.md)   |
+| Element          | Hooks                                     | Derivation               | Reads             | Recipe                                         |
+| ---------------- | ----------------------------------------- | ------------------------ | ----------------- | ---------------------------------------------- |
+| Invoices         | `useInvoices`                             | `deriveInvoiceList`      | `invoices`        | [invoices.md](./invoices.md)                   |
+| UpcomingBill     | `useUpcomingInvoice`                      | `deriveUpcomingInvoice`  | `upcomingInvoice` | [upcoming-bill.md](./upcoming-bill.md)         |
+| PaymentMethods   | `usePaymentMethods`, `useSetupIntent`     | `derivePaymentMethods`   | `paymentMethods`  | [payment-methods.md](./payment-methods.md)     |
+| IncludedFeatures | `useFeatureUsage`                         | `deriveIncludedFeatures` | `featureUsage`    | [included-features.md](./included-features.md) |
+| MeteredFeatures  | `useFeatureUsage`, `useFeatureUserUsage`  | `deriveMeteredFeatures`  | `featureUsage`    | [metered-features.md](./metered-features.md)   |
+| CreditUsage      | `useCreditBalances`, `useCreditUserUsage` | `deriveCreditUsage`      | `creditBalances`  | [credit-usage.md](./credit-usage.md)           |
 
 ## Before it can load
 
@@ -148,7 +149,7 @@ matching markup on both sides rather than a hydration mismatch per row.
 `<SchematicStyles />` injects one stylesheet driven by `--schematic-*`
 custom properties: `accent`, `accent-contrast`, `backdrop`, `background`,
 `border`, `card-divider`, `card-padding`, `danger`, `font-body`,
-`font-heading`, `font-link`, `line-height`, `line-height-heading`,
+`font-heading`, `font-link`, `inset`, `line-height`, `line-height-heading`,
 `meter-track`, `muted`, `primary`, `primary-contrast`, `radius`, `shadow`,
 `space`, `surface`, `text`, `warning`.
 

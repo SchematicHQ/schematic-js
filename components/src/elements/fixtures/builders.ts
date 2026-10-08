@@ -4,6 +4,9 @@
  */
 
 import type {
+  CreditBalanceEntry,
+  CreditGrant,
+  CreditUserUsage,
   Discount,
   FeatureUsage,
   FeatureUserUsage,
@@ -226,6 +229,81 @@ export function featureUserUsage(
       usage,
       userId: `user_${name.toLowerCase()}`,
     })),
+    ...overrides,
+  };
+}
+
+/** A plan grant of 500 that renews next month, 150 of it spent. */
+export function creditGrant(overrides: Partial<CreditGrant> = {}): CreditGrant {
+  return {
+    createdAt: daysFromNow(-20),
+    grantReason: "plan",
+    id: nextId("bcg"),
+    planId: "plan_pro",
+    planName: "Pro",
+    quantity: 500,
+    quantityRemaining: 350,
+    quantityUsed: 150,
+    renewalPeriod: "monthly",
+    resetsAt: daysFromNow(10),
+    ...overrides,
+  };
+}
+
+/**
+ * AI credits: the plan's renewing grant and a purchased bundle, on offer to
+ * buy more of. Absent optionals are omitted rather than `null`.
+ */
+export function creditBalance(
+  overrides: Partial<CreditBalanceEntry> = {},
+): CreditBalanceEntry {
+  const grants = [
+    creditGrant({
+      bundleId: "bcb_pack",
+      bundleName: "500 credit pack",
+      createdAt: daysFromNow(-2),
+      expiresAt: daysFromNow(60),
+      grantReason: "purchased",
+      planId: undefined,
+      planName: undefined,
+      quantityRemaining: 500,
+      quantityUsed: 0,
+      renewalPeriod: undefined,
+      resetsAt: undefined,
+    }),
+    creditGrant(),
+  ];
+  return {
+    creditDescription: "Spent running inference",
+    creditIcon: "chip",
+    creditId: nextId("bcr"),
+    creditName: "AI credit",
+    expiresAt: daysFromNow(60),
+    grants,
+    purchasable: true,
+    remaining: 850.25,
+    resetsAt: daysFromNow(10),
+    total: 1000,
+    used: 149.75,
+    ...overrides,
+  };
+}
+
+/** Three named users behind a credit, and consumption sent without a user. */
+export function creditUserUsage(
+  overrides: Partial<CreditUserUsage> = {},
+): CreditUserUsage {
+  return {
+    count: 3,
+    endTime: daysFromNow(10),
+    startTime: daysFromNow(-20),
+    total: 149.75,
+    unattributed: 4.75,
+    users: [
+      { name: "Bo", share: 0.2, used: 30, userId: "user_bo" },
+      { name: "Ada", share: 0.6, used: 90, userId: "user_ada" },
+      { name: "Cy", share: 0.17, used: 25, userId: "user_cy" },
+    ],
     ...overrides,
   };
 }
