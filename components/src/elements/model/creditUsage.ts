@@ -17,8 +17,8 @@ export type CreditGrantKind = "plan" | "bundle" | "autoTopup" | "promotional";
 export interface CreditLedgerRow {
   id: string;
   kind: CreditGrantKind;
-  /** Credits granted, unformatted. */
-  amount: number;
+  /** Credits granted. */
+  amount: string;
   /** The credit's name for `amount`; a bundle is named in the singular. */
   item: string;
   /** "Sep 1, 2026". */
@@ -30,14 +30,14 @@ export interface CreditLedgerRow {
 
 export interface CreditCompositionLine {
   /** Credits per period in all. */
-  total: number;
+  total: string;
   creditName: string;
   /** A period key: "day", "week", "month" or "year". */
   period: string;
   /** "12 Seats × 10". */
-  perLicense: { quantity: number; licenseName: string; perUnit: number };
+  perLicense: { quantity: string; licenseName: string; perUnit: string };
   /** The flat company grant on top; `null` when there is none. */
-  companyGrant: number | null;
+  companyGrant: string | null;
   /** "1st", "22nd": the day of the month the next bill is due. */
   renewsOn: string | null;
 }
@@ -114,11 +114,11 @@ function creditUsageRow(
       composition === undefined || composition === null
         ? null
         : {
-            total: composition.total,
+            total: formatNumber(composition.total, locale),
             creditName: featureName(unit, composition.total, locale),
             period: composition.period,
             perLicense: {
-              quantity: composition.licenseQuantity,
+              quantity: formatNumber(composition.licenseQuantity, locale),
               licenseName: featureName(
                 {
                   name: composition.licenseName,
@@ -128,10 +128,12 @@ function creditUsageRow(
                 composition.licenseQuantity,
                 locale,
               ),
-              perUnit: composition.perLicenseAmount,
+              perUnit: formatNumber(composition.perLicenseAmount, locale),
             },
             companyGrant:
-              composition.fixedQuantity > 0 ? composition.fixedQuantity : null,
+              composition.fixedQuantity > 0
+                ? formatNumber(composition.fixedQuantity, locale)
+                : null,
             renewsOn: renewsOn(composition.renewsAt, locale),
           },
     unit,
@@ -158,7 +160,7 @@ function ledgerRow(
   return {
     id: grant.id,
     kind,
-    amount: grant.quantity,
+    amount: formatNumber(grant.quantity, locale),
     item: featureName(unit, kind === "bundle" ? 1 : grant.quantity, locale),
     createdAt: short(grant.createdAt),
     date:

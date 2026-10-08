@@ -67,6 +67,32 @@ describe("deriveCreditUsage", () => {
     expect(row.remaining.amount).toBe("0.0000000123");
   });
 
+  test("formats the ledger and composition counts", () => {
+    const [row] = deriveCreditUsage(
+      [
+        creditBalance({
+          grants: [creditGrant({ grantReason: "plan", quantity: 10000 })],
+          composition: {
+            fixedQuantity: 5000,
+            licenseName: "Seat",
+            licenseQuantity: 1200,
+            perLicenseAmount: 1000,
+            period: "month",
+            renewsAt: new Date(2026, 8, 1, 12),
+            total: 1205000,
+          },
+        }),
+      ],
+      { locale: L },
+    );
+    expect(row.ledger[0].amount).toBe("10,000");
+    expect(row.composition).toMatchObject({
+      total: "1,205,000",
+      perLicense: { quantity: "1,200", perUnit: "1,000" },
+      companyGrant: "5,000",
+    });
+  });
+
   test("visibleCredits orders and filters", () => {
     const rows = deriveCreditUsage(
       [creditBalance({ creditId: "a" }), creditBalance({ creditId: "b" })],
