@@ -391,7 +391,7 @@ function PriceDetails({
         <span>
           {t("meteredFeaturesAdditional")}: {details.unitPrice}
           <sub>
-            /{details.packageSize > 1 && `${details.packageSize} `}
+            /{details.packageSize !== null && `${details.packageSize} `}
             {details.units}
             {period !== undefined && `/${period}`}
           </sub>

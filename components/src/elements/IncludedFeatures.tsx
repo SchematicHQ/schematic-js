@@ -306,7 +306,7 @@ function segmentText(segment: UsageSegment, t: Translator): string {
   switch (segment.kind) {
     case "unitPricePerPeriod": {
       const period = shortPeriod(segment.period, t) ?? segment.period;
-      return segment.size > 1
+      return segment.size !== null
         ? t("usagePackagePricePerPeriod", {
             cost: segment.cost,
             size: segment.size,

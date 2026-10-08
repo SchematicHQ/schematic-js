@@ -182,6 +182,7 @@ describe("MeteredFeatures", () => {
     });
     const { unmount } = renderUsage(tiered(1000));
     expect(card("Build")).toHaveTextContent("Up to 1,000 Builds in this tier");
+    expect(card("Build")).toHaveTextContent("Tier: 1–1,000");
     unmount();
     renderUsage(tiered(1));
     expect(card("Build")).toHaveTextContent("Up to 1 Build in this tier");

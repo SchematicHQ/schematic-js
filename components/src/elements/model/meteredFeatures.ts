@@ -63,7 +63,8 @@ export type MeteredPriceDetails =
       kind: "overage";
       /** The per-unit price past the soft limit. */
       unitPrice: string;
-      packageSize: number;
+      /** "100" for a package price; `null` for a price per unit. */
+      packageSize: string | null;
       units: string;
       /** A period key, for a trait billed per period. */
       period: string | null;
@@ -72,9 +73,9 @@ export type MeteredPriceDetails =
     }
   | {
       kind: "tier";
-      from: number;
+      from: string;
       /** `null` for the last, unbounded tier. */
-      to: number | null;
+      to: string | null;
       /** What the usage costs across the tiers; `null` when nothing does. */
       cost: string | null;
       period: string | null;
@@ -95,7 +96,7 @@ export interface MeteredFeatureRow {
   limit: MeteredLimit | null;
   /** "Resets Oct 1". */
   resetsAt: string | null;
-  hardLimit: { amount: number; units: string } | null;
+  hardLimit: { amount: string; units: string } | null;
   meter: MeteredMeter | null;
   priceDetails: MeteredPriceDetails | null;
   /** Paid in advance, so more can be bought. */
@@ -173,7 +174,7 @@ function meteredFeatureRow(
       row.valueType === "numeric" &&
       typeof row.allocation === "number"
         ? {
-            amount: row.allocation,
+            amount: formatNumber(row.allocation, locale),
             units: featureName(unit, row.allocation, locale),
           }
         : null,
@@ -353,7 +354,7 @@ function priceDetails(
     return {
       kind: "overage",
       unitPrice: money(tier.perUnitPrice),
-      packageSize: size,
+      packageSize: size > 1 ? formatNumber(size, locale) : null,
       units: featureName(unit, size, locale),
       period,
       overage: {
@@ -370,8 +371,8 @@ function priceDetails(
     }
     return {
       kind: "tier",
-      from: tier.from === 0 ? 1 : tier.from,
-      to: tier.to,
+      from: formatNumber(tier.from === 0 ? 1 : tier.from, locale),
+      to: tier.to === null ? null : formatNumber(tier.to, locale),
       cost: typeof row.currentCost === "number" ? money(row.currentCost) : null,
       period,
       tiers: {
