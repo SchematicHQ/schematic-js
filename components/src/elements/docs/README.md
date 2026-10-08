@@ -208,8 +208,9 @@ Overriding `background` and `text` alone leaves a card looking half-themed —
 `border`, `card-divider`, and `shadow` carry the rest.
 
 Or skip the stylesheet and write your own against the class names below —
-they are API, and each element's doc shows the tree it renders. A sheet of
-your own has to bring the icon font too: render `<style>{iconsCss}</style>`
+they are API, and each element's doc shows the tree it renders
+([checkout.md](./checkout.md) tables the dialog's). A sheet of your own has
+to bring the icon font too: render `<style>{iconsCss}</style>`
 once (exported beside `SchematicStyles`; the font face and one
 `.schematic-icon--<name>` rule per glyph), or the glyphs render empty. The
 package's own `@schematichq/schematic-icons/styles.css` is not a substitute:
