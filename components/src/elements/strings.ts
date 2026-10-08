@@ -121,6 +121,7 @@ export type ElementStrings = {
   creditUsageResets: string;
   creditUsageExpires: string;
   creditUsageComposition: string;
+  creditUsageCompositionWithGrant: string;
   creditUsagePerLicense: string;
   creditUsageCompanyGrant: string;
   creditUsageRenewsOn: string;
@@ -311,7 +312,9 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   creditUsageResets: "Resets {{date}}",
   creditUsageExpires: "Expires {{date}}",
   creditUsageComposition:
-    "Your plan includes {{total}} {{creditName}}/{{period}}{{composition}}.",
+    "Your plan includes {{total}} {{creditName}}/{{period}} — {{perLicense}}.",
+  creditUsageCompositionWithGrant:
+    "Your plan includes {{total}} {{creditName}}/{{period}} — {{perLicense}} + {{companyGrant}}.",
   creditUsagePerLicense: "{{quantity}} {{licenseName}} × {{perUnit}}",
   creditUsageCompanyGrant: "{{amount}} company grant",
   creditUsageRenewsOn: "Renews on the {{day}}.",

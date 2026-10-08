@@ -25,6 +25,7 @@ const KEYS = [
   "creditUsageBuyMore",
   "creditUsageCompanyGrant",
   "creditUsageComposition",
+  "creditUsageCompositionWithGrant",
   "creditUsageError",
   "creditUsageExpires",
   "creditUsageGrantAutoTopup",

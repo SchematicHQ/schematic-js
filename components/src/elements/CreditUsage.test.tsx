@@ -103,6 +103,24 @@ describe("CreditUsage", () => {
     );
   });
 
+  test("the composition leaves the company grant out when there is none", () => {
+    const data = SCENARIOS.credits();
+    renderCredits({
+      ...data,
+      creditBalances: data.creditBalances?.map((balance) =>
+        balance.composition
+          ? {
+              ...balance,
+              composition: { ...balance.composition, fixedQuantity: 0 },
+            }
+          : balance,
+      ),
+    });
+    expect(section("AI credit")).toHaveTextContent(
+      "Your plan includes 220 AI credits/mo — 12 Seats × 10. Renews on the 1st.",
+    );
+  });
+
   test("Buy More calls back with the credit, and only where a bundle sells it", () => {
     const onBuyMore = vi.fn();
     renderCredits(undefined, { onBuyMore });

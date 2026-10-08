@@ -219,18 +219,21 @@ function compositionText(credit: CreditUsageRow, t: Translator): string {
   if (composition === null) {
     return "";
   }
-  const parts = [t("creditUsagePerLicense", composition.perLicense)];
-  if (composition.companyGrant !== null) {
-    parts.push(
-      t("creditUsageCompanyGrant", { amount: composition.companyGrant }),
-    );
-  }
-  const sentence = t("creditUsageComposition", {
-    composition: ` — ${parts.join(" + ")}`,
+  const vars = {
     creditName: composition.creditName,
+    perLicense: t("creditUsagePerLicense", composition.perLicense),
     period: shortPeriod(composition.period, t) ?? composition.period,
     total: composition.total,
-  });
+  };
+  const sentence =
+    composition.companyGrant === null
+      ? t("creditUsageComposition", vars)
+      : t("creditUsageCompositionWithGrant", {
+          ...vars,
+          companyGrant: t("creditUsageCompanyGrant", {
+            amount: composition.companyGrant,
+          }),
+        });
   return composition.renewsOn === null
     ? sentence
     : `${sentence} ${t("creditUsageRenewsOn", { day: composition.renewsOn })}`;
