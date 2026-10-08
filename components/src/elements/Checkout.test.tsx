@@ -373,6 +373,34 @@ describe("Checkout", () => {
     );
   });
 
+  test("stacks the summary under the steps when asked", () => {
+    renderCheckout({ display: { layout: "stacked" } });
+    expect(dialog().className).toBe(
+      "schematic-dialog schematic-checkout schematic-checkout--stacked",
+    );
+  });
+
+  test("holds the summary for the payment step when asked", async () => {
+    const { actions } = renderCheckout({ display: { summary: "payment" } });
+    expect(step()).toBe("plan");
+    expect(
+      dialog().querySelector(".schematic-checkout__layout"),
+    ).toHaveAttribute("data-summary", "payment");
+    expect(screen.queryByTestId("schematic-checkout-summary")).toBeNull();
+    expect(next().closest(".schematic-checkout__nav")).not.toBeNull();
+    await waitFor(() => expect(actions.createCheckout).toHaveBeenCalled());
+    while (screen.queryByTestId("schematic-checkout-finalize") === null) {
+      fireEvent.click(next());
+    }
+    expect(step()).toBe("payment");
+    expect(screen.getByTestId("schematic-checkout-summary")).toContainElement(
+      finalizeButton(),
+    );
+    expect(dialog().querySelector(".schematic-checkout__nav")).not.toContain(
+      finalizeButton(),
+    );
+  });
+
   test("closes from its close control", () => {
     const { onOpenChange } = renderCheckout();
     fireEvent.click(screen.getByRole("button", { name: "Close" }));

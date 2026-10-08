@@ -650,8 +650,14 @@ describe("every node carries a schematic class", () => {
   });
 });
 
-/** The checkout on `initial`, once it has priced. */
-async function renderCheckout(initial: "plan" | "payment") {
+/**
+ * The checkout on `initial`, once it has priced — or, with the summary held
+ * for the payment step, once its Next action has landed in the navigation.
+ */
+async function renderCheckout(
+  initial: "plan" | "payment",
+  display: React.ComponentProps<typeof Checkout>["display"] = undefined,
+) {
   const starter = catalogPlan({ current: true, name: "Starter" });
   const { container } = render(
     <BillingDataProvider
@@ -666,6 +672,7 @@ async function renderCheckout(initial: "plan" | "payment") {
       }}
     >
       <Checkout
+        display={display}
         locale="en-US"
         open
         steps={{ initial }}
@@ -674,13 +681,59 @@ async function renderCheckout(initial: "plan" | "payment") {
     </BillingDataProvider>,
   );
   const root = container.firstElementChild as HTMLElement;
-  await waitFor(() =>
-    expect(root.querySelector(".schematic-checkout__totals")).not.toBeNull(),
-  );
+  const ready =
+    display?.summary === "payment" && initial !== "payment"
+      ? ".schematic-checkout__nav .schematic-cta"
+      : ".schematic-checkout__totals";
+  await waitFor(() => expect(root.querySelector(ready)).not.toBeNull());
   return root;
 }
 
 describe("Checkout markup contract", () => {
+  test("the root, stacked", async () => {
+    const root = await renderCheckout("plan", { layout: "stacked" });
+    expect(root.className).toBe(
+      "schematic-dialog schematic-checkout schematic-checkout--stacked",
+    );
+  });
+
+  test("the plan step with the summary held for payment", async () => {
+    const root = await renderCheckout("plan", { summary: "payment" });
+    expect(root.querySelector(".schematic-checkout__layout")).toHaveAttribute(
+      "data-summary",
+      "payment",
+    );
+    expect(classNames(root)).toEqual([
+      "schematic-badge",
+      "schematic-checkout__card",
+      "schematic-checkout__card-badges",
+      "schematic-checkout__card-name",
+      "schematic-checkout__card-period",
+      "schematic-checkout__card-price",
+      "schematic-checkout__cards",
+      "schematic-checkout__controls",
+      "schematic-checkout__frame",
+      "schematic-checkout__heading",
+      "schematic-checkout__layout",
+      "schematic-checkout__main",
+      "schematic-checkout__nav",
+      "schematic-checkout__section",
+      "schematic-checkout__step",
+      "schematic-checkout__step-link",
+      "schematic-checkout__stepper",
+      "schematic-cta",
+      "schematic-cta--outline",
+      "schematic-cta--small",
+      "schematic-dialog__body",
+      "schematic-dialog__close",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-icon",
+      "schematic-icon--close",
+      "schematic-toggle",
+    ]);
+  });
+
   test("the plan step, priced", async () => {
     const root = await renderCheckout("plan");
     expect(root.className).toBe("schematic-dialog schematic-checkout");

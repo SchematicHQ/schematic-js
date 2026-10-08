@@ -296,10 +296,14 @@ const checkoutActions = () => ({
   })),
 });
 
-/** The checkout on `initial`, once it has priced. */
+/**
+ * The checkout on `initial`, once it has priced — or, with the summary held
+ * for the payment step, once the Next action has landed in the navigation.
+ */
 async function checkoutAt(
   props: Partial<React.ComponentProps<typeof Checkout>>,
   data: BillingData = checkoutData(),
+  ready = ".schematic-checkout__totals",
 ) {
   const root = tree(
     <Checkout locale="en-US" open onOpenChange={() => {}} {...props} />,
@@ -307,9 +311,7 @@ async function checkoutAt(
     undefined,
     checkoutActions() as never,
   );
-  await waitFor(() =>
-    expect(root.querySelector(".schematic-checkout__totals")).not.toBeNull(),
-  );
+  await waitFor(() => expect(root.querySelector(ready)).not.toBeNull());
   return root;
 }
 
@@ -318,6 +320,11 @@ async function everyCheckout() {
   return [
     await checkoutAt({ selection: { planId: "plan_main" } }),
     await checkoutAt({ selection: { planId: "plan_trial" } }),
+    await checkoutAt(
+      { display: { layout: "stacked", summary: "payment" } },
+      checkoutData(),
+      ".schematic-checkout__nav .schematic-cta",
+    ),
     await checkoutAt({ steps: { initial: "autoTopup" } }),
     await checkoutAt({ steps: { initial: "usage", skip: ["autoTopup"] } }),
     await checkoutAt({ steps: { initial: "addOns" } }),
