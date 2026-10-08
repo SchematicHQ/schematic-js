@@ -16,7 +16,9 @@ import {
   MISSING_STRING,
   defaultString,
   lookup,
+  type StringKey,
   type StringOverrides,
+  type StringVars,
   type Translator,
 } from "./strings";
 
@@ -110,6 +112,9 @@ export function useTranslator(
 
   return useCallback(
     (key, vars) => {
+      if (isDevelopment) {
+        warnRawNumbers(key, vars);
+      }
       // Host overrides are in the host's language, so their plural forms
       // follow the resolved locale rather than English.
       const override =
@@ -140,6 +145,30 @@ export function useTranslator(
     },
     [onMissingString, overrides, resolved, strings, translate],
   );
+}
+
+/** Each key and variable warns once, rather than on every render. */
+const rawNumberWarnings = new Set<string>();
+
+/**
+ * Copy interpolates with `String()`, so a number reaches the viewer as
+ * "10000" in every locale. Models format counts before they reach a
+ * translator; only `count`, which picks the plural form, stays a number.
+ */
+function warnRawNumbers(key: StringKey, vars: StringVars | undefined): void {
+  for (const [name, value] of Object.entries(vars ?? {})) {
+    const id = `${key}.${name}`;
+    if (
+      name !== "count" &&
+      typeof value === "number" &&
+      !rawNumberWarnings.has(id)
+    ) {
+      rawNumberWarnings.add(id);
+      console.warn(
+        `Schematic: "${key}" got a raw number for "${name}"; format it before it reaches the translator.`,
+      );
+    }
+  }
 }
 
 /** Where a call to action rendered as a link goes. */

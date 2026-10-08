@@ -148,7 +148,10 @@ function includedFeatureRow(
     perLicenseCredits: row.perLicenseCreditGrants
       .filter((grant) => grant.scaling === "per_license")
       .map((grant) => ({
-        amount: formatNumber(grant.creditAmount, locale),
+        // Credits come in fractions as small as 1e-10.
+        amount: formatNumber(grant.creditAmount, locale, {
+          maximumFractionDigits: 10,
+        }),
         creditName: featureName(
           {
             name: grant.creditName,
