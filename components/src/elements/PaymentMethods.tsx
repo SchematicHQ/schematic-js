@@ -12,6 +12,7 @@ import {
 } from "./common";
 import {
   derivePaymentMethods,
+  formatNumber,
   httpStatus,
   type DerivedPaymentMethods,
   type PaymentMethodLabel,
@@ -192,6 +193,7 @@ export function PaymentMethods({
             <PaymentMethodsHeader
               derived={derived}
               heading={Heading}
+              locale={locale}
               showExpiration={showExpiration}
               t={t}
             />
@@ -321,6 +323,7 @@ function PaymentMethodsDialog({
           <PaymentMethodsHeader
             derived={derived}
             heading="h3"
+            locale={locale}
             showExpiration
             t={t}
           />
@@ -446,11 +449,13 @@ function PaymentMethodsDialog({
 function PaymentMethodsHeader({
   derived,
   heading: Heading,
+  locale,
   showExpiration,
   t,
 }: {
   derived: DerivedPaymentMethods;
   heading: "h2" | "h3" | "h4" | "h5" | "h6";
+  locale: string;
   showExpiration: boolean;
   t: Translator;
 }) {
@@ -464,7 +469,7 @@ function PaymentMethodsHeader({
           className="schematic-small schematic-payment-methods__expiry-warning"
           data-expiry={derived.expiryWarning}
         >
-          {expiryWarningText(derived, t)}
+          {expiryWarningText(derived, locale, t)}
         </span>
       )}
     </div>
@@ -537,12 +542,15 @@ function labelText(label: PaymentMethodLabel, t: Translator): string {
 /** "Expires in 2 mo", or "Expired". */
 function expiryWarningText(
   derived: DerivedPaymentMethods,
+  locale: string,
   t: Translator,
 ): string {
   const months = derived.monthsToExpiration ?? 0;
   return derived.expiryWarning === "expired"
     ? t("paymentMethodsExpired")
-    : t("paymentMethodsExpiresInMonths", { months });
+    : t("paymentMethodsExpiresInMonths", {
+        months: formatNumber(months, locale),
+      });
 }
 
 /**

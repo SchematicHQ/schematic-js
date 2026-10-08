@@ -130,14 +130,14 @@ describe("IncludedFeatures", () => {
     renderFeatures(undefined, { visibleFeatures: ["feat_storage"] });
     const storage = row("GB of storage");
     expect(storage).toHaveTextContent("$0.02 per 100 GB of storage");
-    expect(storage).toHaveTextContent("1300 GB of storage used • $0.26");
+    expect(storage).toHaveTextContent("1,300 GB of storage used • $0.26");
   });
 
   test("overage reads the soft limit and the cost past it", () => {
     renderFeatures();
     const emails = row("Email");
     expect(emails).toHaveTextContent("1,000 Emails");
-    expect(emails).toHaveTextContent("1300 Emails used • $15.00");
+    expect(emails).toHaveTextContent("1,300 Emails used • $15.00");
   });
 
   test("tier pricing reads the current tier and offers the tiers", () => {
@@ -194,7 +194,7 @@ describe("IncludedFeatures", () => {
     unmount();
     renderFeatures(data, { showHardLimit: true });
     expect(screen.getByRole("tooltip")).toHaveTextContent(
-      "Up to a limit of 1000 Emails",
+      "Up to a limit of 1,000 Emails",
     );
   });
 

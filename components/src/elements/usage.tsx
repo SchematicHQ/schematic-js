@@ -88,11 +88,11 @@ export function PriceTiers({
         {ranges.map((tier) => (
           <div className="schematic-tiers__tier" key={tier.from}>
             <dt className="schematic-tiers__range">
-              {tier.from}
+              {formatNumber(tier.from, locale)}
               {tier.to === null
                 ? "+"
                 : tier.to !== tier.from
-                  ? `–${tier.to}`
+                  ? `–${formatNumber(tier.to, locale)}`
                   : ""}
             </dt>
             <dd className="schematic-tiers__price">

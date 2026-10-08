@@ -94,12 +94,25 @@ beforeAll(() => {
   });
 });
 
+// A test that renders a raw number fails, so the warning cannot ship.
+const rawNumberWarnings: string[] = [];
+const consoleWarn = console.warn.bind(console);
+vi.spyOn(console, "warn").mockImplementation((...args: unknown[]) => {
+  if (typeof args[0] === "string" && args[0].includes("got a raw number")) {
+    rawNumberWarnings.push(args[0]);
+    return;
+  }
+  consoleWarn(...args);
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
+  rawNumberWarnings.length = 0;
 });
 
 afterEach(() => {
   server.resetHandlers();
+  expect(rawNumberWarnings).toEqual([]);
 });
 
 afterAll(() => {

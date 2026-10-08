@@ -31,7 +31,7 @@ export type EntitlementText =
   /** "$0.01 per API call". */
   | { kind: "perUnit"; cost: string; unit: string }
   /** "$1.00 per 100 API calls". */
-  | { kind: "perPackage"; cost: string; size: number; units: string }
+  | { kind: "perPackage"; cost: string; size: string; units: string }
   /** "Up to 1,000 API calls in this tier". */
   | { kind: "tierUpTo"; amount: string; feature: string }
   /** "Unlimited API calls in this tier". */
@@ -47,12 +47,13 @@ export type UsageSegment =
   | {
       kind: "unitPricePerPeriod";
       cost: string;
-      size: number;
+      /** "100" for a package price; `null` for a price per unit. */
+      size: string | null;
       units: string;
       /** A period key: "month", "quarter" or "year". */
       period: string;
     }
-  /** "1300 API calls used"; the amount is left as the API sends it. */
+  /** "1,300 API calls used". */
   | { kind: "used"; amount: string; units: string }
   /** "$15.00", with "/mo" for a trait feature billed per period. */
   | { kind: "cost"; cost: string; period: string | null }
@@ -65,8 +66,7 @@ export type UsageSummary =
   | { kind: "unlimited"; amount: string };
 
 export interface PerLicenseCredits {
-  /** Credits per license unit, as the API sends it. */
-  amount: number;
+  amount: string;
   creditName: string;
   licenseName: string;
 }
@@ -89,7 +89,7 @@ export interface IncludedFeatureRow {
    * The hard limit, for a numeric entitlement a price behavior bills past;
    * the element shows it only when the host asks.
    */
-  hardLimit: { amount: number; units: string } | null;
+  hardLimit: { amount: string; units: string } | null;
   /** The price's tiers, for a tier-priced row or tiered pay-in-advance. */
   tiers: {
     ranges: TierRange[];
@@ -147,7 +147,10 @@ function includedFeatureRow(
     perLicenseCredits: row.perLicenseCreditGrants
       .filter((grant) => grant.scaling === "per_license")
       .map((grant) => ({
-        amount: grant.creditAmount,
+        // Credits come in fractions as small as 1e-10.
+        amount: formatNumber(grant.creditAmount, locale, {
+          maximumFractionDigits: 10,
+        }),
         creditName: featureName(
           {
             name: grant.creditName,
@@ -176,7 +179,7 @@ function includedFeatureRow(
       row.valueType === "numeric" &&
       typeof row.allocation === "number"
         ? {
-            amount: row.allocation,
+            amount: formatNumber(row.allocation, locale),
             units: featureName(feature, row.allocation, locale),
           }
         : null,
@@ -235,7 +238,7 @@ function entitlementText(
         ? {
             kind: "perPackage",
             cost,
-            size,
+            size: formatNumber(size, locale),
             units: featureName(feature, size, locale),
           }
         : { kind: "perUnit", cost, unit: featureName(feature, 1, locale) };
@@ -319,7 +322,7 @@ function usageSegments(
     segments.push({
       kind: "unitPricePerPeriod",
       cost: formatCurrency(unitPrice(row.price), row.price.currency, locale),
-      size,
+      size: size > 1 ? formatNumber(size, locale) : null,
       units: featureName(feature, size, locale),
       period,
     });
@@ -333,7 +336,7 @@ function usageSegments(
   ) {
     segments.push({
       kind: "used",
-      amount: String(row.usage),
+      amount: formatNumber(row.usage, locale),
       units: featureName(feature, row.usage, locale),
     });
   }
