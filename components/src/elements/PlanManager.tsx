@@ -16,6 +16,7 @@ import {
 } from "./common";
 import {
   derivePlanManager,
+  formatNumber,
   httpStatus,
   type CreditGroupRow,
   type PlanCreditRow,
@@ -199,7 +200,12 @@ export function PlanManager({
       {view !== undefined && (
         <>
           {showNotice && view.notice !== null && (
-            <Notice Heading={NoticeHeading} notice={view.notice} t={t} />
+            <Notice
+              Heading={NoticeHeading}
+              locale={locale}
+              notice={view.notice}
+              t={t}
+            />
           )}
           <div className="schematic-card schematic-plan-manager__card">
             {showHeader && view.plan !== null && (
@@ -257,6 +263,7 @@ export function PlanManager({
 
             {showCredits && view.planCredits.length > 0 && (
               <Truncated
+                locale={locale}
                 after={
                   view.autoTopup !== null && (
                     <AutoTopupBox
@@ -279,6 +286,7 @@ export function PlanManager({
 
             {showCredits && view.topUps.length > 0 && (
               <Truncated
+                locale={locale}
                 label={t("planManagerTopUps")}
                 rows={view.topUps}
                 showLabel={showLabels}
@@ -292,6 +300,7 @@ export function PlanManager({
 
             {showCredits && view.bundles.length > 0 && (
               <Truncated
+                locale={locale}
                 label={t("planManagerCreditBundles")}
                 rows={view.bundles}
                 showLabel={showLabels}
@@ -303,6 +312,7 @@ export function PlanManager({
 
             {showCredits && view.promotional.length > 0 && (
               <Truncated
+                locale={locale}
                 label={t("planManagerPromotionalCredits")}
                 rows={view.promotional}
                 showLabel={showLabels}
@@ -332,10 +342,12 @@ export function PlanManager({
 
 function Notice({
   Heading,
+  locale,
   notice,
   t,
 }: {
   Heading: `h${HeadingLevel}`;
+  locale: string;
   notice: PlanNotice;
   t: Translator;
 }) {
@@ -352,7 +364,7 @@ function Notice({
             : notice.endsIn === "ended"
               ? t("planManagerTrialEnded")
               : t("planManagerTrialEndsIn", {
-                  amount: notice.endsIn.amount,
+                  amount: formatNumber(notice.endsIn.amount, locale),
                   units: t(UNIT_KEY[notice.endsIn.unit], {
                     count: notice.endsIn.amount,
                   }),
@@ -470,6 +482,7 @@ function Truncated<Row>({
   after,
   children,
   label,
+  locale,
   rows,
   showLabel,
   t,
@@ -477,6 +490,7 @@ function Truncated<Row>({
   after?: React.ReactNode;
   children: (row: Row) => React.ReactNode;
   label: string;
+  locale: string;
   rows: Row[];
   showLabel: boolean;
   t: Translator;
@@ -505,7 +519,9 @@ function Truncated<Row>({
           <span className="schematic-link-button__label">
             {expanded
               ? t("planManagerHideAll")
-              : t("planManagerSeeAll", { total: rows.length })}
+              : t("planManagerSeeAll", {
+                  total: formatNumber(rows.length, locale),
+                })}
           </span>
         </button>
       )}
@@ -643,7 +659,7 @@ function PlanCreditItem({ row, t }: { row: PlanCreditRow; t: Translator }) {
             })
           )}
         </span>
-        {row.used > 0 && (
+        {row.used !== null && (
           <span className="schematic-muted schematic-small schematic-plan-manager__used">
             {t("planManagerUsed", { amount: row.used })}
             {row.autoTopup !== null && (
@@ -709,7 +725,7 @@ function CreditGroupItem({
         {showCount && <span className="schematic-muted">({row.count}) </span>}
         {named ? `${row.bundleName} (${amount})` : amount}
       </span>
-      {row.used > 0 && (
+      {row.used !== null && (
         <span className="schematic-muted schematic-small schematic-plan-manager__used">
           {t("planManagerUsed", { amount: row.used })}
         </span>

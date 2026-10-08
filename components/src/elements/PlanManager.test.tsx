@@ -82,7 +82,7 @@ describe("PlanManager", () => {
     const text = rows.map((row) => row.textContent);
     expect(text).toContain("12 Seats $180.00/mo");
     expect(text).toContain("GB of storage$0.02/100 GB of storage");
-    expect(text).toContain("1000 EmailsAdditional: $0.05/Email");
+    expect(text).toContain("1,000 EmailsAdditional: $0.05/Email");
   });
 
   test("shows the plan's credits per license, with the tally and the auto top-up", () => {

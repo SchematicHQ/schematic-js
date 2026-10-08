@@ -16,8 +16,10 @@ import {
 import {
   featureName,
   formatConsumptionRate,
+  formatCredits,
   formatCurrency,
   formatDate,
+  formatNumber,
   usableDate,
 } from "./format";
 
@@ -88,7 +90,7 @@ export interface UsageBasedRow {
   featureId: string;
   name: string;
   /** The limit the feature is shown against; `null` shows the name alone. */
-  quantity: { amount: number; units: string } | null;
+  quantity: { amount: string; units: string } | null;
   /** Overage: the price is for usage past the limit. */
   additional: boolean;
   tierBased: boolean;
@@ -96,7 +98,7 @@ export interface UsageBasedRow {
   unitPrice: {
     cost: string;
     /** More than one unit to a package; `null` for a single unit. */
-    packageSize: number | null;
+    packageSize: string | null;
     units: string;
     /** A period key for a trait-based feature; `null` otherwise. */
     period: string | null;
@@ -112,7 +114,7 @@ export interface UsageBasedRow {
     ranges: TierRange[];
     unit: string;
   } | null;
-  hardLimit: { amount: number; units: string } | null;
+  hardLimit: { amount: string; units: string } | null;
   source: FeatureUsage;
 }
 
@@ -121,31 +123,31 @@ export interface PlanCreditRow {
   text:
     | {
         kind: "perLicense";
-        amount: number;
+        amount: string;
         creditName: string;
         licenseName: string;
         /** The flat company grant on top, per period; `null` without one. */
-        plus: { amount: number; creditName: string; period: string } | null;
+        plus: { amount: string; creditName: string; period: string } | null;
       }
     | {
         kind: "total";
-        amount: number;
+        amount: string;
         creditName: string;
         /** A period key; `null` without a subscription. */
         period: string | null;
       };
-  /** Credits spent; nothing is shown at 0. */
-  used: number;
+  /** Credits spent; `null` at 0, which shows nothing. */
+  used: string | null;
   /** The tip on the used count when the credit tops itself up. */
-  autoTopup: { amount: number; threshold: number } | null;
+  autoTopup: { amount: string; threshold: string } | null;
   /** "12 Seats × 10 = 120 credits/mo". */
   composition: {
-    quantity: number;
+    quantity: string;
     licenseName: string;
-    perUnit: number;
+    perUnit: string;
     /** The flat company grant; `null` without one. */
-    fixed: number | null;
-    total: number;
+    fixed: string | null;
+    total: string;
     creditName: string;
     /** A period key: "day", "week", "month" or "year". */
     period: string;
@@ -157,9 +159,9 @@ export type AutoTopupLine =
   | {
       kind: "adds";
       creditId: string;
-      amount: number;
+      amount: string;
       unit: string;
-      threshold: number;
+      threshold: string;
     };
 
 /** Grants of one credit from one bundle, or one grant outside a bundle. */
@@ -169,9 +171,10 @@ export interface CreditGroupRow {
   count: number;
   bundleName: string | null;
   /** The newest grant's quantity. */
-  quantity: number;
+  quantity: string;
   creditName: string;
-  used: number;
+  /** Credits spent; `null` at 0, which shows nothing. */
+  used: string | null;
 }
 
 export interface PlanManagerView {
@@ -415,7 +418,7 @@ function usageBasedRow(
         : (lastTier.perUnitPrice ?? price.price);
     unitPriceText = {
       cost: formatCurrency(amount, priceCurrency, locale),
-      packageSize: packageSize > 1 ? packageSize : null,
+      packageSize: packageSize > 1 ? formatNumber(packageSize, locale) : null,
       units: featureName(unit, packageSize, locale),
       period: isTrait ? period : null,
     };
@@ -450,7 +453,7 @@ function usageBasedRow(
       limit === null
         ? null
         : {
-            amount: limit,
+            amount: formatNumber(limit, locale),
             units: featureName({ name: row.featureName }, limit, locale),
           },
     additional: behavior === "overage",
@@ -480,7 +483,7 @@ function usageBasedRow(
       row.valueType === "numeric" &&
       typeof row.allocation === "number"
         ? {
-            amount: row.allocation,
+            amount: formatNumber(row.allocation, locale),
             units: featureName(unit, row.allocation, locale),
           }
         : null,
@@ -525,13 +528,13 @@ function planCredits(
           composition === null
             ? {
                 kind: "total",
-                amount: value,
+                amount: formatCredits(value, locale),
                 creditName: featureName(unit, value, locale),
                 period: subscriptionPeriod,
               }
             : {
                 kind: "perLicense",
-                amount: composition.perLicenseAmount,
+                amount: formatCredits(composition.perLicenseAmount, locale),
                 creditName: featureName(
                   unit,
                   composition.perLicenseAmount,
@@ -541,7 +544,10 @@ function planCredits(
                 plus:
                   composition.fixedQuantity > 0
                     ? {
-                        amount: composition.fixedQuantity,
+                        amount: formatCredits(
+                          composition.fixedQuantity,
+                          locale,
+                        ),
                         creditName: featureName(
                           unit,
                           composition.fixedQuantity,
@@ -551,33 +557,33 @@ function planCredits(
                       }
                     : null,
               },
-        used,
+        used: spent(used, locale),
         autoTopup:
           autoTopup !== null &&
           autoTopup.enabled &&
           typeof autoTopup.thresholdCredits === "number" &&
           typeof autoTopup.amount === "number"
             ? {
-                amount: autoTopup.amount,
-                threshold: autoTopup.thresholdCredits,
+                amount: formatCredits(autoTopup.amount, locale),
+                threshold: formatCredits(autoTopup.thresholdCredits, locale),
               }
             : null,
         composition:
           composition === null
             ? null
             : {
-                quantity: composition.licenseQuantity,
+                quantity: formatNumber(composition.licenseQuantity, locale),
                 licenseName: featureName(
                   licenseUnit(composition),
                   composition.licenseQuantity,
                   locale,
                 ),
-                perUnit: composition.perLicenseAmount,
+                perUnit: formatCredits(composition.perLicenseAmount, locale),
                 fixed:
                   composition.fixedQuantity > 0
-                    ? composition.fixedQuantity
+                    ? formatCredits(composition.fixedQuantity, locale)
                     : null,
-                total: composition.total,
+                total: formatCredits(composition.total, locale),
                 creditName: featureName(unit, composition.total, locale),
                 period: composition.period,
               },
@@ -634,9 +640,9 @@ function autoTopupBox(
         {
           kind: "adds",
           creditId: balance.creditId,
-          amount: autoTopup.amount,
+          amount: formatCredits(autoTopup.amount, locale),
           unit: featureName(unit, autoTopup.amount, locale),
-          threshold: autoTopup.thresholdCredits,
+          threshold: formatCredits(autoTopup.thresholdCredits, locale),
         },
       ];
     }),
@@ -681,9 +687,12 @@ function creditGroups(
           key,
           count: sorted.length,
           bundleName: orNull(latest.bundleName),
-          quantity: latest.quantity,
+          quantity: formatCredits(latest.quantity, locale),
           creditName: featureName(creditUnit(balance), latest.quantity, locale),
-          used: sum(sorted, (grant) => grant.quantityUsed),
+          used: spent(
+            sum(sorted, (grant) => grant.quantityUsed),
+            locale,
+          ),
         },
       };
     })
@@ -718,6 +727,11 @@ function licenseUnit(
     singularName: composition.licenseSingularName,
     pluralName: composition.licensePluralName,
   };
+}
+
+/** Credits spent; `null` at 0, which shows nothing. */
+function spent(used: number, locale: string): string | null {
+  return used > 0 ? formatCredits(used, locale) : null;
 }
 
 function sum<T>(items: T[], value: (item: T) => number): number {

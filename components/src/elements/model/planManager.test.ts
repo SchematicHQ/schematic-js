@@ -209,17 +209,21 @@ describe("derivePlanManager", () => {
       const byId = Object.fromEntries(usageBased.map((r) => [r.featureId, r]));
 
       expect(byId.feat_seats).toMatchObject({
-        quantity: { amount: 12, units: "Seats" },
+        quantity: { amount: "12", units: "Seats" },
         cost: { amount: "$180.00", period: "month" },
       });
       expect(byId.feat_storage).toMatchObject({
         quantity: null,
-        unitPrice: { cost: "$0.02", packageSize: 100, units: "GB of storage" },
+        unitPrice: {
+          cost: "$0.02",
+          packageSize: "100",
+          units: "GB of storage",
+        },
       });
       // The unit price past the soft limit is the last tier's.
       expect(byId.feat_emails).toMatchObject({
         additional: true,
-        quantity: { amount: 1000, units: "Emails" },
+        quantity: { amount: "1,000", units: "Emails" },
         unitPrice: { cost: "$0.05", packageSize: null, units: "Email" },
       });
       expect(byId.feat_builds).toMatchObject({
@@ -301,21 +305,21 @@ describe("derivePlanManager", () => {
           "bcr_b",
           {
             kind: "total",
-            amount: 1,
+            amount: "1",
             creditName: "Export credit",
             period: "month",
           },
-          0,
+          null,
         ],
         [
           "bcr_a",
           {
             kind: "total",
-            amount: 150,
+            amount: "150",
             creditName: "AI credits",
             period: "month",
           },
-          15,
+          "15",
         ],
       ]);
     });
@@ -324,21 +328,21 @@ describe("derivePlanManager", () => {
       const [row] = derive(SCENARIOS.planManager()).planCredits;
       expect(row.text).toEqual({
         kind: "perLicense",
-        amount: 10,
+        amount: "10",
         creditName: "AI credits",
         licenseName: "Seat",
-        plus: { amount: 100, creditName: "AI credits", period: "month" },
+        plus: { amount: "100", creditName: "AI credits", period: "month" },
       });
       expect(row.composition).toEqual({
-        quantity: 12,
+        quantity: "12",
         licenseName: "Seats",
-        perUnit: 10,
-        fixed: 100,
-        total: 220,
+        perUnit: "10",
+        fixed: "100",
+        total: "220",
         creditName: "AI credits",
         period: "month",
       });
-      expect(row.autoTopup).toEqual({ amount: 500, threshold: 50 });
+      expect(row.autoTopup).toEqual({ amount: "500", threshold: "50" });
     });
 
     test("list self-service auto top-ups, on or off", () => {
@@ -379,9 +383,9 @@ describe("derivePlanManager", () => {
           {
             kind: "adds",
             creditId: "bcr_on",
-            amount: 500,
+            amount: "500",
             unit: "AI credits",
-            threshold: 50,
+            threshold: "50",
           },
           { kind: "disabled", creditId: "bcr_off", unit: "Export credit" },
         ],
@@ -396,16 +400,16 @@ describe("derivePlanManager", () => {
           key: "purchased:bcb_pack",
           count: 2,
           bundleName: "500 credit pack",
-          quantity: 500,
+          quantity: "500",
           creditName: "AI credits",
-          used: 40,
+          used: "40",
         },
       ]);
       expect(view.topUps).toMatchObject([
-        { count: 2, bundleName: null, quantity: 500, used: 500 },
+        { count: 2, bundleName: null, quantity: "500", used: "500" },
       ]);
       expect(view.promotional).toMatchObject([
-        { count: 1, quantity: 25, creditName: "Export credits", used: 5 },
+        { count: 1, quantity: "25", creditName: "Export credits", used: "5" },
       ]);
     });
 
