@@ -15,6 +15,7 @@ import {
 } from "./common";
 import {
   deriveCreditUsage,
+  formatCredits,
   formatNumber,
   httpStatus,
   type CreditLedgerRow,
@@ -392,6 +393,7 @@ function CreditUserBreakdown({
             }
       }
       error={error}
+      formatAmount={(value) => formatCredits(value, locale)}
       locale={locale}
       onRetry={refetch}
       t={t}

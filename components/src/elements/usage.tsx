@@ -127,6 +127,7 @@ export interface UserBreakdownData {
 export function UserBreakdown({
   breakdown,
   error,
+  formatAmount,
   locale,
   onRetry,
   t,
@@ -134,6 +135,8 @@ export function UserBreakdown({
 }: {
   breakdown: UserBreakdownData | undefined;
   error: Error | undefined;
+  /** How each amount's number reads; `formatNumber` when absent. */
+  formatAmount?: (value: number) => string;
   locale: string;
   onRetry: () => void;
   t: Translator;
@@ -151,7 +154,7 @@ export function UserBreakdown({
   );
 
   const amount = (value: number) =>
-    `${formatNumber(value, locale)} ${featureName(unit, value, locale)}`;
+    `${formatAmount?.(value) ?? formatNumber(value, locale)} ${featureName(unit, value, locale)}`;
 
   if (breakdown === undefined && error !== undefined) {
     return (

@@ -208,6 +208,32 @@ describe("CreditUsage", () => {
     expect(names).toEqual(["Ada", "Bo", "Cy"]);
   });
 
+  test("consumption by user keeps a small spend's fractions", () => {
+    renderCredits(
+      undefined,
+      { visibleCredits: ["bcr_ai"] },
+      {
+        creditUserUsage: {
+          bcr_ai: creditUserUsage({
+            count: 1,
+            total: 0.0004,
+            unattributed: null,
+            users: [
+              { name: "Ada", share: 1, used: 0.0004, userId: "user_ada" },
+            ],
+          }),
+        },
+      },
+    );
+    const ai = section("AI credit");
+    expect(ai).toHaveTextContent(
+      "0.0004 AI credits used by your team this period",
+    );
+    expect(
+      ai.querySelector(".schematic-usage-by-user__amount"),
+    ).toHaveTextContent("0.0004 AI credits");
+  });
+
   test("the toggles hide what they name", () => {
     renderCredits(undefined, {
       showDescription: false,
