@@ -65,6 +65,11 @@ describe("deriveCreditUsage", () => {
       { locale: L },
     );
     expect(row.remaining.amount).toBe("0.0000000123");
+    const [granted] = deriveCreditUsage(
+      [creditBalance({ grants: [creditGrant({ quantity: 0.0005 })] })],
+      { locale: L },
+    );
+    expect(granted.ledger[0].amount).toBe("0.0005");
   });
 
   test("formats the ledger and composition counts", () => {

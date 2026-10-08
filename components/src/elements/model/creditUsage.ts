@@ -3,7 +3,13 @@ import type {
   CreditGrant,
 } from "@schematichq/schematic-react";
 
-import { featureName, formatDate, formatNumber, usableDate } from "./format";
+import {
+  featureName,
+  formatCredits,
+  formatDate,
+  formatNumber,
+  usableDate,
+} from "./format";
 
 /**
  * `deriveCreditUsage`: the company's credit balances as the cards show them,
@@ -101,11 +107,7 @@ function creditUsageRow(
         ? null
         : balance.creditIcon,
     remaining: {
-      // Balances burn at rates with up to ten decimal places, so a small
-      // remainder must not round to nothing.
-      amount: formatNumber(balance.remaining, locale, {
-        maximumFractionDigits: 10,
-      }),
+      amount: formatCredits(balance.remaining, locale),
       units: featureName(unit, balance.remaining, locale),
     },
     purchasable: balance.purchasable,
@@ -114,7 +116,7 @@ function creditUsageRow(
       composition === undefined || composition === null
         ? null
         : {
-            total: formatNumber(composition.total, locale),
+            total: formatCredits(composition.total, locale),
             creditName: featureName(unit, composition.total, locale),
             period: composition.period,
             perLicense: {
@@ -128,11 +130,11 @@ function creditUsageRow(
                 composition.licenseQuantity,
                 locale,
               ),
-              perUnit: formatNumber(composition.perLicenseAmount, locale),
+              perUnit: formatCredits(composition.perLicenseAmount, locale),
             },
             companyGrant:
               composition.fixedQuantity > 0
-                ? formatNumber(composition.fixedQuantity, locale)
+                ? formatCredits(composition.fixedQuantity, locale)
                 : null,
             renewsOn: renewsOn(composition.renewsAt, locale),
           },
@@ -160,7 +162,7 @@ function ledgerRow(
   return {
     id: grant.id,
     kind,
-    amount: formatNumber(grant.quantity, locale),
+    amount: formatCredits(grant.quantity, locale),
     item: featureName(unit, kind === "bundle" ? 1 : grant.quantity, locale),
     createdAt: short(grant.createdAt),
     date:

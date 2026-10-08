@@ -15,6 +15,7 @@ import {
 } from "./common";
 import {
   deriveCreditUsage,
+  formatNumber,
   httpStatus,
   type CreditLedgerRow,
   type CreditUsageRow,
@@ -190,7 +191,12 @@ export function CreditUsage({
               </div>
             </div>
             {credit.ledger.length > 0 && (
-              <Ledger credit={credit} showExpiration={showExpiration} t={t} />
+              <Ledger
+                credit={credit}
+                locale={locale}
+                showExpiration={showExpiration}
+                t={t}
+              />
             )}
             {/* As in the embed: without grants there is no span to break down. */}
             {showUsageByUser && credit.ledger.length > 0 && (
@@ -235,10 +241,12 @@ function compositionText(credit: CreditUsageRow, t: Translator): string {
  */
 function Ledger({
   credit,
+  locale,
   showExpiration,
   t,
 }: {
   credit: CreditUsageRow;
+  locale: string;
   showExpiration: boolean;
   t: Translator;
 }) {
@@ -289,7 +297,9 @@ function Ledger({
               <span className="schematic-link-button__label">
                 {all
                   ? t("creditUsageHideAll")
-                  : t("creditUsageSeeAll", { total: credit.ledger.length })}
+                  : t("creditUsageSeeAll", {
+                      total: formatNumber(credit.ledger.length, locale),
+                    })}
               </span>
             </button>
           )}
