@@ -1,4 +1,4 @@
-import { SchematicBillingClient, billingApi } from "@schematichq/schematic-js";
+import { SchematicBillingClient } from "@schematichq/schematic-js";
 import { SchematicProvider } from "@schematichq/schematic-react";
 import {
   fireEvent,
@@ -14,12 +14,14 @@ import { cardPaymentMethod } from "./fixtures/builders";
 import {
   catalog,
   catalogPlan,
-  checkoutDraft,
-  company,
   companyOn,
   creditBundle,
-  priceSnapshot,
 } from "./fixtures/checkout";
+import {
+  fakeBillingServer,
+  type FakeServerOptions,
+  type Seen,
+} from "./fixtures/server";
 
 const stripe = vi.hoisted(() => ({
   confirmPayment: vi.fn(async () => undefined),
@@ -30,9 +32,8 @@ vi.mock("./stripe", () => stripe);
 /**
  * The whole stack with fetch faked at the network edge: wire JSON through the
  * schematic-js client, its CheckoutDraft and the schematic-react hooks to the
- * DOM. The server below keeps one checkout the way the API does: a version
- * every write must name, a session each re-price hands out, and a price that
- * is simply the plan's.
+ * DOM, on the in-memory server the harness runs on too. The price here is
+ * simply the plan's, so the figures below are the catalog's.
  */
 
 const starter = catalogPlan({ current: true, name: "Starter" });
@@ -40,160 +41,32 @@ const pro = catalogPlan({ name: "Pro" });
 const bundle = creditBundle();
 const card = cardPaymentMethod({ isDefault: true });
 
-interface ServerOptions {
-  /** Answer the first PUT with a 409, as another writer would cause. */
-  conflictOnce?: boolean;
-  /** Refuse the finalize with these problems. */
-  refuse?: { code: string; message: string }[];
-  /** Answer the finalize with a payment the customer must confirm. */
-  confirmSecret?: string;
-  company?: ReturnType<typeof company>;
-}
-
-type Seen = { method: string; path: string; body: unknown; session?: string };
+type ServerOptions = Partial<
+  Pick<
+    FakeServerOptions,
+    "company" | "confirmSecret" | "conflictOnce" | "refuse"
+  >
+>;
 
 function serve(options: ServerOptions = {}) {
-  const seen: Seen[] = [];
-  let version = 0;
-  let conflicted = false;
-  let selections: Record<string, unknown> = {};
-  let session = 0;
-
-  const json = (
-    status: number,
-    body: unknown,
-    headers: Record<string, string> = {},
-  ) =>
-    new Response(JSON.stringify(body), {
-      status,
-      headers: { "Content-Type": "application/json", ...headers },
-    });
-  const draft = () => {
-    const planId = selections.new_plan_id as string | undefined;
-    const plan = [starter, pro].find((p) => p.id === planId);
-    const due = plan?.monthlyPrice?.price ?? 0;
-    return billingApi.CheckoutDraftResponseDataToJSON(
-      checkoutDraft({
-        id: "chk_e2e",
-        priceSnapshot: priceSnapshot({
-          dueNow: due,
-          paymentMethodRequired: false,
-          totalPerBillingPeriod: due,
-        }),
-        version,
-      }),
-    );
-  };
-
-  const fetchImpl = vi.fn(
-    async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = new URL(String(input));
-      const method = init?.method ?? "GET";
-      const body =
-        typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
-      const headers = (init?.headers ?? {}) as Record<string, string>;
-      seen.push({
-        method,
-        path: url.pathname,
-        body,
-        session: headers["X-Checkout-Session-ID"],
-      });
-
-      switch (`${method} ${url.pathname}`) {
-        case "GET /catalog/view":
-          return json(200, {
-            data: billingApi.CompanyCatalogResponseDataToJSON(
-              catalog({ creditBundles: [bundle], plans: [starter, pro] }),
-            ),
-          });
-        case "GET /company":
-          return json(200, {
-            data: billingApi.CompanyContextResponseDataToJSON(
-              options.company ?? companyOn(starter),
-            ),
-          });
-        case "GET /company/payment-methods":
-          return json(200, {
-            data: {
-              count: 1,
-              payment_methods: [
-                billingApi.CompanyPaymentMethodResponseDataToJSON(card),
-              ],
-            },
-          });
-        case "GET /company/usage":
-          return json(200, { data: { features: [] } });
-        case "POST /checkouts":
-          selections = body;
-          version = 1;
-          return json(201, { data: draft() });
-        case "GET /checkouts/chk_e2e":
-          return json(200, { data: draft() });
-        case "PUT /checkouts/chk_e2e": {
-          if (options.conflictOnce === true && !conflicted) {
-            conflicted = true;
-            version += 1; // somebody else wrote
-            return json(409, {
-              error: "The checkout changed since it was read.",
-            });
-          }
-          if (body.version !== version) {
-            return json(409, {
-              error: "The checkout changed since it was read.",
-            });
-          }
-          selections = body;
-          version += 1;
-          session += 1;
-          return json(
-            200,
-            { data: draft() },
-            { "X-Checkout-Session-ID": `cs_${session}` },
-          );
-        }
-        case "POST /checkouts/chk_e2e/finalize":
-          if (options.refuse !== undefined) {
-            version += 2;
-            return json(400, {
-              error: options.refuse[0].message,
-              problems: options.refuse.map((p) => ({
-                ...p,
-                blocking: true,
-                source: "validation",
-              })),
-            });
-          }
-          return json(200, {
-            data: {
-              cancel_at_period_end: false,
-              confirm_payment_intent_client_secret:
-                options.confirmSecret ?? null,
-              created_at: "2026-09-28T12:00:00Z",
-              currency: "usd",
-              customer_external_id: "cus_1",
-              id: "bilsub_1",
-              interval: "month",
-              period_end: 1790000000,
-              period_start: 1787000000,
-              provider_type: "stripe",
-              status: "active",
-              subscription_external_id: "sub_1",
-              total_price: 2500,
-            },
-          });
-        case "POST /components/setup-intent":
-          return json(200, {
-            data: {
-              publishable_key: "pk_acct",
-              schematic_publishable_key: "pk_sch",
-              setup_intent_client_secret: "seti_1",
-            },
-          });
-      }
-      return json(404, { error: "not found" });
+  const server = fakeBillingServer({
+    catalog: catalog({ creditBundles: [bundle], plans: [starter, pro] }),
+    company: options.company ?? companyOn(starter),
+    paymentMethods: [card],
+    price: (wire) => {
+      const due =
+        [starter, pro].find((p) => p.id === wire.new_plan_id)?.monthlyPrice
+          ?.price ?? 0;
+      return {
+        dueNow: due,
+        paymentMethodRequired: false,
+        totalPerBillingPeriod: due,
+      };
     },
-  );
-  return { fetchImpl: fetchImpl as unknown as typeof fetch, seen };
+    ...options,
+  });
+  const fetchImpl = vi.fn(server.fetch);
+  return { fetchImpl: fetchImpl as unknown as typeof fetch, seen: server.seen };
 }
 
 function renderStack(
