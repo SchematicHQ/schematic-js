@@ -32,7 +32,8 @@ export interface CreditUsageProps extends ElementProps {
   showHeader?: boolean;
   /**
    * Heading level; each credit's name sits one below while the heading
-   * shows, and takes it when the heading is hidden. Default 2.
+   * shows, and takes it when the heading is hidden. Names stay h6 under an
+   * h6 heading, as HTML has no h7. Default 2.
    */
   headingLevel?: HeadingLevel;
   /** Each credit's icon; the circle is held even without one. Default true. */

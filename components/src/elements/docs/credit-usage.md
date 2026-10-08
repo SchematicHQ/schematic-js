@@ -53,7 +53,7 @@ function Credits() {
 | `visibleCredits`              | —       | Credit ids to show, in this order; every credit when absent.    |
 | `onBuyMore`                   | —       | "Buy More" on a purchasable credit calls this with the balance. |
 | `buyMoreUrl`, `buyMoreTarget` | —       | "Buy More" links here when there is no `onBuyMore`.             |
-| `headingLevel`                | `2`     | The heading's level; each name sits one below while it shows.   |
+| `headingLevel`                | `2`     | The heading's level; names sit one below while it shows, to h6. |
 | `className`, `locale`         | —       | Root class; BCP 47 tag for formatting.                          |
 | `strings`                     | —       | Copy for this element by key; wins over the provider's.         |
 
