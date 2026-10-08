@@ -95,6 +95,7 @@ export interface CheckoutProps extends ElementProps, CheckoutConfig {
  */
 export function Checkout({
   className,
+  display,
   locale: localeProp,
   onOpenChange,
   open,
@@ -104,7 +105,11 @@ export function Checkout({
   const t = useTranslator(strings, localeProp);
   return (
     <Dialog
-      className={cx("schematic-checkout", className)}
+      className={cx(
+        "schematic-checkout",
+        display?.layout === "stacked" && "schematic-checkout--stacked",
+        className,
+      )}
       closeLabel={t("checkoutClose")}
       open={open}
       title={t("checkoutTitle")}
@@ -112,6 +117,7 @@ export function Checkout({
     >
       <CheckoutBody
         {...rest}
+        display={display}
         locale={localeProp}
         strings={strings}
         t={t}
@@ -404,9 +410,18 @@ function CheckoutFlow({
     );
 
   const stepProblems = model.problems.byStep[step];
+  // Held for the payment step, the summary leaves its Next action with the
+  // step's own navigation; payment is the last step, so the action there is
+  // always Next.
+  const summaryHeld = display?.summary === "payment";
+  const summaryShown = !summaryHeld || step === "payment";
 
   return (
-    <div className="schematic-checkout__layout" data-step={step}>
+    <div
+      className="schematic-checkout__layout"
+      data-step={step}
+      data-summary={summaryHeld ? "payment" : undefined}
+    >
       <div className="schematic-checkout__main">
         <Stepper current={step} plan={stepPlan} t={t} onSelect={goTo} />
         <h3 className="schematic-checkout__heading">{stepLabel(step, t)}</h3>
@@ -475,26 +490,31 @@ function CheckoutFlow({
             problems={model.problems.global}
           />
         )}
-        {back !== undefined && (
+        {(back !== undefined || !summaryShown) && (
           <div className="schematic-checkout__nav">
-            <button
-              className="schematic-link-button"
-              type="button"
-              onClick={() => goTo(back)}
-            >
-              {t("checkoutBack")}
-            </button>
+            {back !== undefined && (
+              <button
+                className="schematic-link-button"
+                type="button"
+                onClick={() => goTo(back)}
+              >
+                {t("checkoutBack")}
+              </button>
+            )}
+            {!summaryShown && action}
           </div>
         )}
       </div>
-      <Summary
-        action={action}
-        isPricing={isPricing}
-        model={model}
-        pricingError={pricingError}
-        showDisclaimer={display?.showBillingDisclaimer !== false}
-        t={t}
-      />
+      {summaryShown && (
+        <Summary
+          action={action}
+          isPricing={isPricing}
+          model={model}
+          pricingError={pricingError}
+          showDisclaimer={display?.showBillingDisclaimer !== false}
+          t={t}
+        />
+      )}
     </div>
   );
 }

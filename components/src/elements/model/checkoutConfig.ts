@@ -83,6 +83,19 @@ export interface CheckoutDisplay {
   showBillingDisclaimer?: boolean;
   /** The currencies to offer, in order; the first is the default. */
   currencies?: readonly string[];
+  /**
+   * How the steps and the summary sit. `"auto"` (default): the summary
+   * beside the steps from 768px up, under them below. `"stacked"`: under
+   * them at every width, and the whole dialog scrolls. The root carries
+   * `schematic-checkout--stacked` for a sheet of your own.
+   */
+  layout?: "auto" | "stacked";
+  /**
+   * When the summary is shown. `"always"` (default), or `"payment"`: on the
+   * payment step alone; the steps before it carry their Next action in
+   * `.schematic-checkout__nav`, and the layout carries `data-summary`.
+   */
+  summary?: "always" | "payment";
 }
 
 /** Shared by `<Checkout />` and `useCheckoutLauncher().open(config)`. */
