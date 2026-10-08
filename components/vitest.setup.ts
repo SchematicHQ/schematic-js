@@ -94,8 +94,7 @@ beforeAll(() => {
   });
 });
 
-// The elements warn when copy gets a raw number, which would read "10000"
-// in every locale. A test that renders one fails, so the warning cannot ship.
+// A test that renders a raw number fails, so the warning cannot ship.
 const rawNumberWarnings: string[] = [];
 const consoleWarn = console.warn.bind(console);
 vi.spyOn(console, "warn").mockImplementation((...args: unknown[]) => {

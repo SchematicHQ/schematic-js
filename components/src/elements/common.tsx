@@ -147,7 +147,6 @@ export function useTranslator(
   );
 }
 
-/** Each key and variable warns once, rather than on every render. */
 const rawNumberWarnings = new Set<string>();
 
 /**

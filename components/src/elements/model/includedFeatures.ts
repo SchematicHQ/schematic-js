@@ -66,7 +66,6 @@ export type UsageSummary =
   | { kind: "unlimited"; amount: string };
 
 export interface PerLicenseCredits {
-  /** Credits per license unit. */
   amount: string;
   creditName: string;
   licenseName: string;
