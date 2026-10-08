@@ -1,6 +1,13 @@
 /**
+ * A checkout that keeps its columns: every one but `display.layout:
+ * "stacked"`, which carries the modifier.
+ */
+const columns = ".schematic-checkout:not(.schematic-checkout--stacked)";
+
+/**
  * `<Checkout />`: a wide dialog with the steps and their choices on the left
- * and the summary, totals and action on the right; stacked on a narrow one.
+ * and the summary, totals and action on the right; stacked on a narrow one,
+ * or on every width when the host asks.
  */
 export const checkoutCss = `
 .schematic-checkout.schematic-dialog {
@@ -21,33 +28,43 @@ export const checkoutCss = `
    on its own, so the total and the action are in view on every step. Stacked,
    the whole dialog scrolls. */
 @media (min-width: 768px) {
-  .schematic-checkout.schematic-dialog[open] {
+  ${columns}.schematic-dialog[open] {
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
 
-  .schematic-checkout .schematic-dialog__body,
-  .schematic-checkout__frame {
+  ${columns} .schematic-dialog__body,
+  ${columns} .schematic-checkout__frame {
     flex: 1;
     min-height: 0;
   }
 
-  .schematic-checkout__frame {
+  ${columns} .schematic-checkout__frame {
     display: flex;
     flex-direction: column;
   }
 
-  .schematic-checkout__layout {
+  ${columns} .schematic-checkout__layout {
     flex: 1;
     grid-template-columns: minmax(0, 1fr) 22rem;
     grid-template-rows: minmax(0, 1fr);
     min-height: 0;
   }
 
-  .schematic-checkout__main,
-  .schematic-checkout__summary {
+  /* A summary held for the payment step leaves its column to the steps. */
+  ${columns} .schematic-checkout__layout[data-summary="payment"]:not([data-step="payment"]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  ${columns} .schematic-checkout__main,
+  ${columns} .schematic-checkout__summary {
     overflow-y: auto;
+  }
+
+  ${columns} .schematic-checkout__summary {
+    border-inline-start: 1px solid var(--schematic-card-divider);
+    border-top: none;
   }
 }
 
@@ -310,6 +327,11 @@ export const checkoutCss = `
   justify-content: space-between;
 }
 
+/* The Next action a held summary leaves here sits on the end, Back or not. */
+.schematic-checkout__nav .schematic-cta {
+  margin-inline-start: auto;
+}
+
 .schematic-checkout__summary {
   background: color-mix(in srgb, var(--schematic-text) 2.5%, transparent);
   border-top: 1px solid var(--schematic-card-divider);
@@ -317,13 +339,6 @@ export const checkoutCss = `
   flex-direction: column;
   gap: var(--schematic-space);
   padding: calc(var(--schematic-space) * 1.5);
-}
-
-@media (min-width: 768px) {
-  .schematic-checkout__summary {
-    border-inline-start: 1px solid var(--schematic-card-divider);
-    border-top: none;
-  }
 }
 
 .schematic-checkout__summary-title {

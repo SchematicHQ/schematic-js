@@ -70,10 +70,20 @@ The props replace the embed's `initializeWithPlan(BypassConfig)`. They are read 
 | provider `checkoutPrefill`                      | `checkoutPrefill`                                                                                        |
 | `initializeWithPlan("plan_x")`                  | `selection={{ planId: "plan_x" }} steps={{ skip: ["plan"] }}`                                            |
 | —                                               | `selection.creditBundles`, `selection.autoTopup`, `selection.customFields`, `steps.initial`, `catalogId` |
+| —                                               | `display.layout`, `display.summary`                                                                      |
 
 Left out, `selection.planId` is the company's current plan, unless the company could start a trial on it, when it chooses. `selection.addOnIds` is the add-ons it holds, `selection.quantities` what it has now, `selection.period` the subscription's. A subscription fixes the currency: a change keeps it, whatever `selection.currency` says.
 
 What checkout collects — a tax ID, custom fields, an address, email or phone beside the card — and whether bundles are bought one at a time come from the catalog's checkout settings, not props.
+
+## Layout
+
+From 768px up the steps take the left and the summary — the lines, the totals and the action — the right, each scrolling on its own; below that the summary sits under the steps and the whole dialog scrolls. Two props change that, for a sheet that cannot:
+
+- `display.layout: "stacked"` keeps the summary under the steps at every width. The root carries `schematic-checkout--stacked`, so a bottom sheet on a phone and a narrow card on a desktop are the same stylesheet.
+- `display.summary: "payment"` shows the summary on the payment step alone. The steps before it carry their Next action in `.schematic-checkout__nav`, and the layout carries `data-summary="payment"`, so a wizard of one choice per screen asks nothing of the stylesheet but the column.
+
+Everything else is CSS. The class names below are API, every step and card carries a `data-*` for its state, and a stylesheet rendered after `<SchematicStyles />` wins at equal specificity, so a host restyles the dialog without a prop for each part.
 
 ## The steps
 
@@ -132,4 +142,29 @@ Tiered prices are shown at their flat unit price, not broken out by tier. A chec
 
 ## Markup
 
-The root is `schematic-dialog schematic-checkout`, and `.schematic-checkout__layout` carries `data-step` with the step on screen. Step links carry `aria-current="step"`, `data-state` (`done`, `current`, `upcoming`) and `data-skipped`; plan and add-on cards `data-selected` and `data-valid`; problems `data-code`. The class names are pinned by `markup.test.tsx` and are API.
+The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--stacked` under `display.layout: "stacked"`. `.schematic-checkout__layout` carries `data-step` with the step on screen and `data-summary="payment"` when the summary is held for it. Step links carry `aria-current="step"`, `data-state` (`done`, `current`, `upcoming`) and `data-skipped`; plan and add-on cards `data-selected` and `data-valid`; problems `data-code`. The class names are pinned by `markup.test.tsx` and are API.
+
+| Class                                                                                 | Where                                                                                                 |
+| ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `schematic-checkout__frame`                                                           | The status frame inside the dialog body; `data-state` is `pending`, `error` or `ready`.               |
+| `schematic-checkout__unavailable`                                                     | The notice shown when the catalog cannot be bought from.                                              |
+| `schematic-checkout__layout`                                                          | The steps and the summary; a grid of one column, two from 768px up.                                   |
+| `schematic-checkout__main`                                                            | The left column: stepper, heading, the step on screen, its problems and navigation.                   |
+| `schematic-checkout__stepper`, `__step`, `__step-link`                                | The step list, one `li` per visible step, the link within it.                                         |
+| `schematic-checkout__heading`                                                         | The step's title.                                                                                     |
+| `schematic-checkout__section`, `__section-title`                                      | A group within a step, with `data-step`; the payment step's promo code, tax ID, fields and agreement. |
+| `schematic-checkout__controls`                                                        | The period toggle and currency choice above the plan cards.                                           |
+| `schematic-checkout__cards`, `__card`, `__card-name`, `__card-price`, `__card-period` | Plan and add-on cards; `data-selected`, `data-valid`.                                                 |
+| `schematic-checkout__card-description`, `__card-badges`                               | A card's description and its trial, current and invalid badges.                                       |
+| `schematic-checkout__rows`, `__row`, `__row-name`, `__row-detail`, `__row-amount`     | Quantity, bundle and auto top-up rows.                                                                |
+| `schematic-checkout__input`, `__input--quantity`                                      | Text and number inputs; the quantity modifier narrows them.                                           |
+| `schematic-checkout__field`, `__field-label`, `__field-helper`, `__inline`            | A labelled control, its helper, and a row of them.                                                    |
+| `schematic-checkout__check`, `__opt-in-text`                                          | The agreement checkbox and its text.                                                                  |
+| `schematic-checkout__problems`                                                        | The problems on a step, each a `schematic-notice` with `data-code`.                                   |
+| `schematic-checkout__nav`                                                             | Back, and Next while the summary is held.                                                             |
+| `schematic-checkout__summary`, `__summary-title`                                      | The right column, an `aside` with `aria-busy` while pricing.                                          |
+| `schematic-checkout__lines`, `__line`, `__line-amount`                                | What the cart holds, one line each.                                                                   |
+| `schematic-checkout__totals`, `__total`, `__total--due`, `__total-amount`             | Proration, discount, tax, the period's total and the amount due now.                                  |
+| `schematic-checkout__disclaimer`                                                      | The renewal, trial-end and scheduled-change lines under the totals.                                   |
+
+The summary's action and the cards' choices are `schematic-cta`; the Back link is `schematic-link-button`; the payment step's card on file and form carry the `schematic-payment-methods__*` classes of `PaymentMethods`.
