@@ -27,6 +27,13 @@ import {
   CatalogPriceTierResponseDataToJSON,
   CatalogPriceTierResponseDataToJSONTyped,
 } from "./CatalogPriceTierResponseData";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { BillingPriceScheme } from "./BillingPriceScheme";
 import {
   BillingPriceSchemeFromJSON,
@@ -50,10 +57,10 @@ import {
 export interface CatalogPriceResponseData {
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CatalogPriceResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {string}
@@ -150,7 +157,7 @@ export function CatalogPriceResponseDataFromJSONTyped(
     return json;
   }
   return {
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     id: json["id"],
     interval: BillingProductPriceIntervalFromJSON(json["interval"]),
     intervalCount: json["interval_count"],
@@ -188,7 +195,7 @@ export function CatalogPriceResponseDataToJSONTyped(
   }
 
   return {
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     id: value["id"],
     interval: BillingProductPriceIntervalToJSON(value["interval"]),
     interval_count: value["intervalCount"],

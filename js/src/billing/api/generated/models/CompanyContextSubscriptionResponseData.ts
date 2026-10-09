@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
+
 /**
  *
  * @export
@@ -33,10 +41,10 @@ export interface CompanyContextSubscriptionResponseData {
   cancelAtPeriodEnd: boolean;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CompanyContextSubscriptionResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    * When the company is next billed: the period end, else the stored next bill's due date. Null when the subscription cancels at period end or neither is known.
    * @type {Date}
@@ -102,7 +110,7 @@ export function CompanyContextSubscriptionResponseDataFromJSONTyped(
     cancelAt:
       json["cancel_at"] == null ? undefined : new Date(json["cancel_at"]),
     cancelAtPeriodEnd: json["cancel_at_period_end"],
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     nextBillAt:
       json["next_bill_at"] == null ? undefined : new Date(json["next_bill_at"]),
     period: json["period"] == null ? undefined : json["period"],
@@ -134,7 +142,7 @@ export function CompanyContextSubscriptionResponseDataToJSONTyped(
         ? undefined
         : (value["cancelAt"] as any).toISOString(),
     cancel_at_period_end: value["cancelAtPeriodEnd"],
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     next_bill_at:
       value["nextBillAt"] == null
         ? undefined

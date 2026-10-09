@@ -7,10 +7,14 @@
  */
 
 import {
+  CheckoutDraftResponseDataFromJSON,
+  CheckoutResponseDataFromJSON,
+  CompanyCatalogResponseDataFromJSON,
   CreateSetupIntentResponseFromJSON,
   GetCompanyCreditBalancesResponseFromJSON,
   GetCompanyResponseFromJSON,
   GetCompanyCreditUserUsageResponseFromJSON,
+  UpdateCheckoutTaxIDResponseDataFromJSON,
   GetCompanyFeatureUsageResponseFromJSON,
   GetCompanyFeatureUserUsageResponseFromJSON,
   GetCompanyInvoicesResponseFromJSON,
@@ -20,6 +24,12 @@ import {
 import type {
   BillingData,
   BillingResourceName,
+  Catalog,
+  CatalogQuery,
+  Checkout,
+  CheckoutResult,
+  CheckoutSelections,
+  CheckoutWrite,
   Company,
   CreditBalanceEntry,
   CreditUserUsage,
@@ -29,9 +39,15 @@ import type {
   InvoiceQuery,
   PaymentMethod,
   SetupIntent,
+  TaxId,
+  TaxIdInput,
   UpcomingInvoice,
 } from "./contract";
-import { normalizeInvoiceQuery } from "./contract";
+import {
+  checkoutSelectionsToJSON,
+  normalizeCatalogQuery,
+  normalizeInvoiceQuery,
+} from "./contract";
 import type {
   SessionEvent,
   SessionInput,
@@ -72,6 +88,29 @@ export interface FeatureUserUsageRequest {
  * ship.
  */
 export interface BillingClient {
+  /** The environment's catalog, or the one `catalogId` names. */
+  fetchCatalog(query?: CatalogQuery): Promise<Catalog>;
+  /** Opens a checkout, priced when the cart is priceable. */
+  createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite>;
+  getCheckout(id: string): Promise<Checkout>;
+  /**
+   * Replaces the cart and re-prices it. `version` is the one the caller last
+   * read; a stale one is a 409.
+   */
+  updateCheckout(
+    id: string,
+    version: number,
+    selections: CheckoutSelections,
+  ): Promise<CheckoutWrite>;
+  /**
+   * Charges the cart at `version`. `sessionId` is the one the last write
+   * answered with; without it the finalize starts a session of its own.
+   */
+  finalizeCheckout(
+    id: string,
+    version: number,
+    options?: { sessionId?: string },
+  ): Promise<CheckoutResult>;
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult>;
   /** `null` when the company has no next bill. */
   fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
@@ -85,6 +124,10 @@ export interface BillingClient {
   deletePaymentMethod(id: string): Promise<void>;
   /** Empty when the company is entitled to nothing. */
   fetchFeatureUsage(): Promise<FeatureUsage[]>;
+  /** Empty when the company has none on file. */
+  fetchTaxIds(): Promise<TaxId[]>;
+  /** Sets the company's tax ID, and answers with every one now on file. */
+  updateTaxId(taxId: TaxIdInput): Promise<TaxId[]>;
   /** One event-based feature's usage by user over its metric period. */
   fetchFeatureUserUsage(
     params: FeatureUserUsageRequest,
@@ -107,6 +150,22 @@ export interface BillingClient {
 }
 
 export type BillingClientOptions = SessionOptions;
+
+/** The header a checkout's session rides in, both ways. */
+export const CHECKOUT_SESSION_HEADER = "X-Checkout-Session-ID";
+
+/** The `data` of a response, or a malformed-response error naming the path. */
+function dataOf(body: unknown, path: string): unknown {
+  if (
+    body === null ||
+    typeof body !== "object" ||
+    !("data" in body) ||
+    (body as { data: unknown }).data == null
+  ) {
+    throw new Error(`Malformed response from ${path}`);
+  }
+  return (body as { data: unknown }).data;
+}
 
 export const INVOICE_PAGE_SIZE = 12;
 
@@ -141,6 +200,73 @@ export class SchematicBillingClient implements BillingClient {
 
   onSessionChange(listener: (event: SessionEvent) => void): () => void {
     return this.session.onChange(listener);
+  }
+
+  fetchCatalog(query: CatalogQuery = {}): Promise<Catalog> {
+    // A 404 is the account being off the catalog flag, or a catalog that is
+    // not the account's, and stays the error it is.
+    const path =
+      query.catalogId === undefined
+        ? "/catalog/view"
+        : `/catalogs/${encodeURIComponent(query.catalogId)}/view`;
+    return this.session
+      .request(path)
+      .then((body) => CompanyCatalogResponseDataFromJSON(dataOf(body, path)));
+  }
+
+  createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite> {
+    return this.checkoutWrite("/checkouts", {
+      method: "POST",
+      body: checkoutSelectionsToJSON(selections),
+    });
+  }
+
+  getCheckout(id: string): Promise<Checkout> {
+    const path = `/checkouts/${encodeURIComponent(id)}`;
+    return this.session
+      .request(path)
+      .then((body) => CheckoutDraftResponseDataFromJSON(dataOf(body, path)));
+  }
+
+  updateCheckout(
+    id: string,
+    version: number,
+    selections: CheckoutSelections,
+  ): Promise<CheckoutWrite> {
+    return this.checkoutWrite(`/checkouts/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: { ...checkoutSelectionsToJSON(selections), version },
+    });
+  }
+
+  finalizeCheckout(
+    id: string,
+    version: number,
+    options: { sessionId?: string } = {},
+  ): Promise<CheckoutResult> {
+    const path = `/checkouts/${encodeURIComponent(id)}/finalize`;
+    return this.session
+      .request(path, {
+        method: "POST",
+        body: { version },
+        ...(options.sessionId === undefined
+          ? {}
+          : { headers: { [CHECKOUT_SESSION_HEADER]: options.sessionId } }),
+      })
+      .then((body) => CheckoutResponseDataFromJSON(dataOf(body, path)));
+  }
+
+  private checkoutWrite(
+    path: string,
+    options: { method: string; body: unknown },
+  ): Promise<CheckoutWrite> {
+    return this.session
+      .requestWithResponse(path, options)
+      .then(({ body, headers }) => {
+        const checkout = CheckoutDraftResponseDataFromJSON(dataOf(body, path));
+        const sessionId = headers.get(CHECKOUT_SESSION_HEADER) ?? undefined;
+        return sessionId === undefined ? { checkout } : { checkout, sessionId };
+      });
   }
 
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult> {
@@ -237,6 +363,29 @@ export class SchematicBillingClient implements BillingClient {
         method: "DELETE",
       })
       .then(() => undefined);
+  }
+
+  fetchTaxIds(): Promise<TaxId[]> {
+    const path = "/checkout/tax-id";
+    return this.session
+      .request(path)
+      .then(
+        (body) =>
+          UpdateCheckoutTaxIDResponseDataFromJSON(dataOf(body, path)).taxIds,
+      );
+  }
+
+  updateTaxId(taxId: TaxIdInput): Promise<TaxId[]> {
+    const path = "/checkout/tax-id";
+    return this.session
+      .request(path, {
+        method: "POST",
+        body: { tax_id: { type: taxId.type, value: taxId.value } },
+      })
+      .then(
+        (body) =>
+          UpdateCheckoutTaxIDResponseDataFromJSON(dataOf(body, path)).taxIds,
+      );
   }
 
   fetchFeatureUsage(): Promise<FeatureUsage[]> {
@@ -347,6 +496,8 @@ export interface BillingPrefetchOptions {
   names: BillingResourceName[];
   /** The invoice query to prefetch for; the element must ask the same one. */
   invoices?: InvoiceQuery;
+  /** The catalog to prefetch; the element must ask the same one. */
+  catalog?: CatalogQuery;
 }
 
 /**
@@ -365,8 +516,15 @@ export async function fetchBillingData(
     options.invoices === undefined
       ? undefined
       : normalizeInvoiceQuery(options.invoices);
-  if (invoices !== undefined) {
-    data.params = { invoices };
+  const catalog =
+    options.catalog === undefined
+      ? undefined
+      : normalizeCatalogQuery(options.catalog);
+  if (invoices !== undefined || catalog !== undefined) {
+    data.params = {
+      ...(invoices === undefined ? {} : { invoices }),
+      ...(catalog === undefined ? {} : { catalog }),
+    };
   }
   // A page rendered before its auth resolves hands these rows to whichever
   // session turns up; it has to be the one they were fetched for.
@@ -375,6 +533,10 @@ export async function fetchBillingData(
     wanted.map(async (name) => {
       try {
         switch (name) {
+          case "catalog": {
+            data.catalog = await client.fetchCatalog(catalog ?? {});
+            break;
+          }
           case "invoices": {
             const page = await client.fetchInvoices({
               ...(invoices ?? {}),
@@ -411,6 +573,10 @@ export async function fetchBillingData(
           }
           case "company": {
             data.company = await client.fetchCompany();
+            break;
+          }
+          case "taxIds": {
+            data.taxIds = await client.fetchTaxIds();
             break;
           }
         }
