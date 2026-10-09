@@ -10,6 +10,7 @@ import { paymentMethodsCss } from "./payment-methods";
 import { planManagerCss } from "./plan-manager";
 import { withTokenDefaults } from "./tokens";
 import { tooltipCss } from "./tooltip";
+import { unsubscribeCss } from "./unsubscribe";
 import { upcomingBillCss } from "./upcoming-bill";
 
 export { iconsCss } from "./icons";
@@ -571,6 +572,7 @@ ${includedFeaturesCss}
 ${meteredFeaturesCss}
 ${creditUsageCss}
 ${planManagerCss}
+${unsubscribeCss}
 `;
 
 /**
