@@ -9,6 +9,7 @@
 import {
   CreateSetupIntentResponseFromJSON,
   GetCompanyCreditBalancesResponseFromJSON,
+  GetCompanyResponseFromJSON,
   GetCompanyCreditUserUsageResponseFromJSON,
   GetCompanyFeatureUsageResponseFromJSON,
   GetCompanyFeatureUserUsageResponseFromJSON,
@@ -19,6 +20,7 @@ import {
 import type {
   BillingData,
   BillingResourceName,
+  Company,
   CreditBalanceEntry,
   CreditUserUsage,
   FeatureUsage,
@@ -93,6 +95,8 @@ export interface BillingClient {
   fetchCreditUserUsage(
     params: CreditUserUsageRequest,
   ): Promise<CreditUserUsage>;
+  /** The company's plan, add-ons, and subscription state. */
+  fetchCompany(): Promise<Company>;
 
   readonly sessionStatus: SessionStatus;
 
@@ -253,6 +257,23 @@ export class SchematicBillingClient implements BillingClient {
     });
   }
 
+  fetchCompany(): Promise<Company> {
+    const path = "/company";
+    // The endpoint always returns a company, so a null `data` is malformed.
+    // A 404 is the account being off the flag, and stays the error it is.
+    return this.session.request(path).then((body) => {
+      if (
+        body === null ||
+        typeof body !== "object" ||
+        !("data" in body) ||
+        (body as { data: unknown }).data == null
+      ) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return GetCompanyResponseFromJSON(body).data;
+    });
+  }
+
   fetchCreditBalances(): Promise<CreditBalanceEntry[]> {
     const path = "/company/credits";
     // No credits is a 200 with an empty list; a 404 means the account is off
@@ -386,6 +407,10 @@ export async function fetchBillingData(
           }
           case "creditBalances": {
             data.creditBalances = await client.fetchCreditBalances();
+            break;
+          }
+          case "company": {
+            data.company = await client.fetchCompany();
             break;
           }
         }

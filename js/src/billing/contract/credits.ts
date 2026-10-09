@@ -7,6 +7,7 @@
  */
 
 import type {
+  CompanyCreditAutoTopupResponseData,
   CompanyCreditBalanceResponseData,
   CompanyCreditCompositionResponseData,
   CompanyCreditGrantResponseData,
@@ -15,6 +16,7 @@ import type {
 } from "../api/generated/models";
 
 export type {
+  CompanyCreditAutoTopupResponseData,
   CompanyCreditBalanceResponseData,
   CompanyCreditCompositionResponseData,
   CompanyCreditGrantResponseData,
@@ -33,8 +35,12 @@ export type {
  * * Each grant carries `resetsAt` or `expiresAt`, never both.
  * * `purchasable` — a bundle of it is on offer to the company's plan.
  * * `composition` — how a per-license plan grant adds up per period.
+ * * `autoTopup` — auto top-up for a credit the base plan grants, with the
+ *   company's own settings applied.
  */
 export type CreditBalanceEntry = CompanyCreditBalanceResponseData;
+
+export type CreditAutoTopup = CompanyCreditAutoTopupResponseData;
 
 export type CreditGrant = CompanyCreditGrantResponseData;
 

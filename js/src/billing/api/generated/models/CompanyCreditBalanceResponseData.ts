@@ -20,6 +20,13 @@ import {
   CompanyCreditGrantResponseDataToJSON,
   CompanyCreditGrantResponseDataToJSONTyped,
 } from "./CompanyCreditGrantResponseData";
+import type { CompanyCreditAutoTopupResponseData } from "./CompanyCreditAutoTopupResponseData";
+import {
+  CompanyCreditAutoTopupResponseDataFromJSON,
+  CompanyCreditAutoTopupResponseDataFromJSONTyped,
+  CompanyCreditAutoTopupResponseDataToJSON,
+  CompanyCreditAutoTopupResponseDataToJSONTyped,
+} from "./CompanyCreditAutoTopupResponseData";
 import type { CompanyCreditCompositionResponseData } from "./CompanyCreditCompositionResponseData";
 import {
   CompanyCreditCompositionResponseDataFromJSON,
@@ -34,6 +41,12 @@ import {
  * @interface CompanyCreditBalanceResponseData
  */
 export interface CompanyCreditBalanceResponseData {
+  /**
+   * How the credit tops itself up; null unless the company's base plan grants it.
+   * @type {CompanyCreditAutoTopupResponseData}
+   * @memberof CompanyCreditBalanceResponseData
+   */
+  autoTopup?: CompanyCreditAutoTopupResponseData;
   /**
    * How the plan's grants of this credit add up per period; null unless the plan grants it per license and the license count is known.
    * @type {CompanyCreditCompositionResponseData}
@@ -157,6 +170,10 @@ export function CompanyCreditBalanceResponseDataFromJSONTyped(
     return json;
   }
   return {
+    autoTopup:
+      json["auto_topup"] == null
+        ? undefined
+        : CompanyCreditAutoTopupResponseDataFromJSON(json["auto_topup"]),
     composition:
       json["composition"] == null
         ? undefined
@@ -202,6 +219,7 @@ export function CompanyCreditBalanceResponseDataToJSONTyped(
   }
 
   return {
+    auto_topup: CompanyCreditAutoTopupResponseDataToJSON(value["autoTopup"]),
     composition: CompanyCreditCompositionResponseDataToJSON(
       value["composition"],
     ),

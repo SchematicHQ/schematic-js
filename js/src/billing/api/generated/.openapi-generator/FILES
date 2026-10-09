@@ -12,6 +12,12 @@ models/BillingTiersMode.ts
 models/CatalogCreditGrantResponseData.ts
 models/CatalogPriceResponseData.ts
 models/CatalogPriceTierResponseData.ts
+models/CompanyContextCustomPlanBillingResponseData.ts
+models/CompanyContextPlanResponseData.ts
+models/CompanyContextResponseData.ts
+models/CompanyContextScheduledDowngradeResponseData.ts
+models/CompanyContextSubscriptionResponseData.ts
+models/CompanyCreditAutoTopupResponseData.ts
 models/CompanyCreditBalanceResponseData.ts
 models/CompanyCreditBalancesResponseData.ts
 models/CompanyCreditCompositionResponseData.ts
@@ -29,6 +35,7 @@ models/CompanyPaymentMethodsResponseData.ts
 models/CompanyUpcomingInvoiceResponseData.ts
 models/CompanyUserUsageResponseData.ts
 models/CreateSetupIntentResponse.ts
+models/CustomPlanActivationStrategy.ts
 models/DeletePaymentMethodResponse.ts
 models/DeleteResponse.ts
 models/EntitlementPriceBehavior.ts
@@ -44,6 +51,7 @@ models/GetCompanyFeatureUserUsageResponse.ts
 models/GetCompanyInvoicesParams.ts
 models/GetCompanyInvoicesResponse.ts
 models/GetCompanyPaymentMethodsResponse.ts
+models/GetCompanyResponse.ts
 models/GetCompanyUpcomingInvoiceResponse.ts
 models/InvoiceStatus.ts
 models/MetricPeriod.ts
