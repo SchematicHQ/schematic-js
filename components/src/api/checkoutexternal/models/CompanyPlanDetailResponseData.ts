@@ -132,6 +132,13 @@ import {
   PlanVersionResponseDataToJSON,
   PlanVersionResponseDataToJSONTyped,
 } from "./PlanVersionResponseData";
+import type { PlanCreditVisibility } from "./PlanCreditVisibility";
+import {
+  PlanCreditVisibilityFromJSON,
+  PlanCreditVisibilityFromJSONTyped,
+  PlanCreditVisibilityToJSON,
+  PlanCreditVisibilityToJSONTyped,
+} from "./PlanCreditVisibility";
 import type { BillingPriceResponseData } from "./BillingPriceResponseData";
 import {
   BillingPriceResponseDataFromJSON,
@@ -263,6 +270,12 @@ export interface CompanyPlanDetailResponseData {
    * @memberof CompanyPlanDetailResponseData
    */
   createdAt: Date;
+  /**
+   *
+   * @type {Array<PlanCreditVisibility>}
+   * @memberof CompanyPlanDetailResponseData
+   */
+  creditVisibility?: Array<PlanCreditVisibility>;
   /**
    *
    * @type {Array<BillingCreditResponseData>}
@@ -549,6 +562,12 @@ export function CompanyPlanDetailResponseDataFromJSONTyped(
         ? undefined
         : json["copied_from_plan_id"],
     createdAt: new Date(json["created_at"]),
+    creditVisibility:
+      json["credit_visibility"] == null
+        ? undefined
+        : (json["credit_visibility"] as Array<any>).map(
+            PlanCreditVisibilityFromJSON,
+          ),
     credits: (json["credits"] as Array<any>).map(
       BillingCreditResponseDataFromJSON,
     ),
@@ -667,6 +686,12 @@ export function CompanyPlanDetailResponseDataToJSONTyped(
     controlled_by: BillingProviderTypeToJSON(value["controlledBy"]),
     copied_from_plan_id: value["copiedFromPlanId"],
     created_at: value["createdAt"].toISOString(),
+    credit_visibility:
+      value["creditVisibility"] == null
+        ? undefined
+        : (value["creditVisibility"] as Array<any>).map(
+            PlanCreditVisibilityToJSON,
+          ),
     credits: (value["credits"] as Array<any>).map(
       BillingCreditResponseDataToJSON,
     ),
