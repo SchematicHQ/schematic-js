@@ -4,6 +4,7 @@ import {
   SINGLETON,
   sessionKey,
   type InvoicesResult,
+  type SessionEvent,
   type SessionInput,
   type SessionStatus,
 } from "@schematichq/schematic-js";
@@ -14,6 +15,12 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  Catalog,
+  CatalogQuery,
+  Checkout,
+  CheckoutResult,
+  CheckoutSelections,
+  CheckoutWrite,
   Company,
   CreditBalanceEntry,
   CreditUserUsage,
@@ -24,9 +31,16 @@ import type {
   InvoiceQuery,
   PaymentMethod,
   SetupIntent,
+  TaxId,
+  TaxIdInput,
   UpcomingInvoice,
 } from "./contract";
-import { DEFAULT_INVOICE_QUERY, normalizeInvoiceQuery } from "./contract";
+import {
+  DEFAULT_CATALOG_QUERY,
+  DEFAULT_INVOICE_QUERY,
+  normalizeCatalogQuery,
+  normalizeInvoiceQuery,
+} from "./contract";
 import { KeyedResource, type Readiness } from "./store";
 
 /**
@@ -136,6 +150,7 @@ export interface BillingStoreOptions {
 /** A prefetch not yet judged; a resource it did not carry is absent. */
 interface HeldSeed {
   key: string | undefined;
+  catalog?: { params: CatalogQuery; data: Catalog };
   invoices?: { params: InvoiceQuery; data: InvoicePage };
   /** `null` is a company with no next bill, and worth seeding. */
   upcomingInvoice?: UpcomingInvoice | null;
@@ -143,14 +158,16 @@ interface HeldSeed {
   featureUsage?: FeatureUsage[];
   creditBalances?: CreditBalanceEntry[];
   company?: Company;
+  taxIds?: TaxId[];
 }
 
 /**
  * The store for one session: a `KeyedResource` per billing resource, built
  * over a `BillingProviderClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
- * resource. Invoices, the upcoming invoice, the payment methods, feature
- * usage, credits and the company so far; the rest join with their elements.
+ * resource. The catalog, invoices, the upcoming invoice, the payment methods,
+ * feature usage, credits, the company and tax IDs so far; the rest join with
+ * their elements.
  *
  * `featureUserUsage` and `creditUserUsage` are keyed by feature and by
  * credit, so they are not resource names: a prefetch or fixture holds one
@@ -163,6 +180,7 @@ interface HeldSeed {
  * out under the right one.
  */
 export class BillingStore {
+  readonly catalog: KeyedResource<Catalog, CatalogQuery>;
   readonly invoices: KeyedResource<InvoicePage, InvoiceQuery>;
   readonly upcomingInvoice: KeyedResource<
     UpcomingInvoice | null,
@@ -182,6 +200,7 @@ export class BillingStore {
     CreditUserUsage,
     CreditUserUsageParams
   >;
+  readonly taxIds: KeyedResource<TaxId[], Record<string, never>>;
   readonly featureUserUsage: KeyedResource<
     FeatureUserUsage,
     FeatureUserUsageParams
@@ -206,6 +225,10 @@ export class BillingStore {
     // client's refusal as an error.
     const readiness = (): Readiness =>
       this._connected ? READINESS[this._client.sessionStatus] : "waiting";
+    this.catalog = new KeyedResource(
+      (query) => this._client.fetchCatalog(query),
+      { readiness },
+    );
     // A refetch re-requests the loaded window, so a user who has paged
     // three deep does not collapse back to one page on invalidation.
     this.invoices = new KeyedResource(
@@ -228,6 +251,9 @@ export class BillingStore {
       () => this._client.fetchFeatureUsage(),
       { readiness },
     );
+    this.taxIds = new KeyedResource(() => this._client.fetchTaxIds(), {
+      readiness,
+    });
     this.featureUserUsage = new KeyedResource(
       ({ featureId }) =>
         this._client.fetchFeatureUserUsage({
@@ -253,6 +279,14 @@ export class BillingStore {
     );
 
     const held: HeldSeed = { key: initialData.sessionKey };
+    if (initialData.catalog !== undefined) {
+      held.catalog = {
+        params: normalizeCatalogQuery(
+          initialData.params?.catalog ?? DEFAULT_CATALOG_QUERY,
+        ),
+        data: initialData.catalog,
+      };
+    }
     if (initialData.invoices !== undefined) {
       held.invoices = {
         // Normalized the way the hook normalizes, or the caller asking for
@@ -281,13 +315,18 @@ export class BillingStore {
     if (initialData.company !== undefined) {
       held.company = initialData.company;
     }
+    if (initialData.taxIds !== undefined) {
+      held.taxIds = initialData.taxIds;
+    }
     if (
+      held.catalog !== undefined ||
       held.invoices !== undefined ||
       held.upcomingInvoice !== undefined ||
       held.paymentMethods !== undefined ||
       held.featureUsage !== undefined ||
       held.creditBalances !== undefined ||
-      held.company !== undefined
+      held.company !== undefined ||
+      held.taxIds !== undefined
     ) {
       this._held = held;
       this._settleSeed(claimFrom(options.session) ?? claimOf(this._client));
@@ -360,6 +399,9 @@ export class BillingStore {
     }
     this._held = undefined;
     if (verdict === "adopt") {
+      if (held.catalog !== undefined) {
+        this.catalog.seed(held.catalog.params, held.catalog.data);
+      }
       if (held.invoices !== undefined) {
         this.invoices.seed(held.invoices.params, held.invoices.data);
       }
@@ -377,6 +419,9 @@ export class BillingStore {
       }
       if (held.company !== undefined) {
         this.company.seed(SINGLETON, held.company);
+      }
+      if (held.taxIds !== undefined) {
+        this.taxIds.seed(SINGLETON, held.taxIds);
       }
       this._seedKey = held.key;
       this._seeded = true;
@@ -488,6 +533,48 @@ export class BillingStore {
     return this._client.createSetupIntent();
   }
 
+  /**
+   * Sets the company's tax ID. The write answers with every ID now on file,
+   * so the list takes that rather than a second request.
+   */
+  async updateTaxId(taxId: TaxIdInput): Promise<void> {
+    const taxIds = await this._client.updateTaxId(taxId);
+    this.taxIds.seed(SINGLETON, taxIds);
+  }
+
+  /**
+   * The checkout calls pass straight through: a checkout in progress is one
+   * reader's cart, not a resource to share, and `useCheckout` holds it.
+   */
+  createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite> {
+    return this._client.createCheckout(selections);
+  }
+
+  getCheckout(id: string): Promise<Checkout> {
+    return this._client.getCheckout(id);
+  }
+
+  updateCheckout(
+    id: string,
+    version: number,
+    selections: CheckoutSelections,
+  ): Promise<CheckoutWrite> {
+    return this._client.updateCheckout(id, version, selections);
+  }
+
+  finalizeCheckout(
+    id: string,
+    version: number,
+    options?: { sessionId?: string },
+  ): Promise<CheckoutResult> {
+    return this._client.finalizeCheckout(id, version, options);
+  }
+
+  /** The client's session changes, for state kept beside the store. */
+  onSessionChange(listener: (event: SessionEvent) => void): () => void {
+    return this._client.onSessionChange?.(listener) ?? (() => {});
+  }
+
   dispose(): void {
     this._unsubscribe?.();
   }
@@ -557,10 +644,12 @@ export class BillingStore {
 }
 
 export const RESOURCE_NAMES: readonly BillingResourceName[] = [
+  "catalog",
   "invoices",
   "upcomingInvoice",
   "paymentMethods",
   "featureUsage",
   "creditBalances",
   "company",
+  "taxIds",
 ];
