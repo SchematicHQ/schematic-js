@@ -4,6 +4,9 @@
  */
 
 import type {
+  Company,
+  CompanyPlan,
+  CompanySubscription,
   CreditBalanceEntry,
   CreditGrant,
   CreditUserUsage,
@@ -304,6 +307,46 @@ export function creditUserUsage(
       { name: "Ada", share: 0.6, used: 90, userId: "user_ada" },
       { name: "Cy", share: 0.17, used: 25, userId: "user_cy" },
     ],
+    ...overrides,
+  };
+}
+
+/** The Pro plan at $29 a month, granting AI credits. */
+export function companyPlan(overrides: Partial<CompanyPlan> = {}): CompanyPlan {
+  return {
+    description: "For growing teams",
+    id: nextId("plan"),
+    includedCreditIds: [],
+    name: "Pro",
+    period: "month",
+    price: 2900,
+    ...overrides,
+  };
+}
+
+/** An active monthly USD subscription that renews in ten days. */
+export function companySubscription(
+  overrides: Partial<CompanySubscription> = {},
+): CompanySubscription {
+  return {
+    cancelAtPeriodEnd: false,
+    currency: "usd",
+    nextBillAt: daysFromNow(10),
+    period: "month",
+    periodEnd: daysFromNow(10),
+    status: "active",
+    ...overrides,
+  };
+}
+
+/** Acme on Pro, with nothing pending. Absent optionals are omitted. */
+export function company(overrides: Partial<Company> = {}): Company {
+  return {
+    addOns: [],
+    id: nextId("comp"),
+    name: "Acme",
+    plan: companyPlan(),
+    subscription: companySubscription(),
     ...overrides,
   };
 }
