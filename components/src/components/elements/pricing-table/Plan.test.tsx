@@ -114,6 +114,7 @@ const mockPlan = {
   },
   includedCreditGrants: [
     {
+      creditId: "bcred_api",
       creditName: "API Credits",
       creditAmount: 1000,
       creditIcon: "api",
@@ -168,6 +169,27 @@ const mockSharedProps = {
 } satisfies DeepPartial<PlanProps["sharedProps"]> as PlanProps["sharedProps"];
 
 describe("`Plan` component", () => {
+  test("hides an included credit the catalog marks hidden", () => {
+    const plan = {
+      ...mockPlan,
+      creditVisibility: [{ creditId: "bcred_api", visible: false }],
+    };
+    render(
+      <Plan
+        plan={plan}
+        index={0}
+        sharedProps={mockSharedProps}
+        plans={[plan]}
+        selectedPeriod={BillingProductPriceInterval.Month}
+      />,
+    );
+
+    expect(screen.getByText("Basic Plan")).toBeInTheDocument();
+    expect(
+      screen.queryByText("1000 API Credits per month"),
+    ).not.toBeInTheDocument();
+  });
+
   test("renders plan correctly", () => {
     render(
       <Plan

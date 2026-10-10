@@ -40,6 +40,29 @@ function isPerLicenseGrant(grant: Pick<PlanCreditGrantView, "scaling">) {
 }
 
 /**
+ * The included credit grants a plan card should show. A catalog can hide a
+ * plan's credit from the card (`creditVisibility`), which also keeps its
+ * amount out of limits derived from it. The grant itself stays in
+ * `includedCreditGrants`, since checkout still prices and configures it.
+ *
+ * `creditVisibility` is typed structurally rather than with the generated
+ * model so this compiles against API specs that predate the field.
+ */
+export function getDisplayedPlanCreditGrants(plan: {
+  includedCreditGrants: PlanCreditGrantView[];
+  creditVisibility?: { creditId: string; visible: boolean }[];
+}) {
+  const hidden = new Set(
+    (plan.creditVisibility ?? [])
+      .filter((override) => !override.visible)
+      .map((override) => override.creditId),
+  );
+  return plan.includedCreditGrants.filter(
+    (grant) => !hidden.has(grant.creditId),
+  );
+}
+
+/**
  * A per-license grant carries both portions on the same grant: `creditAmount`
  * is the amount issued per license unit, and `companyCreditAmount` is the flat
  * amount granted once per company on top of it (always 0 on a fixed grant,
