@@ -39,6 +39,7 @@ import {
   formatOrdinal,
   getAddOnPrice,
   getBillingPreviewText,
+  getDisplayedPlanCreditGrants,
   getEntitlementPrice,
   getFeatureName,
   getPlanPrice,
@@ -215,10 +216,11 @@ export const SubscriptionSidebar = forwardRef<
     ]);
 
     // Per-credit composition of the selected plan's grants, used to surface
-    // the credits a pay-in-advance license quantity includes.
+    // the credits a pay-in-advance license quantity includes. A credit the
+    // catalog hides from the plan card is left out here too.
     const planCredits = useMemo(
-      () => groupPlanCreditGrants(selectedPlan?.includedCreditGrants ?? []),
-      [selectedPlan?.includedCreditGrants],
+      () => groupPlanCreditGrants(getDisplayedPlanCreditGrants(selectedPlan)),
+      [selectedPlan],
     );
 
     const { payInAdvanceEntitlements } = useMemo(() => {

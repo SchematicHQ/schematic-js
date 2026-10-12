@@ -14,6 +14,7 @@ import {
   calculateQuantityCost,
   formatCurrency,
   formatOrdinal,
+  getDisplayedPlanCreditGrants,
   getEntitlementPrice,
   getFeatureName,
   groupPlanCreditGrants,
@@ -52,9 +53,11 @@ export const Quantity = ({
 
   const unitPriceFontSize = 0.875 * settings.theme.typography.text.fontSize;
 
+  // Per-credit composition of the selected plan's grants, minus any credit
+  // the catalog hides from the plan card.
   const planCredits = useMemo(
-    () => groupPlanCreditGrants(selectedPlan?.includedCreditGrants ?? []),
-    [selectedPlan?.includedCreditGrants],
+    () => groupPlanCreditGrants(getDisplayedPlanCreditGrants(selectedPlan)),
+    [selectedPlan],
   );
 
   const prorationBehavior = data?.checkoutSettings?.prorationBehavior;

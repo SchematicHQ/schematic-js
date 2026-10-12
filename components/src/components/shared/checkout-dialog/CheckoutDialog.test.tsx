@@ -455,3 +455,64 @@ describe("`CheckoutDialog` one-time-only purchases", () => {
     await expectLabel("Subscribe and close", "Pay and close");
   });
 });
+
+describe("`CheckoutDialog` auto top-up stage", () => {
+  const PROFESSIONAL_PLAN_ID = "plan_9Qeb3Aqc6jY";
+  const TOKEN_CREDIT_ID = "bilcr_SEzUjtGmNaD";
+
+  /**
+   * The fixture company checking out Professional, whose Normal Token grant
+   * lets the buyer configure auto top-up.
+   */
+  function buildSelfServiceTopupData(
+    creditVisibility?: { credit_id: string; visible: boolean }[],
+  ): HydrateDataWithCompanyContext {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+
+    raw.active_plans = (raw.active_plans as Json[]).map((plan) => {
+      if (plan.id !== PROFESSIONAL_PLAN_ID) {
+        return plan;
+      }
+
+      return {
+        ...plan,
+        included_credit_grants: (plan.included_credit_grants as Json[]).map(
+          (grant) => ({
+            ...grant,
+            billing_credit_auto_topup_availability: "user_controlled",
+            billing_credit_auto_topup_self_service: true,
+          }),
+        ),
+        ...(creditVisibility && { credit_visibility: creditVisibility }),
+      };
+    });
+
+    return ComponentHydrateResponseDataFromJSON(raw);
+  }
+
+  const renderProfessionalCheckout = (data: HydrateDataWithCompanyContext) =>
+    renderCheckoutDialog({
+      data,
+      checkoutState: { planId: PROFESSIONAL_PLAN_ID },
+      previewCheckout: vi.fn(async () => buildPreviewResponse()),
+    });
+
+  it("offers the step when the plan's credit allows self-service top-up", async () => {
+    renderProfessionalCheckout(buildSelfServiceTopupData());
+
+    expect((await screen.findAllByText(/Auto top-up/)).length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("drops the step when the catalog hides that credit", async () => {
+    renderProfessionalCheckout(
+      buildSelfServiceTopupData([
+        { credit_id: TOKEN_CREDIT_ID, visible: false },
+      ]),
+    );
+
+    expect(await screen.findByText("Select plan")).toBeInTheDocument();
+    expect(screen.queryByText(/Auto top-up/)).not.toBeInTheDocument();
+  });
+});

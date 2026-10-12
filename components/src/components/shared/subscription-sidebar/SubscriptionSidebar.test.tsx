@@ -372,3 +372,54 @@ describe("`SubscriptionSidebar` checkout button label", () => {
     expectLabel("Subscribe and close", "Pay and close");
   });
 });
+
+describe("`SubscriptionSidebar` per-license credits", () => {
+  const LICENSE_ID = "license-seat";
+
+  /** The tiered seat entitlement as the license a per-license grant scales by. */
+  function buildSeatEntitlement(quantity: number): UsageBasedEntitlement {
+    const entitlement = buildTieredPayInAdvanceEntitlement(quantity);
+
+    return {
+      ...entitlement,
+      feature: { ...entitlement.feature!, licenseId: LICENSE_ID },
+    };
+  }
+
+  /** Basic granting 100 credits per seat, with the catalog's say on showing it. */
+  function buildPlanWithSeatCredits(visible?: boolean): SelectedPlan {
+    return {
+      ...buildSelectedPlan(),
+      includedCreditGrants: [
+        {
+          id: "grant-seat",
+          creditId: "credit-seat",
+          creditName: "Credits",
+          creditAmount: 100,
+          licenseId: LICENSE_ID,
+          scaling: "per_license",
+          resetCadence: "monthly",
+        },
+      ],
+      ...(typeof visible === "boolean" && {
+        creditVisibility: [{ creditId: "credit-seat", visible }],
+      }),
+    } as unknown as SelectedPlan;
+  }
+
+  it("says how many credits the chosen seats include", () => {
+    renderSidebar([], [buildSeatEntitlement(3)], buildPlanWithSeatCredits());
+
+    expect(screen.getByText("Includes 300 Credits/mo")).toBeInTheDocument();
+  });
+
+  it("leaves out a credit the catalog hides", () => {
+    renderSidebar(
+      [],
+      [buildSeatEntitlement(3)],
+      buildPlanWithSeatCredits(false),
+    );
+
+    expect(screen.queryByText(/^Includes 300/)).not.toBeInTheDocument();
+  });
+});

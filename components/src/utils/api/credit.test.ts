@@ -54,6 +54,10 @@ describe("getDisplayedPlanCreditGrants", () => {
       }),
     ).toEqual([grants[1]]);
   });
+
+  it("returns no grants without a plan", () => {
+    expect(getDisplayedPlanCreditGrants(undefined)).toEqual([]);
+  });
 });
 
 describe("isAutoTopupOff", () => {

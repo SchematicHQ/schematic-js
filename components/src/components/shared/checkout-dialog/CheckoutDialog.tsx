@@ -50,6 +50,7 @@ import {
   emptyTaxIdValues,
   filterCreditBundles,
   getDefaultPlanPeriod,
+  getDisplayedPlanCreditGrants,
   getPlanPrice,
   getSubscriptionPeriod,
   isAddOnCompatibleWithLookup,
@@ -352,17 +353,23 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [shouldTrial, setShouldTrial] = useState(false);
 
-  const planCreditGrants = useMemo(() => {
-    const grants = mergeCompanyGrants(
-      selectedPlan?.includedCreditGrants,
-      data?.company?.plan?.includedCreditGrants,
-    );
+  // The grants checkout shows and lets the buyer configure. A credit the
+  // catalog hides from the plan card stays out of the auto top-up step too;
+  // request bodies still read the plan's full list, since hiding is
+  // display-only.
+  const displayedPlanCreditGrants = useMemo(
+    () => getDisplayedPlanCreditGrants(selectedPlan),
+    [selectedPlan],
+  );
 
-    return grants;
-  }, [
-    selectedPlan?.includedCreditGrants,
-    data?.company?.plan?.includedCreditGrants,
-  ]);
+  const planCreditGrants = useMemo(
+    () =>
+      mergeCompanyGrants(
+        displayedPlanCreditGrants,
+        data?.company?.plan?.includedCreditGrants,
+      ),
+    [displayedPlanCreditGrants, data?.company?.plan?.includedCreditGrants],
+  );
 
   const [autoTopupConfigs, setAutoTopupConfigs] = useState<
     Map<string, AutoTopupConfig>
@@ -730,8 +737,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       });
     }
 
-    const hasSelfServiceAutoTopup = selectedPlan?.includedCreditGrants.some(
-      (grant) => isSelfServiceAutoTopupAvailable(grant),
+    const hasSelfServiceAutoTopup = displayedPlanCreditGrants.some((grant) =>
+      isSelfServiceAutoTopupAvailable(grant),
     );
 
     if (hasSelfServiceAutoTopup) {
@@ -819,7 +826,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     data?.customCheckoutFields,
     collectTaxId,
     availablePlans,
-    selectedPlan?.includedCreditGrants,
+    displayedPlanCreditGrants,
     willTrialWithoutPaymentMethod,
     payInAdvanceEntitlements,
     addOns,

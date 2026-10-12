@@ -40,18 +40,24 @@ function isPerLicenseGrant(grant: Pick<PlanCreditGrantView, "scaling">) {
 }
 
 /**
- * The included credit grants a plan card should show. A catalog can hide a
- * plan's credit from the card (`creditVisibility`), which also keeps its
- * amount out of limits derived from it. The grant itself stays in
- * `includedCreditGrants`, since checkout still prices and configures it.
+ * The included credit grants a plan's display should show: the plan card, and
+ * the checkout surfaces that describe the plan being bought (the auto top-up
+ * step, the quantity step's per-license math, the sidebar). A catalog can
+ * hide a plan's credit (`creditVisibility`), which also keeps its amount out
+ * of limits derived from it. The grant itself stays in `includedCreditGrants`,
+ * since hiding is display-only and checkout request bodies still carry it.
  *
  * `creditVisibility` is typed structurally rather than with the generated
  * model so this compiles against API specs that predate the field.
  */
-export function getDisplayedPlanCreditGrants(plan: {
+export function getDisplayedPlanCreditGrants(plan?: {
   includedCreditGrants: PlanCreditGrantView[];
   creditVisibility?: { creditId: string; visible: boolean }[];
 }) {
+  if (!plan) {
+    return [];
+  }
+
   const hidden = new Set(
     (plan.creditVisibility ?? [])
       .filter((override) => !override.visible)
