@@ -65,6 +65,12 @@ models/CheckoutStatus.ts
 models/CheckoutTaxIDView.ts
 models/CheckoutUnsubscribeResponse.ts
 models/CompanyBillingProfileResponseData.ts
+models/CompanyContextCustomPlanBillingResponseData.ts
+models/CompanyContextPlanResponseData.ts
+models/CompanyContextResponseData.ts
+models/CompanyContextScheduledDowngradeResponseData.ts
+models/CompanyContextSubscriptionResponseData.ts
+models/CompanyCreditAutoTopupResponseData.ts
 models/CompanyCreditBalanceResponseData.ts
 models/CompanyCreditBalancesResponseData.ts
 models/CompanyCreditCompositionResponseData.ts
@@ -166,6 +172,7 @@ models/GetCompanyFeatureUserUsageResponse.ts
 models/GetCompanyInvoicesParams.ts
 models/GetCompanyInvoicesResponse.ts
 models/GetCompanyPaymentMethodsResponse.ts
+models/GetCompanyResponse.ts
 models/GetCompanyUpcomingInvoiceResponse.ts
 models/GetCreditUsageByUserParams.ts
 models/GetCreditUsageByUserResponse.ts

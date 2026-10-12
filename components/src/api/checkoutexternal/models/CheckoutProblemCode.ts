@@ -17,26 +17,55 @@
  * @export
  */
 export const CheckoutProblemCode = {
+  AddOnConflictsWithPlan: "add_on_conflicts_with_plan",
+  AddOnIntervalMismatch: "add_on_interval_mismatch",
   AddOnRequiresBilledPlan: "add_on_requires_billed_plan",
+  AddOnUnavailable: "add_on_unavailable",
   BillingCycleAnchorConflictsWithTrial:
     "billing_cycle_anchor_conflicts_with_trial",
   BillingCycleAnchorMustBeFuture: "billing_cycle_anchor_must_be_future",
+  BillingCycleAnchorNeedsNewSubscription:
+    "billing_cycle_anchor_needs_new_subscription",
+  BillingCycleAnchorWithoutPlan: "billing_cycle_anchor_without_plan",
+  BillingStartDateMustBePast: "billing_start_date_must_be_past",
+  BillingStartDateNeedsNewSubscription:
+    "billing_start_date_needs_new_subscription",
+  BillingStartDateNeedsRenewalDate: "billing_start_date_needs_renewal_date",
+  BillingStartDateNotBeforeRenewalDate:
+    "billing_start_date_not_before_renewal_date",
+  BillingStartDateTooFarInPast: "billing_start_date_too_far_in_past",
   CreditBundleIncompatible: "credit_bundle_incompatible",
+  CreditBundleUnavailable: "credit_bundle_unavailable",
+  CreditBundlesActivateOnPayment: "credit_bundles_activate_on_payment",
   CurrencyMismatch: "currency_mismatch",
+  CustomFieldRequired: "custom_field_required",
   DiscountIneligible: "discount_ineligible",
+  DowngradeNotPermitted: "downgrade_not_permitted",
   FreeFirstPeriodActivatesOnPayment: "free_first_period_activates_on_payment",
   InvoiceEmailRequired: "invoice_email_required",
   InvoicedSubscriptionConflictsWithTrial:
     "invoiced_subscription_conflicts_with_trial",
+  InvoicedSubscriptionNeedsNewSubscription:
+    "invoiced_subscription_needs_new_subscription",
+  InvoicedSubscriptionRequiresPlan: "invoiced_subscription_requires_plan",
   OptInRequired: "opt_in_required",
+  PayInAdvancePriceInvalid: "pay_in_advance_price_invalid",
+  PayInAdvanceRequired: "pay_in_advance_required",
   PaymentMethodRequired: "payment_method_required",
+  PlanNotTrialable: "plan_not_trialable",
   PlanUnavailable: "plan_unavailable",
   PriceUnavailable: "price_unavailable",
   ProrateFirstPeriodWithoutAnchor: "prorate_first_period_without_anchor",
   ProviderRejected: "provider_rejected",
+  ScheduledChangeBlocksPurchase: "scheduled_change_blocks_purchase",
+  ScheduledChangePending: "scheduled_change_pending",
   SelectionInvalid: "selection_invalid",
+  SubscriptionCurrencyChange: "subscription_currency_change",
   TrialEndMustBeFuture: "trial_end_must_be_future",
   TrialEndTooFar: "trial_end_too_far",
+  TrialExcludesAddOns: "trial_excludes_add_ons",
+  TrialExcludesUsageBased: "trial_excludes_usage_based",
+  UsagePriceMissingForInterval: "usage_price_missing_for_interval",
   UsageOverLimit: "usage_over_limit",
 } as const;
 export type CheckoutProblemCode =

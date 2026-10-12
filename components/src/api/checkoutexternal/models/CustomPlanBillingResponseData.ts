@@ -34,6 +34,13 @@ import {
   PlanBillingSourceToJSON,
   PlanBillingSourceToJSONTyped,
 } from "./PlanBillingSource";
+import type { CheckoutProblemResponseData } from "./CheckoutProblemResponseData";
+import {
+  CheckoutProblemResponseDataFromJSON,
+  CheckoutProblemResponseDataFromJSONTyped,
+  CheckoutProblemResponseDataToJSON,
+  CheckoutProblemResponseDataToJSONTyped,
+} from "./CheckoutProblemResponseData";
 
 /**
  *
@@ -59,6 +66,12 @@ export interface CustomPlanBillingResponseData {
    * @memberof CustomPlanBillingResponseData
    */
   billingStartDate?: Date | null;
+  /**
+   * The checkout this billing record was created from, when it was created from one.
+   * @type {string}
+   * @memberof CustomPlanBillingResponseData
+   */
+  checkoutId?: string | null;
   /**
    *
    * @type {string}
@@ -113,6 +126,12 @@ export interface CustomPlanBillingResponseData {
    * @memberof CustomPlanBillingResponseData
    */
   planId: string;
+  /**
+   * What the linked checkout still reports wrong, in the order found. Empty when there is no linked checkout or it completed cleanly.
+   * @type {Array<CheckoutProblemResponseData>}
+   * @memberof CustomPlanBillingResponseData
+   */
+  problems: Array<CheckoutProblemResponseData>;
   /**
    * Whether the shortened period the renewal date created was billed pro rata when the subscription started. False means that period is free and the first invoice is the one raised on the renewal date.
    * @type {boolean}
@@ -173,6 +192,7 @@ export function instanceOfCustomPlanBillingResponseData(
   )
     return false;
   if (!("planId" in value) || value["planId"] === undefined) return false;
+  if (!("problems" in value) || value["problems"] === undefined) return false;
   if (!("sendInvoice" in value) || value["sendInvoice"] === undefined)
     return false;
   if (!("status" in value) || value["status"] === undefined) return false;
@@ -205,6 +225,7 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
       json["billing_start_date"] == null
         ? undefined
         : new Date(json["billing_start_date"]),
+    checkoutId: json["checkout_id"] == null ? undefined : json["checkout_id"],
     companyId: json["company_id"],
     createdAt: new Date(json["created_at"]),
     daysUntilDue: json["days_until_due"],
@@ -218,6 +239,9 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
     paidAt: json["paid_at"] == null ? undefined : new Date(json["paid_at"]),
     planBillingSource: PlanBillingSourceFromJSON(json["plan_billing_source"]),
     planId: json["plan_id"],
+    problems: (json["problems"] as Array<any>).map(
+      CheckoutProblemResponseDataFromJSON,
+    ),
     prorateFirstPeriod:
       json["prorate_first_period"] == null
         ? undefined
@@ -260,6 +284,7 @@ export function CustomPlanBillingResponseDataToJSONTyped(
       value["billingStartDate"] == null
         ? undefined
         : (value["billingStartDate"] as any).toISOString(),
+    checkout_id: value["checkoutId"],
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
     days_until_due: value["daysUntilDue"],
@@ -272,6 +297,9 @@ export function CustomPlanBillingResponseDataToJSONTyped(
         : (value["paidAt"] as any).toISOString(),
     plan_billing_source: PlanBillingSourceToJSON(value["planBillingSource"]),
     plan_id: value["planId"],
+    problems: (value["problems"] as Array<any>).map(
+      CheckoutProblemResponseDataToJSON,
+    ),
     prorate_first_period: value["prorateFirstPeriod"],
     published_at:
       value["publishedAt"] == null
