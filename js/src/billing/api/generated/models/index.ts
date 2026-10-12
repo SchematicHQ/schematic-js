@@ -33,6 +33,7 @@ export * from "./CompanyPaymentMethodsResponseData";
 export * from "./CompanyUpcomingInvoiceResponseData";
 export * from "./CompanyUserUsageResponseData";
 export * from "./CreateSetupIntentResponse";
+export * from "./Currency";
 export * from "./CustomPlanActivationStrategy";
 export * from "./DeletePaymentMethodResponse";
 export * from "./DeleteResponse";

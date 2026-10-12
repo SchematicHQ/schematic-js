@@ -35,6 +35,7 @@ models/CompanyPaymentMethodsResponseData.ts
 models/CompanyUpcomingInvoiceResponseData.ts
 models/CompanyUserUsageResponseData.ts
 models/CreateSetupIntentResponse.ts
+models/Currency.ts
 models/CustomPlanActivationStrategy.ts
 models/DeletePaymentMethodResponse.ts
 models/DeleteResponse.ts
