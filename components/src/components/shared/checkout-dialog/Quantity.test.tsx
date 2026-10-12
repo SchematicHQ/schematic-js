@@ -179,4 +179,20 @@ describe("per-license credits", () => {
 
     expect(screen.queryByText("Credits included")).not.toBeInTheDocument();
   });
+
+  it("hides the credits math for a credit the catalog hides", () => {
+    render(
+      <Quantity
+        isLoading={false}
+        period="month"
+        selectedPlan={makePlan({
+          creditVisibility: [{ creditId: "credit-1", visible: false }],
+        })}
+        entitlements={[seatEntitlement]}
+        updateQuantity={() => {}}
+      />,
+    );
+
+    expect(screen.queryByText("Credits included")).not.toBeInTheDocument();
+  });
 });
