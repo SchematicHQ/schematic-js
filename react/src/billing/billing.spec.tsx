@@ -19,6 +19,7 @@ import {
   normalizeInvoiceQuery,
   type BillingData,
   type BillingProviderClient,
+  type Company,
   type CreditBalanceEntry,
   type CreditUserUsage,
   type FeatureUsage,
@@ -35,6 +36,7 @@ import {
   useBillingDataSource,
 } from "./context";
 import {
+  useCompany,
   useCreditBalances,
   useCreditUserUsage,
   useFeatureUsage,
@@ -123,6 +125,9 @@ const creditUsage = (creditId: string): CreditUserUsage =>
     users: [{ userId: `user_${creditId}`, used: 3 }],
   }) as unknown as CreditUserUsage;
 
+const company = (name: string): Company =>
+  ({ addOns: [], id: "comp_a", name }) as unknown as Company;
+
 type SessionListener = (event: SessionEvent) => void;
 
 function fakeClient(
@@ -145,6 +150,7 @@ function fakeClient(
     fetchFeatureUserUsage: vi.fn(async ({ featureId }) => userUsage(featureId)),
     fetchCreditBalances: vi.fn(async () => []),
     fetchCreditUserUsage: vi.fn(async ({ creditId }) => creditUsage(creditId)),
+    fetchCompany: vi.fn(async () => company("Acme")),
     onSessionChange: (listener) => {
       listeners.push(listener);
       return () => {};
@@ -2389,5 +2395,42 @@ describe("useCreditUserUsage", () => {
       data: undefined,
       isPending: true,
     });
+  });
+});
+
+describe("useCompany", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it_("loads the company once for every reader", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => [useCompany(), useCompany()] as const, {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current[0].data?.name).toBe("Acme");
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(client.fetchCompany).toHaveBeenCalledTimes(1);
+  });
+
+  it_("serves a prefetched company without a request", async () => {
+    const client = fakeClient();
+    const { result } = renderHook(() => useCompany(), {
+      wrapper: wrap(client, { company: company("Prefetched") }),
+    });
+    expect(result.current).toMatchObject({
+      data: { name: "Prefetched" },
+      isPending: false,
+    });
+    await flush();
+    expect(client.fetchCompany).not.toHaveBeenCalled();
   });
 });
