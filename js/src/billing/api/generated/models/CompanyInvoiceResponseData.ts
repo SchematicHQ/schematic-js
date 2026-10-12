@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
 import type { InvoiceStatus } from "./InvoiceStatus";
 import {
   InvoiceStatusFromJSON,
@@ -41,10 +48,10 @@ export interface CompanyInvoiceResponseData {
   createdAt: Date;
   /**
    *
-   * @type {string}
+   * @type {Currency}
    * @memberof CompanyInvoiceResponseData
    */
-  currency: string;
+  currency: Currency;
   /**
    *
    * @type {Date}
@@ -100,7 +107,7 @@ export function CompanyInvoiceResponseDataFromJSONTyped(
   return {
     amountDue: json["amount_due"],
     createdAt: new Date(json["created_at"]),
-    currency: json["currency"],
+    currency: CurrencyFromJSON(json["currency"]),
     dueDate: json["due_date"] == null ? undefined : new Date(json["due_date"]),
     id: json["id"],
     status:
@@ -128,7 +135,7 @@ export function CompanyInvoiceResponseDataToJSONTyped(
   return {
     amount_due: value["amountDue"],
     created_at: value["createdAt"].toISOString(),
-    currency: value["currency"],
+    currency: CurrencyToJSON(value["currency"]),
     due_date:
       value["dueDate"] == null
         ? undefined
