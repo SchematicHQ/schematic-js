@@ -16,8 +16,8 @@ importers:
   .:
     dependencies:
       '@schematichq/schematic-js':
-        specifier: ^1.11.0
-        version: 1.11.0
+        specifier: ^1.12.0
+        version: 1.12.0
     devDependencies:
       '@angular/compiler':
         specifier: ^22.2.2
@@ -751,8 +751,8 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@schematichq/schematic-js@1.11.0':
-    resolution: {integrity: sha512-FKkFGHAUg1crp1MmOtfSTo4kKgv3y6I8sDnmX17bXBbZUXjR7R1dOX6LEln2pSqUg8anXxjjiEzW2NhpF+K2cA==}
+  '@schematichq/schematic-js@1.12.0':
+    resolution: {integrity: sha512-pYyLMuFyk/PaQRY1Wc7H4sPtOTD4HIFTqYJ8Plie5Y9/qPWUoFup+6Z7BY//5JKSXlprOEUhNROL/FB749PpOg==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -2481,8 +2481,8 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  uuid@14.0.2:
-    resolution: {integrity: sha512-xZe/16rV4aa+HGSOCiY2YeLT1OybRLrrkL/Rqaq7p7GMVXjFh+6wN4oMYgjFmnSnhY8t6Xpdl2l9qmnHYuMHwQ==}
+  uuid@14.0.3:
+    resolution: {integrity: sha512-Sc5u1VVln93y1Xnz4R+CunOZc7R9LUcTmhj7Rc7Eg3HVcf7rVn2FOoa812fe0W8p3jD7xeoGSYbfqCGGH2B6xw==}
     hasBin: true
 
   varint@6.0.0:
@@ -3150,10 +3150,10 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@schematichq/schematic-js@1.11.0':
+  '@schematichq/schematic-js@1.12.0':
     dependencies:
       cross-fetch: 4.1.0
-      uuid: 14.0.2
+      uuid: 14.0.3
     transitivePeerDependencies:
       - encoding
 
@@ -4996,7 +4996,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  uuid@14.0.2: {}
+  uuid@14.0.3: {}
 
   varint@6.0.0: {}
 
