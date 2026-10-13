@@ -141,4 +141,24 @@ describe("UnsubscribeButton", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
+  test("forgets a failure that lands after the dialog closes", async () => {
+    let fail: (error: Error) => void = () => {};
+    renderButton(
+      SCENARIOS.planManager(),
+      {},
+      () =>
+        new Promise<void>((_, reject) => {
+          fail = reject;
+        }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Unsubscribe" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Cancel subscription" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fail(new Error("company has no active subscriptions"));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    fireEvent.click(screen.getByRole("button", { name: "Unsubscribe" }));
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
 });

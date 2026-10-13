@@ -128,7 +128,11 @@ export function UnsubscribeButton({
       <button
         className="schematic-cta schematic-unsubscribe__open"
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          // A cancellation that failed after the dialog closed is stale.
+          setFailed(false);
+          setOpen(true);
+        }}
       >
         {t("unsubscribeButton")}
       </button>
