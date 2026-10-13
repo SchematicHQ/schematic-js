@@ -12,6 +12,7 @@ models/BillingTiersMode.ts
 models/CatalogCreditGrantResponseData.ts
 models/CatalogPriceResponseData.ts
 models/CatalogPriceTierResponseData.ts
+models/CheckoutUnsubscribeResponse.ts
 models/CompanyContextCustomPlanBillingResponseData.ts
 models/CompanyContextPlanResponseData.ts
 models/CompanyContextResponseData.ts

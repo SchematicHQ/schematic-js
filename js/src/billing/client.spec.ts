@@ -1246,3 +1246,39 @@ describe("company", () => {
     });
   });
 });
+
+describe("unsubscribe", () => {
+  it("cancels the subscription at period end", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: { data: { deleted: true }, params: {} },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(client.cancelSubscription()).resolves.toBeUndefined();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/checkout/unsubscribe",
+      method: "DELETE",
+      body: undefined,
+    });
+  });
+
+  it("keeps a refusal the error the server sends", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 400,
+      body: { error: "company has no active subscriptions" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client.cancelSubscription().catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({
+      status: 400,
+      path: "/checkout/unsubscribe",
+      message: "company has no active subscriptions",
+    });
+  });
+});
