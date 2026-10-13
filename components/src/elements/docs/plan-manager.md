@@ -4,13 +4,13 @@ The company's plan: a notice about where its subscription is headed, the plan an
 
 ## Hooks and derivation
 
-`useCompany()` serves `GET /company`: the plan and add-ons at the prices the company is billed, the subscription's state, any scheduled downgrade, and the newest pending custom plan billing. A company with several subscriptions has no `subscription`. A 404 means the account is not on the `company-context-api` flag and surfaces as an error.
+`useCompany()` reads the company, which the store loads from `GET /company` the first time any component reads it: the plan and add-ons at the prices the company is billed, the subscription's state, any scheduled downgrade, and the newest pending custom plan billing. A company with several subscriptions has no `subscription`. A 404 means the account is not on the `company-context-api` flag and surfaces as an error.
 
-The element also reads `useFeatureUsage()` for the usage-based features and `useCreditBalances()` for the credits. It waits for the company and the usage, and for the credits unless `showCredits` is off. Credits that fail to load cost only the credit sections, which show the error and a retry in their place.
+The element also reads `useFeatureUsage()` for the usage-based features and `useCreditBalances()` for the credits. It waits for the company and the usage, and for the credits unless `showCredits` is off; the credits are still requested either way. Credits that fail to load cost only the credit sections, which show the error and a retry in their place.
 
 `derivePlanManager` turns them into display parts:
 
-- `notice`: at most one, in the embed's order — a trial that is not cancelling (`trial`, counted down in whole days, else hours or minutes; `"soon"` in its last minute and `"ended"` once past, while the subscription still reads as trialing), a cancellation (`canceled`, which needs both `cancelAt` and `cancelAtPeriodEnd`), a custom plan's invoice (`customPlanBilling`), then a scheduled downgrade.
+- `notice`: at most one, in this order — a trial that is not cancelling (`trial`, counted down in whole days, else hours or minutes; `"soon"` in its last minute and `"ended"` once past, while the subscription still reads as trialing), a cancellation (`canceled`, which needs both `cancelAt` and `cancelAtPeriodEnd`), a custom plan's invoice (`customPlanBilling`), then a scheduled downgrade.
 - `plan`: the name, the description, and the price per the subscription's period; a free plan with usage-based features reads "Usage-based", and "Free" only with `showZeroPriceAsFree`.
 - `addOns`: each held add-on at its price, per the plan's period, or once for a one-time add-on.
 - `usageBased`: each feature with a price behavior — its limit, its unit or package price (the last tier's past an overage soft limit), its credits per use, and what an allocation paid in advance costs.
@@ -73,8 +73,8 @@ function PlanName() {
 
 "Change plan" and "Edit" show only when the host gives them somewhere to go, and "Change plan" not while a custom plan waits on payment to activate. Each credit section shows three rows before "See all". The card does not see what happens behind them: when `onChangePlan` or `onEditAutoTopup` changes the plan or the top-up settings without leaving the page, call the function `useInvalidateBillingData()` returns once it is done, and every loaded resource reloads.
 
-Where it departs from the embed: the trial notice leaves out what happens after the trial, since the post-trial plan is catalog configuration that no company-tier route serves yet; `showCredits` hides the bundle and promotional sections too; and credits that fail to load leave the rest of the card standing, where the embed's single load fails as a whole.
+The trial notice leaves out what happens after the trial, because the post-trial plan is catalog configuration that no company-tier route serves yet. `showCredits` also hides the bundle and promotional sections. Credits that fail to load leave the rest of the card standing.
 
 ## Localizing it
 
-The card's copy is under `planManager*`; the full period names are `periodDay` through `periodYear`.
+The card's copy is under `planManager*`. It shares the `usage*` lines and the `period*Short` suffixes with the usage elements, and the full period names are `periodDay` through `periodYear`.
