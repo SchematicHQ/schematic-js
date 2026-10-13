@@ -10,9 +10,13 @@ import { IncludedFeatures } from "../IncludedFeatures";
 import { Invoices } from "../Invoices";
 import { MeteredFeatures } from "../MeteredFeatures";
 import { PaymentMethods } from "../PaymentMethods";
+import { PlanManager } from "../PlanManager";
 import { UpcomingBill } from "../UpcomingBill";
 import {
   cardPaymentMethod,
+  company,
+  creditBalance,
+  creditGrant,
   creditUserUsage,
   featureUserUsage,
   invoice,
@@ -33,7 +37,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped; `schematic-badge` is among them, worn only by the plan cards.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|included-features|metered-features|credit-usage|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|included-features|metered-features|credit-usage|plan-manager|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -198,6 +202,52 @@ async function creditsOpen() {
   return root;
 }
 
+/**
+ * The plan manager with a notice that links to an invoice, every section,
+ * the auto top-up box, and a bundle list long enough to expand.
+ */
+function planManagerOpen() {
+  const scenario = SCENARIOS.planManager();
+  const [ai, ...rest] = scenario.creditBalances ?? [];
+  const root = tree(
+    <PlanManager
+      changePlanUrl="/plans"
+      editAutoTopupUrl="/topup"
+      locale="en-US"
+    />,
+    {
+      ...scenario,
+      company: company({
+        ...scenario.company,
+        customPlanBilling: {
+          activationStrategy: "on_publish",
+          dueAt: new Date("2026-09-01T12:00:00Z"),
+          invoiceUrl: "https://pay.example/inv",
+          planId: "plan_pro",
+        },
+      }),
+      creditBalances: [
+        creditBalance({
+          ...ai,
+          grants: [
+            ...ai.grants,
+            ...[1, 2, 3].map((n) =>
+              creditGrant({ bundleId: `bcb_${n}`, grantReason: "purchased" }),
+            ),
+          ],
+        }),
+        ...rest,
+      ],
+    },
+  );
+  for (const button of Array.from(
+    root.querySelectorAll(".schematic-plan-manager__see-all"),
+  )) {
+    fireEvent.click(button);
+  }
+  return root;
+}
+
 /** Every render that reaches a selector in the sheet. */
 async function everyCard() {
   const noUrl = SCENARIOS.pro();
@@ -278,6 +328,13 @@ async function everyCard() {
       featureUsage: { error: boom },
     } as never),
     await creditsOpen(),
+    planManagerOpen(),
+    tree(<PlanManager locale="en-US" />, {}, {
+      company: { isPending: true },
+    } as never),
+    tree(<PlanManager locale="en-US" />, {}, {
+      company: { error: boom },
+    } as never),
     tree(<CreditUsage locale="en-US" />, {}, {
       creditBalances: { isPending: true },
     } as never),

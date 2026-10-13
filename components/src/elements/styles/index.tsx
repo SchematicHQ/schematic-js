@@ -7,6 +7,7 @@ import { includedFeaturesCss } from "./included-features";
 import { invoicesCss } from "./invoices";
 import { meteredFeaturesCss } from "./metered-features";
 import { paymentMethodsCss } from "./payment-methods";
+import { planManagerCss } from "./plan-manager";
 import { withTokenDefaults } from "./tokens";
 import { tooltipCss } from "./tooltip";
 import { upcomingBillCss } from "./upcoming-bill";
@@ -569,6 +570,7 @@ ${tooltipCss}
 ${includedFeaturesCss}
 ${meteredFeaturesCss}
 ${creditUsageCss}
+${planManagerCss}
 `;
 
 /**

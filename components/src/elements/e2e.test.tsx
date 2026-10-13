@@ -12,6 +12,7 @@ import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
 import { MeteredFeatures } from "./MeteredFeatures";
 import { PaymentMethods } from "./PaymentMethods";
+import { PlanManager } from "./PlanManager";
 import { UpcomingBill } from "./UpcomingBill";
 import { billingResources } from "./common";
 import { featureUserUsage, invoice } from "./fixtures/builders";
@@ -39,6 +40,7 @@ function serve(
   const methods = scenario.paymentMethods ?? [];
   const features = scenario.featureUsage ?? [];
   const balances = scenario.creditBalances ?? [];
+  const held = scenario.company;
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
     const perUser = /^\/company\/usage\/([^/]+)\/users$/.exec(url.pathname);
@@ -49,6 +51,15 @@ function serve(
             featureUserUsage(),
           ),
           params: { limit: Number(url.searchParams.get("limit")) },
+        }),
+        { status: 200 },
+      );
+    }
+    if (flagged && held !== undefined && url.pathname === "/company") {
+      return new Response(
+        JSON.stringify({
+          data: billingApi.CompanyContextResponseDataToJSON(held),
+          params: {},
         }),
         { status: 200 },
       );
@@ -176,6 +187,16 @@ describe("end to end", () => {
     const credits = await screen.findAllByTestId("schematic-credit");
     expect(credits).toHaveLength(3);
     expect(credits[0]).toHaveTextContent("850.25 AI credits remaining");
+  });
+
+  test("PlanManager", async () => {
+    renderStack(<PlanManager locale="en-US" />, "tok", SCENARIOS.planManager());
+    expect(
+      await screen.findByRole("heading", { level: 2, name: "Pro" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Add-ons" })).toHaveTextContent(
+      "Extra seats",
+    );
   });
 
   test("IncludedFeatures says it is not available for an account off the flag", async () => {
