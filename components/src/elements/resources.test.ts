@@ -4,6 +4,7 @@ import { Invoices } from "./Invoices";
 import { MeteredFeatures } from "./MeteredFeatures";
 import { PaymentMethods } from "./PaymentMethods";
 import { PlanManager } from "./PlanManager";
+import { UnsubscribeButton } from "./UnsubscribeButton";
 import { UpcomingBill } from "./UpcomingBill";
 import { billingResources, type ReadsBillingResources } from "./common";
 
@@ -26,6 +27,7 @@ describe("what the elements read", () => {
       "featureUsage",
       "creditBalances",
     ]);
+    expect(UnsubscribeButton.resources).toEqual(["company", "featureUsage"]);
   });
 
   test("billingResources collects them once each, in the order given", () => {
