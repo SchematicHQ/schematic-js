@@ -26,6 +26,8 @@ import type {
   FetchCustomerBalanceResponse,
   FinalizeCheckoutRequest,
   FinalizeCheckoutResponse,
+  GetCatalogViewByIDResponse,
+  GetCatalogViewResponse,
   GetCheckoutResponse,
   GetCheckoutTaxIDResponse,
   GetCompanyCreditBalancesResponse,
@@ -79,6 +81,10 @@ import {
   FinalizeCheckoutRequestToJSON,
   FinalizeCheckoutResponseFromJSON,
   FinalizeCheckoutResponseToJSON,
+  GetCatalogViewByIDResponseFromJSON,
+  GetCatalogViewByIDResponseToJSON,
+  GetCatalogViewResponseFromJSON,
+  GetCatalogViewResponseToJSON,
   GetCheckoutResponseFromJSON,
   GetCheckoutResponseToJSON,
   GetCheckoutTaxIDResponseFromJSON,
@@ -150,6 +156,10 @@ export interface DeletePaymentMethodRequest {
 export interface FinalizeCheckoutOperationRequest {
   checkoutId: string;
   finalizeCheckoutRequest: FinalizeCheckoutRequest;
+}
+
+export interface GetCatalogViewByIDRequest {
+  catalogId: string;
 }
 
 export interface GetCheckoutRequest {
@@ -595,6 +605,103 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<FinalizeCheckoutResponse> {
     const response = await this.finalizeCheckoutRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Get catalog view
+   */
+  async getCatalogViewRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCatalogViewResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/catalog/view`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCatalogViewResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get catalog view
+   */
+  async getCatalogView(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCatalogViewResponse> {
+    const response = await this.getCatalogViewRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get catalog view by ID
+   */
+  async getCatalogViewByIDRaw(
+    requestParameters: GetCatalogViewByIDRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCatalogViewByIDResponse>> {
+    if (requestParameters["catalogId"] == null) {
+      throw new runtime.RequiredError(
+        "catalogId",
+        'Required parameter "catalogId" was null or undefined when calling getCatalogViewByID().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/catalogs/{catalog_id}/view`.replace(
+          `{${"catalog_id"}}`,
+          encodeURIComponent(String(requestParameters["catalogId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCatalogViewByIDResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get catalog view by ID
+   */
+  async getCatalogViewByID(
+    requestParameters: GetCatalogViewByIDRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCatalogViewByIDResponse> {
+    const response = await this.getCatalogViewByIDRaw(
       requestParameters,
       initOverrides,
     );

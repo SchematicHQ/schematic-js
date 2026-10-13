@@ -65,6 +65,18 @@ export interface CheckoutPriceSnapshot {
   optInRequired: boolean;
   /**
    *
+   * @type {string}
+   * @memberof CheckoutPriceSnapshot
+   */
+  optInText?: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof CheckoutPriceSnapshot
+   */
+  optInTitle?: string | null;
+  /**
+   *
    * @type {boolean}
    * @memberof CheckoutPriceSnapshot
    */
@@ -184,6 +196,8 @@ export function CheckoutPriceSnapshotFromJSONTyped(
     isScheduledDowngrade: json["is_scheduled_downgrade"],
     newCharges: json["new_charges"],
     optInRequired: json["opt_in_required"],
+    optInText: json["opt_in_text"] == null ? undefined : json["opt_in_text"],
+    optInTitle: json["opt_in_title"] == null ? undefined : json["opt_in_title"],
     paymentMethodRequired: json["payment_method_required"],
     percentOff: json["percent_off"],
     periodStart: new Date(json["period_start"]),
@@ -220,6 +234,8 @@ export function CheckoutPriceSnapshotToJSONTyped(
     is_scheduled_downgrade: value["isScheduledDowngrade"],
     new_charges: value["newCharges"],
     opt_in_required: value["optInRequired"],
+    opt_in_text: value["optInText"],
+    opt_in_title: value["optInTitle"],
     payment_method_required: value["paymentMethodRequired"],
     percent_off: value["percentOff"],
     period_start: value["periodStart"].toISOString(),

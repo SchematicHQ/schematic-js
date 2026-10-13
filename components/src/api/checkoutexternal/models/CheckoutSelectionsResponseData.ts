@@ -41,6 +41,13 @@ import {
   UpdateAddOnRequestBodyToJSON,
   UpdateAddOnRequestBodyToJSONTyped,
 } from "./UpdateAddOnRequestBody";
+import type { CheckoutIntent } from "./CheckoutIntent";
+import {
+  CheckoutIntentFromJSON,
+  CheckoutIntentFromJSONTyped,
+  CheckoutIntentToJSON,
+  CheckoutIntentToJSONTyped,
+} from "./CheckoutIntent";
 import type { UpdateAutoTopupOverrideRequestBody } from "./UpdateAutoTopupOverrideRequestBody";
 import {
   UpdateAutoTopupOverrideRequestBodyFromJSON,
@@ -86,11 +93,23 @@ export interface CheckoutSelectionsResponseData {
    */
   creditBundles: Array<UpdateCreditBundleRequestBody>;
   /**
+   * The currency the cart is being built in, as the create or last update named it; null when neither did.
+   * @type {string}
+   * @memberof CheckoutSelectionsResponseData
+   */
+  currency?: string | null;
+  /**
    *
    * @type {Array<CheckoutFieldValue>}
    * @memberof CheckoutSelectionsResponseData
    */
   customFieldValues: Array<CheckoutFieldValue>;
+  /**
+   * What the checkout does to the subscription.
+   * @type {CheckoutIntent}
+   * @memberof CheckoutSelectionsResponseData
+   */
+  intent: CheckoutIntent;
   /**
    *
    * @type {string}
@@ -154,6 +173,7 @@ export function instanceOfCheckoutSelectionsResponseData(
     value["customFieldValues"] === undefined
   )
     return false;
+  if (!("intent" in value) || value["intent"] === undefined) return false;
   if (!("payInAdvance" in value) || value["payInAdvance"] === undefined)
     return false;
   if (!("skipTrial" in value) || value["skipTrial"] === undefined) return false;
@@ -189,9 +209,11 @@ export function CheckoutSelectionsResponseDataFromJSONTyped(
     creditBundles: (json["credit_bundles"] as Array<any>).map(
       UpdateCreditBundleRequestBodyFromJSON,
     ),
+    currency: json["currency"] == null ? undefined : json["currency"],
     customFieldValues: (json["custom_field_values"] as Array<any>).map(
       CheckoutFieldValueFromJSON,
     ),
+    intent: CheckoutIntentFromJSON(json["intent"]),
     newPlanId: json["new_plan_id"] == null ? undefined : json["new_plan_id"],
     newPriceId: json["new_price_id"] == null ? undefined : json["new_price_id"],
     optInAccepted:
@@ -232,9 +254,11 @@ export function CheckoutSelectionsResponseDataToJSONTyped(
     credit_bundles: (value["creditBundles"] as Array<any>).map(
       UpdateCreditBundleRequestBodyToJSON,
     ),
+    currency: value["currency"],
     custom_field_values: (value["customFieldValues"] as Array<any>).map(
       CheckoutFieldValueToJSON,
     ),
+    intent: CheckoutIntentToJSON(value["intent"]),
     new_plan_id: value["newPlanId"],
     new_price_id: value["newPriceId"],
     opt_in_accepted: value["optInAccepted"],
