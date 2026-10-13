@@ -28,19 +28,18 @@ import { UserBreakdown, shortPeriod } from "./usage";
 const VISIBLE_GRANT_COUNT = 3;
 
 export interface CreditUsageProps extends ElementProps {
-  /** The "Credits" heading above the cards. Default false, as in the embed. */
+  /** The "Credits" heading above the cards. Default false. */
   showHeader?: boolean;
   /**
-   * Heading level; each credit's name sits one below while the heading
-   * shows, and takes it when the heading is hidden. Names stay h6 under an
-   * h6 heading, as HTML has no h7. Default 2.
+   * Heading level. Credit names sit one below this value when the header
+   * is shown and use this value when the heading is hidden. Default 2.
    */
   headingLevel?: HeadingLevel;
-  /** Each credit's icon; the circle is held even without one. Default true. */
+  /** Each credit's icon. A circle is shown even without one. Default true. */
   showIcon?: boolean;
   /** Each credit's description. Default true. */
   showDescription?: boolean;
-  /** When each grant expires or resets, in its balance details. Default true. */
+  /** When each grant expires or resets, shown in its balance details. Default true. */
   showExpiration?: boolean;
   /** What is left of each credit. Default true. */
   showUsage?: boolean;
@@ -67,12 +66,9 @@ const GRANT_KEY: Record<CreditLedgerRow["kind"], StringKey> = {
 };
 
 /**
- * The company's credit balances, a card each: what is left, the grants
- * behind it, how the plan's grants add up, and who on the team spent it.
+ * Credit balances shown with a card for each credit.
  *
- * A company with no credits, and a plan that draws on none, renders
- * nothing. A 404 means the account is not enabled for company reads, and
- * the element says so.
+ * No credits and a plan that draws on none renders nothing.
  */
 export function CreditUsage({
   buyMoreTarget,
@@ -200,7 +196,6 @@ export function CreditUsage({
                 t={t}
               />
             )}
-            {/* As in the embed: without grants there is no span to break down. */}
             {showUsageByUser && credit.ledger.length > 0 && (
               <CreditUserBreakdown credit={credit} locale={locale} t={t} />
             )}
@@ -241,8 +236,8 @@ function compositionText(credit: CreditUsageRow, t: Translator): string {
 }
 
 /**
- * The grants behind a balance, newest first, opening above its toggle as in
- * the embed. Closing it also folds "See all" back, so it reopens truncated.
+ * The grants behind a balance, newest first.
+ * Closing this also folds "See all" back so it reopens truncated.
  */
 function Ledger({
   credit,

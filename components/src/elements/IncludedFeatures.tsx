@@ -29,7 +29,7 @@ export interface IncludedFeaturesProps extends ElementProps {
   showHeader?: boolean;
   /** Heading level, so the card fits the host's outline. Default 2. */
   headingLevel?: HeadingLevel;
-  /** Each feature's icon, where it has one. Default true. */
+  /** Each feature's icon when it has one. Default true. */
   showIcon?: boolean;
   /** Each feature's description. Default true. */
   showDescription?: boolean;
@@ -46,18 +46,16 @@ export interface IncludedFeaturesProps extends ElementProps {
   /** An info tip with the hard limit on features billed past it. Default false. */
   showHardLimit?: boolean;
   /**
-   * Show an entitlement's warning threshold in place of its limit, where one
+   * Show an entitlement's warning threshold in place of its limit when one
    * is configured. Default false.
    */
   showWarningThresholdAsLimit?: boolean;
 }
 
 /**
- * Every feature the company is entitled to: what it gets, what it has used,
- * and, for a priced feature, what that costs.
+ * Every feature the company is entitled to.
  *
- * A company entitled to nothing gets the heading over an empty list. A 404
- * means the account is not enabled for company reads, and the card says so.
+ * A company entitled to nothing gets the heading over an empty list.
  */
 export function IncludedFeatures({
   className,

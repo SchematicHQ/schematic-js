@@ -38,7 +38,7 @@ type InvoiceColumn = "date" | "amount";
 const SKELETON_ROWS = 4;
 
 /**
- * The company's invoice history. Each row links its date to the hosted
+ * Invoice history. Each row links its date to the hosted
  * invoice and shows the amount beside it; rows past `limit` sit behind
  * "See more".
  */
@@ -71,8 +71,6 @@ export function Invoices({
     [locale, page],
   );
 
-  // A list has no name of its own, so it is labelled by the heading, or by
-  // the same text when the header is hidden.
   const headingId = useId();
   const rows = list?.rows ?? [];
   const canCollapse = collapsible && rows.length > limit;
@@ -85,9 +83,6 @@ export function Invoices({
     showAmount ? "amount" : [],
   );
 
-  // A 404 means the account is not enabled for company reads, but "not
-  // available" under rows already loaded would contradict itself. Retry stays:
-  // the same status answers a token whose company cannot be resolved yet.
   const unavailable = list === undefined && httpStatus(error) === 404;
   // Only resolve error copy on failure, or a host's translator would report
   // a missing key on every healthy render.
@@ -196,10 +191,10 @@ export function Invoices({
                   disabled={isPending}
                   type="button"
                   // Expand first: the next page can push the list past
-                  // `limit`, and collapsing would hide the button just clicked.
+                  // `limit` and collapsing would hide the button just clicked.
                   onClick={() => {
                     setExpanded(true);
-                    void loadMore();
+                    loadMore();
                   }}
                 >
                   {t("invoicesLoadMore")}
@@ -250,7 +245,7 @@ function InvoiceDate({ row, t }: { row: InvoiceRow; t: Translator }) {
       <span className="schematic-invoices__date-text">{row.dateText}</span>
     );
   }
-  // A row with no usable date still needs a link name, and dropping the
+  // A row with no usable date still needs a link name and dropping the
   // link would make the hosted invoice unreachable over a formatting problem.
   const label = row.dateText === "" ? t("invoicesUndated") : row.dateText;
   return (

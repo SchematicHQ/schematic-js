@@ -28,11 +28,11 @@ import type { Translator } from "./strings";
 import { PriceTiers, UserBreakdown, shortPeriod } from "./usage";
 
 export interface MeteredFeaturesProps extends ElementProps {
-  /** The "Usage" heading above the cards. Default false, as in the embed. */
+  /** The "Usage" heading above the cards. Default false. */
   showHeader?: boolean;
   /**
-   * Heading level. Feature names sit one level below it, or take it when the
-   * heading is hidden. Default 2.
+   * Heading level. Feature names sit one level below this value when the header
+   * is shown and use this value when the heading is hidden. Default 2.
    */
   headingLevel?: HeadingLevel;
   /** Each feature's icon. Default true. */
