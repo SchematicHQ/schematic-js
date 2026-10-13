@@ -83,10 +83,9 @@ export function deriveUnsubscribe(
     );
 
   return {
-    canUnsubscribe:
-      subscription !== null &&
-      subscription.status !== "canceled" &&
-      cancelAt === undefined,
+    // The embed also compares the status to "cancelled", which never matches,
+    // so only a cancellation date hides the button.
+    canUnsubscribe: subscription !== null && cancelAt === undefined,
     accessEndsOn: formatDate(endsOn, locale),
     period: subscription?.period ?? company.plan?.period ?? "month",
     plan:

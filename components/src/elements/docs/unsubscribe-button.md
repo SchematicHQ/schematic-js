@@ -8,7 +8,7 @@ A button, in a card as the embed draws it, that cancels the company's subscripti
 
 `deriveUnsubscribe` reads the company from `useCompany()` and its usage from `useFeatureUsage()`:
 
-- `canUnsubscribe`: there is a subscription, and it has no cancellation date.
+- `canUnsubscribe`: there is a subscription, and it has no cancellation date. As in the embed, the status alone does not hide the button.
 - `accessEndsOn`: the next bill's date, else today.
 - `plan`, `addOns` and `total`: the plan, the add-ons, and the recurring total per `period` — the plan, the recurring add-ons, and what is paid in advance.
 
@@ -45,9 +45,9 @@ function CancelLink() {
 | `className`, `locale`               | —       | Root class; BCP 47 tag for formatting.                    |
 | `strings`                           | —       | Copy for this element by key; wins over the provider's.   |
 
-"Not ready to cancel?" and "Manage plan" show only when the host gives them somewhere to go. A failed cancellation says "Unsubscribe failed" and leaves the confirmation open; the server's reason stays on the hook. The button renders nothing until the company and its feature usage load, and nothing once the subscription is set to end or is canceled. A failed read shows the error with a retry; a 404 says the subscription is not available for this account.
+"Not ready to cancel?" and "Manage plan" show only when the host gives them somewhere to go. A failed cancellation says "Unsubscribe failed" and leaves the confirmation open; the server's reason stays on the hook. The button renders nothing until the company and its feature usage load, and nothing once the subscription has a cancellation date. A failed read shows the error with a retry; a 404 says the subscription is not available for this account.
 
-Where it departs from the embed: the add-ons and their prices are the ones the company holds at what it is billed, where the embed listed the catalog's add-ons it holds at catalog prices.
+Where it departs from the embed: the add-ons and their prices are the ones the company holds at what it is billed, where the embed listed the catalog's add-ons it holds at catalog prices; and the total counts everything the company pays in advance, where the embed counted only the plan's own pay-in-advance features.
 
 ## Localizing it
 

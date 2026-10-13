@@ -64,14 +64,16 @@ describe("UnsubscribeButton", () => {
     );
   });
 
-  test("renders nothing for a canceled subscription", () => {
-    const { container } = renderButton({
+  test("offers a canceled subscription without a cancellation date, as the embed does", () => {
+    renderButton({
       ...SCENARIOS.planManager(),
       company: company({
         subscription: companySubscription({ status: "canceled" }),
       }),
     });
-    expect(container).toBeEmptyDOMElement();
+    expect(
+      screen.getByRole("button", { name: "Unsubscribe" }),
+    ).toBeInTheDocument();
   });
 
   test("renders nothing without a subscription to cancel", () => {
@@ -138,4 +140,5 @@ describe("UnsubscribeButton", () => {
     );
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
+
 });
