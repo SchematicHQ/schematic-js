@@ -5,6 +5,7 @@ import {
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
+import { Checkout } from "./Checkout";
 import { Invoices } from "./Invoices";
 import { PaymentMethods } from "./PaymentMethods";
 import { UpcomingBill } from "./UpcomingBill";
@@ -16,6 +17,12 @@ import {
   invoicePage,
   upcomingInvoice,
 } from "./fixtures/builders";
+import {
+  catalog,
+  catalogPlan,
+  checkoutDraft,
+  companyOn,
+} from "./fixtures/checkout";
 import { SCENARIOS, paymentMethodSet } from "./fixtures/scenarios";
 
 /**
@@ -640,5 +647,183 @@ describe("every node carries a schematic class", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]);
     await screen.findByRole("alert");
     expect(unclassed(root)).toEqual([]);
+  });
+});
+
+/**
+ * The checkout on `initial`, once it has priced — or, with the summary held
+ * for the payment step, once its Next action has landed in the navigation.
+ */
+async function renderCheckout(
+  initial: "plan" | "payment",
+  display: React.ComponentProps<typeof Checkout>["display"] = undefined,
+) {
+  const starter = catalogPlan({ current: true, name: "Starter" });
+  const { container } = render(
+    <BillingDataProvider
+      actions={{
+        createCheckout: vi.fn(async () => ({ checkout: checkoutDraft() })),
+      }}
+      data={{
+        catalog: catalog({ plans: [starter, catalogPlan({ name: "Pro" })] }),
+        company: companyOn(starter),
+        featureUsage: [],
+        paymentMethods: [cardPaymentMethod({ isDefault: true })],
+      }}
+    >
+      <Checkout
+        display={display}
+        locale="en-US"
+        open
+        steps={{ initial }}
+        onOpenChange={() => {}}
+      />
+    </BillingDataProvider>,
+  );
+  const root = container.firstElementChild as HTMLElement;
+  const ready =
+    display?.summary === "payment" && initial !== "payment"
+      ? ".schematic-checkout__nav .schematic-cta"
+      : ".schematic-checkout__totals";
+  await waitFor(() => expect(root.querySelector(ready)).not.toBeNull());
+  return root;
+}
+
+describe("Checkout markup contract", () => {
+  test("the root, stacked", async () => {
+    const root = await renderCheckout("plan", { layout: "stacked" });
+    expect(root.className).toBe(
+      "schematic-dialog schematic-checkout schematic-checkout--stacked",
+    );
+  });
+
+  test("the plan step with the summary held for payment", async () => {
+    const root = await renderCheckout("plan", { summary: "payment" });
+    expect(root.querySelector(".schematic-checkout__layout")).toHaveAttribute(
+      "data-summary",
+      "payment",
+    );
+    expect(classNames(root)).toEqual([
+      "schematic-badge",
+      "schematic-checkout__card",
+      "schematic-checkout__card-badges",
+      "schematic-checkout__card-name",
+      "schematic-checkout__card-period",
+      "schematic-checkout__card-price",
+      "schematic-checkout__cards",
+      "schematic-checkout__controls",
+      "schematic-checkout__frame",
+      "schematic-checkout__heading",
+      "schematic-checkout__layout",
+      "schematic-checkout__main",
+      "schematic-checkout__nav",
+      "schematic-checkout__section",
+      "schematic-checkout__step",
+      "schematic-checkout__step-link",
+      "schematic-checkout__stepper",
+      "schematic-cta",
+      "schematic-cta--outline",
+      "schematic-cta--small",
+      "schematic-dialog__body",
+      "schematic-dialog__close",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-icon",
+      "schematic-icon--close",
+      "schematic-toggle",
+    ]);
+  });
+
+  test("the plan step, priced", async () => {
+    const root = await renderCheckout("plan");
+    expect(root.className).toBe("schematic-dialog schematic-checkout");
+    expect(root.querySelector(".schematic-checkout__layout")).toHaveAttribute(
+      "data-step",
+      "plan",
+    );
+    expect(classNames(root)).toEqual([
+      "schematic-badge",
+      "schematic-checkout__card",
+      "schematic-checkout__card-badges",
+      "schematic-checkout__card-name",
+      "schematic-checkout__card-period",
+      "schematic-checkout__card-price",
+      "schematic-checkout__cards",
+      "schematic-checkout__controls",
+      "schematic-checkout__disclaimer",
+      "schematic-checkout__frame",
+      "schematic-checkout__heading",
+      "schematic-checkout__layout",
+      "schematic-checkout__line",
+      "schematic-checkout__line-amount",
+      "schematic-checkout__lines",
+      "schematic-checkout__main",
+      "schematic-checkout__section",
+      "schematic-checkout__step",
+      "schematic-checkout__step-link",
+      "schematic-checkout__stepper",
+      "schematic-checkout__summary",
+      "schematic-checkout__summary-title",
+      "schematic-checkout__total",
+      "schematic-checkout__total--due",
+      "schematic-checkout__total-amount",
+      "schematic-checkout__totals",
+      "schematic-cta",
+      "schematic-cta--outline",
+      "schematic-cta--small",
+      "schematic-dialog__body",
+      "schematic-dialog__close",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-icon",
+      "schematic-icon--close",
+      "schematic-toggle",
+    ]);
+  });
+
+  test("the payment step with the card on file", async () => {
+    const root = await renderCheckout("payment");
+    expect(classNames(root)).toEqual([
+      "schematic-checkout__disclaimer",
+      "schematic-checkout__field",
+      "schematic-checkout__field-label",
+      "schematic-checkout__frame",
+      "schematic-checkout__heading",
+      "schematic-checkout__inline",
+      "schematic-checkout__input",
+      "schematic-checkout__layout",
+      "schematic-checkout__line",
+      "schematic-checkout__line-amount",
+      "schematic-checkout__lines",
+      "schematic-checkout__main",
+      "schematic-checkout__nav",
+      "schematic-checkout__section",
+      "schematic-checkout__section-title",
+      "schematic-checkout__step",
+      "schematic-checkout__step-link",
+      "schematic-checkout__stepper",
+      "schematic-checkout__summary",
+      "schematic-checkout__summary-title",
+      "schematic-checkout__total",
+      "schematic-checkout__total--due",
+      "schematic-checkout__total-amount",
+      "schematic-checkout__totals",
+      "schematic-cta",
+      "schematic-cta--outline",
+      "schematic-cta--small",
+      "schematic-dialog__body",
+      "schematic-dialog__close",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-icon",
+      "schematic-icon--close",
+      "schematic-icon--visa",
+      "schematic-link-button",
+      "schematic-payment-methods__current",
+      "schematic-payment-methods__icon",
+      "schematic-payment-methods__label",
+      "schematic-payment-methods__last4",
+      "schematic-payment-methods__method",
+    ]);
   });
 });

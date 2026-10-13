@@ -511,7 +511,7 @@ function MethodPill({
  * follow it. The mark is decorative — the label already names the method —
  * so a host that blocks the font loses nothing but the glyph.
  */
-function Method({ row, t }: { row: PaymentMethodRow; t: Translator }) {
+export function Method({ row, t }: { row: PaymentMethodRow; t: Translator }) {
   return (
     <span
       className="schematic-payment-methods__method"

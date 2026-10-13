@@ -1,3 +1,4 @@
+import { Checkout } from "./Checkout";
 import { CreditUsage } from "./CreditUsage";
 import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
@@ -25,6 +26,12 @@ describe("what the elements read", () => {
       "company",
       "featureUsage",
       "creditBalances",
+    ]);
+    expect(Checkout.resources).toEqual([
+      "catalog",
+      "company",
+      "paymentMethods",
+      "featureUsage",
     ]);
   });
 
