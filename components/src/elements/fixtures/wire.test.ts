@@ -94,4 +94,20 @@ describe("wire round trip", () => {
       expect(decoded).toEqual(rows);
     },
   );
+
+  test.each(Object.keys(SCENARIOS) as ScenarioName[])(
+    "%s, the company",
+    (name) => {
+      const held = SCENARIOS[name]().company;
+      if (held === undefined) {
+        return;
+      }
+      const wire = billingApi.CompanyContextResponseDataToJSON(held);
+      expect(JSON.stringify(wire)).not.toMatch(/"[a-z]+[A-Z]/);
+      const decoded = billingApi.CompanyContextResponseDataFromJSON(
+        JSON.parse(JSON.stringify(wire)),
+      );
+      expect(decoded).toEqual(held);
+    },
+  );
 });
