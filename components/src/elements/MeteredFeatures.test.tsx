@@ -86,6 +86,16 @@ describe("MeteredFeatures", () => {
     ).toBeInTheDocument();
   });
 
+  test("puts each name at h2 under an h1 heading", () => {
+    renderUsage(undefined, { showHeader: true, headingLevel: 1 });
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Usage" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "API call" }),
+    ).toBeInTheDocument();
+  });
+
   test("shows the heading on request, with each name one level below", () => {
     renderUsage(undefined, { showHeader: true });
     expect(
