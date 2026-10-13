@@ -7,12 +7,18 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  Checkout,
+  CheckoutResult,
+  CheckoutSelections,
+  CheckoutWrite,
   CreditUserUsage,
   FeatureUserUsage,
   InvoiceQuery,
   ResourceState,
   SetupIntent,
+  TaxIdInput,
 } from "./contract";
+import type { SessionEvent } from "./client";
 
 export interface ResourceHandle<T> extends ResourceState<T> {
   refetch: () => void;
@@ -32,6 +38,21 @@ export interface BillingActions {
   createSetupIntent(): Promise<SetupIntent>;
   /** Cancels the subscription at period end and reloads what that changes. */
   unsubscribe(): Promise<void>;
+  /** Sets the company's tax ID and takes the list it answers with. */
+  updateTaxId(taxId: TaxIdInput): Promise<void>;
+  /** Opens a checkout; the store holds nothing of it, `useCheckout` does. */
+  createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite>;
+  getCheckout(id: string): Promise<Checkout>;
+  updateCheckout(
+    id: string,
+    version: number,
+    selections: CheckoutSelections,
+  ): Promise<CheckoutWrite>;
+  finalizeCheckout(
+    id: string,
+    version: number,
+    options?: { sessionId?: string },
+  ): Promise<CheckoutResult>;
 }
 
 /**
@@ -70,6 +91,12 @@ export interface BillingDataSource {
   invalidateAll: () => void;
   /** Absent on a source that only reads. */
   actions?: BillingActions;
+  /**
+   * The session changing under the source, for state kept outside the store
+   * — a checkout in progress belongs to the session it was opened in. Absent
+   * on a source whose session never changes.
+   */
+  onSessionChange?: (listener: (event: SessionEvent) => void) => () => void;
 }
 
 export const BillingDataContext = createContext<BillingDataSource | undefined>(
@@ -91,6 +118,11 @@ const ACTION_NAMES: readonly (keyof BillingActions)[] = [
   "removePaymentMethod",
   "createSetupIntent",
   "unsubscribe",
+  "updateTaxId",
+  "createCheckout",
+  "getCheckout",
+  "updateCheckout",
+  "finalizeCheckout",
 ];
 
 /** Every action rejects with `reason(name)`; `given` overrides per action. */
