@@ -88,6 +88,7 @@ export type BillingProviderClient = Pick<
   | "fetchCreditBalances"
   | "fetchCreditUserUsage"
   | "fetchCompany"
+  | "cancelSubscription"
 >;
 
 /**
