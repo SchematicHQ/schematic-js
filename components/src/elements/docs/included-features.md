@@ -4,9 +4,9 @@ Every feature the company is entitled to: what it gets, what it has used, and, f
 
 ## Hook and derivation
 
-`useFeatureUsage()` serves `GET /company/usage`. It takes no parameters and `data` is a `FeatureUsage[]`; **an empty list is a loaded answer** — the company is entitled to nothing — so only `data === undefined` means not loaded. A 404 means the account is not on the `company-context-api` flag and surfaces as an error.
+`useFeatureUsage()` reads the company's feature usage, which the store loads from `GET /company/usage` the first time any component reads it. It takes no parameters and `data` is a `FeatureUsage[]`; **an empty list is a loaded answer** — the company is entitled to nothing — so only `data === undefined` means not loaded. A 404 means the account is not on the `company-context-api` flag and surfaces as an error.
 
-The server has already made the pricing decisions the embed used to make in the browser. Each row carries one `price`: the metered price the company is billed at, for its billing period and in its subscription's currency where the feature is priced in it. It also carries `currentCost`, what the feature costs at that price. A row says whether it is a plan entitlement or a company override (`entitlementType`); only an override has `expiresAt`. A license feature lists the plan's per-license credit grants.
+The server makes the pricing decisions before the rows arrive. Each row carries one `price`: the metered price the company is billed at, for its billing period and in its subscription's currency where the feature is priced in it. It also carries `currentCost`, what the feature costs at that price. A row says whether it is a plan entitlement or a company override (`entitlementType`); only an override has `expiresAt`. A license feature lists the plan's per-license credit grants.
 
 `deriveIncludedFeatures` turns the rows into display parts. The wording stays with the caller: each line is a `kind` with its numbers, names and dates already formatted.
 

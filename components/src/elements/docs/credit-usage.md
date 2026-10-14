@@ -4,9 +4,9 @@ The company's credit balances, a card each: what is left, the grants behind it, 
 
 ## Hooks and derivation
 
-`useCreditBalances()` serves `GET /company/credits`. `data` is a `CreditBalanceEntry[]`; an empty list is a loaded answer. A 404 means the account is not on the `company-context-api` flag and surfaces as an error.
+`useCreditBalances()` reads the company's credit balances, which the store loads from `GET /company/credits` the first time any component reads it. `data` is a `CreditBalanceEntry[]`; an empty list is a loaded answer. A 404 means the account is not on the `company-context-api` flag and surfaces as an error.
 
-The server has done what the embed used to do with the raw ledger:
+The server prepares the ledger before it arrives:
 
 - Only live grants are listed, newest first; expired and zeroed-out ones are gone, so `total` is `used` plus `remaining`.
 - A credit the plan draws on that the company holds none of is here as a zero balance with no grants.
@@ -14,9 +14,9 @@ The server has done what the embed used to do with the raw ledger:
 - `purchasable` says whether a bundle of the credit is on offer to the company's plan.
 - `composition` states how a per-license plan grant adds up per period.
 
-`deriveCreditUsage` turns the balances into display parts: each credit's remaining amount (to ten fraction digits), its ledger rows by `kind` (`plan`, `bundle`, `autoTopup`, `promotional`) with their dates, and the composition, where the renewal day is an ordinal.
+`deriveCreditUsage` turns the balances into display parts: each credit's remaining amount (to ten fraction digits), its ledger rows by `kind` (`plan`, `bundle`, `autoTopup`, `promotional`) with their dates, and the composition, where the renewal day is an ordinal in English ("1st") and a plain number in other languages.
 
-`useCreditUserUsage(creditId)` serves `GET /company/credits/:credit_id/users`: the heaviest 20 users of a credit over the span of its live grants. A credit the company holds no live grant of gets an empty breakdown, so the element doesn't ask for one.
+`useCreditUserUsage(creditId)` reads one credit's usage by user, which the store loads from `GET /company/credits/:credit_id/users` the first time it is read: the heaviest 20 users of a credit over the span of its live grants. A credit the company holds no live grant of gets an empty breakdown, so the element doesn't ask for one.
 
 ```tsx
 import {
@@ -57,8 +57,8 @@ function Credits() {
 | `className`, `locale`         | —       | Root class; BCP 47 tag for formatting.                          |
 | `strings`                     | —       | Copy for this element by key; wins over the provider's.         |
 
-"Buy More" shows only on a credit a bundle sells to the company's plan, and only when the host gives it somewhere to go. "See balance details" opens the ledger, three grants at a time; a credit with no grants shows neither the ledger nor usage by user. A company with no credits, and a plan that draws on none, renders nothing.
+"Buy More" shows only on a credit a bundle sells to the company's plan, and only when the host gives it somewhere to go. "See balance details" opens the ledger, which shows three grants and then "See all" for the rest; a credit with no grants shows neither the ledger nor usage by user. A company with no credits, and a plan that draws on none, renders nothing.
 
 ## Localizing it
 
-The card's copy is under `creditUsage*`; the per-user list shares `usageByUser*` with MeteredFeatures.
+The card's copy is under `creditUsage*`. It shares `usageByUser*` with MeteredFeatures and the `period*Short` suffixes with the other usage elements.

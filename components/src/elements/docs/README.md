@@ -116,7 +116,9 @@ two of them. Clerk reports `undefined` both while it loads and when nobody is
 signed in, so read `isLoaded` before deciding which you mean.
 
 `token` is a string or a provider called (and re-called after a 401) for one.
-Without a session the element reports the missing token in its status frame.
+Without a billing client (a `SchematicProvider` with no `publishableKey`, or a
+`BillingProvider` with no `billingClient`), the element reports the missing
+source in its status frame.
 
 For server rendering, `fetchBillingData` in schematic-js returns an
 `initialData` bag the provider seeds from. Name the resources the page
@@ -223,7 +225,7 @@ it names its rules `.icon-<name>`, which the elements never use.
 | `schematic-header__title`      | The heading itself, whatever `headingLevel` renders.               |
 | `schematic-muted`              | Secondary text.                                                    |
 | `schematic-small`              | Smaller text.                                                      |
-| `schematic-chip`               | A short status label; the raw value is `[data-status]`.            |
+| `schematic-chip`               | A short inline label, such as a promo code.                        |
 | `schematic-badge`              | A filled pill.                                                     |
 | `schematic-cta`                | Filled action; `--outline`, `--ghost`, `--small` modifiers.        |
 | `schematic-link-button`        | Inline text action ("See more", "Load more").                      |

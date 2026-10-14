@@ -4,9 +4,9 @@ The company's payment method on file: a pill naming the default method, a warnin
 
 ## Hook and derivation
 
-`usePaymentMethods()` serves `GET /company/payment-methods`. It takes no parameters — a company has one list — and `data` is `PaymentMethod[]`, **empty when nothing is on file**: that is a 200 with an empty list, a loaded answer, so the element renders its empty state rather than a failure. A 404 means the list cannot be read — the account is not on the `company-context-api` flag, or the billing provider no longer knows the customer — and surfaces as an error, as it does for the invoice history.
+`usePaymentMethods()` reads the company's payment methods, which the store loads from `GET /company/payment-methods` the first time any component reads it. It takes no parameters — a company has one list — and `data` is `PaymentMethod[]`, **empty when nothing is on file**: that is a 200 with an empty list, a loaded answer, so the element renders its empty state rather than a failure. A 404 means the list cannot be read — the account is not on the `company-context-api` flag, or the billing provider no longer knows the customer — and surfaces as an error, as it does for the invoice history.
 
-The handle carries the writes beside the read: `setDefault(externalId)` and `remove(id)`, each a promise that refetches the list on success and rejects on failure, with `isMutating` true while one is on the wire and `mutationError` holding the last rejection. `setDefault` takes the provider's id (the `externalId`), because that is what the provider is asked with; `remove` takes Schematic's. `useSetupIntent().create()` mints a setup intent for a new method, which is what the Add form confirms through Stripe.
+The handle carries two write functions beside the read: `setDefault(externalId)` and `remove(id)`. Calling `setDefault` sends `POST /checkout/paymentmethod/update`, and calling `remove` sends `DELETE /checkout/paymentmethod/:id`. Each returns a promise that refetches the list on success and rejects on failure; `isMutating` is true while one is in flight, and `mutationError` holds the last rejection. `setDefault` takes the provider's id (the `externalId`), because that is what the provider is asked with; `remove` takes Schematic's. Calling `useSetupIntent().create()` sends `POST /components/setup-intent` and returns the setup intent the Add form confirms through Stripe.
 
 Three rules hold across the list:
 
@@ -16,15 +16,18 @@ Three rules hold across the list:
 
 `derivePaymentMethods` turns the wire rows into what the element shows. It returns the `rows`, the `current` one — the default, which is what the pill shows, or `null` when none is — and the `others`, which is every row but the default (all of them when there is no default). Alongside sit `monthsToExpiration` and `expiryWarning` for the header: `soon` when the default card has fewer than four months left, `expired` once its month has arrived, `none` otherwise. The months are whole calendar months from the current month to the card's; `now` fixes the moment they are counted from, for a test or a server render.
 
-Each row has a `kind` (`card`, `bank`, `wallet`, `other`), an `icon` (the glyph's name in the schematic-icons font: `visa`, `mastercard`, or `amex` where the card's brand matches, `credit` for any other card, `bank` for a US bank account, the wallet's own mark — `applepay`, `google`, `cashapp`, `paypal`, `link`, `amazonpay` — and `generic-payment` for a type nobody mapped), the `last4` digits that follow its label, `expiresShort` ("8/27", for a card), its own `monthsToExpiration` and `expiry`, and a `label`. The label is either `{ key }` — copy to resolve through the translator, such as `paymentMethodsCardEndingIn` for "Card ending in" — or `{ text }`, a value the provider supplied: the bank's name, the email behind a Link account, the account name behind PayPal or Cash App. A wallet that supplied nothing is named by its own key: "PayPal account", "CashApp account", "Link account", "Amazon Pay account", or "Apple Pay" and "Google Pay" when no card digits came with them. Only US bank accounts are banks, and only cards, Apple Pay, and Google Pay carry digits; any other type, a debit scheme included, is named by whatever the provider supplied. That split keeps the derivation pure and the translatable words in the string catalogue.
+Each row has a `kind` (`card`, `bank`, `wallet`, `other`), an `icon` (the glyph's name in the schematic-icons font: `visa`, `mastercard`, or `amex` where the card's brand matches, `credit` for any other card, `bank` for a US bank account, the wallet's own mark — `applepay`, `google`, `cashapp`, `paypal`, `link`, `amazonpay` — and `generic-payment` for a type nobody mapped), the `last4` digits that follow its label, `expiresShort` ("8/27", for a card), its own `monthsToExpiration` and `expiry`, and a `label`. The label is either `{ key }` — copy to resolve through the translator, such as `paymentMethodsCardEndingIn` for "Card ending in" — or `{ text }`, a value the provider supplied: the bank's name, the email behind a Link account, the account name behind PayPal or Cash App. A wallet that supplied nothing is named by its own key: "PayPal account", "CashApp account", "Link account", "Amazon Pay account", or "Apple Pay" and "Google Pay" when no card digits came with them. Only US bank accounts are banks, and only cards, bank accounts, Apple Pay, and Google Pay carry digits; any other type, a debit scheme included, is named by whatever the provider supplied. That split keeps the derivation pure and the translatable words in the string catalogue.
 
 ```tsx
 import {
   derivePaymentMethods,
   usePaymentMethods,
+  useTranslator,
+  type PaymentMethodRow,
 } from "@schematichq/schematic-components/elements";
 
 function CardOnFile() {
+  const t = useTranslator();
   const { data, setDefault } = usePaymentMethods();
   if (data === undefined) return <Spinner />;
 
@@ -64,16 +67,16 @@ Every row carries its raw fields beside the text — `brand`, `type`, `isDefault
 <PaymentMethods allowEdit={false} />
 ```
 
-| Prop                  | Default | Effect                                                             |
-| --------------------- | ------- | ------------------------------------------------------------------ |
-| `showHeader`          | `true`  | The "Payment Details" heading, and the expiry warning beside it.   |
-| `showExpiration`      | `true`  | The warning when the default card has fewer than four months left. |
-| `allowEdit`           | `true`  | The Edit (or Add) action on the pill, and the dialog behind it.    |
-| `headingLevel`        | `2`     | The heading's level, to fit the host's outline.                    |
-| `checkoutSettings`    | —       | What the Add form collects beyond the payment fields; see below.   |
-| `checkoutPrefill`     | —       | Values the Add form starts with; see below.                        |
-| `className`, `locale` | —       | Root class; BCP 47 tag for formatting and Stripe's UI.             |
-| `strings`             | —       | Copy for this card by key; wins over the provider's.               |
+| Prop                  | Default | Effect                                                                                                      |
+| --------------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| `showHeader`          | `true`  | The "Payment Details" heading and the expiry warning beside it, on the card. The dialog always shows both.  |
+| `showExpiration`      | `true`  | The warning when the default card has fewer than four months left, on the card. The dialog always shows it. |
+| `allowEdit`           | `true`  | The Edit (or Add) action on the pill, and the dialog behind it.                                             |
+| `headingLevel`        | `2`     | The heading's level, to fit the host's outline.                                                             |
+| `checkoutSettings`    | —       | What the Add form collects beyond the payment fields; see below.                                            |
+| `checkoutPrefill`     | —       | Values the Add form starts with; see below.                                                                 |
+| `className`, `locale` | —       | Root class; BCP 47 tag for formatting and Stripe's UI.                                                      |
+| `strings`             | —       | Copy for this card by key; wins over the provider's.                                                        |
 
 `locale` falls back to the one configured on the provider, then to the viewer's
 language; see [Localizing it](#localizing-it) for the copy.
