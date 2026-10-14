@@ -38,7 +38,7 @@ export interface ElementProps {
 }
 
 /** Heading level an element's own heading renders at. Default 2. */
-export type HeadingLevel = 2 | 3 | 4 | 5 | 6;
+export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
 /**
  * What an element reads from the billing store, declared on the element so

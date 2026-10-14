@@ -454,7 +454,7 @@ function PaymentMethodsHeader({
   t,
 }: {
   derived: DerivedPaymentMethods;
-  heading: "h2" | "h3" | "h4" | "h5" | "h6";
+  heading: `h${HeadingLevel}`;
   locale: string;
   showExpiration: boolean;
   t: Translator;

@@ -358,6 +358,13 @@ describe("Invoices", () => {
     ).toBeInTheDocument();
   });
 
+  test("takes the page's top heading where it is the page", () => {
+    renderInvoices(SCENARIOS.pro(), { headingLevel: 1 });
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Invoices" }),
+    ).toBeInTheDocument();
+  });
+
   test("names the list, with or without a visible header", () => {
     // A list has no name of its own, and a hidden header leaves no heading
     // to label it by.
