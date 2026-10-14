@@ -35,6 +35,12 @@ import {
  */
 export interface CreditSpendPolicy {
   /**
+   * For a user policy, the company it applies in
+   * @type {string}
+   * @memberof CreditSpendPolicy
+   */
+  companyId?: string | null;
+  /**
    * How much of the limit is already spent in the current period
    * @type {number}
    * @memberof CreditSpendPolicy
@@ -116,6 +122,7 @@ export function CreditSpendPolicyFromJSONTyped(
     return json;
   }
   return {
+    companyId: json["company_id"] == null ? undefined : json["company_id"],
     consumed: json["consumed"] == null ? undefined : json["consumed"],
     creditId: json["credit_id"],
     id: json["id"],
@@ -145,6 +152,7 @@ export function CreditSpendPolicyToJSONTyped(
   }
 
   return {
+    company_id: value["companyId"],
     consumed: value["consumed"],
     credit_id: value["creditId"],
     id: value["id"],
