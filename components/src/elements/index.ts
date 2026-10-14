@@ -20,6 +20,7 @@ export {
   useSchematicStrings,
   useSchematicTranslate,
   useSetupIntent,
+  useUnsubscribe,
   useUpcomingInvoice,
   type BillingActions,
   type BillingData,
@@ -52,6 +53,7 @@ export {
   type SchematicI18nProviderProps,
   type SetupIntent,
   type SetupIntentHandle,
+  type UnsubscribeHandle,
   type UpcomingInvoice,
   type UserUsage,
 } from "@schematichq/schematic-react";
@@ -63,6 +65,7 @@ export {
   deriveMeteredFeatures,
   derivePaymentMethods,
   derivePlanManager,
+  deriveUnsubscribe,
   deriveUpcomingInvoice,
   featureName,
   formatConsumptionRate,
@@ -94,6 +97,7 @@ export {
   type DeriveMeteredFeaturesOptions,
   type DerivePaymentMethodsOptions,
   type DerivePlanManagerOptions,
+  type DeriveUnsubscribeOptions,
   type DeriveUpcomingInvoiceOptions,
   type DerivedPaymentMethods,
   type DiscountLine,
@@ -125,6 +129,7 @@ export {
   type PriceTier,
   type TierRange,
   type TrialUnit,
+  type UnsubscribeView,
   type UpcomingBillSummary,
   type UpcomingInvoiceFormatters,
   type UsageBasedRow,
@@ -159,6 +164,10 @@ export {
   type PaymentMethodsProps,
 } from "./PaymentMethods";
 export { PlanManager, type PlanManagerProps } from "./PlanManager";
+export {
+  UnsubscribeButton,
+  type UnsubscribeButtonProps,
+} from "./UnsubscribeButton";
 export { UpcomingBill, type UpcomingBillProps } from "./UpcomingBill";
 export {
   Tooltip,
