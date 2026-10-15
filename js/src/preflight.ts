@@ -295,6 +295,7 @@ export const evaluatePreflight = (
     case RuleType.COMPANY_OVERRIDE:
     case RuleType.PLAN_ENTITLEMENT:
       // The rule turned the flag off; a preflight cannot widen that.
+      // Safe only because API-built entitling rules that turn a flag off carry no credit or metric condition.
       if (!result.value) {
         return false;
       }
@@ -319,7 +320,7 @@ export const evaluatePreflight = (
   }
 
   if (result.featureAllocation === undefined) {
-    return result.value;
+    return result.value ? true : undefined;
   }
 
   return evaluateNumeric(result, input) === true ? true : undefined;

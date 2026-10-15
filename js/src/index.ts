@@ -127,6 +127,9 @@ export class Schematic {
   private contextSignatureManager?: ContextSignatureManager;
   private _apiUrl = "https://api.schematichq.com";
   private conn: Promise<WebSocket> | null = null;
+  // Contexts the current socket has delivered a message for. Checks, balances
+  // and policies revived from storage stay unproven until then.
+  private wsLiveContexts: Set<string> = new Set();
   private context: SchematicContext = {};
   private debugEnabled: boolean = false;
   private offlineEnabled: boolean = false;
@@ -510,16 +513,22 @@ export class Schematic {
     }
 
     if (preflight !== undefined) {
-      const existingVals = this.checks[contextStr];
-      const local =
-        this.conn === null
-          ? undefined
-          : evaluatePreflight(
-              existingVals?.[key],
-              this.creditBalances[contextStr],
-              this.creditSpendPolicies[contextStr],
-              preflight,
-            );
+      let local: boolean | undefined;
+      if (this.conn !== null && this.wsLiveContexts.has(contextStr)) {
+        try {
+          local = evaluatePreflight(
+            this.checks[contextStr]?.[key],
+            this.creditBalances[contextStr],
+            this.creditSpendPolicies[contextStr],
+            preflight,
+          );
+        } catch (error) {
+          this.debug(`checkFlag preflight local evaluation failed: ${key}`, {
+            preflight,
+            error,
+          });
+        }
+      }
       if (local !== undefined) {
         this.debug(`checkFlag preflight local result: ${key}`, {
           preflight,
@@ -727,6 +736,7 @@ export class Schematic {
       if (!(contextString(context) in this.checks)) {
         this.checks[contextString(context)] = {};
       }
+      this.wsLiveContexts.add(contextString(context));
 
       // Message may contain only a subset of flags; merge with existing context
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -1902,6 +1912,7 @@ export class Schematic {
         this.debug(`${methodName}: error closing existing connection:`, error);
       }
       this.conn = null;
+      this.wsLiveContexts.clear();
       this.isConnecting = false;
     }
 
@@ -1970,6 +1981,7 @@ export class Schematic {
         console.warn("Error during cleanup:", error);
       } finally {
         this.conn = null;
+        this.wsLiveContexts.clear();
         this.currentWebSocket = null;
         this.isConnecting = false;
       }
@@ -2029,6 +2041,7 @@ export class Schematic {
         this.debug("Error closing connection on offline:", error);
       }
       this.conn = null;
+      this.wsLiveContexts.clear();
     }
 
     // Clear any pending reconnection timers
@@ -2126,6 +2139,7 @@ export class Schematic {
             this.debug(`Error cleaning up existing connection:`, error);
           }
           this.conn = null;
+          this.wsLiveContexts.clear();
           this.currentWebSocket = null;
           this.isConnecting = false;
         }
@@ -2247,6 +2261,7 @@ export class Schematic {
       this.debug(`connecting to WebSocket:`, wsUrl);
 
       const webSocket = new WebSocket(wsUrl);
+      this.wsLiveContexts.clear();
       const connectionId = Math.random().toString(36).substring(7);
       this.debug(`Creating WebSocket connection ${connectionId} to ${wsUrl}`);
 
@@ -2305,6 +2320,7 @@ export class Schematic {
 
         this.debug(`WebSocket connection ${connectionId} closed`);
         this.conn = null;
+        this.wsLiveContexts.clear();
 
         // Clean up tracking references when this specific socket closes
         const wasCurrent = this.currentWebSocket === webSocket;

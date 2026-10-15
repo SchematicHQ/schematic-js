@@ -5077,7 +5077,7 @@ describe("checkFlag preflight", () => {
       expect(await schematic.checkFlag({ key: "ai-chat", context })).toBe(true);
       mockFetch.mockClear();
       // Another rule the cached result does not carry may still grant it.
-      mockFetch.mockResolvedValueOnce(flagCheckResponse(true));
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
 
       const value = await schematic.checkFlag({
         key: "ai-chat",
@@ -5085,7 +5085,7 @@ describe("checkFlag preflight", () => {
         preflight: { usage: 6 },
       });
 
-      expect(value).toBe(true);
+      expect(value).toBe(false);
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch.mock.calls[0][0]).toBe(
         "https://api.schematichq.com/flags/ai-chat/check",
@@ -5095,6 +5095,26 @@ describe("checkFlag preflight", () => {
         preflight: { usage: 6 },
       });
       expect(schematic.getFlagCheck("ai-chat")?.value).toBe(true);
+    });
+
+    it("asks the server when the preflight input is malformed", async () => {
+      expect(await schematic.checkFlag({ key: "ai-chat", context })).toBe(true);
+      mockFetch.mockClear();
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
+
+      const value = await schematic.checkFlag({
+        key: "ai-chat",
+        context,
+        preflight: {
+          creditCost: null as unknown as Record<string, number>,
+        },
+      });
+
+      expect(value).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        "https://api.schematichq.com/flags/ai-chat/check",
+      );
     });
 
     it("makes a one-off HTTP check for a rule it cannot evaluate", async () => {
@@ -5119,6 +5139,118 @@ describe("checkFlag preflight", () => {
       });
       expect(schematic.getFlagCheck("beta")?.value).toBe(true);
       expect(await schematic.checkFlag({ key: "beta", context })).toBe(true);
+    });
+  });
+
+  describe("revived cache", () => {
+    const TEST_WS_URL = "ws://localhost:1237";
+    const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+    let mockServer: WebSocketServer;
+
+    beforeEach(() => {
+      mockServer?.stop();
+      mockServer = new WebSocketServer(FULL_WS_URL);
+    });
+
+    afterEach(async () => {
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    it("asks the server until the socket has delivered the context", async () => {
+      const storage = createTestStorage({
+        "schematicCache:API_KEY": JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(context)]: {
+              checks: {
+                "ai-chat": {
+                  flag: "ai-chat",
+                  reason: "cached",
+                  ruleType: "plan_entitlement",
+                  value: true,
+                  creditId: "cred_1",
+                  creditRemaining: 0,
+                  consumptionRate: 1,
+                },
+              },
+              creditBalances: {
+                cred_1: {
+                  remaining: 0,
+                  reserved: 0,
+                  settled: 0,
+                  postpaid: true,
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      let sendFlags: (() => void) | undefined;
+      const contextReceived = new Promise<void>((resolve) => {
+        mockServer.on("connection", (socket) => {
+          socket.on("message", () => {
+            sendFlags = () =>
+              socket.send(
+                JSON.stringify({
+                  flags: [
+                    {
+                      flag: "ai-chat",
+                      reason: "Matched",
+                      rule_type: "plan_entitlement",
+                      value: true,
+                      entitlement: {
+                        feature_id: "feat-1",
+                        feature_key: "ai-chat",
+                        value_type: "credit",
+                        credit_id: "cred_1",
+                        credit_remaining: 0,
+                        consumption_rate: 1,
+                      },
+                    },
+                  ],
+                  credit_balances: {
+                    cred_1: {
+                      remaining: 0,
+                      reserved: 0,
+                      settled: 0,
+                      postpaid: true,
+                    },
+                  },
+                }),
+              );
+            resolve();
+          });
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+      void client.setContext(context);
+      await contextReceived;
+
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
+      const preflight = { creditCost: { cred_1: 5 } };
+      expect(
+        await client.checkFlag({ key: "ai-chat", context, preflight }),
+      ).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      sendFlags?.();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      mockFetch.mockClear();
+
+      expect(
+        await client.checkFlag({ key: "ai-chat", context, preflight }),
+      ).toBe(true);
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      await client.cleanup();
     });
   });
 });

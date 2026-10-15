@@ -193,6 +193,18 @@ describe("evaluatePreflight", () => {
       ).toBe(true);
     });
 
+    it("defers on an exceeded entitlement with no entitlement fields", () => {
+      const exceeded: CheckFlagReturn = {
+        flag: "ai-chat",
+        reason: "Usage exceeded",
+        ruleType: RuleType.PLAN_ENTITLEMENT_USAGE_EXCEEDED,
+        value: false,
+      };
+      expect(
+        evaluatePreflight(exceeded, balances(), [], { creditCost: { c: 0 } }),
+      ).toBeUndefined();
+    });
+
     it("defers when the balance does not say whether it is postpaid", () => {
       const unknown: CreditBalances = {
         cred_1: { remaining: 10, reserved: 0, settled: 10 },
