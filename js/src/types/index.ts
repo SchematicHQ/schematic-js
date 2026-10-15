@@ -278,10 +278,32 @@ export type SchematicOptions = {
   flagCheckDefaults?: Record<string, CheckFlagReturn>;
 };
 
+/** An action to simulate on a flag check: would the flag still be on if the
+ * company took it? Mirrors the `preflight` body of the flag check endpoint. */
+export type PreflightInput = {
+  /** Cost in credits of the action, keyed by credit ID, for callers that have already computed it. Takes precedence over eventQuantities, eventUsage and usage on credit balance conditions for the same credit. A cost of zero means the action is free, not that the input is absent */
+  creditCost?: Record<string, number>;
+  /** An event of a specific subtype, priced the way it would burn credits: quantity at the entitlement's consumption rate, plus each of quantities at its rate in the entitlement's quantity rates. Applies only to credit balance conditions whose event subtype matches, where it takes precedence over eventUsage and usage */
+  eventQuantities?: {
+    eventSubtype: string;
+    /** Base units of the event; absent or zero means one */
+    quantity?: number;
+    /** Named quantities the event would carry, keyed by quantity key. For an inference call, input_tokens includes the cached_input_tokens and cache_creation_input_tokens subsets */
+    quantities?: Record<string, number>;
+  };
+  /** Usage of a specific event subtype. Preferred over usage when the subtype is known, since it only affects conditions measuring that subtype */
+  eventUsage?: { eventSubtype: string; quantity: number };
+  /** Quantity of usage to simulate against any numeric condition encountered while evaluating the flag. Zero has no effect */
+  usage?: number;
+};
+
 export type CheckOptions = {
   context?: SchematicContext;
   fallback?: boolean;
   key: string;
+  /** Check whether the flag would still be on after the given action, without
+   * recording anything. The result is not cached and does not notify listeners. */
+  preflight?: PreflightInput;
 };
 
 export type BooleanListenerFn = (value: boolean) => void;

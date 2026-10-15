@@ -4875,3 +4875,185 @@ describe("Context signature (HMAC)", () => {
     }, 15000);
   });
 });
+
+describe("checkFlag preflight", () => {
+  const context = { company: { companyId: "456" } };
+
+  const flagCheckResponse = (value: boolean) => ({
+    ok: true,
+    json: vi.fn().mockResolvedValueOnce({
+      data: {
+        flag: "ai-chat",
+        reason: "Matched",
+        rule_type: "plan_entitlement",
+        value,
+      },
+    }),
+  });
+
+  afterEach(() => {
+    mockFetch.mockReset();
+  });
+
+  describe("REST", () => {
+    it("sends the preflight body and records nothing", async () => {
+      const schematic = new Schematic("API_KEY");
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
+
+      const value = await schematic.checkFlag({
+        key: "ai-chat",
+        context,
+        preflight: {
+          creditCost: { cred_1: 2 },
+          eventQuantities: {
+            eventSubtype: "chat",
+            quantities: { input_tokens: 100 },
+          },
+          eventUsage: { eventSubtype: "chat", quantity: 3 },
+          usage: 4,
+        },
+      });
+
+      expect(value).toBe(false);
+      // no flag check event follows a preflight
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        "https://api.schematichq.com/flags/ai-chat/check",
+      );
+      expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+        company: { companyId: "456" },
+        preflight: {
+          credit_cost: { cred_1: 2 },
+          event_quantities: {
+            event_subtype: "chat",
+            quantities: { input_tokens: 100 },
+          },
+          event_usage: { event_subtype: "chat", quantity: 3 },
+          usage: 4,
+        },
+      });
+    });
+
+    it("returns the fallback when the request fails", async () => {
+      const schematic = new Schematic("API_KEY");
+      mockFetch.mockResolvedValueOnce({ ok: false });
+
+      const value = await schematic.checkFlag({
+        key: "ai-chat",
+        context,
+        fallback: true,
+        preflight: { usage: 1 },
+      });
+
+      expect(value).toBe(true);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("WebSocket", () => {
+    const TEST_WS_URL = "ws://localhost:1234";
+    const FULL_WS_URL = `${TEST_WS_URL}/flags/bootstrap?apiKey=API_KEY`;
+    let mockServer: WebSocketServer;
+    let schematic: Schematic;
+
+    beforeEach(() => {
+      mockServer?.stop();
+      mockServer = new WebSocketServer(FULL_WS_URL);
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "ai-chat",
+                  reason: "Matched",
+                  rule_type: "plan_entitlement",
+                  value: true,
+                  entitlement: {
+                    feature_id: "feat-1",
+                    feature_key: "ai-chat",
+                    value_type: "credit",
+                    credit_id: "cred_1",
+                    credit_remaining: 10,
+                    consumption_rate: 2,
+                    event_subtype: "chat",
+                  },
+                },
+                {
+                  flag: "beta",
+                  reason: "Matched",
+                  rule_type: "standard",
+                  value: true,
+                },
+              ],
+              credit_balances: {
+                cred_1: { remaining: 10, reserved: 0, settled: 10 },
+              },
+            }),
+          );
+        });
+      });
+      schematic = new Schematic("API_KEY", {
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+    });
+
+    afterEach(async () => {
+      await schematic.cleanup();
+      mockServer.stop();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    it("evaluates a company-scoped rule locally without caching", async () => {
+      expect(await schematic.checkFlag({ key: "ai-chat", context })).toBe(true);
+      const listener = vi.fn();
+      schematic.addFlagCheckListener("ai-chat", listener);
+      listener.mockClear();
+      mockFetch.mockClear();
+
+      expect(
+        await schematic.checkFlag({
+          key: "ai-chat",
+          context,
+          preflight: { usage: 5 },
+        }),
+      ).toBe(true);
+      expect(
+        await schematic.checkFlag({
+          key: "ai-chat",
+          context,
+          preflight: { usage: 6 },
+        }),
+      ).toBe(false);
+
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(listener).not.toHaveBeenCalled();
+      expect(schematic.getFlagCheck("ai-chat")?.value).toBe(true);
+    });
+
+    it("makes a one-off HTTP check for a rule it cannot evaluate", async () => {
+      expect(await schematic.checkFlag({ key: "beta", context })).toBe(true);
+      mockFetch.mockClear();
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
+
+      const value = await schematic.checkFlag({
+        key: "beta",
+        context,
+        preflight: { usage: 1 },
+      });
+
+      expect(value).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        "https://api.schematichq.com/flags/beta/check",
+      );
+      expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+        ...context,
+        preflight: { usage: 1 },
+      });
+      expect(schematic.getFlagCheck("beta")?.value).toBe(true);
+      expect(await schematic.checkFlag({ key: "beta", context })).toBe(true);
+    });
+  });
+});

@@ -33,6 +33,7 @@ import {
   FlagValueListenerFn,
   PendingListenerFn,
   PlanListenerFn,
+  PreflightInput,
   SchematicContext,
   SchematicOptions,
   StoragePersister,
@@ -43,6 +44,8 @@ import {
   ContextSignatureManager,
   contextSignatureHeader,
 } from "./contextSignature";
+import { evaluatePreflight } from "./preflight";
+import { PreflightRequestBodyToJSON } from "./types/api/models/PreflightRequestBody";
 import { contextString } from "./utils";
 import { version } from "./version";
 
@@ -446,7 +449,7 @@ export class Schematic {
    * In REST mode, makes an API call for each check.
    */
   async checkFlag(options: CheckOptions): Promise<boolean> {
-    const { fallback, key } = options;
+    const { fallback, key, preflight } = options;
     const context = options.context || this.context;
     const contextStr = contextString(context);
 
@@ -469,31 +472,17 @@ export class Schematic {
     }
 
     if (!this.useWebSocket) {
-      const requestUrl = `${this._apiUrl}/flags/${key}/check`;
-      const sigHeaders = await this.contextSignatureHeaders(context);
-      return fetch(requestUrl, {
-        method: "POST",
-        headers: {
-          ...(this._additionalHeaders ?? {}),
-          "Content-Type": "application/json;charset=UTF-8",
-          "X-Schematic-Api-Key": this.apiKey,
-          ...sigHeaders,
-        },
-        body: JSON.stringify(context),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((response) => {
-          const parsedResponse = CheckFlagResponseFromJSON(response);
-          this.debug(`checkFlag result: ${key}`, parsedResponse);
+      if (preflight !== undefined) {
+        return this.checkFlagPreflightOverHttp(
+          key,
+          context,
+          preflight,
+          fallback,
+        );
+      }
 
-          // Create a flag check result object
-          const result = CheckFlagReturnFromJSON(parsedResponse.data);
-
+      return this.fetchFlagCheck(key, context)
+        .then((result) => {
           // Store in feature usage event map if appropriate
           if (typeof result.featureUsageEvent === "string") {
             this.updateFeatureUsageEventMap(result);
@@ -518,6 +507,28 @@ export class Schematic {
 
           return errorResult.value;
         });
+    }
+
+    if (preflight !== undefined) {
+      const existingVals = this.checks[contextStr];
+      const local =
+        this.conn === null
+          ? undefined
+          : evaluatePreflight(
+              existingVals?.[key],
+              this.creditBalances[contextStr],
+              this.creditSpendPolicies[contextStr],
+              preflight,
+            );
+      if (local !== undefined) {
+        this.debug(`checkFlag preflight local result: ${key}`, {
+          preflight,
+          value: local,
+        });
+        return local;
+      }
+
+      return this.checkFlagPreflightOverHttp(key, context, preflight, fallback);
     }
 
     try {
@@ -596,6 +607,60 @@ export class Schematic {
 
       return errorResult.value;
     }
+  }
+
+  /**
+   * POST a single flag check, optionally with a preflight body, and parse the
+   * result. Throws on a network error or non-2xx response.
+   */
+  private async fetchFlagCheck(
+    key: string,
+    context: SchematicContext,
+    preflight?: PreflightInput,
+  ): Promise<CheckFlagReturn> {
+    const requestUrl = `${this._apiUrl}/flags/${key}/check`;
+    const sigHeaders = await this.contextSignatureHeaders(context);
+    const body =
+      preflight === undefined
+        ? context
+        : { ...context, preflight: PreflightRequestBodyToJSON(preflight) };
+    const response = await fetch(requestUrl, {
+      method: "POST",
+      headers: {
+        ...(this._additionalHeaders ?? {}),
+        "Content-Type": "application/json;charset=UTF-8",
+        "X-Schematic-Api-Key": this.apiKey,
+        ...sigHeaders,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    const parsedResponse = CheckFlagResponseFromJSON(await response.json());
+    this.debug(`checkFlag result: ${key}`, parsedResponse);
+
+    return CheckFlagReturnFromJSON(parsedResponse.data);
+  }
+
+  /**
+   * A preflight answers a hypothetical, so its result is kept out of the flag
+   * cache, persisted state, the feature usage event map, listeners and flag
+   * check events: only the returned value reflects the simulated action.
+   */
+  private checkFlagPreflightOverHttp(
+    key: string,
+    context: SchematicContext,
+    preflight: PreflightInput,
+    fallback: boolean | undefined,
+  ): Promise<boolean> {
+    return this.fetchFlagCheck(key, context, preflight)
+      .then((result) => result.value)
+      .catch((error) => {
+        console.warn("There was a problem with the preflight check:", error);
+        return this.resolveFallbackValue(key, fallback);
+      });
   }
 
   /**

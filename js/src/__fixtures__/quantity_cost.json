@@ -1,0 +1,185 @@
+{
+  "_comment": "Events and the credits they cost: quantity at consumption_rate plus each rated key of quantities at its rate. The API's burn (data.NewCreditBurnBreakdown, tested in apps/entitlements/services) and the rules engine's quantity_cost (rulesengine-rust/src/engine/quantity_cost.rs) both price every case, so the two cannot drift apart. quantity defaults to 1 when absent or zero. quantities are as the event reports them: input_tokens includes the cached and cache-creation subsets.",
+  "cases": [
+    {
+      "name": "claude_code_golden",
+      "consumption_rate": 0.5,
+      "quantity_rates": {
+        "cache_creation_input_tokens": 0.00125,
+        "cached_input_tokens": 0.0001,
+        "input_tokens": 0.001,
+        "output_tokens": 0.005,
+        "reasoning_tokens": 0.009
+      },
+      "quantities": {
+        "cache_creation_input_tokens": 10979,
+        "cached_input_tokens": 13628,
+        "input_tokens": 24617,
+        "output_tokens": 41
+      },
+      "expected_cost": 15.80155
+    },
+    {
+      "name": "base_quantity_only",
+      "consumption_rate": 1.5,
+      "quantity": 3,
+      "expected_cost": 4.5
+    },
+    {
+      "name": "zero_quantity_counts_as_one",
+      "consumption_rate": 2,
+      "quantity": 0,
+      "expected_cost": 2
+    },
+    {
+      "name": "base_quantity_does_not_multiply_tokens",
+      "consumption_rate": 0.5,
+      "quantity_rates": {
+        "input_tokens": 1
+      },
+      "quantity": 3,
+      "quantities": {
+        "input_tokens": 2000
+      },
+      "expected_cost": 2001.5
+    },
+    {
+      "name": "cache_subsets_overrunning_input_clamp_at_zero",
+      "consumption_rate": 0,
+      "quantity_rates": {
+        "cache_creation_input_tokens": 1,
+        "cached_input_tokens": 1,
+        "input_tokens": 1,
+        "output_tokens": 1
+      },
+      "quantities": {
+        "cache_creation_input_tokens": 300,
+        "cached_input_tokens": 400,
+        "input_tokens": 500
+      },
+      "expected_cost": 700
+    },
+    {
+      "name": "quantities_clamp_at_the_cap",
+      "consumption_rate": 0,
+      "quantity_rates": {
+        "input_tokens": 1,
+        "output_tokens": 1,
+        "reasoning_tokens": 1
+      },
+      "quantities": {
+        "input_tokens": 2000000000,
+        "output_tokens": 2000000000,
+        "reasoning_tokens": 2000000000
+      },
+      "expected_cost": 3000000000
+    },
+    {
+      "name": "zero_rates_and_zero_counts_price_nothing",
+      "consumption_rate": 0,
+      "quantity_rates": {
+        "cached_input_tokens": 3,
+        "input_tokens": 0.25,
+        "output_tokens": 0
+      },
+      "quantities": {
+        "cached_input_tokens": 0,
+        "input_tokens": 2000,
+        "output_tokens": 2000
+      },
+      "expected_cost": 500
+    },
+    {
+      "name": "no_schedule_prices_the_base_only",
+      "consumption_rate": 1,
+      "quantities": {
+        "input_tokens": 1000,
+        "output_tokens": 1000
+      },
+      "expected_cost": 1
+    },
+    {
+      "name": "track_event_with_three_charges",
+      "consumption_rate": 0.01,
+      "quantity_rates": {
+        "destination": 0.0035,
+        "origination": 0.004,
+        "transfer": 0.002
+      },
+      "quantity": 1,
+      "quantities": {
+        "destination": 1,
+        "origination": 1,
+        "transfer": 2
+      },
+      "expected_cost": 0.0215
+    },
+    {
+      "name": "decimal_quantities",
+      "consumption_rate": 0,
+      "quantity_rates": {
+        "gb_transferred": 0.12,
+        "minutes": 0.5
+      },
+      "quantities": {
+        "gb_transferred": 2.75,
+        "minutes": 1.5
+      },
+      "expected_cost": 1.08
+    },
+    {
+      "name": "rated_key_the_event_does_not_carry",
+      "consumption_rate": 1,
+      "quantity_rates": {
+        "origination": 2,
+        "transfer": 3
+      },
+      "quantities": {
+        "origination": 1
+      },
+      "expected_cost": 3
+    },
+    {
+      "name": "carried_key_the_schedule_does_not_rate",
+      "consumption_rate": 1,
+      "quantity_rates": {
+        "origination": 2
+      },
+      "quantities": {
+        "destination": 5,
+        "origination": 1
+      },
+      "expected_cost": 3
+    },
+    {
+      "name": "token_and_custom_keys_together",
+      "consumption_rate": 0.5,
+      "quantity_rates": {
+        "input_tokens": 0.001,
+        "output_tokens": 0.01,
+        "tool_calls": 0.2,
+        "web_searches": 1
+      },
+      "quantity": 2,
+      "quantities": {
+        "cached_input_tokens": 400,
+        "input_tokens": 1000,
+        "output_tokens": 100,
+        "tool_calls": 3,
+        "web_searches": 0.5
+      },
+      "expected_cost": 3.7
+    },
+    {
+      "name": "negative_quantities_price_at_zero",
+      "consumption_rate": 1,
+      "quantity_rates": {
+        "origination": 2
+      },
+      "quantities": {
+        "origination": -5
+      },
+      "expected_cost": 1
+    }
+  ]
+}
