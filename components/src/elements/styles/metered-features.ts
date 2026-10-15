@@ -124,6 +124,10 @@ export const meteredFeaturesCss = `
     var(--schematic-card-padding);
 }
 
+.schematic-metered-features__price-cost {
+  text-align: end;
+}
+
 .schematic-metered-features .schematic-skeleton__cell[data-column="name"] {
   width: 10rem;
 }
