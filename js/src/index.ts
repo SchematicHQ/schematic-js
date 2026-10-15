@@ -127,9 +127,10 @@ export class Schematic {
   private contextSignatureManager?: ContextSignatureManager;
   private _apiUrl = "https://api.schematichq.com";
   private conn: Promise<WebSocket> | null = null;
-  // Contexts the current socket has delivered a message for. Checks, balances
-  // and policies revived from storage stay unproven until then.
-  private wsLiveContexts: Set<string> = new Set();
+  // The context the current socket has delivered a message for. The server
+  // streams one context per socket, so at most one context is live. Checks,
+  // balances and policies revived from storage stay unproven until then.
+  private _wsLiveContext: string | null = null;
   private context: SchematicContext = {};
   private debugEnabled: boolean = false;
   private offlineEnabled: boolean = false;
@@ -514,7 +515,7 @@ export class Schematic {
 
     if (preflight !== undefined) {
       let local: boolean | undefined;
-      if (this.conn !== null && this.wsLiveContexts.has(contextStr)) {
+      if (this.conn !== null && this._wsLiveContext === contextStr) {
         try {
           local = evaluatePreflight(
             this.checks[contextStr]?.[key],
@@ -736,7 +737,16 @@ export class Schematic {
       if (!(contextString(context) in this.checks)) {
         this.checks[contextString(context)] = {};
       }
-      this.wsLiveContexts.add(contextString(context));
+
+      // Only a flags message for the client's current context proves the
+      // socket is streaming it. An error frame proves nothing, and a listener
+      // left over from an earlier context must not mark that context live.
+      const becomesLive =
+        (message.error === undefined || message.error === null) &&
+        message.flags !== undefined &&
+        message.flags !== null &&
+        contextString(context) === contextString(this.context) &&
+        this._wsLiveContext !== contextString(context);
 
       // Message may contain only a subset of flags; merge with existing context
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -786,10 +796,49 @@ export class Schematic {
         this.notifyPlanListeners(plan);
       }
 
-      // Lease-aware credit balances arrive keyed by credit ID. A message may
-      // carry only a subset of credit types (e.g. a debounced credit_reserved
-      // partial), so merge per-credit rather than replacing the whole map.
-      if (
+      // Lease-aware credit balances arrive keyed by credit ID. The first
+      // message for a context on this socket carries the whole set, and the
+      // server omits credit_balances when there are none, so replace rather
+      // than merge: a balance revived from storage must not outlive it.
+      if (becomesLive) {
+        const contextStr = contextString(context);
+        const next =
+          message.credit_balances !== undefined &&
+          message.credit_balances !== null
+            ? CreditBalancesFromJSON(message.credit_balances)
+            : {};
+        const previous = this.creditBalances[contextStr];
+
+        let changed =
+          previous === undefined ||
+          Object.keys(previous).length !== Object.keys(next).length;
+        for (const [creditId, balance] of Object.entries(next)) {
+          const current = previous?.[creditId];
+          if (
+            current === undefined ||
+            current.remaining !== balance.remaining ||
+            current.reserved !== balance.reserved ||
+            current.settled !== balance.settled ||
+            current.postpaid !== balance.postpaid ||
+            current.overdraftLimit !== balance.overdraftLimit
+          ) {
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          this.creditBalances[contextStr] = next;
+
+          this.debug(
+            `WebSocket credit balance update received. Notifying listeners`,
+            { creditBalances: next },
+          );
+
+          this.notifyCreditBalanceListeners(next);
+        }
+      } else if (
+        // Later messages may carry only a subset of credit types (e.g. a
+        // debounced credit_reserved partial), so merge per-credit.
         message.credit_balances !== undefined &&
         message.credit_balances !== null
       ) {
@@ -852,6 +901,10 @@ export class Schematic {
 
           this.notifyCreditSpendPolicyListeners(next);
         }
+      }
+
+      if (becomesLive) {
+        this._wsLiveContext = contextString(context);
       }
 
       // Persist updated flag state for this context so the next page load
@@ -1912,7 +1965,7 @@ export class Schematic {
         this.debug(`${methodName}: error closing existing connection:`, error);
       }
       this.conn = null;
-      this.wsLiveContexts.clear();
+      this._wsLiveContext = null;
       this.isConnecting = false;
     }
 
@@ -1981,7 +2034,7 @@ export class Schematic {
         console.warn("Error during cleanup:", error);
       } finally {
         this.conn = null;
-        this.wsLiveContexts.clear();
+        this._wsLiveContext = null;
         this.currentWebSocket = null;
         this.isConnecting = false;
       }
@@ -2041,7 +2094,7 @@ export class Schematic {
         this.debug("Error closing connection on offline:", error);
       }
       this.conn = null;
-      this.wsLiveContexts.clear();
+      this._wsLiveContext = null;
     }
 
     // Clear any pending reconnection timers
@@ -2139,7 +2192,7 @@ export class Schematic {
             this.debug(`Error cleaning up existing connection:`, error);
           }
           this.conn = null;
-          this.wsLiveContexts.clear();
+          this._wsLiveContext = null;
           this.currentWebSocket = null;
           this.isConnecting = false;
         }
@@ -2261,7 +2314,7 @@ export class Schematic {
       this.debug(`connecting to WebSocket:`, wsUrl);
 
       const webSocket = new WebSocket(wsUrl);
-      this.wsLiveContexts.clear();
+      this._wsLiveContext = null;
       const connectionId = Math.random().toString(36).substring(7);
       this.debug(`Creating WebSocket connection ${connectionId} to ${wsUrl}`);
 
@@ -2320,7 +2373,7 @@ export class Schematic {
 
         this.debug(`WebSocket connection ${connectionId} closed`);
         this.conn = null;
-        this.wsLiveContexts.clear();
+        this._wsLiveContext = null;
 
         // Clean up tracking references when this specific socket closes
         const wasCurrent = this.currentWebSocket === webSocket;
@@ -2435,6 +2488,8 @@ export class Schematic {
 
         this.debug(`WebSocket sending message:`, messagePayload);
 
+        // The socket stops streaming the previous context once this lands.
+        this._wsLiveContext = null;
         socket.send(JSON.stringify(messagePayload));
       };
 

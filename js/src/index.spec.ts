@@ -5,6 +5,7 @@ import {
   CheckFlagReturnFromJSON,
   CheckPlanReturn,
   CheckPlanReturnFromJSON,
+  CreditBalances,
   CreditBalancesFromJSON,
   RuleType,
   StoragePersister,
@@ -5140,6 +5141,55 @@ describe("checkFlag preflight", () => {
       expect(schematic.getFlagCheck("beta")?.value).toBe(true);
       expect(await schematic.checkFlag({ key: "beta", context })).toBe(true);
     });
+
+    it("asks the server for a context the socket has switched away from", async () => {
+      const other = { company: { companyId: "789" } };
+      expect(await schematic.checkFlag({ key: "ai-chat", context })).toBe(true);
+      await schematic.setContext(other);
+      mockFetch.mockClear();
+
+      expect(
+        await schematic.checkFlag({
+          key: "ai-chat",
+          context: other,
+          preflight: { usage: 5 },
+        }),
+      ).toBe(true);
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
+      expect(
+        await schematic.checkFlag({
+          key: "ai-chat",
+          context,
+          preflight: { usage: 5 },
+        }),
+      ).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        "https://api.schematichq.com/flags/ai-chat/check",
+      );
+    });
+
+    it("asks the server once the socket closes", async () => {
+      expect(await schematic.checkFlag({ key: "ai-chat", context })).toBe(true);
+      mockServer.clients().forEach((socket) => socket.close());
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      mockFetch.mockClear();
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
+
+      expect(
+        await schematic.checkFlag({
+          key: "ai-chat",
+          context,
+          preflight: { usage: 5 },
+        }),
+      ).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        "https://api.schematichq.com/flags/ai-chat/check",
+      );
+    });
   });
 
   describe("revived cache", () => {
@@ -5249,6 +5299,139 @@ describe("checkFlag preflight", () => {
         await client.checkFlag({ key: "ai-chat", context, preflight }),
       ).toBe(true);
       expect(mockFetch).not.toHaveBeenCalled();
+
+      await client.cleanup();
+    });
+
+    it("does not trust a context after a server error frame", async () => {
+      const storage = createTestStorage({
+        "schematicCache:API_KEY": JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(context)]: {
+              checks: {
+                "ai-chat": {
+                  flag: "ai-chat",
+                  reason: "cached",
+                  ruleType: "plan_entitlement",
+                  value: true,
+                  creditId: "cred_1",
+                  creditRemaining: 10,
+                  consumptionRate: 1,
+                },
+              },
+              creditBalances: {
+                cred_1: {
+                  remaining: 10,
+                  reserved: 0,
+                  settled: 10,
+                  postpaid: false,
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({ error: "invalid context", code: "bad_request" }),
+          );
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+      await client.setContext(context);
+
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
+      expect(
+        await client.checkFlag({
+          key: "ai-chat",
+          context,
+          preflight: { creditCost: { cred_1: 5 } },
+        }),
+      ).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      await client.cleanup();
+    });
+
+    it("drops a revived balance the first live message does not carry", async () => {
+      const storage = createTestStorage({
+        "schematicCache:API_KEY": JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(context)]: {
+              checks: {},
+              creditBalances: {
+                cred_1: {
+                  remaining: 0,
+                  reserved: 0,
+                  settled: 0,
+                  postpaid: true,
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      // The server omits credit_balances when the company holds none.
+      mockServer.on("connection", (socket) => {
+        socket.on("message", () => {
+          socket.send(
+            JSON.stringify({
+              flags: [
+                {
+                  flag: "ai-chat",
+                  reason: "Matched",
+                  rule_type: "plan_entitlement",
+                  value: true,
+                  entitlement: {
+                    feature_id: "feat-1",
+                    feature_key: "ai-chat",
+                    value_type: "credit",
+                    credit_id: "cred_1",
+                    credit_remaining: 0,
+                    consumption_rate: 1,
+                  },
+                },
+              ],
+            }),
+          );
+        });
+      });
+
+      const client = new Schematic("API_KEY", {
+        storage,
+        useWebSocket: true,
+        webSocketUrl: TEST_WS_URL,
+      });
+      const notified: CreditBalances[] = [];
+      client.addCreditBalanceListener((balances: CreditBalances) => {
+        notified.push(balances);
+      });
+      await client.setContext(context);
+
+      expect(client.getCreditBalance("cred_1")).toBeUndefined();
+      expect(notified.at(-1)).toEqual({});
+
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
+      expect(
+        await client.checkFlag({
+          key: "ai-chat",
+          context,
+          preflight: { creditCost: { cred_1: 5 } },
+        }),
+      ).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
 
       await client.cleanup();
     });
