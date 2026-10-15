@@ -20,6 +20,18 @@ import { mapValues } from "../runtime";
  */
 export interface CompanyCreditBalance {
   /**
+   * For a postpaid credit, how far below zero the balance may run. Absent when the credit is not postpaid or postpaid has no limit
+   * @type {number}
+   * @memberof CompanyCreditBalance
+   */
+  overdraftLimit?: number | null;
+  /**
+   * Whether consumption may continue past a zero balance. When true and overdraft_limit is absent, the balance has no floor
+   * @type {boolean}
+   * @memberof CompanyCreditBalance
+   */
+  postpaid: boolean;
+  /**
    * Remaining credit, excluding any open lease hold (the value SDKs gate on)
    * @type {number}
    * @memberof CompanyCreditBalance
@@ -45,6 +57,7 @@ export interface CompanyCreditBalance {
 export function instanceOfCompanyCreditBalance(
   value: object,
 ): value is CompanyCreditBalance {
+  if (!("postpaid" in value) || value["postpaid"] === undefined) return false;
   if (!("remaining" in value) || value["remaining"] === undefined) return false;
   if (!("reserved" in value) || value["reserved"] === undefined) return false;
   if (!("settled" in value) || value["settled"] === undefined) return false;
@@ -63,6 +76,9 @@ export function CompanyCreditBalanceFromJSONTyped(
     return json;
   }
   return {
+    overdraftLimit:
+      json["overdraft_limit"] == null ? undefined : json["overdraft_limit"],
+    postpaid: json["postpaid"],
     remaining: json["remaining"],
     reserved: json["reserved"],
     settled: json["settled"],
@@ -82,6 +98,8 @@ export function CompanyCreditBalanceToJSONTyped(
   }
 
   return {
+    overdraft_limit: value["overdraftLimit"],
+    postpaid: value["postpaid"],
     remaining: value["remaining"],
     reserved: value["reserved"],
     settled: value["settled"],
