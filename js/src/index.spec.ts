@@ -5421,7 +5421,7 @@ describe("checkFlag preflight", () => {
       await client.setContext(context);
 
       expect(client.getCreditBalance("cred_1")).toBeUndefined();
-      expect(notified.at(-1)).toEqual({});
+      expect(notified[notified.length - 1]).toEqual({});
 
       mockFetch.mockResolvedValueOnce(flagCheckResponse(false));
       expect(
