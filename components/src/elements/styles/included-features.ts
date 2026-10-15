@@ -62,7 +62,7 @@ export const includedFeaturesCss = `
 
 @container (min-width: 23.4375rem) {
   .schematic-included-features__row {
-    grid-template-columns: min-content 1fr auto;
+    grid-template-columns: min-content 1fr 1fr;
   }
 
   .schematic-included-features__usage {
