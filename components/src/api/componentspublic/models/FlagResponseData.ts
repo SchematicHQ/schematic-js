@@ -34,11 +34,12 @@ export interface FlagResponseData {
    */
   createdAt: Date;
   /**
-   *
+   * Deprecated. The value a check returns in the requesting environment when no other rule matches: its default rule, or the flag's seed value while it has none. Read the default rule instead
    * @type {boolean}
    * @memberof FlagResponseData
+   * @deprecated
    */
-  defaultValue: boolean;
+  defaultValue?: boolean | null;
   /**
    *
    * @type {string}
@@ -96,8 +97,6 @@ export function instanceOfFlagResponseData(
   value: object,
 ): value is FlagResponseData {
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
-  if (!("defaultValue" in value) || value["defaultValue"] === undefined)
-    return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
   if (!("flagType" in value) || value["flagType"] === undefined) return false;
@@ -121,7 +120,8 @@ export function FlagResponseDataFromJSONTyped(
   }
   return {
     createdAt: new Date(json["created_at"]),
-    defaultValue: json["default_value"],
+    defaultValue:
+      json["default_value"] == null ? undefined : json["default_value"],
     description: json["description"],
     featureId: json["feature_id"] == null ? undefined : json["feature_id"],
     flagType: FlagTypeFromJSON(json["flag_type"]),
