@@ -5,7 +5,6 @@ export const planManagerCss = `
   gap: var(--schematic-space);
 }
 
-/* While loading or failed there is no plan card, so the root draws one. */
 .schematic-plan-manager[data-state="pending"],
 .schematic-plan-manager[data-state="error"] {
   background: var(--schematic-background);
@@ -15,8 +14,6 @@ export const planManagerCss = `
     var(--schematic-card-padding);
 }
 
-/* As in the embed, a notice is a band across the top of the card: the
-   root draws the card and the plan's own card goes flat. */
 .schematic-plan-manager:has(.schematic-plan-manager__notice) {
   background: var(--schematic-background);
   border-radius: var(--schematic-radius);
@@ -106,8 +103,6 @@ export const planManagerCss = `
   padding: 0;
 }
 
-/* Centred as in the embed; a plan credit's name and figure share a
-   baseline above the line that explains them. */
 .schematic-plan-manager__row,
 .schematic-plan-manager__row-main {
   align-items: center;

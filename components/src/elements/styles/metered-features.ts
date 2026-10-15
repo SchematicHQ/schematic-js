@@ -8,7 +8,6 @@ export const meteredFeaturesCss = `
   padding: 0;
 }
 
-/* Each feature is a card; while pending or failed, the root is the card. */
 .schematic-metered-features[data-state="pending"],
 .schematic-metered-features[data-state="error"] {
   background: var(--schematic-background);
@@ -31,7 +30,6 @@ export const meteredFeaturesCss = `
   gap: calc(var(--schematic-space) * 1.5);
 }
 
-/* Kept without a glyph, as in the embed, so names line up. */
 .schematic-metered-features__icon {
   align-items: center;
   background: var(--schematic-surface);
@@ -45,8 +43,6 @@ export const meteredFeaturesCss = `
   width: 2.75rem;
 }
 
-/* The glyph takes the base text colour rather than inheriting, so the accent
-   is set on it too. */
 .schematic-metered-features__icon .schematic-icon {
   color: var(--schematic-accent);
 }
@@ -80,8 +76,6 @@ export const meteredFeaturesCss = `
   margin: 0;
 }
 
-/* Beside the title when both fit, otherwise beneath it as in the embed,
-   rather than wrapping in a narrow column. */
 .schematic-metered-features__figures {
   display: flex;
   flex: 0 0 auto;
@@ -104,7 +98,6 @@ export const meteredFeaturesCss = `
     text-align: start;
   }
 
-  /* Too narrow to keep "1,300 GB of storage used" on one line. */
   .schematic-metered-features__headline {
     white-space: normal;
   }
@@ -119,7 +112,6 @@ export const meteredFeaturesCss = `
   white-space: nowrap;
 }
 
-/* Negative margins undo the card's padding so the footer bleeds to its edges. */
 .schematic-metered-features__price-details {
   align-items: center;
   background: var(--schematic-surface);
@@ -155,7 +147,6 @@ export const meteredFeaturesCss = `
   background: color-mix(in srgb, var(--schematic-accent) 50%, transparent);
 }
 
-/* Past the soft limit, the fill is the included share over a warning track. */
 .schematic-meter--overage {
   background: var(--schematic-warning);
 }

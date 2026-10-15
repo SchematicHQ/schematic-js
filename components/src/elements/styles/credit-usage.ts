@@ -5,8 +5,6 @@ export const creditUsageCss = `
   gap: var(--schematic-space);
 }
 
-/* Each credit draws its own card, so the root draws one only while pending
-   or failed. */
 .schematic-credit-usage[data-state="pending"],
 .schematic-credit-usage[data-state="error"] {
   background: var(--schematic-background);
@@ -27,7 +25,6 @@ export const creditUsageCss = `
   gap: calc(var(--schematic-space) * 1.5);
 }
 
-/* Held even without a glyph, as the embed does, so names line up. */
 .schematic-credit-usage__icon {
   align-items: center;
   background: var(--schematic-surface);
@@ -44,8 +41,6 @@ export const creditUsageCss = `
   color: var(--schematic-accent);
 }
 
-/* The embed's spacing: the balance well clear of the name, the composition
-   tucked close under the balance. */
 .schematic-credit-usage__body {
   display: flex;
   flex-direction: column;
@@ -101,7 +96,6 @@ export const creditUsageCss = `
   margin-inline-start: -0.333rem;
 }
 
-/* Opens above its toggle, as in the embed. */
 .schematic-credit-usage__grants {
   background: var(--schematic-inset);
   border-radius: calc(var(--schematic-radius) * 0.8);
@@ -121,8 +115,6 @@ export const creditUsageCss = `
   padding: 0;
 }
 
-/* Where the grant and its date do not fit on one line, the date wraps
-   rather than overflowing the panel. */
 .schematic-credit-usage__grant {
   display: flex;
   flex-wrap: wrap;

@@ -15,7 +15,6 @@ export const paymentMethodsCss = `
   white-space: nowrap;
 }
 
-/* The pill: the default method on the left, Edit or Add on the right. */
 .schematic-payment-methods__current {
   align-items: center;
   background: var(--schematic-surface);
@@ -26,8 +25,6 @@ export const paymentMethodsCss = `
   padding: calc(var(--schematic-space) / 2.25) var(--schematic-space);
 }
 
-/* One line: a label too long for the space truncates rather than wrapping
-   "Card ending in" away from its digits or widening the dialog. */
 .schematic-payment-methods__method {
   align-items: center;
   display: inline-flex;
@@ -43,7 +40,6 @@ export const paymentMethodsCss = `
   white-space: nowrap;
 }
 
-/* The brand's mark before the label, in the label's colour. */
 .schematic-payment-methods__icon {
   color: currentColor;
   flex-shrink: 0;
@@ -66,15 +62,10 @@ export const paymentMethodsCss = `
   white-space: nowrap;
 }
 
-/* The toggle that reveals the other methods. Its chevron is a glyph per
-   state, down while folded and up while unfolded, and the hover underline
-   goes on the label alone, as on every toggle. */
 .schematic-payment-methods__choose {
   align-items: center;
   align-self: flex-start;
   display: inline-flex;
-  /* A button centres its text; a label that wraps on a phone keeps to the
-     start. */
   text-align: start;
   gap: calc(var(--schematic-space) / 2);
 }
@@ -87,9 +78,6 @@ export const paymentMethodsCss = `
   text-decoration: underline;
 }
 
-
-/* A faintly tinted panel, roomier than the shared dialog body, with its
-   parts spaced further apart. */
 .schematic-payment-methods__dialog .schematic-dialog__body {
   background: color-mix(in srgb, var(--schematic-text) 2.5%, transparent);
   gap: calc(var(--schematic-space) * 2);
@@ -102,9 +90,6 @@ export const paymentMethodsCss = `
   }
 }
 
-/* The list tucks up under its toggle, the heading sits a card's gap above
-   the pill, and a failed write sits close under what it failed
-   on. */
 .schematic-payment-methods__dialog .schematic-payment-methods__list,
 .schematic-payment-methods__dialog .schematic-payment-methods__current,
 .schematic-payment-methods__dialog .schematic-payment-methods__error {
@@ -119,8 +104,6 @@ export const paymentMethodsCss = `
   padding: 0;
 }
 
-/* The name on the left, the expiry and actions on the right; a narrow
-   dialog wraps the actions under the name. */
 .schematic-payment-methods__row {
   align-items: center;
   border-bottom: 1px solid var(--schematic-card-divider);
@@ -130,8 +113,6 @@ export const paymentMethodsCss = `
   padding: calc(var(--schematic-space) / 2) 0;
 }
 
-/* The name takes the line's room first; the actions wrap under it before
-   the name is cut short. */
 .schematic-payment-methods__row .schematic-payment-methods__method {
   flex: 1 1 10rem;
 }
@@ -184,7 +165,6 @@ export const paymentMethodsCss = `
   width: 100%;
 }
 
-/* Larger than the shared CTA: taller, with bigger type and radius. */
 .schematic-payment-methods__add-new {
   border-radius: 0.625rem;
   font-size: 1.1875rem;
@@ -196,7 +176,6 @@ export const paymentMethodsCss = `
   align-self: flex-start;
 }
 
-/* The failed write and its retry sit on one line at the foot of the dialog. */
 .schematic-payment-methods__error {
   align-items: center;
   display: flex;
@@ -209,8 +188,6 @@ export const paymentMethodsCss = `
   white-space: nowrap;
 }
 
-/* Spaced as the embed's form: 24px between parts, and a wider break before
-   Save under the address. */
 .schematic-payment-methods__form {
   display: flex;
   flex-direction: column;
@@ -221,8 +198,6 @@ export const paymentMethodsCss = `
   margin-bottom: calc(var(--schematic-space) * 2);
 }
 
-/* The fields the checkout settings add beside Stripe's own, labelled as
-   Stripe's are. */
 .schematic-payment-methods__field {
   display: flex;
   flex-direction: column;
@@ -232,7 +207,6 @@ export const paymentMethodsCss = `
 .schematic-payment-methods__input {
   background: var(--schematic-background);
   border: 1px solid var(--schematic-border);
-  /* The embed's 8px at the default radius; Stripe's fields take the same. */
   border-radius: calc(var(--schematic-radius) * 0.8);
   box-sizing: border-box;
   color: var(--schematic-text);
