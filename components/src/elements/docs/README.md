@@ -210,6 +210,26 @@ an object.
 Overriding `background` and `text` alone leaves a card looking half-themed —
 `border`, `card-divider`, and `shadow` carry the rest.
 
+### One card or several
+
+Each element draws its own card, so elements stacked in a column read as
+separate cards. To merge them into one, wrap them in
+`schematic-card-group`:
+
+```tsx
+<div className="schematic-card-group">
+  <UpcomingBill />
+  <PaymentMethods />
+  <Invoices />
+</div>
+```
+
+The group draws the one card and a `card-divider` line between its
+elements, and between the cards an element draws for each row, as
+MeteredFeatures and CreditUsage do. The elements must be its direct
+children: a wrapper of your own around each one hides it from the rule
+that draws the line between elements.
+
 Or skip the stylesheet and write your own against the class names below —
 they are API, and each element's doc shows the tree it renders. A sheet of
 your own has to bring the icon font too: render `<style>{iconsCss}</style>`
@@ -222,6 +242,7 @@ it names its rules `.icon-<name>`, which the elements never use.
 | ------------------------------ | ------------------------------------------------------------------ |
 | `schematic-element`            | Every element's root, with the element's own class.                |
 | `schematic-card`               | Anything that draws a card: most roots, or each row's card.        |
+| `schematic-card-group`         | Yours to add: merges the elements inside it into one card.         |
 | `schematic-header`             | The heading row inside a card.                                     |
 | `schematic-header__title`      | The heading itself, whatever `headingLevel` renders.               |
 | `schematic-muted`              | Secondary text.                                                    |
