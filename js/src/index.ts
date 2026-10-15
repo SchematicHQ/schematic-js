@@ -1474,13 +1474,16 @@ export class Schematic {
       ) {
         continue;
       }
-      // Entries persisted before postpaid existed carry no key for it.
       const balance: CreditBalance = {
         remaining: obj.remaining,
         reserved: obj.reserved,
         settled: obj.settled,
-        postpaid: obj.postpaid === true,
       };
+      // Entries persisted before postpaid existed carry no key for it, which
+      // leaves it unknown rather than false.
+      if (typeof obj.postpaid === "boolean") {
+        balance.postpaid = obj.postpaid;
+      }
       if (typeof obj.overdraftLimit === "number") {
         balance.overdraftLimit = obj.overdraftLimit;
       }

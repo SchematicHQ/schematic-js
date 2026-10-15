@@ -37,6 +37,10 @@ describe("quantityCost", () => {
       expect(Math.abs(cost - c.expected_cost)).toBeLessThanOrEqual(1e-9);
     },
   );
+
+  it("ignores a rated key named after an Object prototype member", () => {
+    expect(quantityCost(2, { constructor: 5, toString: 3 }, 1, {})).toBe(2);
+  });
 });
 
 const creditResult = (
@@ -147,6 +151,58 @@ describe("evaluatePreflight", () => {
     });
   });
 
+  describe("local denies", () => {
+    it("defers when another rule could grant on a different credit", () => {
+      // The base plan's credit is spent, but an add-on may grant the same
+      // feature on cred_2, which the cached result does not mention.
+      expect(
+        evaluatePreflight(
+          creditResult({ creditRemaining: 0 }),
+          {
+            ...balances(),
+            cred_2: {
+              remaining: 100,
+              reserved: 0,
+              settled: 100,
+              postpaid: false,
+            },
+          },
+          [],
+          { usage: 1 },
+        ),
+      ).toBeUndefined();
+    });
+
+    it("defers when an override is tighter than the plan", () => {
+      const override: CheckFlagReturn = {
+        flag: "api-calls",
+        reason: "Matched company override rule",
+        ruleType: RuleType.COMPANY_OVERRIDE,
+        value: true,
+        eventSubtype: "api-call",
+        featureUsageEvent: "api-call",
+        featureAllocation: 5,
+        featureUsage: 4,
+      };
+      // The plan may allow 10, which the cached override result cannot show.
+      expect(
+        evaluatePreflight(override, undefined, undefined, { usage: 2 }),
+      ).toBeUndefined();
+      expect(
+        evaluatePreflight(override, undefined, undefined, { usage: 0 }),
+      ).toBe(true);
+    });
+
+    it("defers when the balance does not say whether it is postpaid", () => {
+      const unknown: CreditBalances = {
+        cred_1: { remaining: 10, reserved: 0, settled: 10 },
+      };
+      expect(
+        evaluatePreflight(creditResult(), unknown, [], { usage: 1 }),
+      ).toBeUndefined();
+    });
+  });
+
   describe("credit draw precedence", () => {
     // remaining 10, consumption rate 2, so at most 5 units
     it("prefers credit_cost over everything else", () => {
@@ -160,9 +216,9 @@ describe("evaluatePreflight", () => {
         true,
       );
       input.creditCost.cred_1 = 10.5;
-      expect(evaluatePreflight(creditResult(), balances(), [], input)).toBe(
-        false,
-      );
+      expect(
+        evaluatePreflight(creditResult(), balances(), [], input),
+      ).toBeUndefined();
     });
 
     it("prices event_quantities ahead of event_usage and usage", () => {
@@ -179,9 +235,9 @@ describe("evaluatePreflight", () => {
         true,
       );
       input.eventQuantities.quantities.output_tokens = 41;
-      expect(evaluatePreflight(creditResult(), balances(), [], input)).toBe(
-        false,
-      );
+      expect(
+        evaluatePreflight(creditResult(), balances(), [], input),
+      ).toBeUndefined();
     });
 
     it("skips event_quantities for another subtype", () => {
@@ -199,7 +255,7 @@ describe("evaluatePreflight", () => {
           eventUsage: { eventSubtype: "chat", quantity: 6 },
           usage: 1,
         }),
-      ).toBe(false);
+      ).toBeUndefined();
       expect(
         evaluatePreflight(creditResult(), balances(), [], {
           eventUsage: { eventSubtype: "image", quantity: 6 },
@@ -214,7 +270,7 @@ describe("evaluatePreflight", () => {
       ).toBe(true);
       expect(
         evaluatePreflight(creditResult(), balances(), [], { usage: 6 }),
-      ).toBe(false);
+      ).toBeUndefined();
     });
 
     it("falls back to a single unit at the consumption rate", () => {
@@ -233,7 +289,7 @@ describe("evaluatePreflight", () => {
           [],
           {},
         ),
-      ).toBe(false);
+      ).toBeUndefined();
     });
 
     it("matches the usage-exceeded twin when the draw is covered", () => {
@@ -263,7 +319,7 @@ describe("evaluatePreflight", () => {
       const input = {
         eventQuantities: { eventSubtype: "chat", quantities: {} },
       };
-      expect(evaluatePreflight(free, balances(), [], input)).toBe(false);
+      expect(evaluatePreflight(free, balances(), [], input)).toBeUndefined();
       expect(
         evaluatePreflight(
           { ...free, creditRemaining: 0.001 },
@@ -301,7 +357,7 @@ describe("evaluatePreflight", () => {
       ).toBe(true);
       expect(
         evaluatePreflight(result, postpaid, [], { creditCost: { cred_1: 6 } }),
-      ).toBe(false);
+      ).toBeUndefined();
     });
 
     it("ignores an overdraft limit on a credit that is not postpaid", () => {
@@ -312,7 +368,7 @@ describe("evaluatePreflight", () => {
           [],
           { creditCost: { cred_1: 1 } },
         ),
-      ).toBe(false);
+      ).toBeUndefined();
     });
   });
 
@@ -324,7 +380,7 @@ describe("evaluatePreflight", () => {
       ).toBe(true);
       expect(
         evaluatePreflight(creditResult(), balances(), policies, { usage: 3 }),
-      ).toBe(false);
+      ).toBeUndefined();
     });
 
     it("refuses a draw that would overrun a window", () => {
@@ -352,7 +408,7 @@ describe("evaluatePreflight", () => {
           { usage: 2 },
           now,
         ),
-      ).toBe(false);
+      ).toBeUndefined();
       // a window that has already reset no longer counts its consumption
       expect(
         evaluatePreflight(
@@ -373,7 +429,7 @@ describe("evaluatePreflight", () => {
           [policy({ limit: 1 })],
           { usage: 1 },
         ),
-      ).toBe(false);
+      ).toBeUndefined();
     });
 
     it("ignores policies on other credits and unknown kinds", () => {
@@ -416,7 +472,7 @@ describe("evaluatePreflight", () => {
         evaluatePreflight(metric(), undefined, undefined, {
           eventUsage: { eventSubtype: "api-call", quantity: 3 },
         }),
-      ).toBe(false);
+      ).toBeUndefined();
     });
 
     it("falls back to usage when event_usage names another subtype", () => {
@@ -439,10 +495,10 @@ describe("evaluatePreflight", () => {
       ).toBe(true);
       expect(
         evaluatePreflight(metric(), undefined, undefined, { usage: 3 }),
-      ).toBe(false);
+      ).toBeUndefined();
     });
 
-    it("keeps an exceeded limit exceeded", () => {
+    it("defers to the server when an exceeded limit stays exceeded", () => {
       expect(
         evaluatePreflight(
           metric({
@@ -454,7 +510,7 @@ describe("evaluatePreflight", () => {
           undefined,
           { usage: 1 },
         ),
-      ).toBe(false);
+      ).toBeUndefined();
     });
 
     it("defers to the server for a trait condition with usage", () => {

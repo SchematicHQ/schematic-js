@@ -146,8 +146,8 @@ export type CreditBalance = {
   remaining: number;
   /** Amount held by the company's open credit lease, 0 when none is open */
   reserved: number;
-  /** Whether consumption may continue past a zero balance. When true and overdraftLimit is absent, the balance has no floor */
-  postpaid: boolean;
+  /** Whether consumption may continue past a zero balance. When true and overdraftLimit is absent, the balance has no floor. Absent when unknown, as from a server or cache that predates the field */
+  postpaid?: boolean;
   /** For a postpaid credit, how far below zero the balance may run. Absent when the credit is not postpaid or postpaid has no limit */
   overdraftLimit?: number;
 };
@@ -456,8 +456,10 @@ export const CreditBalancesFromJSON = (
       remaining,
       reserved,
       settled,
-      postpaid: postpaid === true,
     };
+    if (typeof postpaid === "boolean") {
+      balance.postpaid = postpaid;
+    }
     if (typeof overdraftLimit === "number") {
       balance.overdraftLimit = overdraftLimit;
     }

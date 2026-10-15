@@ -47,7 +47,9 @@ export const quantityCost = (
     return cost;
   }
 
-  const normalized: Record<string, number> = {};
+  // No prototype, so a rated key like `constructor` the event lacks reads as
+  // undefined rather than an inherited function.
+  const normalized: Record<string, number> = Object.create(null);
   for (const [key, value] of Object.entries(quantities)) {
     const v = Number.isNaN(value) ? 0 : value;
     normalized[key] = Math.min(Math.max(v, 0), maxQuantity);
@@ -145,7 +147,11 @@ const evaluateCredit = (
   now: Date,
 ): boolean | undefined => {
   const balance = balances?.[creditId];
-  if (result.creditRemaining === undefined || balance === undefined) {
+  if (
+    result.creditRemaining === undefined ||
+    balance === undefined ||
+    balance.postpaid === undefined
+  ) {
     return undefined;
   }
 
@@ -265,6 +271,14 @@ const evaluateNumeric = (
  * Decide a preflight from a cached flag check, mirroring the rules engine.
  * Returns undefined when the cached result does not carry enough to decide,
  * in which case the caller must ask the server.
+ *
+ * Only an allow is decided here, apart from a rule that turned the flag off.
+ * When the cached winning rule would stop matching, the engine goes on to try
+ * the flag's other company override and plan entitlement rules (a base plan
+ * and an add-on granting the feature on different credits, or an override
+ * with a tighter limit than the plan). The cached result carries only the
+ * winner, so it cannot see whether one of those would still grant the flag,
+ * and a local deny goes to the server instead.
  */
 export const evaluatePreflight = (
   result: CheckFlagReturn | undefined,
@@ -293,7 +307,7 @@ export const evaluatePreflight = (
   }
 
   if (result.creditId !== undefined) {
-    return evaluateCredit(
+    const allowed = evaluateCredit(
       result,
       result.creditId,
       balances,
@@ -301,11 +315,12 @@ export const evaluatePreflight = (
       input,
       now,
     );
+    return allowed === true ? true : undefined;
   }
 
   if (result.featureAllocation === undefined) {
     return result.value;
   }
 
-  return evaluateNumeric(result, input);
+  return evaluateNumeric(result, input) === true ? true : undefined;
 };

@@ -3325,13 +3325,11 @@ describe("CreditBalancesFromJSON", () => {
         remaining: 0,
         reserved: 3442,
         settled: 3442,
-        postpaid: false,
       },
       "credit-xyz": {
         remaining: 100,
         reserved: 0,
         settled: 100,
-        postpaid: false,
       },
     });
   });
@@ -3352,7 +3350,6 @@ describe("CreditBalancesFromJSON", () => {
       remaining: 100,
       reserved: 0,
       settled: 100,
-      postpaid: false,
     });
   });
 
@@ -3377,6 +3374,29 @@ describe("CreditBalancesFromJSON", () => {
     });
     expect(result["credit-open"].postpaid).toBe(true);
     expect(result["credit-open"].overdraftLimit).toBeUndefined();
+  });
+
+  it("should leave postpaid unknown when the server does not send it", () => {
+    const result = CreditBalancesFromJSON({
+      "credit-old": { remaining: 10, reserved: 0, settled: 10 },
+      "credit-null": {
+        remaining: 10,
+        reserved: 0,
+        settled: 10,
+        postpaid: null,
+      },
+      "credit-off": {
+        remaining: 10,
+        reserved: 0,
+        settled: 10,
+        postpaid: false,
+      },
+    });
+
+    expect(result["credit-old"].postpaid).toBeUndefined();
+    expect("postpaid" in result["credit-old"]).toBe(false);
+    expect(result["credit-null"].postpaid).toBeUndefined();
+    expect(result["credit-off"].postpaid).toBe(false);
   });
 
   it("should return an empty map for null/undefined input", () => {
@@ -3433,7 +3453,6 @@ describe("Credit balances over WebSocket", () => {
       remaining: 0,
       reserved: 3442,
       settled: 3442,
-      postpaid: false,
     });
     expect(balance?.settled).toBe(3442);
 
@@ -3442,7 +3461,6 @@ describe("Credit balances over WebSocket", () => {
         remaining: 0,
         reserved: 3442,
         settled: 3442,
-        postpaid: false,
       },
     });
 
@@ -3768,7 +3786,6 @@ describe("Credit balances over WebSocket", () => {
         remaining: 3442,
         reserved: 0,
         settled: 3442,
-        postpaid: false,
       },
     });
 
@@ -3783,7 +3800,6 @@ describe("Credit balances over WebSocket", () => {
         remaining: 0,
         reserved: 3442,
         settled: 3442,
-        postpaid: false,
       },
     });
 
@@ -3831,13 +3847,11 @@ describe("Credit balances over WebSocket", () => {
         remaining: 0,
         reserved: 100,
         settled: 100,
-        postpaid: false,
       },
       "credit-xyz": {
         remaining: 50,
         reserved: 0,
         settled: 50,
-        postpaid: false,
       },
     });
 
@@ -3938,7 +3952,6 @@ describe("Credit balances over WebSocket", () => {
       remaining: 25,
       reserved: 25,
       settled: 50,
-      postpaid: false,
     });
 
     await schematic.cleanup();
@@ -4014,8 +4027,38 @@ describe("Persistent flag state cache", () => {
         remaining: 0,
         reserved: 3442,
         settled: 3442,
-        postpaid: false,
       });
+    });
+
+    it("leaves postpaid unknown for a cached balance stored before the field existed", async () => {
+      const storage = createTestStorage({
+        [cacheKey]: JSON.stringify({
+          version: cacheVersion,
+          contexts: {
+            [contextString(ctxA)]: {
+              checks: {
+                FEATURE_X: { flag: "FEATURE_X", value: true, reason: "cached" },
+              },
+              creditBalances: {
+                "credit-old": { remaining: 5, reserved: 0, settled: 5 },
+                "credit-new": {
+                  remaining: 5,
+                  reserved: 0,
+                  settled: 5,
+                  postpaid: true,
+                },
+              },
+              updatedAt: Date.now(),
+            },
+          },
+        }),
+      });
+
+      const client = new Schematic("API_KEY", { storage });
+      await client.setContext(ctxA);
+
+      expect(client.getCreditBalance("credit-old")?.postpaid).toBeUndefined();
+      expect(client.getCreditBalance("credit-new")?.postpaid).toBe(true);
     });
 
     it("does not expose cached values for a non-matching context", async () => {
@@ -4987,7 +5030,12 @@ describe("checkFlag preflight", () => {
                 },
               ],
               credit_balances: {
-                cred_1: { remaining: 10, reserved: 0, settled: 10 },
+                cred_1: {
+                  remaining: 10,
+                  reserved: 0,
+                  settled: 10,
+                  postpaid: false,
+                },
               },
             }),
           );
@@ -5019,16 +5067,33 @@ describe("checkFlag preflight", () => {
           preflight: { usage: 5 },
         }),
       ).toBe(true);
-      expect(
-        await schematic.checkFlag({
-          key: "ai-chat",
-          context,
-          preflight: { usage: 6 },
-        }),
-      ).toBe(false);
 
       expect(mockFetch).not.toHaveBeenCalled();
       expect(listener).not.toHaveBeenCalled();
+      expect(schematic.getFlagCheck("ai-chat")?.value).toBe(true);
+    });
+
+    it("asks the server when the local preflight would deny", async () => {
+      expect(await schematic.checkFlag({ key: "ai-chat", context })).toBe(true);
+      mockFetch.mockClear();
+      // Another rule the cached result does not carry may still grant it.
+      mockFetch.mockResolvedValueOnce(flagCheckResponse(true));
+
+      const value = await schematic.checkFlag({
+        key: "ai-chat",
+        context,
+        preflight: { usage: 6 },
+      });
+
+      expect(value).toBe(true);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        "https://api.schematichq.com/flags/ai-chat/check",
+      );
+      expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+        ...context,
+        preflight: { usage: 6 },
+      });
       expect(schematic.getFlagCheck("ai-chat")?.value).toBe(true);
     });
 
