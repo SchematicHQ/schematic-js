@@ -220,7 +220,8 @@ it names its rules `.icon-<name>`, which the elements never use.
 
 | Class                          | Where                                                              |
 | ------------------------------ | ------------------------------------------------------------------ |
-| `schematic-card`               | Every element's root, with the element's own class.                |
+| `schematic-element`            | Every element's root, with the element's own class.                |
+| `schematic-card`               | Anything that draws a card: most roots, or each row's card.        |
 | `schematic-header`             | The heading row inside a card.                                     |
 | `schematic-header__title`      | The heading itself, whatever `headingLevel` renders.               |
 | `schematic-muted`              | Secondary text.                                                    |

@@ -214,7 +214,10 @@ The root's class list is the same in all three states — read `data-state` to
 tell them apart. The dialog renders inside the root while it is open.
 
 ```html
-<div class="schematic-card schematic-payment-methods" data-state="ready">
+<div
+  class="schematic-element schematic-card schematic-payment-methods"
+  data-state="ready"
+>
   <!-- omitted by showHeader={false}, and the warning with it -->
   <div class="schematic-header">
     <h2 class="schematic-header__title">Payment Details</h2>
@@ -396,7 +399,7 @@ tell them apart. The dialog renders inside the root while it is open.
 </div>
 
 <div
-  class="schematic-card schematic-payment-methods"
+  class="schematic-element schematic-card schematic-payment-methods"
   data-state="pending"
   aria-busy="true"
 >
@@ -410,7 +413,10 @@ tell them apart. The dialog renders inside the root while it is open.
   </div>
 </div>
 
-<div class="schematic-card schematic-payment-methods" data-state="error">
+<div
+  class="schematic-element schematic-card schematic-payment-methods"
+  data-state="error"
+>
   <div class="schematic-status">
     <span class="schematic-error schematic-status__message">
       Could not load payment methods

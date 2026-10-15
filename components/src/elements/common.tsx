@@ -244,10 +244,11 @@ export const StatusFrame: React.FC<{
   skeleton = <div className="schematic-skeleton" />,
 }) => {
   useReportHiddenError(error, errorMessage);
+  const root = cx("schematic-element", className);
 
   if (error !== undefined && !hasData) {
     return (
-      <div className={className} data-state="error">
+      <div className={root} data-state="error">
         <div className="schematic-status" role="alert">
           <span className="schematic-error schematic-status__message">
             {errorMessage ?? error.message}
@@ -267,7 +268,7 @@ export const StatusFrame: React.FC<{
   }
   if (isPending && !hasData) {
     return (
-      <div aria-busy="true" className={className} data-state="pending">
+      <div aria-busy="true" className={root} data-state="pending">
         {/* Not a live region: this node unmounts when the rows arrive, and
             removing a live region announces nothing, so `role="status"` would
             promise a completion announcement that never comes. Announcing
@@ -278,7 +279,7 @@ export const StatusFrame: React.FC<{
     );
   }
   return (
-    <div className={className} data-state="ready">
+    <div className={root} data-state="ready">
       {children}
       {error !== undefined && (
         <p className="schematic-status-note schematic-error" role="alert">
