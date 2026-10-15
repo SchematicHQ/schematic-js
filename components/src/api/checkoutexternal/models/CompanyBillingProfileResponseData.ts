@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { PaymentGating } from "./PaymentGating";
+import {
+  PaymentGatingFromJSON,
+  PaymentGatingFromJSONTyped,
+  PaymentGatingToJSON,
+  PaymentGatingToJSONTyped,
+} from "./PaymentGating";
 import type { BillingCollectionMethod } from "./BillingCollectionMethod";
 import {
   BillingCollectionMethodFromJSON,
@@ -20,6 +27,20 @@ import {
   BillingCollectionMethodToJSON,
   BillingCollectionMethodToJSONTyped,
 } from "./BillingCollectionMethod";
+import type { Currency } from "./Currency";
+import {
+  CurrencyFromJSON,
+  CurrencyFromJSONTyped,
+  CurrencyToJSON,
+  CurrencyToJSONTyped,
+} from "./Currency";
+import type { Collector } from "./Collector";
+import {
+  CollectorFromJSON,
+  CollectorFromJSONTyped,
+  CollectorToJSON,
+  CollectorToJSONTyped,
+} from "./Collector";
 import type { ProrationBehavior } from "./ProrationBehavior";
 import {
   ProrationBehaviorFromJSON,
@@ -61,6 +82,12 @@ export interface CompanyBillingProfileResponseData {
   collectionMethod: BillingCollectionMethod;
   /**
    *
+   * @type {Collector}
+   * @memberof CompanyBillingProfileResponseData
+   */
+  collector?: Collector | null;
+  /**
+   *
    * @type {string}
    * @memberof CompanyBillingProfileResponseData
    */
@@ -73,6 +100,12 @@ export interface CompanyBillingProfileResponseData {
   createdAt: Date;
   /**
    *
+   * @type {Currency}
+   * @memberof CompanyBillingProfileResponseData
+   */
+  currency?: Currency | null;
+  /**
+   *
    * @type {number}
    * @memberof CompanyBillingProfileResponseData
    */
@@ -83,6 +116,12 @@ export interface CompanyBillingProfileResponseData {
    * @memberof CompanyBillingProfileResponseData
    */
   environmentId: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CompanyBillingProfileResponseData
+   */
+  gatingDays: number;
   /**
    *
    * @type {string}
@@ -103,6 +142,18 @@ export interface CompanyBillingProfileResponseData {
   name?: string | null;
   /**
    *
+   * @type {number}
+   * @memberof CompanyBillingProfileResponseData
+   */
+  overdraftLimit?: number | null;
+  /**
+   *
+   * @type {PaymentGating}
+   * @memberof CompanyBillingProfileResponseData
+   */
+  paymentGating: PaymentGating;
+  /**
+   *
    * @type {string}
    * @memberof CompanyBillingProfileResponseData
    */
@@ -119,6 +170,12 @@ export interface CompanyBillingProfileResponseData {
    * @memberof CompanyBillingProfileResponseData
    */
   providerType: BillingProviderType;
+  /**
+   *
+   * @type {string}
+   * @memberof CompanyBillingProfileResponseData
+   */
+  purchaseOrder?: string | null;
   /**
    *
    * @type {Date}
@@ -140,8 +197,12 @@ export function instanceOfCompanyBillingProfileResponseData(
   if (!("createdAt" in value) || value["createdAt"] === undefined) return false;
   if (!("environmentId" in value) || value["environmentId"] === undefined)
     return false;
+  if (!("gatingDays" in value) || value["gatingDays"] === undefined)
+    return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("isDefault" in value) || value["isDefault"] === undefined) return false;
+  if (!("paymentGating" in value) || value["paymentGating"] === undefined)
+    return false;
   if (!("providerType" in value) || value["providerType"] === undefined)
     return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
@@ -170,14 +231,24 @@ export function CompanyBillingProfileResponseDataFromJSONTyped(
     collectionMethod: BillingCollectionMethodFromJSON(
       json["collection_method"],
     ),
+    collector:
+      json["collector"] == null
+        ? undefined
+        : CollectorFromJSON(json["collector"]),
     companyId: json["company_id"],
     createdAt: new Date(json["created_at"]),
+    currency:
+      json["currency"] == null ? undefined : CurrencyFromJSON(json["currency"]),
     daysUntilDue:
       json["days_until_due"] == null ? undefined : json["days_until_due"],
     environmentId: json["environment_id"],
+    gatingDays: json["gating_days"],
     id: json["id"],
     isDefault: json["is_default"],
     name: json["name"] == null ? undefined : json["name"],
+    overdraftLimit:
+      json["overdraft_limit"] == null ? undefined : json["overdraft_limit"],
+    paymentGating: PaymentGatingFromJSON(json["payment_gating"]),
     paymentMethodId:
       json["payment_method_id"] == null ? undefined : json["payment_method_id"],
     prorationBehavior:
@@ -185,6 +256,8 @@ export function CompanyBillingProfileResponseDataFromJSONTyped(
         ? undefined
         : ProrationBehaviorFromJSON(json["proration_behavior"]),
     providerType: BillingProviderTypeFromJSON(json["provider_type"]),
+    purchaseOrder:
+      json["purchase_order"] == null ? undefined : json["purchase_order"],
     updatedAt: new Date(json["updated_at"]),
   };
 }
@@ -207,16 +280,22 @@ export function CompanyBillingProfileResponseDataToJSONTyped(
     account_id: value["accountId"],
     billing_customer_id: value["billingCustomerId"],
     collection_method: BillingCollectionMethodToJSON(value["collectionMethod"]),
+    collector: CollectorToJSON(value["collector"]),
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
+    currency: CurrencyToJSON(value["currency"]),
     days_until_due: value["daysUntilDue"],
     environment_id: value["environmentId"],
+    gating_days: value["gatingDays"],
     id: value["id"],
     is_default: value["isDefault"],
     name: value["name"],
+    overdraft_limit: value["overdraftLimit"],
+    payment_gating: PaymentGatingToJSON(value["paymentGating"]),
     payment_method_id: value["paymentMethodId"],
     proration_behavior: ProrationBehaviorToJSON(value["prorationBehavior"]),
     provider_type: BillingProviderTypeToJSON(value["providerType"]),
+    purchase_order: value["purchaseOrder"],
     updated_at: value["updatedAt"].toISOString(),
   };
 }

@@ -80,6 +80,7 @@ models/CheckoutSelectionsResponseData.ts
 models/CheckoutStatus.ts
 models/CheckoutTaxIDView.ts
 models/CheckoutUnsubscribeResponse.ts
+models/Collector.ts
 models/CompanyBillingProfileResponseData.ts
 models/CompanyCatalogResponseData.ts
 models/CompanyContextCustomPlanBillingResponseData.ts
@@ -212,6 +213,7 @@ models/ListInvoicesResponse.ts
 models/MetricPeriod.ts
 models/MetricPeriodMonthReset.ts
 models/MigrationProrationBehavior.ts
+models/PaymentGating.ts
 models/PaymentMethodResponseData.ts
 models/PendingMigrationResponseData.ts
 models/PlanBillingSource.ts
