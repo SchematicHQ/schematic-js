@@ -28,6 +28,7 @@ const rulesCss = `
   color: var(--schematic-text);
   font-family: var(--schematic-font-body);
   line-height: var(--schematic-line-height);
+  text-wrap: balance;
 }
 
 :where([class^="schematic-"]) *,
