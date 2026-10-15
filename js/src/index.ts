@@ -735,7 +735,9 @@ export class Schematic {
             current === undefined ||
             current.remaining !== next.remaining ||
             current.reserved !== next.reserved ||
-            current.settled !== next.settled
+            current.settled !== next.settled ||
+            current.postpaid !== next.postpaid ||
+            current.overdraftLimit !== next.overdraftLimit
           ) {
             merged[creditId] = next;
             changed = true;
@@ -1407,11 +1409,17 @@ export class Schematic {
       ) {
         continue;
       }
-      revived[creditId] = {
+      // Entries persisted before postpaid existed carry no key for it.
+      const balance: CreditBalance = {
         remaining: obj.remaining,
         reserved: obj.reserved,
         settled: obj.settled,
+        postpaid: obj.postpaid === true,
       };
+      if (typeof obj.overdraftLimit === "number") {
+        balance.overdraftLimit = obj.overdraftLimit;
+      }
+      revived[creditId] = balance;
     }
     return Object.keys(revived).length > 0 ? revived : null;
   };

@@ -85,6 +85,8 @@ export type CheckFlagReturn = {
   featureUsageExceeded?: boolean;
   /** If company keys were provided and matched a company, its ID */
   companyId?: string;
+  /** If the company has a credit-based entitlement for this feature, the credit cost per unit of usage */
+  consumptionRate?: number;
   /** If the company has a credit-based entitlement for this feature, the ID of the credit */
   creditId?: string;
   /** If the company has a credit-based entitlement for this feature, the credit available to fund new consumption excluding any open lease hold (the value lease-holding SDKs gate on) */
@@ -107,8 +109,12 @@ export type CheckFlagReturn = {
   featureUsageResetAt?: Date;
   /** The key used to check the flag */
   flag: string;
+  /** For event-based or credit-metered feature entitlements, the event subtype whose usage is tracked */
+  eventSubtype?: string;
   /** If a flag was found, its ID */
   flagId?: string;
+  /** If the company has a credit-based entitlement for this feature, the credit cost per unit of each quantity an event carries, keyed by quantity key (per token for inference features). Absent when the entitlement prices requests only */
+  quantityRates?: Record<string, number>;
   /** A human-readable explanation of the result */
   reason: string;
   /** If a rule was found, its ID */
@@ -140,6 +146,10 @@ export type CreditBalance = {
   remaining: number;
   /** Amount held by the company's open credit lease, 0 when none is open */
   reserved: number;
+  /** Whether consumption may continue past a zero balance. When true and overdraftLimit is absent, the balance has no floor */
+  postpaid: boolean;
+  /** For a postpaid credit, how far below zero the balance may run. Absent when the credit is not postpaid or postpaid has no limit */
+  overdraftLimit?: number;
 };
 
 /** A company's lease-aware credit balances keyed by credit ID */
@@ -331,6 +341,10 @@ export const CheckFlagReturnFromJSON = (
   return {
     featureUsageExceeded,
     companyId: companyId == null ? undefined : companyId,
+    consumptionRate:
+      entitlement?.consumptionRate == null
+        ? undefined
+        : entitlement.consumptionRate,
     creditId: entitlement?.creditId == null ? undefined : entitlement.creditId,
     creditRemaining:
       entitlement?.creditRemaining == null
@@ -345,6 +359,8 @@ export const CheckFlagReturnFromJSON = (
         ? undefined
         : entitlement.creditSettled,
     error: error == null ? undefined : error,
+    eventSubtype:
+      entitlement?.eventSubtype == null ? undefined : entitlement.eventSubtype,
     featureAllocation:
       resolvedAllocation == null ? undefined : resolvedAllocation,
     featureUsage: resolvedUsage == null ? undefined : resolvedUsage,
@@ -355,6 +371,10 @@ export const CheckFlagReturnFromJSON = (
       resolvedResetAt == null ? undefined : resolvedResetAt,
     flag,
     flagId: flagId == null ? undefined : flagId,
+    quantityRates:
+      entitlement?.quantityRates == null
+        ? undefined
+        : entitlement.quantityRates,
     reason,
     ruleId: ruleId == null ? undefined : ruleId,
     ruleType: ruleType == null ? undefined : (ruleType as RuleType),
@@ -394,7 +414,8 @@ export const CreditBalancesFromJSON = (
   const balances: CreditBalances = {};
   for (const [creditId, raw] of Object.entries(json)) {
     if (raw == null || typeof raw !== "object") continue;
-    const { remaining, reserved, settled } = CompanyCreditBalanceFromJSON(raw);
+    const { overdraftLimit, postpaid, remaining, reserved, settled } =
+      CompanyCreditBalanceFromJSON(raw);
     // Tolerant reader: the stream is expected to send all three for a credit,
     // but skip any entry that's missing/non-numeric rather than zero-filling. A
     // fabricated 0 would read as a real (and wrong) balance — a false
@@ -409,7 +430,16 @@ export const CreditBalancesFromJSON = (
     ) {
       continue;
     }
-    balances[creditId] = { remaining, reserved, settled };
+    const balance: CreditBalance = {
+      remaining,
+      reserved,
+      settled,
+      postpaid: postpaid === true,
+    };
+    if (typeof overdraftLimit === "number") {
+      balance.overdraftLimit = overdraftLimit;
+    }
+    balances[creditId] = balance;
   }
 
   return balances;

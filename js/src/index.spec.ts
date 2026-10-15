@@ -3272,6 +3272,45 @@ describe("CheckFlagReturnFromJSON", () => {
     expect(result.creditReserved).toBeUndefined();
     expect(result.creditSettled).toBeUndefined();
   });
+
+  it("should surface consumption rate, quantity rates and event subtype from entitlement", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      entitlement: {
+        feature_id: "feat-1",
+        feature_key: "test-flag",
+        value_type: "credit",
+        consumption_rate: 0.5,
+        event_subtype: "chat",
+        quantity_rates: { input_tokens: 0.001 },
+      },
+    });
+
+    expect(result.consumptionRate).toBe(0.5);
+    expect(result.eventSubtype).toBe("chat");
+    expect(result.quantityRates).toEqual({ input_tokens: 0.001 });
+  });
+
+  it("should return undefined for rate fields when entitlement has null values", () => {
+    const result = CheckFlagReturnFromJSON({
+      flag: "test-flag",
+      value: true,
+      reason: "match",
+      entitlement: {
+        feature_id: "feat-1",
+        feature_key: "test-flag",
+        value_type: "boolean",
+        consumption_rate: null,
+        event_subtype: null,
+      },
+    });
+
+    expect(result.consumptionRate).toBeUndefined();
+    expect(result.eventSubtype).toBeUndefined();
+    expect(result.quantityRates).toBeUndefined();
+  });
 });
 
 describe("CreditBalancesFromJSON", () => {
@@ -3282,8 +3321,18 @@ describe("CreditBalancesFromJSON", () => {
     });
 
     expect(result).toEqual({
-      "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
-      "credit-xyz": { remaining: 100, reserved: 0, settled: 100 },
+      "credit-abc": {
+        remaining: 0,
+        reserved: 3442,
+        settled: 3442,
+        postpaid: false,
+      },
+      "credit-xyz": {
+        remaining: 100,
+        reserved: 0,
+        settled: 100,
+        postpaid: false,
+      },
     });
   });
 
@@ -3303,7 +3352,31 @@ describe("CreditBalancesFromJSON", () => {
       remaining: 100,
       reserved: 0,
       settled: 100,
+      postpaid: false,
     });
+  });
+
+  it("should carry postpaid and overdraft limit", () => {
+    const result = CreditBalancesFromJSON({
+      "credit-capped": {
+        remaining: -5,
+        reserved: 0,
+        settled: -5,
+        postpaid: true,
+        overdraft_limit: 100,
+      },
+      "credit-open": { remaining: 0, reserved: 0, settled: 0, postpaid: true },
+    });
+
+    expect(result["credit-capped"]).toEqual({
+      remaining: -5,
+      reserved: 0,
+      settled: -5,
+      postpaid: true,
+      overdraftLimit: 100,
+    });
+    expect(result["credit-open"].postpaid).toBe(true);
+    expect(result["credit-open"].overdraftLimit).toBeUndefined();
   });
 
   it("should return an empty map for null/undefined input", () => {
@@ -3356,11 +3429,21 @@ describe("Credit balances over WebSocket", () => {
     await schematic.checkFlag({ key: "credits-feature", context });
 
     const balance = schematic.getCreditBalance("credit-abc");
-    expect(balance).toEqual({ remaining: 0, reserved: 3442, settled: 3442 });
+    expect(balance).toEqual({
+      remaining: 0,
+      reserved: 3442,
+      settled: 3442,
+      postpaid: false,
+    });
     expect(balance?.settled).toBe(3442);
 
     expect(schematic.getCreditBalances()).toEqual({
-      "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
+      "credit-abc": {
+        remaining: 0,
+        reserved: 3442,
+        settled: 3442,
+        postpaid: false,
+      },
     });
 
     await schematic.cleanup();
@@ -3681,7 +3764,12 @@ describe("Credit balances over WebSocket", () => {
 
     await schematic.checkFlag({ key: "credits-feature", context });
     expect(listener).toHaveBeenCalledWith({
-      "credit-abc": { remaining: 3442, reserved: 0, settled: 3442 },
+      "credit-abc": {
+        remaining: 3442,
+        reserved: 0,
+        settled: 3442,
+        postpaid: false,
+      },
     });
 
     // Simulate a credit_reserved partial arriving mid-lease
@@ -3691,7 +3779,12 @@ describe("Credit balances over WebSocket", () => {
     expect(schematic.getCreditBalance("credit-abc")?.settled).toBe(3442);
     expect(schematic.getCreditBalance("credit-abc")?.reserved).toBe(3442);
     expect(listener).toHaveBeenLastCalledWith({
-      "credit-abc": { remaining: 0, reserved: 3442, settled: 3442 },
+      "credit-abc": {
+        remaining: 0,
+        reserved: 3442,
+        settled: 3442,
+        postpaid: false,
+      },
     });
 
     await schematic.cleanup();
@@ -3734,8 +3827,18 @@ describe("Credit balances over WebSocket", () => {
 
     // The partial only touched credit-abc; credit-xyz must be retained.
     expect(schematic.getCreditBalances()).toEqual({
-      "credit-abc": { remaining: 0, reserved: 100, settled: 100 },
-      "credit-xyz": { remaining: 50, reserved: 0, settled: 50 },
+      "credit-abc": {
+        remaining: 0,
+        reserved: 100,
+        settled: 100,
+        postpaid: false,
+      },
+      "credit-xyz": {
+        remaining: 50,
+        reserved: 0,
+        settled: 50,
+        postpaid: false,
+      },
     });
 
     await schematic.cleanup();
@@ -3835,6 +3938,7 @@ describe("Credit balances over WebSocket", () => {
       remaining: 25,
       reserved: 25,
       settled: 50,
+      postpaid: false,
     });
 
     await schematic.cleanup();
@@ -3910,6 +4014,7 @@ describe("Persistent flag state cache", () => {
         remaining: 0,
         reserved: 3442,
         settled: 3442,
+        postpaid: false,
       });
     });
 
