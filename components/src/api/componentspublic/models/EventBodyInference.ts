@@ -62,6 +62,12 @@ export interface EventBodyInference {
    */
   inputTokens: number;
   /**
+   * Credit lease ID this inference event's credit burn is redeeming against
+   * @type {string}
+   * @memberof EventBodyInference
+   */
+  leaseId?: string;
+  /**
    * The inference operation; defaults to 'chat'
    * @type {string}
    * @memberof EventBodyInference
@@ -97,6 +103,12 @@ export interface EventBodyInference {
    * @memberof EventBodyInference
    */
   requests?: number;
+  /**
+   * Credit reservation ID this inference event's credit burn settles. lease_id takes precedence when both are set
+   * @type {string}
+   * @memberof EventBodyInference
+   */
+  reservationId?: string;
   /**
    * The model that served the inference response
    * @type {string}
@@ -153,6 +165,7 @@ export function EventBodyInferenceFromJSONTyped(
     currency: json["currency"] == null ? undefined : json["currency"],
     event: json["event"] == null ? undefined : json["event"],
     inputTokens: json["input_tokens"],
+    leaseId: json["lease_id"] == null ? undefined : json["lease_id"],
     operation: json["operation"] == null ? undefined : json["operation"],
     outputTokens: json["output_tokens"],
     provider: json["provider"],
@@ -161,6 +174,8 @@ export function EventBodyInferenceFromJSONTyped(
     requestModel:
       json["request_model"] == null ? undefined : json["request_model"],
     requests: json["requests"] == null ? undefined : json["requests"],
+    reservationId:
+      json["reservation_id"] == null ? undefined : json["reservation_id"],
     responseModel: json["response_model"],
     user: json["user"] == null ? undefined : json["user"],
   };
@@ -186,12 +201,14 @@ export function EventBodyInferenceToJSONTyped(
     currency: value["currency"],
     event: value["event"],
     input_tokens: value["inputTokens"],
+    lease_id: value["leaseId"],
     operation: value["operation"],
     output_tokens: value["outputTokens"],
     provider: value["provider"],
     reasoning_tokens: value["reasoningTokens"],
     request_model: value["requestModel"],
     requests: value["requests"],
+    reservation_id: value["reservationId"],
     response_model: value["responseModel"],
     user: value["user"],
   };
