@@ -33,6 +33,7 @@ import {
   FlagValueListenerFn,
   PendingListenerFn,
   PlanListenerFn,
+  PreflightInput,
   SchematicContext,
   SchematicOptions,
   StoragePersister,
@@ -43,6 +44,8 @@ import {
   ContextSignatureManager,
   contextSignatureHeader,
 } from "./contextSignature";
+import { evaluatePreflight } from "./preflight";
+import { PreflightRequestBodyToJSON } from "./types/api/models/PreflightRequestBody";
 import { contextString } from "./utils";
 import { version } from "./version";
 
@@ -124,6 +127,10 @@ export class Schematic {
   private contextSignatureManager?: ContextSignatureManager;
   private _apiUrl = "https://api.schematichq.com";
   private conn: Promise<WebSocket> | null = null;
+  // The context the current socket has delivered a message for. The server
+  // streams one context per socket, so at most one context is live. Checks,
+  // balances and policies revived from storage stay unproven until then.
+  private _wsLiveContext: string | null = null;
   private context: SchematicContext = {};
   private debugEnabled: boolean = false;
   private offlineEnabled: boolean = false;
@@ -446,7 +453,7 @@ export class Schematic {
    * In REST mode, makes an API call for each check.
    */
   async checkFlag(options: CheckOptions): Promise<boolean> {
-    const { fallback, key } = options;
+    const { fallback, key, preflight } = options;
     const context = options.context || this.context;
     const contextStr = contextString(context);
 
@@ -469,31 +476,17 @@ export class Schematic {
     }
 
     if (!this.useWebSocket) {
-      const requestUrl = `${this._apiUrl}/flags/${key}/check`;
-      const sigHeaders = await this.contextSignatureHeaders(context);
-      return fetch(requestUrl, {
-        method: "POST",
-        headers: {
-          ...(this._additionalHeaders ?? {}),
-          "Content-Type": "application/json;charset=UTF-8",
-          "X-Schematic-Api-Key": this.apiKey,
-          ...sigHeaders,
-        },
-        body: JSON.stringify(context),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((response) => {
-          const parsedResponse = CheckFlagResponseFromJSON(response);
-          this.debug(`checkFlag result: ${key}`, parsedResponse);
+      if (preflight !== undefined) {
+        return this.checkFlagPreflightOverHttp(
+          key,
+          context,
+          preflight,
+          fallback,
+        );
+      }
 
-          // Create a flag check result object
-          const result = CheckFlagReturnFromJSON(parsedResponse.data);
-
+      return this.fetchFlagCheck(key, context)
+        .then((result) => {
           // Store in feature usage event map if appropriate
           if (typeof result.featureUsageEvent === "string") {
             this.updateFeatureUsageEventMap(result);
@@ -518,6 +511,34 @@ export class Schematic {
 
           return errorResult.value;
         });
+    }
+
+    if (preflight !== undefined) {
+      let local: boolean | undefined;
+      if (this.conn !== null && this._wsLiveContext === contextStr) {
+        try {
+          local = evaluatePreflight(
+            this.checks[contextStr]?.[key],
+            this.creditBalances[contextStr],
+            this.creditSpendPolicies[contextStr],
+            preflight,
+          );
+        } catch (error) {
+          this.debug(`checkFlag preflight local evaluation failed: ${key}`, {
+            preflight,
+            error,
+          });
+        }
+      }
+      if (local !== undefined) {
+        this.debug(`checkFlag preflight local result: ${key}`, {
+          preflight,
+          value: local,
+        });
+        return local;
+      }
+
+      return this.checkFlagPreflightOverHttp(key, context, preflight, fallback);
     }
 
     try {
@@ -599,6 +620,60 @@ export class Schematic {
   }
 
   /**
+   * POST a single flag check, optionally with a preflight body, and parse the
+   * result. Throws on a network error or non-2xx response.
+   */
+  private async fetchFlagCheck(
+    key: string,
+    context: SchematicContext,
+    preflight?: PreflightInput,
+  ): Promise<CheckFlagReturn> {
+    const requestUrl = `${this._apiUrl}/flags/${key}/check`;
+    const sigHeaders = await this.contextSignatureHeaders(context);
+    const body =
+      preflight === undefined
+        ? context
+        : { ...context, preflight: PreflightRequestBodyToJSON(preflight) };
+    const response = await fetch(requestUrl, {
+      method: "POST",
+      headers: {
+        ...(this._additionalHeaders ?? {}),
+        "Content-Type": "application/json;charset=UTF-8",
+        "X-Schematic-Api-Key": this.apiKey,
+        ...sigHeaders,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    const parsedResponse = CheckFlagResponseFromJSON(await response.json());
+    this.debug(`checkFlag result: ${key}`, parsedResponse);
+
+    return CheckFlagReturnFromJSON(parsedResponse.data);
+  }
+
+  /**
+   * A preflight answers a hypothetical, so its result is kept out of the flag
+   * cache, persisted state, the feature usage event map, listeners and flag
+   * check events: only the returned value reflects the simulated action.
+   */
+  private checkFlagPreflightOverHttp(
+    key: string,
+    context: SchematicContext,
+    preflight: PreflightInput,
+    fallback: boolean | undefined,
+  ): Promise<boolean> {
+    return this.fetchFlagCheck(key, context, preflight)
+      .then((result) => result.value)
+      .catch((error) => {
+        console.warn("There was a problem with the preflight check:", error);
+        return this.resolveFallbackValue(key, fallback);
+      });
+  }
+
+  /**
    * Helper function to log debug messages
    * Only logs if debug mode is enabled
    */
@@ -663,6 +738,16 @@ export class Schematic {
         this.checks[contextString(context)] = {};
       }
 
+      // Only a flags message for the client's current context proves the
+      // socket is streaming it. An error frame proves nothing, and a listener
+      // left over from an earlier context must not mark that context live.
+      const becomesLive =
+        (message.error === undefined || message.error === null) &&
+        message.flags !== undefined &&
+        message.flags !== null &&
+        contextString(context) === contextString(this.context) &&
+        this._wsLiveContext !== contextString(context);
+
       // Message may contain only a subset of flags; merge with existing context
       /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
       (message.flags ?? []).forEach((flag: any) => {
@@ -711,10 +796,49 @@ export class Schematic {
         this.notifyPlanListeners(plan);
       }
 
-      // Lease-aware credit balances arrive keyed by credit ID. A message may
-      // carry only a subset of credit types (e.g. a debounced credit_reserved
-      // partial), so merge per-credit rather than replacing the whole map.
-      if (
+      // Lease-aware credit balances arrive keyed by credit ID. The first
+      // message for a context on this socket carries the whole set, and the
+      // server omits credit_balances when there are none, so replace rather
+      // than merge: a balance revived from storage must not outlive it.
+      if (becomesLive) {
+        const contextStr = contextString(context);
+        const next =
+          message.credit_balances !== undefined &&
+          message.credit_balances !== null
+            ? CreditBalancesFromJSON(message.credit_balances)
+            : {};
+        const previous = this.creditBalances[contextStr];
+
+        let changed =
+          previous === undefined ||
+          Object.keys(previous).length !== Object.keys(next).length;
+        for (const [creditId, balance] of Object.entries(next)) {
+          const current = previous?.[creditId];
+          if (
+            current === undefined ||
+            current.remaining !== balance.remaining ||
+            current.reserved !== balance.reserved ||
+            current.settled !== balance.settled ||
+            current.postpaid !== balance.postpaid ||
+            current.overdraftLimit !== balance.overdraftLimit
+          ) {
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          this.creditBalances[contextStr] = next;
+
+          this.debug(
+            `WebSocket credit balance update received. Notifying listeners`,
+            { creditBalances: next },
+          );
+
+          this.notifyCreditBalanceListeners(next);
+        }
+      } else if (
+        // Later messages may carry only a subset of credit types (e.g. a
+        // debounced credit_reserved partial), so merge per-credit.
         message.credit_balances !== undefined &&
         message.credit_balances !== null
       ) {
@@ -735,7 +859,9 @@ export class Schematic {
             current === undefined ||
             current.remaining !== next.remaining ||
             current.reserved !== next.reserved ||
-            current.settled !== next.settled
+            current.settled !== next.settled ||
+            current.postpaid !== next.postpaid ||
+            current.overdraftLimit !== next.overdraftLimit
           ) {
             merged[creditId] = next;
             changed = true;
@@ -775,6 +901,10 @@ export class Schematic {
 
           this.notifyCreditSpendPolicyListeners(next);
         }
+      }
+
+      if (becomesLive) {
+        this._wsLiveContext = contextString(context);
       }
 
       // Persist updated flag state for this context so the next page load
@@ -1407,11 +1537,20 @@ export class Schematic {
       ) {
         continue;
       }
-      revived[creditId] = {
+      const balance: CreditBalance = {
         remaining: obj.remaining,
         reserved: obj.reserved,
         settled: obj.settled,
       };
+      // Entries persisted before postpaid existed carry no key for it, which
+      // leaves it unknown rather than false.
+      if (typeof obj.postpaid === "boolean") {
+        balance.postpaid = obj.postpaid;
+      }
+      if (typeof obj.overdraftLimit === "number") {
+        balance.overdraftLimit = obj.overdraftLimit;
+      }
+      revived[creditId] = balance;
     }
     return Object.keys(revived).length > 0 ? revived : null;
   };
@@ -1826,6 +1965,7 @@ export class Schematic {
         this.debug(`${methodName}: error closing existing connection:`, error);
       }
       this.conn = null;
+      this._wsLiveContext = null;
       this.isConnecting = false;
     }
 
@@ -1894,6 +2034,7 @@ export class Schematic {
         console.warn("Error during cleanup:", error);
       } finally {
         this.conn = null;
+        this._wsLiveContext = null;
         this.currentWebSocket = null;
         this.isConnecting = false;
       }
@@ -1953,6 +2094,7 @@ export class Schematic {
         this.debug("Error closing connection on offline:", error);
       }
       this.conn = null;
+      this._wsLiveContext = null;
     }
 
     // Clear any pending reconnection timers
@@ -2050,6 +2192,7 @@ export class Schematic {
             this.debug(`Error cleaning up existing connection:`, error);
           }
           this.conn = null;
+          this._wsLiveContext = null;
           this.currentWebSocket = null;
           this.isConnecting = false;
         }
@@ -2171,6 +2314,7 @@ export class Schematic {
       this.debug(`connecting to WebSocket:`, wsUrl);
 
       const webSocket = new WebSocket(wsUrl);
+      this._wsLiveContext = null;
       const connectionId = Math.random().toString(36).substring(7);
       this.debug(`Creating WebSocket connection ${connectionId} to ${wsUrl}`);
 
@@ -2229,6 +2373,7 @@ export class Schematic {
 
         this.debug(`WebSocket connection ${connectionId} closed`);
         this.conn = null;
+        this._wsLiveContext = null;
 
         // Clean up tracking references when this specific socket closes
         const wasCurrent = this.currentWebSocket === webSocket;
@@ -2343,6 +2488,8 @@ export class Schematic {
 
         this.debug(`WebSocket sending message:`, messagePayload);
 
+        // The socket stops streaming the previous context once this lands.
+        this._wsLiveContext = null;
         socket.send(JSON.stringify(messagePayload));
       };
 
