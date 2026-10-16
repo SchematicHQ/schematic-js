@@ -9,7 +9,6 @@ export const cardGroupCss = `
   overflow: clip;
 }
 
-/* The group draws the one card; the clip rounds whatever meets its edge. */
 .schematic-card-group .schematic-card,
 .schematic-card-group .schematic-element[data-state="pending"],
 .schematic-card-group .schematic-element[data-state="error"],
@@ -30,8 +29,6 @@ export const cardGroupCss = `
   border-top: 1px solid var(--schematic-card-divider);
 }
 
-/* A header above an element's cards, rather than in one, takes the card's
-   padding it would otherwise borrow from the page. */
 .schematic-card-group .schematic-element:not(.schematic-card) > .schematic-header {
   margin: 0;
   padding: calc(var(--schematic-card-padding) * 0.75)
