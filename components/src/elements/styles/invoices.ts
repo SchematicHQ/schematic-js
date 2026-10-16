@@ -37,7 +37,6 @@ export const invoicesCss = `
 .schematic-invoices__amount {
   cursor: help;
   font-variant-numeric: tabular-nums;
-  /* Keeps a lone amount at the end when the date is hidden. */
   margin-inline-start: auto;
   text-align: end;
 }
@@ -55,7 +54,6 @@ export const invoicesCss = `
   gap: calc(var(--schematic-space) / 2);
 }
 
-/* Cancels the glyph's side bearing, so the chevron sits flush. */
 .schematic-invoices__chevron {
   margin-inline-start: -0.333rem;
 }

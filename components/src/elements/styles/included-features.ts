@@ -12,15 +12,12 @@ export const includedFeaturesCss = `
   padding: 0;
 }
 
-/* Icon, name and details; the usage drops beneath on a narrow card. */
 .schematic-included-features__row {
   column-gap: 0.5rem;
   display: grid;
   grid-template-columns: min-content 1fr;
 }
 
-/* Two classes: the icon font's own rule comes later in the sheet and sets
-   display, which would leave the glyph in the circle's corner. */
 .schematic-included-features .schematic-included-features__icon {
   align-items: center;
   background: var(--schematic-surface);
@@ -42,7 +39,6 @@ export const includedFeaturesCss = `
   grid-column: 2;
 }
 
-/* An item name, as add-ons and plan lines elsewhere. */
 .schematic-included-features__name {
   font-family: var(--schematic-font-heading);
   font-size: 1.125rem;
@@ -65,10 +61,8 @@ export const includedFeaturesCss = `
 }
 
 @container (min-width: 23.4375rem) {
-  /* The usage takes the room it needs and wraps only when the name leaves
-     it none. */
   .schematic-included-features__row {
-    grid-template-columns: min-content 1fr auto;
+    grid-template-columns: min-content 1fr 1fr;
   }
 
   .schematic-included-features__usage {

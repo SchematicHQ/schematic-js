@@ -28,6 +28,7 @@ const rulesCss = `
   color: var(--schematic-text);
   font-family: var(--schematic-font-body);
   line-height: var(--schematic-line-height);
+  text-wrap: balance;
 }
 
 :where([class^="schematic-"]) *,
@@ -40,7 +41,6 @@ const rulesCss = `
   margin: 0;
 }
 
-/* Unit suffixes ("/mo", "/seat") sit on the baseline, as in the embed. */
 :where([class^="schematic-"]) sub,
 :where([class^="schematic-"]) sup {
   line-height: 1;
@@ -78,13 +78,11 @@ const rulesCss = `
   gap: var(--schematic-space);
 }
 
-/* The message may run long; the action beside it stays one line. */
 .schematic-status__retry {
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-/* Visually hidden, still read by assistive technology. */
 .schematic-hidden {
   border: 0;
   clip-path: inset(50%);
@@ -213,7 +211,6 @@ const rulesCss = `
   border-color: var(--schematic-primary);
 }
 
-/* The embed's small button: 15px type, 40px tall. */
 .schematic-cta--small {
   border-radius: 0.375rem;
   font-size: 0.9375rem;
@@ -221,7 +218,6 @@ const rulesCss = `
   padding: 0.4375rem 1.25rem;
 }
 
-/* The embed's ghost button, for secondary actions such as Try again. */
 .schematic-cta--ghost {
   background: transparent;
   border-color: color-mix(in srgb, var(--schematic-text) 20%, transparent);
@@ -249,19 +245,15 @@ const rulesCss = `
   text-decoration: underline;
 }
 
-/* Every toggle's chevron: the 24px glyph, muted. */
 .schematic-chevron {
   color: var(--schematic-muted);
   font-size: 1.5rem;
 }
 
-/* A toggle underlines its label alone: a flex container hands its underline
-   to every item, the chevron included, and an item cannot take it off. */
 .schematic-link-button:has(.schematic-link-button__label):hover {
   text-decoration: none;
 }
 
-/* The reset colours every schematic- element; the label keeps the link's. */
 .schematic-link-button__label {
   color: inherit;
 }
@@ -362,7 +354,6 @@ const rulesCss = `
   margin: 0;
 }
 
-/* A label on the left, its value on the right. */
 .schematic-row {
   align-items: flex-start;
   display: flex;

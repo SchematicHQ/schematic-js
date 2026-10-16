@@ -388,7 +388,7 @@ function PriceDetails({
   if (details.kind === "overage") {
     return (
       <div className="schematic-metered-features__price-details">
-        <span>
+        <span className="schematic-metered-features__price-label">
           {t("meteredFeaturesAdditional")}: {details.unitPrice}
           <sub>
             /{details.packageSize !== null && `${details.packageSize} `}
@@ -396,7 +396,7 @@ function PriceDetails({
             {period !== undefined && `/${period}`}
           </sub>
         </span>
-        <span>
+        <span className="schematic-metered-features__price-cost">
           {details.overage.amount} {details.overage.units}
           {" · "}
           {details.overage.cost}
@@ -407,7 +407,7 @@ function PriceDetails({
   }
   return (
     <div className="schematic-metered-features__price-details">
-      <span>
+      <span className="schematic-metered-features__price-label">
         {t("meteredFeaturesTier")}: {details.from}
         {details.to === null
           ? "+"
@@ -427,7 +427,7 @@ function PriceDetails({
         </Tooltip>
       </span>
       {details.cost !== null && (
-        <span>
+        <span className="schematic-metered-features__price-cost">
           {details.cost}
           {period !== undefined && <sub>/{period}</sub>}
         </span>

@@ -51,7 +51,7 @@ export const upcomingBillCss = `
 }
 
 .schematic-upcoming-bill__discount {
-  align-items: center;
+  align-items: start;
   display: inline-flex;
   gap: calc(var(--schematic-space) / 2);
 }

@@ -6,7 +6,6 @@
  * silently override the host's theme. A fallback never enters the cascade.
  */
 
-/** A host that sets `color-scheme: dark` gets the dark value with no config. */
 const ld = (light: string, dark: string): string =>
   `light-dark(${light}, ${dark})`;
 
@@ -18,7 +17,6 @@ const ld = (light: string, dark: string): string =>
 export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-accent": ld("#194bfb", "#6f92ff"),
   "--schematic-accent-contrast": ld("#ffffff", "#0a0a0a"),
-  // Tints the dialog's backdrop, which also blurs the page behind it.
   "--schematic-backdrop": ld(
     "hsla(0, 0%, 87.5%, 0.9)",
     "hsla(0, 0%, 12.5%, 0.9)",
@@ -32,16 +30,11 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
     "hsla(0, 0%, 0%, 0.175)",
     "hsla(0, 0%, 100%, 0.2)",
   ),
-  // 45px from a 750px viewport up; narrower screens give the content the
-  // room instead (about 22px on a 375px phone).
   "--schematic-card-padding": "min(2.8125rem, 6vw)",
   "--schematic-danger": ld("#d75a5c", "#ff6b6e"),
   "--schematic-font-body": '"Public Sans", system-ui, sans-serif',
   "--schematic-font-heading": '"Manrope", system-ui, sans-serif',
-  // Link buttons' face: Edit, Set default, Try again, and the rest.
   "--schematic-font-link": '"Inter", system-ui, sans-serif',
-  // A lighter tint than the surface, for panels set into a card: a credit's
-  // grants, a plan's auto top-up.
   "--schematic-inset": ld("hsla(0, 0%, 0%, 0.04)", "hsla(0, 0%, 100%, 0.06)"),
   "--schematic-line-height": "1.375",
   "--schematic-line-height-heading": "1.2",
@@ -50,10 +43,8 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-primary": ld("#000000", "#ffffff"),
   "--schematic-primary-contrast": ld("#ffffff", "#000000"),
   "--schematic-radius": "0.625rem",
-  // `light-dark()` takes colours only, so it is applied per shadow layer.
   "--schematic-shadow": `0px 1px 20px 0px ${ld("#1018280f", "#00000099")}, 0px 1px 3px 0px ${ld("#1018281a", "#0000007a")}`,
   "--schematic-space": "1rem",
-  // A tint over the background: the payment method pill.
   "--schematic-surface": ld(
     "hsla(0, 0%, 0%, 0.0625)",
     "hsla(0, 0%, 100%, 0.125)",

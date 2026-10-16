@@ -1,7 +1,3 @@
-/**
- * `Tooltip` and the pricing-tiers table it holds, shared by the usage
- * elements.
- */
 export const tooltipCss = `
 .schematic-tooltip {
   display: inline-block;
@@ -15,8 +11,6 @@ export const tooltipCss = `
   border: 0;
   color: var(--schematic-muted);
   cursor: help;
-  /* A button keeps the browser's control font; the glyph is the embed's
-     24px. */
   font-size: 1.5rem;
   line-height: 0;
   padding: 0;
