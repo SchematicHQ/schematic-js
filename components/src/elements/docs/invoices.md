@@ -98,7 +98,10 @@ The root's class list is the same in all three states — read `data-state` to
 tell them apart.
 
 ```html
-<div class="schematic-card schematic-invoices" data-state="ready">
+<div
+  class="schematic-element schematic-card schematic-invoices"
+  data-state="ready"
+>
   <div class="schematic-header">
     <h2 class="schematic-header__title">Invoices</h2>
   </div>
@@ -143,7 +146,7 @@ tell them apart.
 </div>
 
 <div
-  class="schematic-card schematic-invoices"
+  class="schematic-element schematic-card schematic-invoices"
   data-state="pending"
   aria-busy="true"
 >
@@ -163,7 +166,10 @@ tell them apart.
   </div>
 </div>
 
-<div class="schematic-card schematic-invoices" data-state="error">
+<div
+  class="schematic-element schematic-card schematic-invoices"
+  data-state="error"
+>
   <div class="schematic-status">
     <span class="schematic-error schematic-status__message">
       There was a problem retrieving your invoices.

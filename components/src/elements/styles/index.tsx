@@ -1,5 +1,6 @@
 import React from "react";
 
+import { cardGroupCss } from "./card-group";
 import { creditUsageCss } from "./credit-usage";
 import { dialogCss } from "./dialog";
 import { iconsCss } from "./icons";
@@ -564,6 +565,7 @@ ${meteredFeaturesCss}
 ${creditUsageCss}
 ${planManagerCss}
 ${unsubscribeCss}
+${cardGroupCss}
 `;
 
 /**

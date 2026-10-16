@@ -355,6 +355,29 @@ async function everyCard() {
     tree(<CreditUsage locale="en-US" />, {}, {
       creditBalances: { error: boom },
     } as never),
+    tree(
+      <div className="schematic-card-group">
+        <MeteredFeatures locale="en-US" showHeader />
+        <CreditUsage locale="en-US" />
+        <PlanManager locale="en-US" />
+      </div>,
+      {
+        ...SCENARIOS.featureUsage(),
+        ...SCENARIOS.credits(),
+        ...SCENARIOS.planManager(),
+      },
+    ),
+    tree(
+      <div className="schematic-card-group">
+        <CreditUsage locale="en-US" />
+        <UpcomingBill locale="en-US" />
+      </div>,
+      {},
+      {
+        creditBalances: { isPending: true },
+        upcomingInvoice: { error: boom },
+      } as never,
+    ),
     tree(<UpcomingBill locale="en-US" />, SCENARIOS.pro()),
     tree(<UpcomingBill locale="en-US" />, SCENARIOS.trialing()),
     tree(<UpcomingBill locale="en-US" />, SCENARIOS.unbilled()),

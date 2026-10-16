@@ -74,7 +74,9 @@ function renderPaymentMethods(
 describe("Invoices markup contract", () => {
   test("the loaded card", () => {
     const root = renderInvoices(SCENARIOS.pro());
-    expect(root.className).toBe("schematic-card schematic-invoices");
+    expect(root.className).toBe(
+      "schematic-element schematic-card schematic-invoices",
+    );
     expect(root).toHaveAttribute("data-state", "ready");
     expect(classNames(root)).toEqual([
       "schematic-chevron",
@@ -119,7 +121,9 @@ describe("Invoices markup contract", () => {
 
   test("the pending card keeps the card's own shape", () => {
     const root = renderInvoices({}, { invoices: { isPending: true } });
-    expect(root.className).toBe("schematic-card schematic-invoices");
+    expect(root.className).toBe(
+      "schematic-element schematic-card schematic-invoices",
+    );
     expect(root).toHaveAttribute("data-state", "pending");
     expect(root).toHaveAttribute("aria-busy", "true");
     // No live region; see StatusFrame.
@@ -168,7 +172,9 @@ describe("Invoices markup contract", () => {
 
   test("the failed card", () => {
     const root = renderInvoices({}, { invoices: { error: new Error("Boom") } });
-    expect(root.className).toBe("schematic-card schematic-invoices");
+    expect(root.className).toBe(
+      "schematic-element schematic-card schematic-invoices",
+    );
     expect(root).toHaveAttribute("data-state", "error");
     expect(classNames(root)).toEqual([
       "schematic-cta",
@@ -193,7 +199,9 @@ describe("Invoices markup contract", () => {
 describe("UpcomingBill markup contract", () => {
   test("the loaded card", () => {
     const root = renderUpcomingBill(SCENARIOS.pro());
-    expect(root.className).toBe("schematic-card schematic-upcoming-bill");
+    expect(root.className).toBe(
+      "schematic-element schematic-card schematic-upcoming-bill",
+    );
     expect(root).toHaveAttribute("data-state", "ready");
     expect(classNames(root)).toEqual([
       "schematic-chip",
@@ -243,7 +251,9 @@ describe("UpcomingBill markup contract", () => {
       {},
       { upcomingInvoice: { isPending: true } },
     );
-    expect(root.className).toBe("schematic-card schematic-upcoming-bill");
+    expect(root.className).toBe(
+      "schematic-element schematic-card schematic-upcoming-bill",
+    );
     expect(root).toHaveAttribute("data-state", "pending");
     expect(root).toHaveAttribute("aria-busy", "true");
     expect(root).not.toHaveAttribute("role");
@@ -267,7 +277,9 @@ describe("UpcomingBill markup contract", () => {
       {},
       { upcomingInvoice: { error: new Error("Boom") } },
     );
-    expect(root.className).toBe("schematic-card schematic-upcoming-bill");
+    expect(root.className).toBe(
+      "schematic-element schematic-card schematic-upcoming-bill",
+    );
     expect(root).toHaveAttribute("data-state", "error");
     expect(classNames(root)).toEqual([
       "schematic-cta",
@@ -301,7 +313,9 @@ describe("PaymentMethods markup contract", () => {
 
   test("the loaded card: the default method as a pill, with Edit", () => {
     const root = renderPaymentMethods(SCENARIOS.paymentMethods());
-    expect(root.className).toBe("schematic-card schematic-payment-methods");
+    expect(root.className).toBe(
+      "schematic-element schematic-card schematic-payment-methods",
+    );
     expect(root).toHaveAttribute("data-state", "ready");
     expect(classNames(root)).toEqual([
       "schematic-header",
@@ -458,7 +472,9 @@ describe("PaymentMethods markup contract", () => {
       {},
       { paymentMethods: { isPending: true } },
     );
-    expect(root.className).toBe("schematic-card schematic-payment-methods");
+    expect(root.className).toBe(
+      "schematic-element schematic-card schematic-payment-methods",
+    );
     expect(root).toHaveAttribute("data-state", "pending");
     expect(root).toHaveAttribute("aria-busy", "true");
     expect(root).not.toHaveAttribute("role");
@@ -482,7 +498,9 @@ describe("PaymentMethods markup contract", () => {
       {},
       { paymentMethods: { error: new Error("Boom") } },
     );
-    expect(root.className).toBe("schematic-card schematic-payment-methods");
+    expect(root.className).toBe(
+      "schematic-element schematic-card schematic-payment-methods",
+    );
     expect(root).toHaveAttribute("data-state", "error");
     expect(classNames(root)).toEqual([
       "schematic-cta",
