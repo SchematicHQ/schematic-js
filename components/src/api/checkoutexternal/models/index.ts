@@ -70,6 +70,7 @@ export * from "./CheckoutFieldValue";
 export * from "./CheckoutFieldWithValue";
 export * from "./CheckoutIntent";
 export * from "./CheckoutPriceSnapshot";
+export * from "./CheckoutPriceSnapshotDiscount";
 export * from "./CheckoutProblemCode";
 export * from "./CheckoutProblemResponseData";
 export * from "./CheckoutProblemSource";

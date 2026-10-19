@@ -72,6 +72,7 @@ models/CheckoutFieldValue.ts
 models/CheckoutFieldWithValue.ts
 models/CheckoutIntent.ts
 models/CheckoutPriceSnapshot.ts
+models/CheckoutPriceSnapshotDiscount.ts
 models/CheckoutProblemCode.ts
 models/CheckoutProblemResponseData.ts
 models/CheckoutProblemSource.ts

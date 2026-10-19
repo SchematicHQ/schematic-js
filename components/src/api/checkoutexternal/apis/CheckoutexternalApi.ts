@@ -143,6 +143,7 @@ import {
 
 export interface CheckoutRequest {
   changeSubscriptionRequestBody: ChangeSubscriptionRequestBody;
+  xCheckoutSessionID?: string;
 }
 
 export interface CreateCheckoutOperationRequest {
@@ -156,6 +157,7 @@ export interface DeletePaymentMethodRequest {
 export interface FinalizeCheckoutOperationRequest {
   checkoutId: string;
   finalizeCheckoutRequest: FinalizeCheckoutRequest;
+  xCheckoutSessionID?: string;
 }
 
 export interface GetCatalogViewByIDRequest {
@@ -270,6 +272,12 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     const headerParameters: runtime.HTTPHeaders = {};
 
     headerParameters["Content-Type"] = "application/json";
+
+    if (requestParameters["xCheckoutSessionID"] != null) {
+      headerParameters["X-Checkout-Session-ID"] = String(
+        requestParameters["xCheckoutSessionID"],
+      );
+    }
 
     if (this.configuration && this.configuration.apiKey) {
       headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
@@ -569,6 +577,12 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     const headerParameters: runtime.HTTPHeaders = {};
 
     headerParameters["Content-Type"] = "application/json";
+
+    if (requestParameters["xCheckoutSessionID"] != null) {
+      headerParameters["X-Checkout-Session-ID"] = String(
+        requestParameters["xCheckoutSessionID"],
+      );
+    }
 
     if (this.configuration && this.configuration.apiKey) {
       headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(

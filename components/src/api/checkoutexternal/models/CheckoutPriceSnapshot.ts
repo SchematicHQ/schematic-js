@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CheckoutPriceSnapshotDiscount } from "./CheckoutPriceSnapshotDiscount";
+import {
+  CheckoutPriceSnapshotDiscountFromJSON,
+  CheckoutPriceSnapshotDiscountFromJSONTyped,
+  CheckoutPriceSnapshotDiscountToJSON,
+  CheckoutPriceSnapshotDiscountToJSONTyped,
+} from "./CheckoutPriceSnapshotDiscount";
 import type { Currency } from "./Currency";
 import {
   CurrencyFromJSON,
@@ -39,6 +46,18 @@ export interface CheckoutPriceSnapshot {
    * @memberof CheckoutPriceSnapshot
    */
   currency: Currency;
+  /**
+   *
+   * @type {number}
+   * @memberof CheckoutPriceSnapshot
+   */
+  discountAmount: number;
+  /**
+   *
+   * @type {Array<CheckoutPriceSnapshotDiscount>}
+   * @memberof CheckoutPriceSnapshot
+   */
+  discounts: Array<CheckoutPriceSnapshotDiscount>;
   /**
    *
    * @type {number}
@@ -145,6 +164,9 @@ export function instanceOfCheckoutPriceSnapshot(
 ): value is CheckoutPriceSnapshot {
   if (!("amountOff" in value) || value["amountOff"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
+  if (!("discountAmount" in value) || value["discountAmount"] === undefined)
+    return false;
+  if (!("discounts" in value) || value["discounts"] === undefined) return false;
   if (!("dueNow" in value) || value["dueNow"] === undefined) return false;
   if (
     !("isScheduledDowngrade" in value) ||
@@ -192,6 +214,10 @@ export function CheckoutPriceSnapshotFromJSONTyped(
   return {
     amountOff: json["amount_off"],
     currency: CurrencyFromJSON(json["currency"]),
+    discountAmount: json["discount_amount"],
+    discounts: (json["discounts"] as Array<any>).map(
+      CheckoutPriceSnapshotDiscountFromJSON,
+    ),
     dueNow: json["due_now"],
     isScheduledDowngrade: json["is_scheduled_downgrade"],
     newCharges: json["new_charges"],
@@ -230,6 +256,10 @@ export function CheckoutPriceSnapshotToJSONTyped(
   return {
     amount_off: value["amountOff"],
     currency: CurrencyToJSON(value["currency"]),
+    discount_amount: value["discountAmount"],
+    discounts: (value["discounts"] as Array<any>).map(
+      CheckoutPriceSnapshotDiscountToJSON,
+    ),
     due_now: value["dueNow"],
     is_scheduled_downgrade: value["isScheduledDowngrade"],
     new_charges: value["newCharges"],
