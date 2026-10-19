@@ -76,7 +76,7 @@ Left out, `selection.planId` is the company's current plan, unless the company c
 
 What checkout collects — a tax ID, custom fields, an address, email or phone beside the card — and whether bundles are bought one at a time come from the catalog's checkout settings, not props.
 
-A plan change the server prorates shows as one Proration line, or itemized under a Show details toggle when the API returns `proration_detail`: the unused time on what the cart leaves and the remainder on what it takes, each named by its plan, with a line under the totals when the proration is billed on the next invoice rather than now.
+A plan change the server prorates shows as one Proration line, or itemized under a Show details toggle when the API returns `proration_detail`: the unused time on what the cart leaves and the remainder on what it takes, each named by its plan or, for a quantity bought ahead, its feature, with a line under the totals when the proration is billed on the next invoice rather than now.
 
 ## Layout
 

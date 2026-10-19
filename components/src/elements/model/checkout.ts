@@ -15,6 +15,7 @@ import {
   cartPayInAdvance,
   cartPlan,
   catalogName,
+  catalogPriceName,
   checkoutCurrencies,
   isCreditOnly,
   offeredAddOns,
@@ -334,8 +335,10 @@ function groupProblems(
 type ProrationDetail = NonNullable<CheckoutPriceSnapshot["prorationDetail"]>;
 
 /**
- * The proration as lines, named by the catalog, or by the company's plan when
- * the catalog no longer sells it. `null` when the server did not itemize it.
+ * The proration as lines, each named by the plan the server tied it to, else
+ * by what the catalog sells at its price (a plan, or the feature a seat price
+ * belongs to), else by the company's plan when the catalog no longer sells
+ * it. `null` when the server did not itemize it.
  */
 function prorationBlock(
   detail: ProrationDetail | undefined,
@@ -360,6 +363,7 @@ function prorationBlock(
       kind: line.kind,
       name:
         catalogName(catalog, line.planId) ??
+        catalogPriceName(catalog, line.priceId) ??
         (line.planId != null && current !== undefined && current.id === line.planId
           ? current.name
           : null),

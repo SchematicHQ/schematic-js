@@ -81,6 +81,7 @@ export {
 export {
   cartReducer,
   catalogName,
+  catalogPriceName,
   checkoutSelections,
   currentTier,
   deriveCheckout,

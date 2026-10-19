@@ -24,6 +24,7 @@ import {
   type CatalogPrice,
   type CheckoutPeriod,
 } from "./checkoutPrices";
+import { featureName } from "./format";
 
 /**
  * What the customer has chosen, before the server prices it. The server
@@ -297,6 +298,60 @@ export function catalogName(
     catalog.plans.find((p) => p.id === planId)?.name ??
     catalog.addOns.find((a) => a.id === planId)?.name
   );
+}
+
+/**
+ * What the catalog sells at a price: the plan or add-on whose own price it
+ * is, or the feature a pay-in-advance entitlement prices, in the plural;
+ * `undefined` for a price the catalog does not carry.
+ */
+export function catalogPriceName(
+  catalog: Catalog,
+  priceId: string | null | undefined,
+): string | undefined {
+  if (priceId == null) {
+    return undefined;
+  }
+  const ids = (prices: { id?: string | null }[]) =>
+    prices.some((price) => price.id === priceId);
+
+  for (const plan of [...catalog.plans, ...catalog.addOns]) {
+    const own = [
+      plan.monthlyPrice,
+      plan.oneTimePrice,
+      plan.quarterlyPrice,
+      plan.yearlyPrice,
+      ...plan.currencyPrices.flatMap((cp) => [
+        cp.monthlyPrice,
+        cp.quarterlyPrice,
+        cp.yearlyPrice,
+      ]),
+    ].filter((price) => price !== undefined && price !== null);
+    if (ids(own)) {
+      return plan.name;
+    }
+    for (const entitlement of plan.entitlements) {
+      const priced = [
+        entitlement.meteredMonthlyPrice,
+        entitlement.meteredQuarterlyPrice,
+        entitlement.meteredYearlyPrice,
+        ...entitlement.currencyPrices.flatMap((cp) => [
+          cp.monthlyPrice,
+          cp.quarterlyPrice,
+          cp.yearlyPrice,
+        ]),
+      ].filter((price) => price !== undefined && price !== null);
+      if (ids(priced)) {
+        return featureName({
+          name: entitlement.featureName,
+          pluralName: entitlement.featurePluralName,
+          singularName: entitlement.featureSingularName,
+        });
+      }
+    }
+  }
+
+  return undefined;
 }
 
 /** A trial the cart will start: offered, open to the company, and wanted. */

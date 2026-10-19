@@ -341,6 +341,15 @@ describe("deriveCheckout proration", () => {
     );
   });
 
+  test("names a seat line by its feature when the server ties it to no plan", () => {
+    const block = totalsWith(
+      prorationDetail({
+        lines: [prorationLine({ priceId: seats.meteredMonthlyPrice?.id })],
+      }),
+    )?.proration;
+    expect(block?.lines[0].name).toBe("Seats");
+  });
+
   test("leaves a line unnamed and undated when the server names no plan or period", () => {
     const block = totalsWith(
       prorationDetail({

@@ -18,6 +18,7 @@ import {
 import {
   cartReducer,
   catalogName,
+  catalogPriceName,
   checkoutCurrencies,
   initialCart,
   type CheckoutCart,
@@ -370,5 +371,19 @@ describe("catalogName", () => {
     expect(catalogName(cat, "plan_gone")).toBeUndefined();
     expect(catalogName(cat, null)).toBeUndefined();
     expect(catalogName(cat, undefined)).toBeUndefined();
+  });
+});
+
+describe("catalogPriceName", () => {
+  test("names the plan a price belongs to, or the feature a seat price does", () => {
+    const seats = payInAdvanceEntitlement();
+    const priced = catalogPlan({ entitlements: [seats], name: "Scale" });
+    const addOn = catalogAddOn({ name: "Support" });
+    const cat = catalog({ addOns: [addOn], plans: [priced, team] });
+    expect(catalogPriceName(cat, priced.yearlyPrice?.id)).toBe("Scale");
+    expect(catalogPriceName(cat, addOn.monthlyPrice?.id)).toBe("Support");
+    expect(catalogPriceName(cat, seats.meteredMonthlyPrice?.id)).toBe("Seats");
+    expect(catalogPriceName(cat, "price_gone")).toBeUndefined();
+    expect(catalogPriceName(cat, null)).toBeUndefined();
   });
 });
