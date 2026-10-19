@@ -26,6 +26,7 @@ models/BillingPlanCreditGrantResetCadence.ts
 models/BillingPlanCreditGrantResetStart.ts
 models/BillingPlanCreditGrantResetType.ts
 models/BillingPlanCreditGrantResponseData.ts
+models/BillingPlanCreditGrantWarningTierResponseData.ts
 models/BillingPriceResponseData.ts
 models/BillingPriceScheme.ts
 models/BillingPriceUsageType.ts
@@ -71,6 +72,7 @@ models/CheckoutFieldValue.ts
 models/CheckoutFieldWithValue.ts
 models/CheckoutIntent.ts
 models/CheckoutPriceSnapshot.ts
+models/CheckoutPriceSnapshotDiscount.ts
 models/CheckoutProblemCode.ts
 models/CheckoutProblemResponseData.ts
 models/CheckoutProblemSource.ts

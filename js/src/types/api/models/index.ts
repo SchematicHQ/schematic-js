@@ -19,6 +19,7 @@ export * from "./BillingPlanCreditGrantResetCadence";
 export * from "./BillingPlanCreditGrantResetStart";
 export * from "./BillingPlanCreditGrantResetType";
 export * from "./BillingPlanCreditGrantResponseData";
+export * from "./BillingPlanCreditGrantWarningTierResponseData";
 export * from "./BillingPriceResponseData";
 export * from "./BillingPriceScheme";
 export * from "./BillingPriceUsageType";

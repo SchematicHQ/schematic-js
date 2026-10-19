@@ -34,6 +34,7 @@ export const CheckoutProblemCode = {
   BillingStartDateNotBeforeRenewalDate:
     "billing_start_date_not_before_renewal_date",
   BillingStartDateTooFarInPast: "billing_start_date_too_far_in_past",
+  CheckoutSuperseded: "checkout_superseded",
   CreditBundleIncompatible: "credit_bundle_incompatible",
   CreditBundleUnavailable: "credit_bundle_unavailable",
   CreditBundlesActivateOnPayment: "credit_bundles_activate_on_payment",
