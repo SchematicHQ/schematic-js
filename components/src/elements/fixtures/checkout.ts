@@ -262,6 +262,8 @@ export function priceSnapshot(
   return {
     amountOff: 0,
     currency: "usd",
+    customerBalanceApplied: 0,
+    customerBalanceRemaining: 0,
     discountAmount: 0,
     discounts: [],
     dueNow: 2500,

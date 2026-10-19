@@ -89,6 +89,8 @@ describe("deriveCheckout", () => {
       locale: "en-US",
     });
     expect(priced.totals).toMatchObject({
+      creditAppliedText: null,
+      creditRemainingText: null,
       discountText: "-$5.00",
       dueNowText: "$55.00",
       promoCodeApplied: true,
@@ -393,5 +395,37 @@ describe("deriveCheckout proration", () => {
     const totals = totalsWith(prorationDetail({ lines: [], total: -1200 }));
     expect(totals?.proration).toBeNull();
     expect(totals?.prorationText).toBe("-$12.00");
+  });
+});
+
+describe("deriveCheckout credit", () => {
+  const totalsWith = (overrides: Parameters<typeof priceSnapshot>[0]) =>
+    deriveCheckout({
+      catalog: catalog(),
+      cart: cartOn(),
+      checkout: checkoutDraft({ priceSnapshot: priceSnapshot(overrides) }),
+      company: companyOn(catalogPlan({ current: true, name: "Starter" })),
+      locale: "en-US",
+    }).totals;
+
+  test("deducts the credit the company holds, and says what is left for later invoices", () => {
+    expect(
+      totalsWith({
+        customerBalanceApplied: 904,
+        customerBalanceRemaining: 1096,
+        dueNow: 1596,
+      }),
+    ).toMatchObject({
+      creditAppliedText: "-$9.04",
+      creditRemainingText: "$10.96",
+      dueNowText: "$15.96",
+    });
+  });
+
+  test("says nothing of credit when none applies", () => {
+    expect(totalsWith({})).toMatchObject({
+      creditAppliedText: null,
+      creditRemainingText: null,
+    });
   });
 });

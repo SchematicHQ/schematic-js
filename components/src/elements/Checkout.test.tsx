@@ -497,3 +497,47 @@ describe("Checkout proration", () => {
     ).toBeNull();
   });
 });
+
+describe("Checkout credit", () => {
+  const summary = () => screen.getByTestId("schematic-checkout-summary");
+  const payment = { steps: { skip: ["plan", "addOns", "credits"] } } as const;
+
+  test("deducts the credit the company holds from what is due", async () => {
+    renderCheckout(
+      payment,
+      baseData(),
+      fakeActions(
+        {},
+        priceSnapshot({ customerBalanceApplied: 904, dueNow: 1596 }),
+      ),
+    );
+    await waitFor(() =>
+      expect(summary()).toHaveTextContent("Credit applied-$9.04"),
+    );
+    expect(summary()).toHaveTextContent("Due today$15.96");
+    expect(finalizeButton()).toHaveTextContent("Pay now");
+  });
+
+  test("says what a change worth more than its charges leaves in credit", async () => {
+    renderCheckout(
+      payment,
+      baseData(),
+      fakeActions(
+        {},
+        priceSnapshot({
+          customerBalanceRemaining: 2500,
+          dueNow: 0,
+          paymentMethodRequired: false,
+          proration: -5000,
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(summary()).toHaveTextContent(
+        "$25.00 in credit will be applied to your future invoices.",
+      ),
+    );
+    expect(summary()).toHaveTextContent("Due today$0.00");
+    expect(finalizeButton()).toHaveTextContent("Confirm");
+  });
+});

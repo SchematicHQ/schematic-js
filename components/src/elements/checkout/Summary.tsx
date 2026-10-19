@@ -104,6 +104,12 @@ export function Summary({
               amount={totals.totalPerPeriodText}
             />
           )}
+          {totals.creditAppliedText !== null && (
+            <Total
+              label={t("checkoutCreditApplied")}
+              amount={totals.creditAppliedText}
+            />
+          )}
           <Total amount={totals.dueNowText} due label={t("checkoutDueToday")} />
         </ul>
       )}
@@ -131,6 +137,13 @@ export function Summary({
         <p className="schematic-checkout__disclaimer">
           {t("checkoutProrationBilledAtRenewal", {
             date: totals.proration.billedAtText,
+          })}
+        </p>
+      )}
+      {totals?.creditRemainingText != null && (
+        <p className="schematic-checkout__disclaimer">
+          {t("checkoutCreditRemaining", {
+            amount: totals.creditRemainingText,
           })}
         </p>
       )}

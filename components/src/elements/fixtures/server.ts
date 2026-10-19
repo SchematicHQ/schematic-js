@@ -96,13 +96,15 @@ function planPrice(plan: CatalogPlan, priceId: string | undefined): number {
 }
 
 /**
- * The price of what the cart holds, summed the way the summary's lines are:
- * the plan on its period, each add-on on the same, each quantity bought
- * ahead at its unit price, the bundles once. `SAVE10` takes a tenth off the
- * recurring charge and any other code blocks the cart, as the server's does; a trial
- * charges the bundles alone now; a plan change prorates half the month on each
- * side, itemized the way the server itemizes it; and a charge with no card to
- * take it from is a blocking problem.
+ * The price of what the cart holds, summed the way the summary's lines are.
+ * - The plan on its period, each add-on on the same, each quantity bought
+ *   ahead at its unit price, the bundles once.
+ * - `SAVE10` takes a tenth off the recurring charge; any other code blocks
+ *   the cart, as the server's does.
+ * - A trial charges the bundles alone now.
+ * - A plan change prorates half the month on each side, itemized the way
+ *   the server itemizes it; credit beyond the new charges is left for later.
+ * - A charge with no card to take it from is a blocking problem.
  */
 export function priceSelections(
   wire: WireSelections,
@@ -179,6 +181,9 @@ export function priceSelections(
   const proration = prorationDetail?.total ?? 0;
   const newCharges = recurring - discount + oneTime;
   const dueNow = Math.max(0, trial ? oneTime : newCharges + proration);
+  const customerBalanceRemaining = trial
+    ? 0
+    : Math.max(0, -(newCharges + proration));
   const paymentMethodRequired = dueNow > 0 || recurring > 0;
   if (paymentMethodRequired && wire.payment_method_id === undefined) {
     problems.push(problem());
@@ -186,6 +191,8 @@ export function priceSelections(
 
   return {
     currency: plan?.monthlyPrice?.currency ?? catalog.defaultCurrency,
+    customerBalanceApplied: 0,
+    customerBalanceRemaining,
     discountAmount: discount,
     dueNow,
     newCharges,

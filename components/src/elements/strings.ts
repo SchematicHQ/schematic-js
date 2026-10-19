@@ -300,6 +300,8 @@ export type ElementStrings = {
   checkoutProrationShowDetails: string;
   checkoutDiscount: string;
   checkoutTax: string;
+  checkoutCreditApplied: string;
+  checkoutCreditRemaining: string;
   checkoutTrialEnds: string;
   checkoutScheduledChange: string;
   checkoutDisclaimerMonth: string;
@@ -673,6 +675,9 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   checkoutProrationShowDetails: "Show details",
   checkoutDiscount: "Discount",
   checkoutTax: "Tax",
+  checkoutCreditApplied: "Credit applied",
+  checkoutCreditRemaining:
+    "{{amount}} in credit will be applied to your future invoices.",
   checkoutTrialEnds: "Your trial ends {{date}}; you will be charged then.",
   checkoutScheduledChange: "This change takes effect {{date}}.",
   checkoutDisclaimerMonth: "Renews monthly until cancelled.",

@@ -31,6 +31,8 @@ const KEYS = [
   "checkoutBack",
   "checkoutClose",
   "checkoutConfirm",
+  "checkoutCreditApplied",
+  "checkoutCreditRemaining",
   "checkoutCreditsCount",
   "checkoutCurrencyLabel",
   "checkoutCurrentPlan",

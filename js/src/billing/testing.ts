@@ -224,6 +224,8 @@ export function wireCheckout(
       price_snapshot: {
         amount_off: 0,
         currency: "usd",
+        customer_balance_applied: 0,
+        customer_balance_remaining: 0,
         discount_amount: 0,
         discounts: [],
         due_now: 2500,

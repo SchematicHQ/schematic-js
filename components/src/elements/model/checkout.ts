@@ -153,6 +153,10 @@ export interface CheckoutTotals {
   /** What discounts took off, as a deduction. */
   discountText: string | null;
   taxText: string | null;
+  /** What the company's stored credit covers of what is due, as a deduction. */
+  creditAppliedText: string | null;
+  /** The credit left for later invoices once this one lands. */
+  creditRemainingText: string | null;
   promoCodeApplied: boolean;
   /** The day a trial ends and the first charge lands. */
   trialEndText: string | null;
@@ -517,6 +521,14 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
       taxText:
         snapshot.taxAmount != null && snapshot.taxAmount !== 0
           ? money(snapshot.taxAmount)
+          : null,
+      creditAppliedText:
+        snapshot.customerBalanceApplied > 0
+          ? money(-snapshot.customerBalanceApplied)
+          : null,
+      creditRemainingText:
+        snapshot.customerBalanceRemaining > 0
+          ? money(snapshot.customerBalanceRemaining)
           : null,
       promoCodeApplied: snapshot.promoCodeApplied,
       trialEndText:
