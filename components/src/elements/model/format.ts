@@ -207,6 +207,32 @@ export function formatShortDate(date: Date, locale: string): string {
 }
 
 /**
+ * "8/21 – 9/20", as the locale writes a range. Empty for an Invalid Date at
+ * either end. `formatRange` is newer than the lib this package compiles
+ * against, so it is reached through a cast and stood in for where absent.
+ */
+export function formatShortDateRange(
+  start: Date,
+  end: Date,
+  locale: string,
+): string {
+  if (usableDate(start) === undefined || usableDate(end) === undefined) {
+    return "";
+  }
+
+  const format = new Intl.DateTimeFormat(usableLocale(locale), {
+    month: "numeric",
+    day: "numeric",
+  }) as Intl.DateTimeFormat & {
+    formatRange?: (start: Date, end: Date) => string;
+  };
+
+  return format.formatRange === undefined
+    ? `${format.format(start)} – ${format.format(end)}`
+    : format.formatRange(start, end);
+}
+
+/**
  * "08/2027": a card's expiry as the locale writes a month and year. Empty
  * for a month outside 1–12 or a year that is not a whole number, which is
  * what a malformed row carries.

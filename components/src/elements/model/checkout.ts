@@ -3,6 +3,7 @@ import type {
   CatalogCreditBundle,
   CatalogPlan,
   Checkout,
+  CheckoutPriceSnapshot,
   CheckoutProblem,
   Company,
   FeatureUsage,
@@ -13,6 +14,7 @@ import {
   cartBundles,
   cartPayInAdvance,
   cartPlan,
+  catalogName,
   checkoutCurrencies,
   isCreditOnly,
   offeredAddOns,
@@ -34,7 +36,13 @@ import {
 } from "./checkoutPrices";
 import { checkoutSelections } from "./checkoutSelections";
 import { stepOfProblem } from "./checkoutSteps";
-import { featureName, formatCurrency, formatDate, usableDate } from "./format";
+import {
+  featureName,
+  formatCurrency,
+  formatDate,
+  formatShortDateRange,
+  usableDate,
+} from "./format";
 
 /**
  * `deriveCheckout`: the checkout as display parts. Line items are the
@@ -102,12 +110,45 @@ export interface SummaryLine {
   amountText: string;
 }
 
+/**
+ * One half of a mid-period change: the unused time given back on a price the
+ * cart leaves, or the time owed on one it takes.
+ */
+export interface ProrationLine {
+  key: string;
+  kind: "credit" | "charge";
+  /** The plan or add-on's name; `null` when nothing names it. */
+  name: string | null;
+  /** "8/21 – 9/20"; `null` when the server gave no period. */
+  periodText: string | null;
+  amountText: string;
+}
+
+/**
+ * The proration itemized, as the server breaks it down: what is given back,
+ * what is owed, and when the net is charged.
+ */
+export interface CheckoutProration {
+  lines: ProrationLine[];
+  /** The credit lines' sum; `null` when nothing is given back. */
+  creditText: string | null;
+  /** The charge lines' sum; `null` when nothing is owed. */
+  chargeText: string | null;
+  totalText: string;
+  /** Charged now, on the next invoice, or not at all. */
+  timing: "now" | "at_renewal" | "none";
+  /** The next invoice's day, for a proration charged at the renewal. */
+  billedAtText: string | null;
+}
+
 export interface CheckoutTotals {
   dueNowText: string;
   /** What renews each period; `null` for a purchase that does not renew. */
   totalPerPeriodText: string | null;
   /** The credit or charge for the time left on the current subscription. */
   prorationText: string | null;
+  /** The same, itemized, when the server breaks it down; `null` otherwise. */
+  proration: CheckoutProration | null;
   /** What discounts took off, as a deduction. */
   discountText: string | null;
   taxText: string | null;
@@ -290,6 +331,60 @@ function groupProblems(
   return { byStep, global, blocking: problems.some((p) => p.blocking) };
 }
 
+type ProrationDetail = NonNullable<CheckoutPriceSnapshot["prorationDetail"]>;
+
+/**
+ * The proration as lines, named by the catalog, or by the company's plan when
+ * the catalog no longer sells it. `null` when the server did not itemize it.
+ */
+function prorationBlock(
+  detail: ProrationDetail | undefined,
+  input: {
+    catalog: Catalog;
+    company: Company | undefined;
+    locale: string;
+    money: (amount: number) => string;
+  },
+): CheckoutProration | null {
+  if (detail === undefined || detail.lines.length === 0) {
+    return null;
+  }
+  const { catalog, company, locale, money } = input;
+
+  const lines = detail.lines.map((line, index): ProrationLine => {
+    const start = usableDate(line.periodStart);
+    const end = usableDate(line.periodEnd);
+    const current = company?.plan;
+    return {
+      key: `${line.kind}:${line.planId ?? line.priceId ?? ""}:${index}`,
+      kind: line.kind,
+      name:
+        catalogName(catalog, line.planId) ??
+        (line.planId != null && current !== undefined && current.id === line.planId
+          ? current.name
+          : null),
+      periodText:
+        start !== undefined && end !== undefined
+          ? formatShortDateRange(start, end, locale)
+          : null,
+      amountText: money(line.amount),
+    };
+  });
+  const billedAt = usableDate(detail.billedAt);
+
+  return {
+    lines,
+    creditText: detail.credit !== 0 ? money(detail.credit) : null,
+    chargeText: detail.charge !== 0 ? money(detail.charge) : null,
+    totalText: money(detail.total),
+    timing: detail.timing,
+    billedAtText:
+      detail.timing === "at_renewal" && billedAt !== undefined
+        ? formatDate(billedAt, locale)
+        : null,
+  };
+}
+
 export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
   const {
     catalog,
@@ -407,6 +502,12 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
       totalPerPeriodText: renews ? money(snapshot.totalPerBillingPeriod) : null,
       prorationText:
         snapshot.proration !== 0 ? money(snapshot.proration) : null,
+      proration: prorationBlock(snapshot.prorationDetail, {
+        catalog,
+        company,
+        locale,
+        money,
+      }),
       discountText:
         snapshot.discountAmount > 0 ? money(-snapshot.discountAmount) : null,
       taxText:

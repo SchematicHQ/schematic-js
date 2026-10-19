@@ -284,6 +284,21 @@ export function cartPlan(
     : catalog.plans.find((p) => p.id === cart.planId);
 }
 
+/** The name the catalog gives a plan or add-on; `undefined` for one it does not sell. */
+export function catalogName(
+  catalog: Catalog,
+  planId: string | null | undefined,
+): string | undefined {
+  if (planId == null) {
+    return undefined;
+  }
+
+  return (
+    catalog.plans.find((p) => p.id === planId)?.name ??
+    catalog.addOns.find((a) => a.id === planId)?.name
+  );
+}
+
 /** A trial the cart will start: offered, open to the company, and wanted. */
 export function trialActive(
   cart: CheckoutCart,

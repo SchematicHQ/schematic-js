@@ -80,6 +80,7 @@ export {
 } from "@schematichq/schematic-react";
 export {
   cartReducer,
+  catalogName,
   checkoutSelections,
   currentTier,
   deriveCheckout,
@@ -99,6 +100,7 @@ export {
   formatNumber,
   formatPercent,
   formatShortDate,
+  formatShortDateRange,
   httpStatus,
   initialCart,
   isTieredPrice,
@@ -122,6 +124,7 @@ export {
   type CheckoutDisplay,
   type CheckoutModel,
   type CheckoutPeriod,
+  type CheckoutProration,
   type CheckoutSelection,
   type CheckoutStep,
   type CheckoutSteps,
@@ -169,6 +172,7 @@ export {
   type PlanPrice,
   type PlanRow,
   type PriceTier,
+  type ProrationLine,
   type QuantityRow,
   type SkippableStep,
   type StepPlan,

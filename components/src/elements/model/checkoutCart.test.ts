@@ -17,6 +17,7 @@ import {
 
 import {
   cartReducer,
+  catalogName,
   checkoutCurrencies,
   initialCart,
   type CheckoutCart,
@@ -357,5 +358,17 @@ describe("checkoutSelections", () => {
     expect(checkoutSelections(cart, cat)?.customFieldValues).toEqual([
       { id: "cfc_1", value: "PO-1" },
     ]);
+  });
+});
+
+describe("catalogName", () => {
+  test("names a plan or add-on the catalog sells, and nothing else", () => {
+    const addOn = catalogAddOn({ name: "Support" });
+    const cat = catalog({ addOns: [addOn], plans: [pro, team] });
+    expect(catalogName(cat, team.id)).toBe("Team");
+    expect(catalogName(cat, addOn.id)).toBe("Support");
+    expect(catalogName(cat, "plan_gone")).toBeUndefined();
+    expect(catalogName(cat, null)).toBeUndefined();
+    expect(catalogName(cat, undefined)).toBeUndefined();
   });
 });

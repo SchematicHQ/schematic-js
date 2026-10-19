@@ -279,6 +279,52 @@ export function priceSnapshot(
   };
 }
 
+export type ProrationDetail = NonNullable<
+  CheckoutPriceSnapshot["prorationDetail"]
+>;
+export type ProrationDetailLine = ProrationDetail["lines"][number];
+
+/** The unused half of a $25 month, given back. */
+export function prorationLine(
+  overrides: Partial<ProrationDetailLine> = {},
+): ProrationDetailLine {
+  return {
+    amount: -1250,
+    kind: "credit",
+    periodEnd: daysFromNow(30),
+    periodStart: NOW,
+    ...overrides,
+  };
+}
+
+/**
+ * A plan change prorated now: half a $25 month back, half a $50 month owed.
+ * The credit, charge and total follow the lines unless overridden.
+ */
+export function prorationDetail(
+  overrides: Partial<ProrationDetail> = {},
+): ProrationDetail {
+  const lines = overrides.lines ?? [
+    prorationLine(),
+    prorationLine({ amount: 2500, kind: "charge" }),
+  ];
+  const credit = lines
+    .filter((line) => line.amount < 0)
+    .reduce((sum, line) => sum + line.amount, 0);
+  const charge = lines
+    .filter((line) => line.amount >= 0)
+    .reduce((sum, line) => sum + line.amount, 0);
+  return {
+    billedAt: NOW,
+    charge,
+    credit,
+    lines,
+    timing: "now",
+    total: credit + charge,
+    ...overrides,
+  };
+}
+
 export function problem(
   overrides: Partial<CheckoutProblem> = {},
 ): CheckoutProblem {

@@ -291,6 +291,13 @@ export type ElementStrings = {
   checkoutTotalPerQuarter: string;
   checkoutTotalPerYear: string;
   checkoutProration: string;
+  checkoutProrationBilledAtRenewal: string;
+  checkoutProrationCharge: string;
+  checkoutProrationChargeUnnamed: string;
+  checkoutProrationCredit: string;
+  checkoutProrationCreditUnnamed: string;
+  checkoutProrationHideDetails: string;
+  checkoutProrationShowDetails: string;
   checkoutDiscount: string;
   checkoutTax: string;
   checkoutTrialEnds: string;
@@ -656,6 +663,14 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   checkoutTotalPerQuarter: "Total per quarter",
   checkoutTotalPerYear: "Total per year",
   checkoutProration: "Proration",
+  checkoutProrationBilledAtRenewal:
+    "Prorated changes are billed on your next invoice, {{date}}.",
+  checkoutProrationCharge: "Remaining time on {{name}}",
+  checkoutProrationChargeUnnamed: "Remaining time",
+  checkoutProrationCredit: "Unused time on {{name}}",
+  checkoutProrationCreditUnnamed: "Unused time",
+  checkoutProrationHideDetails: "Hide details",
+  checkoutProrationShowDetails: "Show details",
   checkoutDiscount: "Discount",
   checkoutTax: "Tax",
   checkoutTrialEnds: "Your trial ends {{date}}; you will be charged then.",

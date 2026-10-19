@@ -7,13 +7,17 @@ import {
   checkoutDraft,
   checkoutField,
   company,
+  companyOn,
   creditBundle,
   monthly,
   payInAdvanceEntitlement,
   priceSnapshot,
   problem,
+  prorationDetail,
+  prorationLine,
   subscription,
   yearly,
+  type ProrationDetail,
 } from "../fixtures/checkout";
 
 import { deriveCheckout, normalizePeriod } from "./checkout";
@@ -88,6 +92,7 @@ describe("deriveCheckout", () => {
       discountText: "-$5.00",
       dueNowText: "$55.00",
       promoCodeApplied: true,
+      proration: null,
       prorationText: "-$12.00",
       totalPerPeriodText: "$45.00",
     });
@@ -291,5 +296,93 @@ describe("deriveCheckout", () => {
       credits: 100,
       creditName: "Credits",
     });
+  });
+});
+
+describe("deriveCheckout proration", () => {
+  const starter = catalogPlan({ current: true, name: "Starter" });
+  const two = catalog({ plans: [starter, pro] });
+  const totalsWith = (detail: ProrationDetail | undefined, onPlan = starter) =>
+    deriveCheckout({
+      catalog: two,
+      cart: cartOn(),
+      checkout: checkoutDraft({
+        priceSnapshot: priceSnapshot({
+          proration: detail?.total ?? -1200,
+          prorationDetail: detail,
+        }),
+      }),
+      company: companyOn(onPlan),
+      locale: "en-US",
+    }).totals;
+
+  test("itemizes the lines by the cart's plans, with their period", () => {
+    const block = totalsWith(
+      prorationDetail({
+        lines: [
+          prorationLine({ planId: starter.id }),
+          prorationLine({ amount: 2500, kind: "charge", planId: pro.id }),
+        ],
+      }),
+    )?.proration;
+    expect(block).toMatchObject({
+      billedAtText: null,
+      chargeText: "$25.00",
+      creditText: "-$12.50",
+      timing: "now",
+      totalText: "$12.50",
+    });
+    expect(block?.lines.map((l) => [l.kind, l.name, l.amountText])).toEqual([
+      ["credit", "Starter", "-$12.50"],
+      ["charge", "Pro", "$25.00"],
+    ]);
+    expect(block?.lines[0].periodText).toMatch(
+      /^8\/2[01]\s?[\u2013-]\s?9\/(19|20)$/u,
+    );
+  });
+
+  test("leaves a line unnamed and undated when the server names no plan or period", () => {
+    const block = totalsWith(
+      prorationDetail({
+        lines: [
+          prorationLine({
+            periodEnd: undefined,
+            periodStart: undefined,
+            planId: "plan_gone",
+          }),
+        ],
+      }),
+    )?.proration;
+    expect(block?.lines[0]).toMatchObject({ name: null, periodText: null });
+  });
+
+  test("names the company's plan when the catalog no longer sells it", () => {
+    const legacy = catalogPlan({ id: "plan_legacy", name: "Legacy" });
+    const block = totalsWith(
+      prorationDetail({ lines: [prorationLine({ planId: legacy.id })] }),
+      legacy,
+    )?.proration;
+    expect(block?.lines[0].name).toBe("Legacy");
+  });
+
+  test("says when a proration held for the renewal is billed", () => {
+    const block = totalsWith(
+      prorationDetail({ billedAt: daysFromNow(30), timing: "at_renewal" }),
+    )?.proration;
+    expect(block?.timing).toBe("at_renewal");
+    expect(block?.billedAtText).toMatch(/^September (19|20|21), 2026$/);
+  });
+
+  test("dates nothing for a proration that lands nowhere", () => {
+    const block = totalsWith(
+      prorationDetail({ billedAt: undefined, timing: "none" }),
+    )?.proration;
+    expect(block).toMatchObject({ billedAtText: null, timing: "none" });
+  });
+
+  test("falls back to the single figure when the server itemizes nothing", () => {
+    const totals = totalsWith(prorationDetail({ lines: [], total: -1200 }));
+    expect(totals?.proration).toBeNull();
+    expect(totals?.prorationText).toBe("-$12.00");
   });
 });
