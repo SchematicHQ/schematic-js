@@ -18,6 +18,7 @@
  */
 export const EntitlementType = {
   CompanyOverride: "company_override",
+  PlanCreditGrant: "plan_credit_grant",
   PlanEntitlement: "plan_entitlement",
   Unknown: "unknown",
 } as const;

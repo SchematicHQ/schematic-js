@@ -104,6 +104,13 @@ import {
   BillingPriceResponseDataToJSON,
   BillingPriceResponseDataToJSONTyped,
 } from "./BillingPriceResponseData";
+import type { BillingPlanCreditGrantWarningTierResponseData } from "./BillingPlanCreditGrantWarningTierResponseData";
+import {
+  BillingPlanCreditGrantWarningTierResponseDataFromJSON,
+  BillingPlanCreditGrantWarningTierResponseDataFromJSONTyped,
+  BillingPlanCreditGrantWarningTierResponseDataToJSON,
+  BillingPlanCreditGrantWarningTierResponseDataToJSONTyped,
+} from "./BillingPlanCreditGrantWarningTierResponseData";
 import type { BillingCreditExpiryUnit } from "./BillingCreditExpiryUnit";
 import {
   BillingCreditExpiryUnitFromJSON,
@@ -408,6 +415,12 @@ export interface BillingPlanCreditGrantResponseData {
    * @memberof BillingPlanCreditGrantResponseData
    */
   updatedAt: Date;
+  /**
+   * Usage-warning thresholds, in credits remaining in the company's balance, highest first. Schematic sends a credit.usage_warning_reached webhook when the balance drops to each one. Empty when none are set.
+   * @type {Array<BillingPlanCreditGrantWarningTierResponseData>}
+   * @memberof BillingPlanCreditGrantResponseData
+   */
+  warningTiers: Array<BillingPlanCreditGrantWarningTierResponseData>;
 }
 
 /**
@@ -457,6 +470,8 @@ export function instanceOfBillingPlanCreditGrantResponseData(
     return false;
   if (!("scaling" in value) || value["scaling"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
+  if (!("warningTiers" in value) || value["warningTiers"] === undefined)
+    return false;
   return true;
 }
 
@@ -596,6 +611,9 @@ export function BillingPlanCreditGrantResponseDataFromJSONTyped(
         ? undefined
         : json["unit_price_decimal"],
     updatedAt: new Date(json["updated_at"]),
+    warningTiers: (json["warning_tiers"] as Array<any>).map(
+      BillingPlanCreditGrantWarningTierResponseDataFromJSON,
+    ),
   };
 }
 
@@ -670,5 +688,8 @@ export function BillingPlanCreditGrantResponseDataToJSONTyped(
     unit_price: value["unitPrice"],
     unit_price_decimal: value["unitPriceDecimal"],
     updated_at: value["updatedAt"].toISOString(),
+    warning_tiers: (value["warningTiers"] as Array<any>).map(
+      BillingPlanCreditGrantWarningTierResponseDataToJSON,
+    ),
   };
 }
