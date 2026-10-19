@@ -38,6 +38,8 @@ import {
   payInAdvanceEntitlement,
   priceSnapshot,
   problem,
+  prorationDetail,
+  prorationLine,
 } from "../fixtures/checkout";
 import { SCENARIOS, paymentMethodSet } from "../fixtures/scenarios";
 
@@ -347,6 +349,12 @@ const checkoutActions = () => ({
         optInText: "I agree to the terms.",
         optInTitle: "Terms",
         proration: -100,
+        prorationDetail: prorationDetail({
+          lines: [
+            prorationLine({ amount: -1350, planId: "plan_main" }),
+            prorationLine({ amount: 1250, kind: "charge" }),
+          ],
+        }),
         scheduledChangeTime: daysFromNow(30),
         taxAmount: 50,
         trialEnd: daysFromNow(14),
@@ -378,10 +386,20 @@ async function checkoutAt(
   return root;
 }
 
+/** The payment step with the proration's lines shown. */
+async function checkoutWithProrationOpen() {
+  const root = await checkoutAt({ steps: { initial: "payment" } });
+  fireEvent.click(
+    root.querySelector(".schematic-checkout__proration-toggle") as Element,
+  );
+  return root;
+}
+
 /** Every checkout render that reaches a selector in the sheet. */
 async function everyCheckout() {
   return [
     await checkoutAt({ selection: { planId: "plan_main" } }),
+    await checkoutWithProrationOpen(),
     await checkoutAt({ selection: { planId: "plan_trial" } }),
     await checkoutAt(
       { display: { layout: "stacked", summary: "payment" } },

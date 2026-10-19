@@ -76,6 +76,8 @@ Left out, `selection.planId` is the company's current plan, unless the company c
 
 What checkout collects — a tax ID, custom fields, an address, email or phone beside the card — and whether bundles are bought one at a time come from the catalog's checkout settings, not props.
 
+A plan change the server prorates shows as one Proration line, or itemized under a Show details toggle when the API returns `proration_detail`: the unused time on what the cart leaves and the remainder on what it takes, each named by its plan, with a line under the totals when the proration is billed on the next invoice rather than now.
+
 ## Layout
 
 From 768px up the steps take the left and the summary — the lines, the totals and the action — the right, each scrolling on its own; below that the summary sits under the steps and the whole dialog scrolls. Two props change that, for a sheet that cannot:
@@ -165,6 +167,7 @@ The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--sta
 | `schematic-checkout__summary`, `__summary-title`                                      | The right column, an `aside` with `aria-busy` while pricing.                                          |
 | `schematic-checkout__lines`, `__line`, `__line-amount`                                | What the cart holds, one line each.                                                                   |
 | `schematic-checkout__totals`, `__total`, `__total--due`, `__total-amount`             | Proration, discount, tax, the period's total and the amount due now.                                  |
-| `schematic-checkout__disclaimer`                                                      | The renewal, trial-end and scheduled-change lines under the totals.                                   |
+| `schematic-checkout__total--proration`, `__proration-toggle`, `__proration`, `__proration-line`, `__proration-period` | The proration row when the price itemizes it: the Show/Hide details toggle (`aria-expanded`), and the credit and charge lines under it with their periods. |
+| `schematic-checkout__disclaimer`                                                      | The renewal, trial-end, scheduled-change and next-invoice proration lines under the totals.           |
 
 The summary's action and the cards' choices are `schematic-cta`; the Back link is `schematic-link-button`; the payment step's card on file and form carry the `schematic-payment-methods__*` classes of `PaymentMethods`.

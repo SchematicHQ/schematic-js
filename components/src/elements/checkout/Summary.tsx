@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 
-import type { CheckoutModel, CheckoutPeriod } from "../model";
+import type {
+  CheckoutModel,
+  CheckoutPeriod,
+  CheckoutProration,
+  ProrationLine,
+} from "../model";
 import type { StringKey, Translator } from "../strings";
 
 const TOTAL_PER: Record<CheckoutPeriod, StringKey> = {
@@ -13,6 +18,20 @@ const DISCLAIMER: Record<CheckoutPeriod, StringKey> = {
   month: "checkoutDisclaimerMonth",
   quarter: "checkoutDisclaimerQuarter",
   year: "checkoutDisclaimerYear",
+};
+
+const LINE_LABEL: Record<
+  ProrationLine["kind"],
+  { named: StringKey; unnamed: StringKey }
+> = {
+  charge: {
+    named: "checkoutProrationCharge",
+    unnamed: "checkoutProrationChargeUnnamed",
+  },
+  credit: {
+    named: "checkoutProrationCredit",
+    unnamed: "checkoutProrationCreditUnnamed",
+  },
 };
 
 /**
@@ -63,11 +82,15 @@ export function Summary({
       )}
       {totals !== null && model.priceable && (
         <ul className="schematic-checkout__totals">
-          {totals.prorationText !== null && (
-            <Total
-              label={t("checkoutProration")}
-              amount={totals.prorationText}
-            />
+          {totals.proration !== null ? (
+            <ProrationRow proration={totals.proration} t={t} />
+          ) : (
+            totals.prorationText !== null && (
+              <Total
+                label={t("checkoutProration")}
+                amount={totals.prorationText}
+              />
+            )
           )}
           {totals.discountText !== null && (
             <Total label={t("checkoutDiscount")} amount={totals.discountText} />
@@ -104,6 +127,13 @@ export function Summary({
           {t("checkoutScheduledChange", { date: totals.scheduledChangeText })}
         </p>
       )}
+      {totals?.proration?.billedAtText != null && (
+        <p className="schematic-checkout__disclaimer">
+          {t("checkoutProrationBilledAtRenewal", {
+            date: totals.proration.billedAtText,
+          })}
+        </p>
+      )}
       {showDisclaimer && totals?.totalPerPeriodText != null && (
         <p className="schematic-checkout__disclaimer">
           {t(DISCLAIMER[period])}
@@ -111,6 +141,70 @@ export function Summary({
       )}
       {action}
     </aside>
+  );
+}
+
+/**
+ * The proration itemized: the net on the row, and the credit and charge
+ * lines under a toggle, closed until asked for.
+ */
+function ProrationRow({
+  proration,
+  t,
+}: {
+  proration: CheckoutProration;
+  t: Translator;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <li className="schematic-checkout__total schematic-checkout__total--proration">
+      <span>
+        {t("checkoutProration")}
+        <button
+          aria-expanded={open}
+          className="schematic-link-button schematic-checkout__proration-toggle"
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+        >
+          <i
+            aria-hidden="true"
+            className={`schematic-icon schematic-icon--${open ? "chevron-up" : "chevron-down"} schematic-chevron`}
+          />
+          <span className="schematic-link-button__label">
+            {open
+              ? t("checkoutProrationHideDetails")
+              : t("checkoutProrationShowDetails")}
+          </span>
+        </button>
+      </span>
+      <span className="schematic-checkout__total-amount">
+        {proration.totalText}
+      </span>
+      {open && (
+        <ul className="schematic-checkout__proration">
+          {proration.lines.map((line) => (
+            <li className="schematic-checkout__proration-line" key={line.key}>
+              <span>
+                {t(
+                  line.name === null
+                    ? LINE_LABEL[line.kind].unnamed
+                    : LINE_LABEL[line.kind].named,
+                  { name: line.name ?? "" },
+                )}
+                {line.periodText !== null && (
+                  <span className="schematic-checkout__proration-period">
+                    {line.periodText}
+                  </span>
+                )}
+              </span>
+              <span className="schematic-checkout__line-amount">
+                {line.amountText}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }
 

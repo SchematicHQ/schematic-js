@@ -381,6 +381,46 @@ export const checkoutCss = `
   font-weight: 700;
 }
 
+.schematic-checkout__total--proration {
+  flex-wrap: wrap;
+}
+
+.schematic-checkout__proration-toggle {
+  align-items: center;
+  display: inline-flex;
+  font-size: 0.8125rem;
+  gap: 0.25rem;
+  margin-inline-start: calc(var(--schematic-space) / 2);
+}
+
+.schematic-checkout__proration-toggle .schematic-chevron {
+  font-size: 1.125rem;
+  margin-inline-start: -0.333rem;
+}
+
+.schematic-checkout__proration {
+  display: flex;
+  flex-basis: 100%;
+  flex-direction: column;
+  font-size: 0.875rem;
+  gap: calc(var(--schematic-space) / 4);
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 var(--schematic-space);
+}
+
+.schematic-checkout__proration-line {
+  display: flex;
+  gap: var(--schematic-space);
+  justify-content: space-between;
+}
+
+.schematic-checkout__proration-period {
+  color: var(--schematic-muted);
+  font-size: 0.8125rem;
+  margin-inline-start: 0.25rem;
+}
+
 .schematic-checkout__disclaimer {
   color: var(--schematic-muted);
   font-size: 0.8125rem;

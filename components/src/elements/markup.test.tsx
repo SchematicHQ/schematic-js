@@ -22,6 +22,9 @@ import {
   catalogPlan,
   checkoutDraft,
   companyOn,
+  priceSnapshot,
+  prorationDetail,
+  prorationLine,
 } from "./fixtures/checkout";
 import { SCENARIOS, paymentMethodSet } from "./fixtures/scenarios";
 
@@ -672,18 +675,22 @@ describe("every node carries a schematic class", () => {
  * The checkout on `initial`, once it has priced — or, with the summary held
  * for the payment step, once its Next action has landed in the navigation.
  */
+const contractStarter = catalogPlan({ current: true, name: "Starter" });
+const contractPro = catalogPlan({ name: "Pro" });
+
 async function renderCheckout(
   initial: "plan" | "payment",
   display: React.ComponentProps<typeof Checkout>["display"] = undefined,
+  checkout = checkoutDraft(),
 ) {
-  const starter = catalogPlan({ current: true, name: "Starter" });
+  const starter = contractStarter;
   const { container } = render(
     <BillingDataProvider
       actions={{
-        createCheckout: vi.fn(async () => ({ checkout: checkoutDraft() })),
+        createCheckout: vi.fn(async () => ({ checkout })),
       }}
       data={{
-        catalog: catalog({ plans: [starter, catalogPlan({ name: "Pro" })] }),
+        catalog: catalog({ plans: [starter, contractPro] }),
         company: companyOn(starter),
         featureUsage: [],
         paymentMethods: [cardPaymentMethod({ isDefault: true })],
@@ -840,6 +847,82 @@ describe("Checkout markup contract", () => {
       "schematic-icon--close",
       "schematic-icon--visa",
       "schematic-link-button",
+      "schematic-payment-methods__current",
+      "schematic-payment-methods__icon",
+      "schematic-payment-methods__label",
+      "schematic-payment-methods__last4",
+      "schematic-payment-methods__method",
+    ]);
+  });
+
+  test("the payment step with a prorated change", async () => {
+    const root = await renderCheckout(
+      "payment",
+      undefined,
+      checkoutDraft({
+        priceSnapshot: priceSnapshot({
+          proration: 1250,
+          prorationDetail: prorationDetail({
+            lines: [
+              prorationLine({ planId: contractStarter.id }),
+              prorationLine({
+                amount: 2500,
+                kind: "charge",
+                planId: contractPro.id,
+              }),
+            ],
+          }),
+        }),
+      }),
+    );
+    fireEvent.click(
+      root.querySelector(".schematic-checkout__proration-toggle") as Element,
+    );
+    expect(classNames(root)).toEqual([
+      "schematic-checkout__disclaimer",
+      "schematic-checkout__field",
+      "schematic-checkout__field-label",
+      "schematic-checkout__frame",
+      "schematic-checkout__heading",
+      "schematic-checkout__inline",
+      "schematic-checkout__input",
+      "schematic-checkout__layout",
+      "schematic-checkout__line",
+      "schematic-checkout__line-amount",
+      "schematic-checkout__lines",
+      "schematic-checkout__main",
+      "schematic-checkout__nav",
+      "schematic-checkout__proration",
+      "schematic-checkout__proration-line",
+      "schematic-checkout__proration-period",
+      "schematic-checkout__proration-toggle",
+      "schematic-checkout__section",
+      "schematic-checkout__section-title",
+      "schematic-checkout__step",
+      "schematic-checkout__step-link",
+      "schematic-checkout__stepper",
+      "schematic-checkout__summary",
+      "schematic-checkout__summary-title",
+      "schematic-checkout__total",
+      "schematic-checkout__total--due",
+      "schematic-checkout__total--proration",
+      "schematic-checkout__total-amount",
+      "schematic-checkout__totals",
+      "schematic-chevron",
+      "schematic-cta",
+      "schematic-cta--outline",
+      "schematic-cta--small",
+      "schematic-dialog__body",
+      "schematic-dialog__close",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-element",
+      "schematic-icon",
+      "schematic-icon--chevron-up",
+      "schematic-icon--close",
+      "schematic-icon--visa",
+      "schematic-link-button",
+      "schematic-link-button__label",
       "schematic-payment-methods__current",
       "schematic-payment-methods__icon",
       "schematic-payment-methods__label",

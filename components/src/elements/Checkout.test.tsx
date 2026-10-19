@@ -17,7 +17,7 @@ import { vi } from "vitest";
 
 import { Checkout, type CheckoutProps } from "./Checkout";
 import type { PaymentMethodFormProps } from "./PaymentMethodForm";
-import { cardPaymentMethod } from "./fixtures/builders";
+import { cardPaymentMethod, daysFromNow } from "./fixtures/builders";
 import {
   catalog,
   catalogAddOn,
@@ -29,6 +29,8 @@ import {
   payInAdvanceEntitlement,
   priceSnapshot,
   problem,
+  prorationDetail,
+  prorationLine,
 } from "./fixtures/checkout";
 
 vi.mock("./PaymentMethodForm", () => ({
@@ -58,12 +60,15 @@ const charged = {
   status: "active",
 } as unknown as CheckoutResult;
 
-function fakeActions(overrides: Partial<BillingActions> = {}) {
+function fakeActions(
+  overrides: Partial<BillingActions> = {},
+  snapshot = priceSnapshot({ paymentMethodRequired: false }),
+) {
   let version = 0;
   const priced = (selections: CheckoutSelections) =>
     checkoutDraft({
       id: "chk_1",
-      priceSnapshot: priceSnapshot({ paymentMethodRequired: false }),
+      priceSnapshot: snapshot,
       selections: {
         addOnIds: selections.addOns ?? [],
         autoTopupOverrides: [],
@@ -405,5 +410,90 @@ describe("Checkout", () => {
     const { onOpenChange } = renderCheckout();
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+});
+
+describe("Checkout proration", () => {
+  const itemized = (overrides = {}) =>
+    prorationDetail({
+      lines: [
+        prorationLine({ planId: starter.id }),
+        prorationLine({ amount: 2500, kind: "charge", planId: pro.id }),
+      ],
+      ...overrides,
+    });
+  const summary = () => screen.getByTestId("schematic-checkout-summary");
+
+  test("itemizes the proration behind a toggle", async () => {
+    renderCheckout(
+      {},
+      baseData(),
+      fakeActions(
+        {},
+        priceSnapshot({
+          paymentMethodRequired: false,
+          proration: 1250,
+          prorationDetail: itemized(),
+        }),
+      ),
+    );
+    await waitFor(() => expect(summary()).toHaveTextContent("Proration"));
+    const toggle = within(summary()).getByRole("button", {
+      name: "Show details",
+    });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(summary()).toHaveTextContent("$12.50");
+    expect(summary()).not.toHaveTextContent("Unused time on Starter");
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(summary()).toHaveTextContent("Unused time on Starter");
+    expect(summary()).toHaveTextContent("-$12.50");
+    expect(summary()).toHaveTextContent("Remaining time on Pro");
+    expect(summary()).toHaveTextContent("$25.00");
+    expect(
+      within(summary()).getByRole("button", { name: "Hide details" }),
+    ).toBeInTheDocument();
+  });
+
+  test("says when the proration is billed on the next invoice", async () => {
+    renderCheckout(
+      {},
+      baseData(),
+      fakeActions(
+        {},
+        priceSnapshot({
+          dueNow: 0,
+          paymentMethodRequired: false,
+          proration: 1250,
+          prorationDetail: itemized({
+            billedAt: daysFromNow(30),
+            timing: "at_renewal",
+          }),
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(summary()).toHaveTextContent(
+        /Prorated changes are billed on your next invoice, September \d+, 2026\./,
+      ),
+    );
+  });
+
+  test("shows one proration line when the server does not itemize it", async () => {
+    renderCheckout(
+      {},
+      baseData(),
+      fakeActions(
+        {},
+        priceSnapshot({ paymentMethodRequired: false, proration: -1200 }),
+      ),
+    );
+    await waitFor(() =>
+      expect(summary()).toHaveTextContent("Proration-$12.00"),
+    );
+    expect(
+      within(summary()).queryByRole("button", { name: /details/ }),
+    ).toBeNull();
   });
 });
