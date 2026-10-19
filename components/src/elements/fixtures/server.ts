@@ -20,7 +20,7 @@ import type {
   TaxId,
 } from "@schematichq/schematic-react";
 
-import { cardPaymentMethod, daysFromNow } from "./builders";
+import { NOW, cardPaymentMethod, daysFromNow } from "./builders";
 import { checkoutDraft, priceSnapshot, problem } from "./checkout";
 
 /** The selections as a write sends them, the keys the server reads. */
@@ -100,8 +100,9 @@ function planPrice(plan: CatalogPlan, priceId: string | undefined): number {
  * the plan on its period, each add-on on the same, each quantity bought
  * ahead at its unit price, the bundles once. `SAVE10` takes a tenth off the
  * recurring charge and any other code blocks the cart, as the server's does; a trial
- * charges the bundles alone now; a plan change prorates half the plan left
- * behind; and a charge with no card to take it from is a blocking problem.
+ * charges the bundles alone now; a plan change prorates half the month on each
+ * side, itemized the way the server itemizes it; and a charge with no card to
+ * take it from is a blocking problem.
  */
 export function priceSelections(
   wire: WireSelections,
@@ -171,7 +172,11 @@ export function priceSelections(
     company.plan != null &&
     company.plan.id !== plan.id &&
     company.subscription != null;
-  const proration = changing ? -Math.round((company.plan?.price ?? 0) / 2) : 0;
+  const prorationDetail =
+    changing && plan !== undefined
+      ? prorationOf(plan, wire.new_price_id, catalog, company)
+      : undefined;
+  const proration = prorationDetail?.total ?? 0;
   const newCharges = recurring - discount + oneTime;
   const dueNow = Math.max(0, trial ? oneTime : newCharges + proration);
   const paymentMethodRequired = dueNow > 0 || recurring > 0;
@@ -189,8 +194,47 @@ export function priceSelections(
     problems,
     promoCodeApplied,
     proration,
+    prorationDetail,
     totalPerBillingPeriod: recurring - discount,
     trialEnd: trial ? daysFromNow(plan.trialDays ?? 14) : undefined,
+  };
+}
+
+/**
+ * A plan change prorated the way the server itemizes it: half the month left
+ * on the plan the company leaves given back, half the new plan's owed, and
+ * charged now or, when the catalog defers prorations, on the next invoice.
+ */
+function prorationOf(
+  plan: CatalogPlan,
+  priceId: string | undefined,
+  catalog: Catalog,
+  company: Company,
+): NonNullable<CheckoutPriceSnapshot["prorationDetail"]> {
+  const current = company.plan;
+  const periodEnd = company.subscription?.periodEnd ?? daysFromNow(30);
+  const period = { periodEnd, periodStart: NOW };
+  const credit = -Math.round((current?.price ?? 0) / 2);
+  const charge = Math.round(planPrice(plan, priceId) / 2);
+  const deferred =
+    catalog.checkoutSettings.prorationBehavior === "create_prorations";
+  return {
+    billedAt: deferred ? periodEnd : NOW,
+    charge,
+    credit,
+    lines: [
+      {
+        amount: credit,
+        kind: "credit",
+        planId: current?.id,
+        priceId: catalog.plans.find((p) => p.id === current?.id)?.monthlyPrice
+          ?.id,
+        ...period,
+      },
+      { amount: charge, kind: "charge", planId: plan.id, priceId, ...period },
+    ],
+    timing: deferred ? "at_renewal" : "now",
+    total: credit + charge,
   };
 }
 
