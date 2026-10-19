@@ -41,7 +41,7 @@ export interface PreflightRequestBody {
    */
   creditCost?: { [key: string]: number };
   /**
-   * An event of a specific subtype, priced the way it would burn credits: quantity at the entitlement's consumption rate, plus each of quantities at its rate in the entitlement's quantity rates. Use it to preflight an inference call by its request and token counts. Applies only to credit balance conditions whose event subtype matches, where it takes precedence over event_usage and usage; credit_cost for the same credit still wins. Not supported on check-and-reserve
+   * An event of a specific subtype, priced the way it would burn credits: quantity at the entitlement's consumption rate, plus each of quantities at its rate in the entitlement's quantity rates. Use it to preflight an inference call by its request and token counts. Applies only to credit balance conditions whose event subtype matches, where it takes precedence over event_usage and usage; credit_cost for the same credit still wins
    * @type {PreflightEventQuantitiesRequestBody}
    * @memberof PreflightRequestBody
    */
