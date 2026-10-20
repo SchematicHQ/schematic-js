@@ -91,6 +91,12 @@ export interface CustomPlanBillingResponseData {
    */
   daysUntilDue: number;
   /**
+   * When a custom plan that doesn't renew ends: the renewal the subscription stops on and the company moves to the default plan. Null for a plan that renews.
+   * @type {Date}
+   * @memberof CustomPlanBillingResponseData
+   */
+  endDate?: Date | null;
+  /**
    *
    * @type {string}
    * @memberof CustomPlanBillingResponseData
@@ -229,6 +235,7 @@ export function CustomPlanBillingResponseDataFromJSONTyped(
     companyId: json["company_id"],
     createdAt: new Date(json["created_at"]),
     daysUntilDue: json["days_until_due"],
+    endDate: json["end_date"] == null ? undefined : new Date(json["end_date"]),
     externalInvoiceId:
       json["external_invoice_id"] == null
         ? undefined
@@ -288,6 +295,10 @@ export function CustomPlanBillingResponseDataToJSONTyped(
     company_id: value["companyId"],
     created_at: value["createdAt"].toISOString(),
     days_until_due: value["daysUntilDue"],
+    end_date:
+      value["endDate"] == null
+        ? undefined
+        : (value["endDate"] as any).toISOString(),
     external_invoice_id: value["externalInvoiceId"],
     id: value["id"],
     migration_id: value["migrationId"],
