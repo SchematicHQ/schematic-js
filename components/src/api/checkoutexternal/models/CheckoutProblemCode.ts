@@ -42,6 +42,9 @@ export const CheckoutProblemCode = {
   CustomFieldRequired: "custom_field_required",
   DiscountIneligible: "discount_ineligible",
   DowngradeNotPermitted: "downgrade_not_permitted",
+  EndDateMustBeFuture: "end_date_must_be_future",
+  EndDateNeedsNewSubscription: "end_date_needs_new_subscription",
+  EndDateNotAfterRenewalDate: "end_date_not_after_renewal_date",
   FreeFirstPeriodActivatesOnPayment: "free_first_period_activates_on_payment",
   InvoiceEmailRequired: "invoice_email_required",
   InvoicedSubscriptionConflictsWithTrial:
