@@ -117,6 +117,7 @@ models/PreviewObjectResponseData.ts
 models/PublicPlansResponseData.ts
 models/RawEventBatchResponseData.ts
 models/RawEventResponseData.ts
+models/RenewalPolicy.ts
 models/RuleConditionDetailResponseData.ts
 models/RuleConditionGroupDetailResponseData.ts
 models/RuleConditionGroupResponseData.ts

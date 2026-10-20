@@ -240,6 +240,7 @@ export * from "./PreviewSubscriptionDiscountResponseData";
 export * from "./PreviewSubscriptionFinanceResponseData";
 export * from "./PreviewSubscriptionUpcomingInvoiceLineItems";
 export * from "./ProrationBehavior";
+export * from "./RenewalPolicy";
 export * from "./Rule";
 export * from "./RuleConditionDetailResponseData";
 export * from "./RuleConditionGroupDetailResponseData";
