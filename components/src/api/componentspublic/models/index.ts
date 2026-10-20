@@ -112,6 +112,7 @@ export * from "./PreviewObjectResponseData";
 export * from "./PublicPlansResponseData";
 export * from "./RawEventBatchResponseData";
 export * from "./RawEventResponseData";
+export * from "./RenewalPolicy";
 export * from "./RuleConditionDetailResponseData";
 export * from "./RuleConditionGroupDetailResponseData";
 export * from "./RuleConditionGroupResponseData";

@@ -34,6 +34,13 @@ import {
   PlanTypeToJSON,
   PlanTypeToJSONTyped,
 } from "./PlanType";
+import type { RenewalPolicy } from "./RenewalPolicy";
+import {
+  RenewalPolicyFromJSON,
+  RenewalPolicyFromJSONTyped,
+  RenewalPolicyToJSON,
+  RenewalPolicyToJSONTyped,
+} from "./RenewalPolicy";
 
 /**
  *
@@ -91,6 +98,12 @@ export interface PlanVersionResponseData {
   planType: PlanType;
   /**
    *
+   * @type {RenewalPolicy}
+   * @memberof PlanVersionResponseData
+   */
+  renewalPolicy: RenewalPolicy;
+  /**
+   *
    * @type {PlanVersionStatus}
    * @memberof PlanVersionResponseData
    */
@@ -124,6 +137,8 @@ export function instanceOfPlanVersionResponseData(
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("name" in value) || value["name"] === undefined) return false;
   if (!("planType" in value) || value["planType"] === undefined) return false;
+  if (!("renewalPolicy" in value) || value["renewalPolicy"] === undefined)
+    return false;
   if (!("status" in value) || value["status"] === undefined) return false;
   if (!("updatedAt" in value) || value["updatedAt"] === undefined) return false;
   if (!("version" in value) || value["version"] === undefined) return false;
@@ -153,6 +168,7 @@ export function PlanVersionResponseDataFromJSONTyped(
     originalPlanId:
       json["original_plan_id"] == null ? undefined : json["original_plan_id"],
     planType: PlanTypeFromJSON(json["plan_type"]),
+    renewalPolicy: RenewalPolicyFromJSON(json["renewal_policy"]),
     status: PlanVersionStatusFromJSON(json["status"]),
     updatedAt: new Date(json["updated_at"]),
     version: json["version"],
@@ -182,6 +198,7 @@ export function PlanVersionResponseDataToJSONTyped(
     name: value["name"],
     original_plan_id: value["originalPlanId"],
     plan_type: PlanTypeToJSON(value["planType"]),
+    renewal_policy: RenewalPolicyToJSON(value["renewalPolicy"]),
     status: PlanVersionStatusToJSON(value["status"]),
     updated_at: value["updatedAt"].toISOString(),
     version: value["version"],
