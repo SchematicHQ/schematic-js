@@ -1,4 +1,5 @@
 .openapi-generator-ignore
+apis/CatalogsApi.ts
 apis/CheckoutexternalApi.ts
 apis/index.ts
 index.ts
@@ -27,6 +28,7 @@ models/CatalogCurrencyPricesResponseData.ts
 models/CatalogCustomPlanCTAResponseData.ts
 models/CatalogPlanEntitlementResponseData.ts
 models/CatalogPlanRefResponseData.ts
+models/CatalogPlanResponseData.ts
 models/CatalogPriceResponseData.ts
 models/CatalogPriceTierResponseData.ts
 models/CatalogUsageViolationResponseData.ts
@@ -100,6 +102,8 @@ models/GetCompanyInvoicesResponse.ts
 models/GetCompanyPaymentMethodsResponse.ts
 models/GetCompanyResponse.ts
 models/GetCompanyUpcomingInvoiceResponse.ts
+models/GetPublicCatalogByIDResponse.ts
+models/GetPublicCatalogResponse.ts
 models/InvoiceStatus.ts
 models/ListCheckoutsParams.ts
 models/ListCheckoutsResponse.ts
@@ -110,6 +114,7 @@ models/PlanCreditGrantScaling.ts
 models/PlanPriceCadence.ts
 models/ProrationBehavior.ts
 models/ProrationLineKind.ts
+models/PublicCatalogResponseData.ts
 models/ScheduledDowngradeConfigBehavior.ts
 models/SetupIntentResponseData.ts
 models/TaxIDInput.ts
