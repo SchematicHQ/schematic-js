@@ -30,6 +30,7 @@ import type {
   InvoicePage,
   InvoiceQuery,
   PaymentMethod,
+  PublicCatalog,
   SetupIntent,
   TaxId,
   TaxIdInput,
@@ -41,6 +42,7 @@ import {
   normalizeCatalogQuery,
   normalizeInvoiceQuery,
 } from "./contract";
+import type { CatalogSource } from "./context";
 import { KeyedResource, type Readiness } from "./store";
 
 /**
@@ -169,6 +171,10 @@ interface HeldSeed {
  * feature usage, credits, the company and tax IDs so far; the rest join with
  * their elements.
  *
+ * `publicCatalog` belongs to no session: it is read with the publishable
+ * key, so a session starting, changing or ending leaves it as it is, and its
+ * prefetch is adopted whoever turns out to be signed in.
+ *
  * `featureUserUsage` and `creditUserUsage` are keyed by feature and by
  * credit, so they are not resource names: a prefetch or fixture holds one
  * value per name. They reset, clear, resume and invalidate with the rest.
@@ -181,6 +187,7 @@ interface HeldSeed {
  */
 export class BillingStore {
   readonly catalog: KeyedResource<Catalog, CatalogQuery>;
+  readonly publicCatalog: KeyedResource<PublicCatalog, CatalogQuery>;
   readonly invoices: KeyedResource<InvoicePage, InvoiceQuery>;
   readonly upcomingInvoice: KeyedResource<
     UpcomingInvoice | null,
@@ -229,6 +236,32 @@ export class BillingStore {
       (query) => this._client.fetchCatalog(query),
       { readiness },
     );
+    this.publicCatalog = new KeyedResource(
+      (query) =>
+        this._client.fetchPublicCatalog?.(query) ??
+        Promise.reject(
+          new Error("The billing client cannot read public data."),
+        ),
+      {
+        readiness: () => {
+          if (!this._connected) {
+            return "waiting";
+          }
+          return this._client.hasPublishableKey === true &&
+            this._client.fetchPublicCatalog !== undefined
+            ? "ready"
+            : "never";
+        },
+      },
+    );
+    if (initialData.publicCatalog !== undefined) {
+      this.publicCatalog.seed(
+        normalizeCatalogQuery(
+          initialData.params?.publicCatalog ?? DEFAULT_CATALOG_QUERY,
+        ),
+        initialData.publicCatalog,
+      );
+    }
     // A refetch re-requests the loaded window, so a user who has paged
     // three deep does not collapse back to one page on invalidation.
     this.invoices = new KeyedResource(
@@ -363,6 +396,7 @@ export class BillingStore {
       this._connected = true;
       this._settleSeed(claimOf(this._client));
       this.resumeAll();
+      this.publicCatalog.resumeAll();
     }
     return () => {
       unsubscribe?.();
@@ -426,6 +460,19 @@ export class BillingStore {
       this._seedKey = held.key;
       this._seeded = true;
     }
+  }
+
+  /**
+   * The company's view once someone is signed in; the public catalog until
+   * then, where the client has a key to read it with. A session still
+   * pending reads the public one too: a page that never states a session
+   * would otherwise wait on one for good.
+   */
+  catalogSource(): CatalogSource {
+    return this._client.sessionStatus !== "active" &&
+      this._client.hasPublishableKey === true
+      ? "public"
+      : "company";
   }
 
   resource<K extends BillingResourceName>(
