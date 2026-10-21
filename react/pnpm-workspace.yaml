@@ -18,6 +18,7 @@ overrides:
   rollup: ">=4.59.0"
   undici: ^7.29.0
   source-map-js: ^1.2.2
+  vite: ^8.2.4
 
 allowBuilds:
   # Denied: its postinstall overwrites bin/esbuild with the platform binary,
