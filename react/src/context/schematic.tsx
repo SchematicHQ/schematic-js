@@ -115,11 +115,16 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
   // where a new object every render says nothing new. Where the requests go
   // is what a rebuild is for.
   const providedApiUrl = providedClient?.apiUrl;
+  // The public catalog is read with the key flags are, so a page nobody has
+  // signed in to can still show what is for sale.
+  const resolvedPublishableKey =
+    initialOptsRef.current.publishableKey ?? providedClient?.publishableKey;
   const resolvedBillingClient = useMemo(
     () =>
       billingClient ??
       new SchematicJS.SchematicBillingClient({
         session,
+        publishableKey: resolvedPublishableKey,
         apiUrl: apiUrl ?? providedApiUrl,
         // Read as they stand when a client is built: headers do not change
         // where the token goes, so they are no reason to build one.
@@ -131,7 +136,13 @@ export const SchematicProvider: React.FC<SchematicProviderProps> = ({
     // `session` is deliberately absent: `BillingProvider` forwards it through
     // `setSession`, so a token change resets the billing resources without
     // rebuilding the client.
-    [additionalHeaders, apiUrl, billingClient, providedApiUrl],
+    [
+      additionalHeaders,
+      apiUrl,
+      billingClient,
+      providedApiUrl,
+      resolvedPublishableKey,
+    ],
   );
 
   return (

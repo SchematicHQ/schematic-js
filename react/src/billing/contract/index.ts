@@ -5,9 +5,10 @@
  * client method this release does not read, and typing the store by the
  * whole would make each addition there a compile error here, so that taking
  * a newer schematic-js meant adopting whatever it added. A resource joins
- * this list with the hook that reads it. The catalog, invoices,
- * upcoming-invoice, payment-methods, feature-usage, credits, company and
- * tax-ID slices so far; the rest of the contract ships with its elements.
+ * this list with the hook that reads it. The catalog (the company's view and
+ * the public one), invoices, upcoming-invoice, payment-methods,
+ * feature-usage, credits, company and tax-ID slices so far; the rest of the
+ * contract ships with its elements.
  */
 import {
   normalizeCatalogQuery as normalizeCatalog,
@@ -39,6 +40,7 @@ export {
   type CatalogEntitlement,
   type CatalogPlan,
   type CatalogQuery,
+  type CatalogView,
   type Checkout,
   type CheckoutDraftState,
   type CheckoutPriceSnapshot,
@@ -66,6 +68,8 @@ export {
   type MeteredPrice,
   type PaymentMethod,
   type PerLicenseCreditGrant,
+  type PublicCatalog,
+  type PublicCatalogPlan,
   type ResourceState,
   type ScheduledDowngrade,
   type SetupIntent,
@@ -78,6 +82,7 @@ export {
 /** The resources this package serves; a key of schematic-js's contract. */
 export type BillingResourceName =
   | "catalog"
+  | "publicCatalog"
   | "invoices"
   | "upcomingInvoice"
   | "paymentMethods"
@@ -124,7 +129,10 @@ export type BillingProviderClient = Pick<
   | "cancelSubscription"
   | "fetchTaxIds"
   | "updateTaxId"
->;
+> &
+  // Optional, so a host's client written before the public catalog still
+  // satisfies this; without them, a reader with no session gets nothing.
+  Partial<Pick<ContractClient, "fetchPublicCatalog" | "hasPublishableKey">>;
 
 /**
  * Keeps only the fields the request reads. The store keys a row set by the

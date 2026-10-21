@@ -7,6 +7,7 @@ import { SchematicI18nProvider, type SchematicI18nConfig } from "../i18n";
 import { BillingStore, type SessionInput } from "./client";
 import {
   BillingDataContext,
+  catalogSourceOf,
   type BillingDataSource,
   type ResourceHandle,
 } from "./context";
@@ -207,6 +208,7 @@ export function BillingProvider({
           store.finalizeCheckout(id, version, options),
       },
       onSessionChange: (listener) => store.onSessionChange(listener),
+      catalogSource: () => store.catalogSource(),
     };
   }, [store]);
 
@@ -279,5 +281,6 @@ function staticSource(data: BillingData): BillingDataSource {
     },
     loadMoreInvoices: () => Promise.resolve(),
     invalidateAll: () => {},
+    catalogSource: () => catalogSourceOf(data),
   };
 }
