@@ -5,6 +5,7 @@ import { Invoices } from "./Invoices";
 import { MeteredFeatures } from "./MeteredFeatures";
 import { PaymentMethods } from "./PaymentMethods";
 import { PlanManager } from "./PlanManager";
+import { PricingTable } from "./PricingTable";
 import { UnsubscribeButton } from "./UnsubscribeButton";
 import { UpcomingBill } from "./UpcomingBill";
 import { billingResources, type ReadsBillingResources } from "./common";
@@ -34,6 +35,11 @@ describe("what the elements read", () => {
       "company",
       "paymentMethods",
       "featureUsage",
+    ]);
+    expect(PricingTable.resources).toEqual([
+      "catalog",
+      "publicCatalog",
+      "company",
     ]);
   });
 
