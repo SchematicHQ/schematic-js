@@ -175,6 +175,7 @@ const KEYS = [
   "pricingTableChoosePlan",
   "pricingTableCredits",
   "pricingTableCreditsPerLicense",
+  "pricingTableCreditsPerLicensePerPeriod",
   "pricingTableCreditsPerPeriod",
   "pricingTableCurrency",
   "pricingTableCurrentPlan",

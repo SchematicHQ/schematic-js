@@ -7,6 +7,12 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { PricingTable, type PricingTableProps } from "./PricingTable";
+import {
+  catalogCreditGrant,
+  catalogEntitlement,
+  publicCatalog,
+  publicCatalogPlan,
+} from "./fixtures/builders";
 import { SCENARIOS } from "./fixtures/scenarios";
 
 const L = "en-US";
@@ -210,6 +216,26 @@ describe("PricingTable", () => {
     ).toBeInTheDocument();
     expect(within(pro).getByText("then $0.50/GB of storage/mo")).toBeTruthy();
     expect(within(pro).getByText("Everything in Free, plus")).toBeTruthy();
+  });
+
+  test("words a credit granted per license with the period it renews in", () => {
+    const plan = publicCatalogPlan({
+      name: "Team",
+      entitlements: [
+        catalogEntitlement({ featureName: "Seat", licenseId: "lic_1" }),
+      ],
+      includedCreditGrants: [
+        catalogCreditGrant({
+          creditAmount: 40,
+          scaling: "per_license",
+          licenseId: "lic_1",
+        }),
+      ],
+    });
+    renderTable({ publicCatalog: publicCatalog({ plans: [plan] }) });
+    expect(
+      within(card("Team")).getByText("40 AI credits per Seat per month"),
+    ).toBeInTheDocument();
   });
 
   test("shows four features until asked for all", () => {

@@ -579,11 +579,18 @@ function CreditItem({
 }) {
   const text =
     credit.perLicense !== null
-      ? t("pricingTableCreditsPerLicense", {
-          amount: credit.amount,
-          creditName: credit.creditName,
-          licenseName: credit.perLicense,
-        })
+      ? credit.period !== null
+        ? t("pricingTableCreditsPerLicensePerPeriod", {
+            amount: credit.amount,
+            creditName: credit.creditName,
+            licenseName: credit.perLicense,
+            period: periodWord(credit.period, t),
+          })
+        : t("pricingTableCreditsPerLicense", {
+            amount: credit.amount,
+            creditName: credit.creditName,
+            licenseName: credit.perLicense,
+          })
       : credit.period !== null
         ? t("pricingTableCreditsPerPeriod", {
             amount: credit.amount,

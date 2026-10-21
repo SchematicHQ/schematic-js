@@ -204,6 +204,7 @@ export type ElementStrings = {
   pricingTableCredits: string;
   pricingTableCreditsPerPeriod: string;
   pricingTableCreditsPerLicense: string;
+  pricingTableCreditsPerLicensePerPeriod: string;
   pricingTableUnitsPerPeriod: string;
   pricingTablePerUnitPerPeriod: string;
   pricingTablePerPackagePerPeriod: string;
@@ -519,6 +520,8 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   pricingTableCreditsPerPeriod: "{{amount}} {{creditName}} per {{period}}",
   pricingTableCreditsPerLicense:
     "{{amount}} {{creditName}} per {{licenseName}}",
+  pricingTableCreditsPerLicensePerPeriod:
+    "{{amount}} {{creditName}} per {{licenseName}} per {{period}}",
   pricingTableUnitsPerPeriod: "{{amount}} {{units}} per {{period}}",
   pricingTablePerUnitPerPeriod: "{{cost}} per {{unit}} per {{period}}",
   pricingTablePerPackagePerPeriod:
