@@ -1,4 +1,4 @@
-import type { Catalog, CatalogQuery } from "./catalog";
+import type { Catalog, CatalogQuery, PublicCatalog } from "./catalog";
 import type { Company } from "./company";
 import type { CreditBalanceEntry } from "./credits";
 import type { FeatureUsage } from "./featureUsage";
@@ -29,6 +29,12 @@ export interface BillingResources {
    * `catalogId`: the catalog as the company sees it.
    */
   catalog: Catalog;
+  /**
+   * `GET /public/catalog`, or `GET /public/catalogs/{catalog_id}`: the
+   * catalog read with the publishable key. It belongs to no session, so a
+   * session starting, changing or ending leaves it loaded.
+   */
+  publicCatalog: PublicCatalog;
   /** `GET /company/invoices?limit&offset&include_pending`. */
   invoices: InvoicePage;
   /**
@@ -65,6 +71,7 @@ export interface BillingResources {
 /** `Record<string, never>` marks a singleton; anything else is keyed. */
 export interface BillingResourceParams {
   catalog: CatalogQuery;
+  publicCatalog: CatalogQuery;
   invoices: InvoiceQuery;
   upcomingInvoice: Record<string, never>;
   paymentMethods: Record<string, never>;
