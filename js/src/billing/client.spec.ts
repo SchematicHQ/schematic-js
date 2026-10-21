@@ -6,6 +6,7 @@ import {
   wireCatalogView,
   wireCheckout,
   wireCheckoutResult,
+  wirePublicCatalog,
 } from "./testing";
 import { SchematicApiError, SchematicSession } from "./session";
 
@@ -1368,7 +1369,129 @@ describe("catalog view", () => {
       "/catalogs/cat_2/view",
     ]);
     expect(data.catalog?.plans).toHaveLength(1);
-    expect(data.params).toEqual({ catalog: { catalogId: "cat_2" } });
+    expect(data.params).toEqual({
+      catalog: { catalogId: "cat_2" },
+      publicCatalog: { catalogId: "cat_2" },
+    });
+  });
+});
+
+describe("public catalog", () => {
+  it("reads the public catalog with the publishable key, with nobody signed in", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wirePublicCatalog }));
+    const client = new SchematicBillingClient({
+      session: null,
+      publishableKey: "pk_1",
+      fetch: fetchImpl,
+    });
+    expect(client.hasPublishableKey).toBe(true);
+    const catalog = await client.fetchPublicCatalog();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/public/catalog",
+      method: "GET",
+    });
+    expect(tokens(calls)).toEqual(["pk_1"]);
+    expect(catalog.capabilities.checkout).toBe(false);
+    expect(catalog.plans.map((plan) => plan.id)).toEqual([
+      "plan_fw7bhwPVFas",
+      "plan_8iLXw7U4wNh",
+    ]);
+    expect(catalog.addOns).toHaveLength(2);
+    expect(catalog.plans[0]).not.toHaveProperty("current");
+  });
+
+  it("reads one catalog by id, under the key even while a session is active", async () => {
+    const tokenProvider = vi.fn(async () => "t");
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wirePublicCatalog }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: tokenProvider },
+      publishableKey: "pk_1",
+      fetch: fetchImpl,
+    });
+    await client.fetchPublicCatalog({ catalogId: "cat/1" });
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/public/catalogs/cat%2F1",
+    );
+    expect(tokens(calls)).toEqual(["pk_1"]);
+    expect(tokenProvider).not.toHaveBeenCalled();
+  });
+
+  it("refuses without a key, and keeps a 404 the failure it is", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wirePublicCatalog }));
+    const keyless = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    expect(keyless.hasPublishableKey).toBe(false);
+    await expect(keyless.fetchPublicCatalog()).rejects.toThrow(
+      /publishable key is required/,
+    );
+    expect(calls).toHaveLength(0);
+
+    // Off the catalog flag: the account has no public catalog to read.
+    const missing = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
+    const client = new SchematicBillingClient({
+      publishableKey: "pk_1",
+      fetch: missing.fetchImpl,
+    });
+    await expect(client.fetchPublicCatalog()).rejects.toMatchObject({
+      name: "SchematicApiError",
+      status: 404,
+    });
+
+    for (const body of [null, { data: null }]) {
+      const malformed = fakeFetch(() => ({ body }));
+      const reader = new SchematicBillingClient({
+        publishableKey: "pk_1",
+        fetch: malformed.fetchImpl,
+      });
+      await expect(reader.fetchPublicCatalog()).rejects.toThrow(
+        /Malformed response/,
+      );
+    }
+  });
+
+  it("is not abandoned when the session changes mid-flight", async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const { fetchImpl } = fakeFetch(() => ({ body: wirePublicCatalog }));
+    const client = new SchematicBillingClient({
+      session: null,
+      publishableKey: "pk_1",
+      fetch: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        await gate;
+        return fetchImpl(input, init);
+      }) as typeof fetch,
+    });
+    const read = client.fetchPublicCatalog();
+    client.setSession({ company: "comp_a", token: "t" });
+    release();
+    await expect(read).resolves.toMatchObject({ id: "cat_fw7bhwPVFas" });
+  });
+
+  it("prefetches the public catalog with no session, under the catalog's params", async () => {
+    const { calls, fetchImpl } = fakeFetch(
+      byPath({ "/public/catalogs/cat_2": { body: wirePublicCatalog } }),
+    );
+    const client = new SchematicBillingClient({
+      session: null,
+      publishableKey: "pk_1",
+      fetch: fetchImpl,
+    });
+    const data = await fetchBillingData(client, {
+      names: ["publicCatalog"],
+      catalog: { catalogId: "cat_2" },
+    });
+    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
+      "/public/catalogs/cat_2",
+    ]);
+    expect(data.publicCatalog?.plans).toHaveLength(2);
+    expect(data.params?.publicCatalog).toEqual({ catalogId: "cat_2" });
   });
 });
 

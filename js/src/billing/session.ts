@@ -64,6 +64,11 @@ export type SessionEvent = { type: "started" | "changed" | "ended" };
 
 export interface SessionOptions {
   session?: SessionInput;
+  /**
+   * For the reads that belong to no session: the public catalog, which a
+   * page renders before anyone has signed in.
+   */
+  publishableKey?: string;
   apiUrl?: string;
   additionalHeaders?: Record<string, string>;
   /** Override for tests and non-browser runtimes. */
@@ -154,6 +159,7 @@ export class SchematicSession {
   private readonly _apiUrl: string;
   private readonly _headers: Record<string, string>;
   private readonly _fetch: typeof fetch;
+  private readonly _publishableKey: string | undefined;
   private _session: SessionInput;
   private readonly _tokens = new Map<string, ResolvedToken>();
   private readonly _resolving = new Map<string, ResolvingToken>();
@@ -167,6 +173,7 @@ export class SchematicSession {
 
   constructor(options: SessionOptions = {}) {
     this._session = options.session;
+    this._publishableKey = options.publishableKey;
     this._apiUrl = (options.apiUrl ?? DEFAULT_API_URL).replace(/\/$/, "");
     this._headers = options.additionalHeaders ?? {};
     this._fetch =
@@ -177,6 +184,10 @@ export class SchematicSession {
     return this._session === null || this._session === undefined
       ? undefined
       : sessionKey(this._session);
+  }
+
+  get hasPublishableKey(): boolean {
+    return this._publishableKey !== undefined;
   }
 
   get status(): SessionStatus {
@@ -347,6 +358,31 @@ export class SchematicSession {
    */
   async request(path: string, options: RequestOptions = {}): Promise<unknown> {
     return (await this.requestWithResponse(path, options)).body;
+  }
+
+  /**
+   * A read under the publishable key, whatever the session. Nothing is
+   * refreshed or retried, since the key does not expire, and a session
+   * changing mid-flight does not void the answer: it is the same for
+   * everyone.
+   */
+  async requestPublic(path: string): Promise<unknown> {
+    if (this._publishableKey === undefined) {
+      throw new Error("A publishable key is required to read public data.");
+    }
+    const response = await this._fetch(`${this._apiUrl}${path}`, {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+        ...this._headers,
+        "X-Schematic-Api-Key": this._publishableKey,
+      },
+    });
+    const parsed = await readBody(response);
+    if (!response.ok) {
+      throw new SchematicApiError(response.status, path, parsed);
+    }
+    return parsed;
   }
 
   /**

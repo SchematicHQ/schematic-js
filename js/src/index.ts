@@ -354,6 +354,11 @@ export class Schematic {
     return { ...this._additionalHeaders };
   }
 
+  /** The key flags are read with, for a billing client reading beside it. */
+  get publishableKey(): string {
+    return this.apiKey;
+  }
+
   /**
    * Resolve fallback value according to priority order:
    * 1. Callsite fallback value (if provided)
@@ -639,11 +644,8 @@ export class Schematic {
     }
     return this.contextSignatureManager
       .getSignature(context)
-      .then(
-        (signature): Record<string, string> =>
-          signature === undefined
-            ? {}
-            : { [contextSignatureHeader]: signature },
+      .then((signature): Record<string, string> =>
+        signature === undefined ? {} : { [contextSignatureHeader]: signature },
       );
   }
 

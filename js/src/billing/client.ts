@@ -20,6 +20,7 @@ import {
   GetCompanyInvoicesResponseFromJSON,
   GetCompanyPaymentMethodsResponseFromJSON,
   GetCompanyUpcomingInvoiceResponseFromJSON,
+  PublicCatalogResponseDataFromJSON,
 } from "./api/generated/models";
 import type {
   BillingData,
@@ -38,6 +39,7 @@ import type {
   InvoicePage,
   InvoiceQuery,
   PaymentMethod,
+  PublicCatalog,
   SetupIntent,
   TaxId,
   TaxIdInput,
@@ -90,6 +92,13 @@ export interface FeatureUserUsageRequest {
 export interface BillingClient {
   /** The environment's catalog, or the one `catalogId` names. */
   fetchCatalog(query?: CatalogQuery): Promise<Catalog>;
+  /**
+   * The same catalog with no company's standing in it, read with the
+   * publishable key whether or not a session is active.
+   */
+  fetchPublicCatalog(query?: CatalogQuery): Promise<PublicCatalog>;
+  /** Whether `fetchPublicCatalog` has a key to read with. */
+  readonly hasPublishableKey: boolean;
   /** Opens a checkout, priced when the cart is priceable. */
   createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite>;
   getCheckout(id: string): Promise<Checkout>;
@@ -200,6 +209,10 @@ export class SchematicBillingClient implements BillingClient {
     return this.session.status;
   }
 
+  get hasPublishableKey(): boolean {
+    return this.session.hasPublishableKey;
+  }
+
   setSession(session: SessionInput): void {
     this.session.set(session);
   }
@@ -218,6 +231,17 @@ export class SchematicBillingClient implements BillingClient {
     return this.session
       .request(path)
       .then((body) => CompanyCatalogResponseDataFromJSON(dataOf(body, path)));
+  }
+
+  fetchPublicCatalog(query: CatalogQuery = {}): Promise<PublicCatalog> {
+    // A 404 is the account being off the catalog flag, as for the view.
+    const path =
+      query.catalogId === undefined
+        ? "/public/catalog"
+        : `/public/catalogs/${encodeURIComponent(query.catalogId)}`;
+    return this.session
+      .requestPublic(path)
+      .then((body) => PublicCatalogResponseDataFromJSON(dataOf(body, path)));
   }
 
   createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite> {
@@ -508,7 +532,10 @@ export interface BillingPrefetchOptions {
   names: BillingResourceName[];
   /** The invoice query to prefetch for; the element must ask the same one. */
   invoices?: InvoiceQuery;
-  /** The catalog to prefetch; the element must ask the same one. */
+  /**
+   * The catalog to prefetch, as `catalog` or `publicCatalog`; the element
+   * must ask the same one.
+   */
   catalog?: CatalogQuery;
 }
 
@@ -535,7 +562,7 @@ export async function fetchBillingData(
   if (invoices !== undefined || catalog !== undefined) {
     data.params = {
       ...(invoices === undefined ? {} : { invoices }),
-      ...(catalog === undefined ? {} : { catalog }),
+      ...(catalog === undefined ? {} : { catalog, publicCatalog: catalog }),
     };
   }
   // A page rendered before its auth resolves hands these rows to whichever
@@ -547,6 +574,10 @@ export async function fetchBillingData(
         switch (name) {
           case "catalog": {
             data.catalog = await client.fetchCatalog(catalog ?? {});
+            break;
+          }
+          case "publicCatalog": {
+            data.publicCatalog = await client.fetchPublicCatalog(catalog ?? {});
             break;
           }
           case "invoices": {
