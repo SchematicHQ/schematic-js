@@ -4,6 +4,9 @@
  */
 
 import type {
+  Catalog,
+  CatalogEntitlement,
+  CatalogPlan,
   Company,
   CompanyPlan,
   CompanySubscription,
@@ -18,6 +21,8 @@ import type {
   MeteredPrice,
   PaymentMethod,
   PerLicenseCreditGrant,
+  PublicCatalog,
+  PublicCatalogPlan,
   UpcomingInvoice,
 } from "@schematichq/schematic-react";
 
@@ -201,6 +206,7 @@ export function perLicenseCreditGrant(
     creditName: "AI credit",
     id: nextId("bpcg"),
     scaling: "per_license",
+    visible: true,
     ...overrides,
   };
 }
@@ -347,6 +353,144 @@ export function company(overrides: Partial<Company> = {}): Company {
     name: "Acme",
     plan: companyPlan(),
     subscription: companySubscription(),
+    ...overrides,
+  };
+}
+
+type CatalogPrice = NonNullable<CatalogPlan["monthlyPrice"]>;
+type CatalogCreditGrant = CatalogPlan["includedCreditGrants"][number];
+
+/** A flat USD price per month, in minor units. */
+export function catalogPrice(
+  overrides: Partial<CatalogPrice> = {},
+): CatalogPrice {
+  return {
+    currency: "usd",
+    id: nextId("bilpp"),
+    interval: "month",
+    intervalCount: 1,
+    packageSize: 1,
+    price: 2900,
+    priceTiers: [],
+    scheme: "per_unit",
+    ...overrides,
+  };
+}
+
+/** 1,000 API calls a month, a numeric trait-free entitlement. */
+export function catalogEntitlement(
+  overrides: Partial<CatalogEntitlement> = {},
+): CatalogEntitlement {
+  return {
+    currencyPrices: [],
+    featureDescription: "",
+    featureIcon: "server-search",
+    featureId: nextId("feat"),
+    featureName: "API call",
+    featureType: "event",
+    id: nextId("pltl"),
+    metricPeriod: "current_month",
+    valueNumeric: 1000,
+    valueType: "numeric",
+    ...overrides,
+  };
+}
+
+/** 100 AI credits a month, shown on the card. */
+export function catalogCreditGrant(
+  overrides: Partial<CatalogCreditGrant> = {},
+): CatalogCreditGrant {
+  return {
+    companyCreditAmount: 0,
+    creditAmount: 100,
+    creditId: nextId("bilcr"),
+    creditName: "AI credit",
+    id: nextId("bilpcg"),
+    resetCadence: "monthly",
+    scaling: "fixed",
+    visible: true,
+    ...overrides,
+  };
+}
+
+/**
+ * A recurring plan priced per month and year in USD from `monthly`, a year
+ * at ten months. Pass `prices` for anything else.
+ */
+export function publicCatalogPlan(
+  overrides: Partial<PublicCatalogPlan> & { monthly?: number } = {},
+): PublicCatalogPlan {
+  const { monthly = 2900, ...rest } = overrides;
+  const monthlyPrice = catalogPrice({ price: monthly });
+  const yearlyPrice = catalogPrice({ interval: "year", price: monthly * 10 });
+  return {
+    availablePeriods: ["monthly", "yearly"],
+    billingStrategy: "provider_managed",
+    chargeType: "recurring",
+    currencyPrices: [{ currency: "usd", monthlyPrice, yearlyPrice }],
+    description: "For growing teams",
+    entitlements: [],
+    icon: "yellow",
+    id: nextId("plan"),
+    includedCreditGrants: [],
+    isTrialable: false,
+    monthlyPrice,
+    name: "Pro",
+    yearlyPrice,
+    ...rest,
+  };
+}
+
+/** The same plan as the company sees it: valid, not current. */
+export function catalogPlan(
+  overrides: Partial<CatalogPlan> & { monthly?: number } = {},
+): CatalogPlan {
+  const { monthly, ...rest } = overrides;
+  return {
+    ...publicCatalogPlan({ monthly }),
+    autoTopups: [],
+    companyCanTrial: false,
+    current: false,
+    usageViolations: [],
+    valid: true,
+    ...rest,
+  };
+}
+
+/** A USD catalog with nothing in it; nobody signed in. */
+export function publicCatalog(
+  overrides: Partial<PublicCatalog> = {},
+): PublicCatalog {
+  return {
+    addOns: [],
+    capabilities: { badgeVisibility: false, checkout: false },
+    creditBundles: [],
+    defaultCurrency: "usd",
+    id: nextId("cat"),
+    name: "Default",
+    plans: [],
+    ...overrides,
+  };
+}
+
+/** The same catalog as a company that can check out sees it. */
+export function companyCatalog(overrides: Partial<Catalog> = {}): Catalog {
+  return {
+    ...publicCatalog(),
+    addOns: [],
+    capabilities: { badgeVisibility: false, checkout: true },
+    checkoutSettings: {
+      bundlePurchaseBehavior: "individual",
+      collectAddress: false,
+      collectEmail: false,
+      collectPhone: false,
+      collectTaxId: false,
+      customFields: [],
+      prorationBehavior: "create_prorations",
+      taxCollectionEnabled: false,
+    },
+    plans: [],
+    preventSelfServiceDowngrade: false,
     ...overrides,
   };
 }

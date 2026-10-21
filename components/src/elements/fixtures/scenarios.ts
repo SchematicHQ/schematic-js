@@ -12,7 +12,12 @@ import type {
 import {
   bankPaymentMethod,
   cardPaymentMethod,
+  catalogCreditGrant,
+  catalogEntitlement,
+  catalogPlan,
+  catalogPrice,
   company,
+  companyCatalog,
   companyPlan,
   companySubscription,
   creditBalance,
@@ -24,6 +29,8 @@ import {
   invoicePage,
   meteredPrice,
   perLicenseCreditGrant,
+  publicCatalog,
+  publicCatalogPlan,
   upcomingInvoice,
   walletPaymentMethod,
 } from "./builders";
@@ -429,6 +436,155 @@ export function featureUsageEmpty(): BillingData {
   return { featureUsage: [] };
 }
 
+/**
+ * Three plans and two add-ons: Free; Pro, the company's, with features of
+ * every kind and a hidden credit; Scale, whose limits the company is over;
+ * a recurring add-on and a one-time one; and a custom plan to talk about.
+ */
+function pricingCatalogParts() {
+  const seats = catalogEntitlement({
+    featureName: "Seat",
+    featureType: "trait",
+    priceBehavior: "pay_in_advance",
+    valueType: "numeric",
+    valueNumeric: null,
+    metricPeriod: null,
+    currencyPrices: [
+      {
+        currency: "usd",
+        monthlyPrice: catalogPrice({ price: 1000 }),
+        yearlyPrice: catalogPrice({ interval: "year", price: 10000 }),
+      },
+    ],
+  });
+  const storage = catalogEntitlement({
+    featureName: "GB of storage",
+    featureSingularName: "GB of storage",
+    featurePluralName: "GB of storage",
+    featureType: "trait",
+    priceBehavior: "overage",
+    softLimit: 50,
+    valueNumeric: 100,
+    metricPeriod: null,
+    currencyPrices: [
+      {
+        currency: "usd",
+        monthlyPrice: catalogPrice({ price: 50 }),
+        yearlyPrice: catalogPrice({ interval: "year", price: 500 }),
+      },
+    ],
+  });
+  const aiCredit = catalogCreditGrant({ creditName: "AI credit" });
+  const hiddenCredit = catalogCreditGrant({
+    creditName: "Placeholder credit",
+    creditAmount: 1_000_000,
+    visible: false,
+  });
+  const free = { name: "Free", description: "For trying it out", monthly: 0 };
+  const pro = {
+    name: "Pro",
+    monthly: 2900,
+    entitlements: [
+      catalogEntitlement({ featureName: "API call", valueNumeric: 10_000 }),
+      seats,
+      storage,
+      catalogEntitlement({
+        featureName: "SSO",
+        featureType: "boolean",
+        valueType: "boolean",
+        valueNumeric: null,
+        metricPeriod: null,
+      }),
+      catalogEntitlement({
+        featureName: "Project",
+        featureType: "trait",
+        valueType: "unlimited",
+        valueNumeric: null,
+        metricPeriod: null,
+      }),
+    ],
+    includedCreditGrants: [aiCredit, hiddenCredit],
+  };
+  const scale = {
+    name: "Scale",
+    description: "For larger teams",
+    monthly: 9900,
+    entitlements: [
+      catalogEntitlement({ featureName: "API call", valueNumeric: 100_000 }),
+    ],
+    isTrialable: true,
+    trialDays: 14,
+  };
+  const support = {
+    name: "Priority support",
+    description: "A one-hour response",
+    monthly: 4900,
+  };
+  const onboarding = {
+    name: "Onboarding",
+    description: "A guided setup",
+    availablePeriods: [],
+    chargeType: "one_time" as const,
+    currencyPrices: [
+      {
+        currency: "usd" as const,
+        oneTimePrice: catalogPrice({ interval: "one-time", price: 50_000 }),
+      },
+    ],
+  };
+  return { free, pro, scale, support, onboarding };
+}
+
+/** The pricing table as the company on Pro, monthly, sees it. */
+export function pricingTableScenario(): BillingData {
+  const { free, pro, scale, support, onboarding } = pricingCatalogParts();
+  return {
+    catalog: companyCatalog({
+      plans: [
+        catalogPlan(free),
+        catalogPlan({ ...pro, current: true }),
+        catalogPlan({
+          ...scale,
+          valid: false,
+          invalidReason: "feature_usage_exceeded",
+          usageViolations: [
+            {
+              featureId: "feat_api",
+              featureName: "API call",
+              usage: 120_000,
+              limit: 100_000,
+            },
+          ],
+        }),
+      ],
+      addOns: [catalogPlan(support), catalogPlan(onboarding)],
+      customPlanCta: {
+        ctaText: "Talk to sales",
+        ctaUrl: "https://example.com/sales",
+        priceText: "Let's talk",
+      },
+    }),
+    company: company({
+      subscription: companySubscription({ period: "month" }),
+    }),
+  };
+}
+
+/** The same table for a visitor nobody has signed in as. */
+export function pricingTablePublicScenario(): BillingData {
+  const { free, pro, scale, support, onboarding } = pricingCatalogParts();
+  return {
+    publicCatalog: publicCatalog({
+      plans: [
+        publicCatalogPlan(free),
+        publicCatalogPlan(pro),
+        publicCatalogPlan(scale),
+      ],
+      addOns: [publicCatalogPlan(support), publicCatalogPlan(onboarding)],
+    }),
+  };
+}
+
 export const SCENARIOS = {
   pro: proCompany,
   trialing: trialingCompany,
@@ -441,6 +597,8 @@ export const SCENARIOS = {
   credits: creditsScenario,
   planManager: planManagerScenario,
   planManagerTrialing: planManagerTrialingScenario,
+  pricingTable: pricingTableScenario,
+  pricingTablePublic: pricingTablePublicScenario,
 } satisfies Record<string, () => BillingData>;
 
 export type ScenarioName = keyof typeof SCENARIOS;
