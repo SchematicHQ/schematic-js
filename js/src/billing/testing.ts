@@ -577,6 +577,7 @@ export const wirePublicCatalog = {
             license_id: null,
             reset_cadence: "monthly",
             scaling: "fixed",
+            visible: true,
           },
         ],
         is_trialable: false,

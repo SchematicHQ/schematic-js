@@ -1398,6 +1398,7 @@ describe("public catalog", () => {
     ]);
     expect(catalog.addOns).toHaveLength(2);
     expect(catalog.plans[0]).not.toHaveProperty("current");
+    expect(catalog.plans[0].includedCreditGrants[0].visible).toBe(true);
   });
 
   it("reads one catalog by id, under the key even while a session is active", async () => {
