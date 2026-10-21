@@ -4,6 +4,7 @@ models/ApiError.ts
 models/BillingArrearsAnchor.ts
 models/BillingArrearsCadence.ts
 models/BillingCreditAutoTopupAvailability.ts
+models/BillingCreditBundleType.ts
 models/BillingCreditBurnStrategy.ts
 models/BillingCreditExpiryType.ts
 models/BillingCreditExpiryUnit.ts
@@ -32,6 +33,18 @@ models/BillingProductResponseData.ts
 models/BillingProviderType.ts
 models/BillingStrategy.ts
 models/BillingTiersMode.ts
+models/CatalogBundleCurrencyPriceResponseData.ts
+models/CatalogCapabilitiesResponseData.ts
+models/CatalogCreditBundleResponseData.ts
+models/CatalogCreditGrantResponseData.ts
+models/CatalogCurrencyPricesResponseData.ts
+models/CatalogCustomPlanCTAResponseData.ts
+models/CatalogDetailResponseData.ts
+models/CatalogEntitlementResponseData.ts
+models/CatalogPlanEntitlementResponseData.ts
+models/CatalogPlanResponseData.ts
+models/CatalogPriceResponseData.ts
+models/CatalogPriceTierResponseData.ts
 models/ChargeType.ts
 models/CheckFlagRequestBody.ts
 models/CheckFlagResponse.ts
@@ -84,6 +97,8 @@ models/FlagInPlanResponseData.ts
 models/FlagResponseData.ts
 models/FlagType.ts
 models/GenericPreviewObject.ts
+models/GetPublicCatalogByIDResponse.ts
+models/GetPublicCatalogResponse.ts
 models/GetPublicPlansResponse.ts
 models/GetWhoAmIResponse.ts
 models/MetricPeriod.ts
@@ -108,6 +123,7 @@ models/PreflightEventUsageRequestBody.ts
 models/PreflightRequestBody.ts
 models/PreviewObject.ts
 models/PreviewObjectResponseData.ts
+models/PublicCatalogResponseData.ts
 models/PublicPlansResponseData.ts
 models/RawEventBatchResponseData.ts
 models/RawEventResponseData.ts
