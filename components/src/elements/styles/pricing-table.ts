@@ -63,6 +63,9 @@ export const pricingTableCss = `
   font-weight: 800;
   line-height: var(--schematic-line-height-heading);
   margin: 0;
+}
+
+.schematic-plan-card--active .schematic-plan-card__name {
   padding-inline-end: 5rem;
 }
 
@@ -106,7 +109,7 @@ export const pricingTableCss = `
   gap: var(--schematic-space);
 }
 
-.schematic-plan-card__icon {
+.schematic-plan-card .schematic-plan-card__icon {
   align-items: center;
   background: var(--schematic-surface);
   border-radius: 9999px;
@@ -140,6 +143,10 @@ export const pricingTableCss = `
   justify-content: end;
   padding: calc(var(--schematic-card-padding) * 0.75)
     var(--schematic-card-padding) 0;
+}
+
+.schematic-plan-card__entitlements {
+  flex-grow: 1;
 }
 
 .schematic-plan-card__inclusion {
