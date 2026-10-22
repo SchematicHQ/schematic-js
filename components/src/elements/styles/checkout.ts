@@ -340,6 +340,16 @@ export const checkoutCss = `
   color: var(--schematic-accent);
 }
 
+/* The other methods on file, under the one the checkout pays with. */
+.schematic-checkout__methods {
+  margin-top: calc(var(--schematic-space) / 2);
+}
+
+.schematic-checkout__use-method {
+  margin-inline-start: auto;
+  white-space: nowrap;
+}
+
 .schematic-checkout__problems {
   display: flex;
   flex-direction: column;

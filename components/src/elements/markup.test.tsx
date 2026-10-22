@@ -908,6 +908,68 @@ describe("Checkout markup contract", () => {
     ]);
   });
 
+  test("the payment step with other methods on file", async () => {
+    const root = await renderCheckout(
+      "payment",
+      undefined,
+      checkoutDraft(),
+      {},
+      {
+        paymentMethods: [
+          cardPaymentMethod({ isDefault: true }),
+          cardPaymentMethod({ cardLast4: "1881" }),
+        ],
+      },
+    );
+    expect(classNames(root)).toEqual([
+      "schematic-checkout__disclaimer",
+      "schematic-checkout__field",
+      "schematic-checkout__field-label",
+      "schematic-checkout__frame",
+      "schematic-checkout__heading",
+      "schematic-checkout__inline",
+      "schematic-checkout__input",
+      "schematic-checkout__layout",
+      "schematic-checkout__line",
+      "schematic-checkout__line-amount",
+      "schematic-checkout__lines",
+      "schematic-checkout__main",
+      "schematic-checkout__methods",
+      "schematic-checkout__nav",
+      "schematic-checkout__section",
+      "schematic-checkout__section-title",
+      "schematic-checkout__step",
+      "schematic-checkout__step-link",
+      "schematic-checkout__stepper",
+      "schematic-checkout__summary",
+      "schematic-checkout__summary-title",
+      "schematic-checkout__total",
+      "schematic-checkout__total--due",
+      "schematic-checkout__total-amount",
+      "schematic-checkout__totals",
+      "schematic-checkout__use-method",
+      "schematic-cta",
+      "schematic-cta--outline",
+      "schematic-cta--small",
+      "schematic-dialog__body",
+      "schematic-dialog__close",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-element",
+      "schematic-icon",
+      "schematic-icon--close",
+      "schematic-icon--visa",
+      "schematic-link-button",
+      "schematic-payment-methods__current",
+      "schematic-payment-methods__icon",
+      "schematic-payment-methods__label",
+      "schematic-payment-methods__last4",
+      "schematic-payment-methods__list",
+      "schematic-payment-methods__method",
+      "schematic-payment-methods__row",
+    ]);
+  });
+
   test("the payment step with a prorated change", async () => {
     const root = await renderCheckout(
       "payment",

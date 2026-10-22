@@ -278,6 +278,8 @@ export type ElementStrings = {
   checkoutAutoTopupCost: string;
   checkoutPaymentMethod: string;
   checkoutUseDifferentMethod: string;
+  checkoutSavedMethods: string;
+  checkoutUseMethod: string;
   checkoutPaymentNotRequired: string;
   checkoutPromoCode: string;
   checkoutPromoApply: string;
@@ -660,6 +662,8 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   checkoutAutoTopupCost: "{{cost}} per top-up",
   checkoutPaymentMethod: "Payment method",
   checkoutUseDifferentMethod: "Use a different payment method",
+  checkoutSavedMethods: "Other payment methods on file",
+  checkoutUseMethod: "Use",
   checkoutPaymentNotRequired: "No payment is needed today.",
   checkoutPromoCode: "Promo code",
   checkoutPromoApply: "Apply",

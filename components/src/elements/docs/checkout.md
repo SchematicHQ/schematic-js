@@ -131,7 +131,7 @@ Everything the server finds wrong arrives as a `CheckoutProblem` with a `code`, 
 
 ## Payment
 
-A new card goes through Stripe's Payment Element on a setup intent, so the checkout step needs `@stripe/stripe-js` and `@stripe/react-stripe-js`, the same peers as `PaymentMethods`. A card saved there pays for this checkout and joins the company's methods on file. When the charge needs the customer — 3-D Secure — the finalize answers with a client secret and the element confirms it with Stripe before `onComplete`.
+The checkout pays with the company's default method on file; any other on file is listed under it with a Use action, and a new card goes through Stripe's Payment Element on a setup intent, so the checkout step needs `@stripe/stripe-js` and `@stripe/react-stripe-js`, the same peers as `PaymentMethods`. A card saved there pays for this checkout and joins the company's methods on file. When the charge needs the customer — 3-D Secure — the finalize answers with a client secret and the element confirms it with Stripe before `onComplete`.
 
 The tax ID is not part of the cart: it saves on its own, when the field is left and again before a finalize.
 
@@ -176,4 +176,4 @@ The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--sta
 | `schematic-checkout__total--proration`, `__proration-toggle`, `__proration`, `__proration-line`, `__proration-period` | The proration row when the price itemizes it: the Show/Hide details toggle (`aria-expanded`), and the credit and charge lines under it with their periods. |
 | `schematic-checkout__disclaimer`                                                      | The renewal, trial-end, scheduled-change, next-invoice proration and remaining-credit lines under the totals. |
 
-The summary's action and the cards' choices are `schematic-cta`; the Back link is `schematic-link-button`; the payment step's card on file and form carry the `schematic-payment-methods__*` classes of `PaymentMethods`.
+The summary's action and the cards' choices are `schematic-cta`; the Back link is `schematic-link-button`; the payment step's card on file, the other methods on file (`schematic-checkout__methods`, each row's Use action `schematic-checkout__use-method`) and the form carry the `schematic-payment-methods__*` classes of `PaymentMethods`.

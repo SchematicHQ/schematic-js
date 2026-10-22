@@ -92,9 +92,9 @@ export function PaymentStep({
 }
 
 /**
- * The method the checkout pays with: the one on file, or the card form. A
- * card saved through the form is the one this checkout pays with; it also
- * joins the company's methods on file.
+ * The method the checkout pays with: the one on file, any other on file to
+ * switch to, or the card form. A card saved through the form is the one
+ * this checkout pays with; it also joins the company's methods on file.
  */
 function PaymentMethodSection({
   cart,
@@ -117,6 +117,7 @@ function PaymentMethodSection({
   const derived = derivePaymentMethods(methods, { locale });
   const chosen =
     derived.rows.find((row) => row.externalId === cart.paymentMethodId) ?? null;
+  const others = derived.rows.filter((row) => row !== chosen);
   const [adding, setAddingState] = useState(chosen === null);
   const setAdding = (next: boolean) => {
     setAddingState(next);
@@ -132,16 +133,47 @@ function PaymentMethodSection({
         {t("checkoutPaymentMethod")}
       </h3>
       {!adding && chosen !== null ? (
-        <div className="schematic-payment-methods__current">
-          <Method row={chosen} t={t} />
-          <button
-            className="schematic-link-button"
-            type="button"
-            onClick={() => setAdding(true)}
-          >
-            {t("checkoutUseDifferentMethod")}
-          </button>
-        </div>
+        <>
+          <div className="schematic-payment-methods__current">
+            <Method row={chosen} t={t} />
+            <button
+              className="schematic-link-button"
+              type="button"
+              onClick={() => setAdding(true)}
+            >
+              {t("checkoutUseDifferentMethod")}
+            </button>
+          </div>
+          {others.length > 0 && (
+            <ul
+              aria-label={t("checkoutSavedMethods")}
+              className="schematic-payment-methods__list schematic-checkout__methods"
+            >
+              {others.map((row) => (
+                <li
+                  className="schematic-payment-methods__row"
+                  data-brand={row.brand}
+                  data-kind={row.kind}
+                  key={row.id}
+                >
+                  <Method row={row} t={t} />
+                  <button
+                    className="schematic-link-button schematic-checkout__use-method"
+                    type="button"
+                    onClick={() =>
+                      dispatch({
+                        type: "paymentMethod",
+                        paymentMethodId: row.externalId,
+                      })
+                    }
+                  >
+                    {t("checkoutUseMethod")}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       ) : (
         <Suspense
           fallback={

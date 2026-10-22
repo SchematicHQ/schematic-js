@@ -939,3 +939,44 @@ describe("Checkout plans the company may not choose", () => {
     expect(link).toHaveClass("schematic-checkout__card-link");
   });
 });
+
+describe("Checkout payment methods on file", () => {
+  test("lists the other methods on file and switches to one", async () => {
+    const other = cardPaymentMethod({
+      cardLast4: "1881",
+      externalId: "pm_other",
+    });
+    const { actions } = renderCheckout(
+      { steps: { initial: "payment" } },
+      { ...baseData(), paymentMethods: [card, other] },
+    );
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    const list = screen.getByRole("list", {
+      name: "Other payment methods on file",
+    });
+    expect(list).toHaveTextContent("1881");
+    expect(list).not.toHaveTextContent(card.cardLast4 as string);
+
+    fireEvent.click(within(list).getByRole("button", { name: "Use" }));
+    await waitFor(() =>
+      expect(
+        vi.mocked(actions.updateCheckout).mock.lastCall?.[2],
+      ).toMatchObject({ paymentMethodId: "pm_other" }),
+    );
+    expect(
+      dialog().querySelector(".schematic-payment-methods__current"),
+    ).toHaveTextContent("1881");
+    expect(
+      screen.getByRole("list", { name: "Other payment methods on file" }),
+    ).toHaveTextContent(card.cardLast4 as string);
+    expect(screen.queryByTestId("payment-method-form")).toBeNull();
+  });
+
+  test("lists nothing under the only method on file", async () => {
+    renderCheckout({ steps: { initial: "payment" } });
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    expect(
+      screen.queryByRole("list", { name: "Other payment methods on file" }),
+    ).toBeNull();
+  });
+});

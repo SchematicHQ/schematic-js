@@ -349,7 +349,10 @@ function checkoutData(individual = false): BillingData {
     },
     company: checkoutCompany(),
     featureUsage: [],
-    paymentMethods: [cardPaymentMethod({ isDefault: true })],
+    paymentMethods: [
+      cardPaymentMethod({ isDefault: true }),
+      cardPaymentMethod({ cardLast4: "1881" }),
+    ],
     taxIds: [],
   };
 }
