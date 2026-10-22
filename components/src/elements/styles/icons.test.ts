@@ -1,7 +1,7 @@
 import { iconsList } from "@schematichq/schematic-icons";
 import packageCss from "@schematichq/schematic-icons/styles.css?raw";
 
-import { iconsCss } from "./icons";
+import { ICON_NAMES, iconsCss } from "./icons";
 
 import { schematicStylesCss } from ".";
 
@@ -52,6 +52,10 @@ describe("the inlined icon font", () => {
     expect(
       iconsCss.match(/\.schematic-icon--[a-z0-9-]+::before/g),
     ).toHaveLength(names.length);
+  });
+
+  test("names every glyph it draws, so nothing else renders as a class", () => {
+    expect([...ICON_NAMES].sort()).toEqual(Object.keys(glyphs).sort());
   });
 
   test("puts the Visa mark where the package does", () => {

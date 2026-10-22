@@ -36,6 +36,16 @@ function renderUsage(
   );
 }
 
+test("MeteredFeatures draws an emoji icon as its text", () => {
+  const { container } = renderUsage({
+    featureUsage: [featureUsage({ featureIcon: "🚀", resetsAt: undefined })],
+  });
+  expect(
+    container.querySelector(".schematic-metered-features__icon"),
+  ).toHaveTextContent("🚀");
+  expect(container.innerHTML).not.toContain("schematic-icon--🚀");
+});
+
 function card(name: string): HTMLElement {
   return screen.getByRole("heading", { name }).closest("li") as HTMLElement;
 }

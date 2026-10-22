@@ -6,6 +6,7 @@ import {
 import { useMemo, useState } from "react";
 
 import {
+  Icon,
   StatusFrame,
   cx,
   useResolvedLocale,
@@ -149,12 +150,7 @@ export function CreditUsage({
             <div className="schematic-credit-usage__main">
               {showIcon && (
                 <span className="schematic-credit-usage__icon">
-                  {credit.icon !== null && (
-                    <i
-                      aria-hidden="true"
-                      className={`schematic-icon schematic-icon--${credit.icon}`}
-                    />
-                  )}
+                  {credit.icon !== null && <Icon name={credit.icon} />}
                 </span>
               )}
               <div className="schematic-credit-usage__body">
