@@ -205,6 +205,12 @@ export type ElementStrings = {
   pricingTableCreditsPerPeriod: string;
   pricingTableCreditsPerLicense: string;
   pricingTableCreditsPerLicensePerPeriod: string;
+  pricingTableCreditsPlus: string;
+  pricingTableCreditsPlusPerPeriod: string;
+  pricingTableSaveYearly: string;
+  pricingTableSaveQuarterly: string;
+  pricingTableSavingYearly: string;
+  pricingTableSavingQuarterly: string;
   pricingTableUnitsPerPeriod: string;
   pricingTablePerUnitPerPeriod: string;
   pricingTablePerPackagePerPeriod: string;
@@ -609,7 +615,7 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   pricingTableCurrentPlan: "Current plan",
   pricingTableChoosePlan: "Choose plan",
   pricingTableOverLimit: "Over plan limit",
-  pricingTableOverLimitDetail: "{{features}} usage is over the limit",
+  pricingTableOverLimitDetail: "{{features}} usage is over the limit.",
   pricingTableChooseAddOn: "Choose add-on",
   pricingTableChangeAddOn: "Change add-on",
   pricingTableRemoveAddOn: "Remove add-on",
@@ -624,6 +630,14 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
     "{{amount}} {{creditName}} per {{licenseName}}",
   pricingTableCreditsPerLicensePerPeriod:
     "{{amount}} {{creditName}} per {{licenseName}} per {{period}}",
+  pricingTableCreditsPlus: "Plus {{amount}} {{creditName}} for your company",
+  pricingTableCreditsPlusPerPeriod:
+    "Plus {{amount}} {{creditName}} per {{period}} for your company",
+  pricingTableSaveYearly: "Save up to {{percent}} with yearly billing",
+  pricingTableSaveQuarterly: "Save up to {{percent}} with quarterly billing",
+  pricingTableSavingYearly: "You are saving {{percent}} with yearly billing",
+  pricingTableSavingQuarterly:
+    "You are saving {{percent}} with quarterly billing",
   pricingTableUnitsPerPeriod: "{{amount}} {{units}} per {{period}}",
   pricingTablePerUnitPerPeriod: "{{cost}} per {{unit}} per {{period}}",
   pricingTablePerPackagePerPeriod:

@@ -13,6 +13,7 @@ import {
   formatCredits,
   formatCurrency,
   formatNumber,
+  formatPercent,
 } from "./format";
 
 /**
@@ -109,6 +110,11 @@ export interface PricingCreditLine {
   period: string | null;
   /** "seat", for a grant per license. */
   perLicense: string | null;
+  /**
+   * What the plan grants the company outright beside a grant per license,
+   * worded under it: "Plus 100 AI credits per month for your company".
+   */
+  plus: { amount: string; creditName: string; period: string | null } | null;
 }
 
 /** What a card's call to action does, decided by the server's standing. */
@@ -171,6 +177,12 @@ export interface PricingTableView {
   addOns: PricingCard[];
   /** The catalog's custom-plan call to action, when it offers one. */
   customPlan: PricingCustomPlan | null;
+  /**
+   * What the company's plan saves over paying monthly, by period, as a
+   * percentage: "16.67%". Empty in the public catalog, and without a
+   * current plan priced monthly.
+   */
+  savings: Partial<Record<PricingPeriod, string>>;
   /** The company's trial, for the current card's badge. */
   trialDaysLeft: { count: number; days: string } | null;
 }
@@ -266,8 +278,45 @@ export function derivePricingTable(
             ctaText: nonEmpty(catalog.customPlanCta.ctaText),
             ctaUrl: nonEmpty(catalog.customPlanCta.ctaUrl),
           },
+    savings: savings(
+      planCards.find((plan) => standing(plan).current),
+      currency,
+      options.locale,
+    ),
     trialDaysLeft: trialDaysLeft(options.company, options),
   };
+}
+
+const PERIOD_MONTHS: Record<PricingPeriod, number> = {
+  month: 1,
+  quarter: 3,
+  year: 12,
+};
+
+/** Against twelve or three months of the plan's monthly price. */
+function savings(
+  plan: AnyPlan | undefined,
+  currency: string,
+  locale: string,
+): Partial<Record<PricingPeriod, string>> {
+  const out: Partial<Record<PricingPeriod, string>> = {};
+  const monthly =
+    plan === undefined ? undefined : planPrice(plan, currency, "month");
+  if (plan === undefined || monthly === undefined || amountOf(monthly) <= 0) {
+    return out;
+  }
+  for (const period of ["quarter", "year"] as const) {
+    const price = planPrice(plan, currency, period);
+    if (price === undefined) {
+      continue;
+    }
+    const baseline = amountOf(monthly) * PERIOD_MONTHS[period];
+    const saved = (baseline - amountOf(price)) / baseline;
+    if (saved > 0) {
+      out[period] = formatPercent(saved, locale);
+    }
+  }
+  return out;
 }
 
 interface CardContext {
@@ -426,14 +475,16 @@ function creditLines(
   entitlements: CatalogEntitlement[],
   locale: string,
 ): PricingCreditLine[] {
-  // A credit granted more than once — per license and to the company —
-  // reads as one line per kind of grant, in the plan's order.
-  const lines = new Map<string, PricingCreditLine & { total: number }>();
+  // A credit granted more than once of a kind sums into one line, in the
+  // plan's order. Granted both per license and outright, it reads as the
+  // per-license line with the company's share under it.
+  const totals = new Map<
+    string,
+    { grant: Grant; total: number; license: CatalogEntitlement | undefined }
+  >();
   for (const grant of grants) {
     const perLicense = grant.scaling === "per_license";
-    const key = `${grant.creditId}:${perLicense ? (grant.licenseId ?? "") : ""}`;
-    const existing = lines.get(key);
-    const total = (existing?.total ?? 0) + grant.creditAmount;
+    const key = `${grant.creditId}:${perLicense ? `license:${grant.licenseId ?? ""}` : "company"}`;
     const license = perLicense
       ? entitlements.find(
           (entitlement) =>
@@ -442,23 +493,48 @@ function creditLines(
             entitlement.licenseId === grant.licenseId,
         )
       : undefined;
-    lines.set(key, {
+    const existing = totals.get(key);
+    totals.set(key, {
+      grant: existing?.grant ?? grant,
+      total: (existing?.total ?? 0) + grant.creditAmount,
+      license: existing?.license ?? license,
+    });
+  }
+
+  const named = (grant: Grant, count: number) =>
+    featureName(
+      {
+        name: grant.creditName,
+        singularName: grant.creditSingularName,
+        pluralName: grant.creditPluralName,
+      },
+      count,
+      locale,
+    );
+  const perLicenseCredits = new Set(
+    Array.from(totals.entries())
+      .filter(([key]) => !key.endsWith(":company"))
+      .map(([, { grant }]) => grant.creditId),
+  );
+
+  const lines: PricingCreditLine[] = [];
+  for (const [key, { grant, total, license }] of totals) {
+    const company = key.endsWith(":company");
+    if (company && perLicenseCredits.has(grant.creditId)) {
+      continue;
+    }
+    const outright = company
+      ? undefined
+      : totals.get(`${grant.creditId}:company`);
+    lines.push({
       creditId: grant.creditId,
       icon: nonEmpty(grant.creditIcon),
-      total,
       amount: formatCredits(total, locale),
-      creditName: featureName(
-        {
-          name: grant.creditName,
-          singularName: grant.creditSingularName,
-          pluralName: grant.creditPluralName,
-        },
-        total,
-        locale,
-      ),
+      creditName: named(grant, total),
       period: resetPeriod(grant.resetCadence),
-      perLicense:
-        license === undefined
+      perLicense: company
+        ? null
+        : license === undefined
           ? null
           : featureName(
               {
@@ -469,9 +545,17 @@ function creditLines(
               1,
               locale,
             ),
+      plus:
+        outright === undefined
+          ? null
+          : {
+              amount: formatCredits(outright.total, locale),
+              creditName: named(outright.grant, outright.total),
+              period: resetPeriod(outright.grant.resetCadence),
+            },
     });
   }
-  return Array.from(lines.values()).map(({ total: _, ...line }) => line);
+  return lines;
 }
 
 function entitlementRow(

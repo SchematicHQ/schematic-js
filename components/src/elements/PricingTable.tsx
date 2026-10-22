@@ -268,75 +268,90 @@ export function PricingTable({
     >
       {view !== undefined && shared !== undefined && (
         <>
-          {(plansShown || addOnsShown) && (
-            <Controls
-              currencies={showCurrencySelector ? view.currencies : []}
-              currency={view.currency}
-              heading={
-                showHeader
-                  ? plansShown
-                    ? t("pricingTablePlans")
-                    : t("pricingTableAddOns")
-                  : null
-              }
-              headingLevel={headingLevel}
-              onCurrency={chooseCurrency}
-              onPeriod={choosePeriod}
-              period={view.period}
-              periods={showPeriodToggle ? view.periods : []}
-              t={t}
-            />
-          )}
-          {plansShown && (
-            <ul
-              aria-label={t("pricingTablePlans")}
-              className="schematic-pricing-table__plans"
-            >
-              {view.plans.map((plan, index) => (
-                <Card
-                  card={plan}
-                  inclusion={
-                    showInclusionText && index > 0
-                      ? view.plans[index - 1].name
-                      : null
-                  }
-                  key={plan.id}
-                  kind="plan"
-                  shared={shared}
-                />
-              ))}
-              {view.customPlan !== null && (
-                <CustomPlanCard customPlan={view.customPlan} shared={shared} />
+          <section className="schematic-pricing-table__section">
+            {(plansShown || addOnsShown) && (
+              <Controls
+                currencies={showCurrencySelector ? view.currencies : []}
+                currency={view.currency}
+                heading={
+                  showHeader
+                    ? plansShown
+                      ? t("pricingTablePlans")
+                      : t("pricingTableAddOns")
+                    : null
+                }
+                headingLevel={headingLevel}
+                onCurrency={chooseCurrency}
+                onPeriod={choosePeriod}
+                period={view.period}
+                periods={showPeriodToggle ? view.periods : []}
+                savings={view.savings}
+                t={t}
+              />
+            )}
+            {plansShown && (
+              <ul
+                aria-label={t("pricingTablePlans")}
+                className="schematic-pricing-table__plans"
+              >
+                {view.plans.map((plan, index) => (
+                  <Card
+                    card={plan}
+                    inclusion={
+                      showInclusionText && index > 0
+                        ? view.plans[index - 1].name
+                        : null
+                    }
+                    key={plan.id}
+                    kind="plan"
+                    shared={shared}
+                  />
+                ))}
+                {view.customPlan !== null && (
+                  <CustomPlanCard
+                    customPlan={view.customPlan}
+                    shared={shared}
+                  />
+                )}
+              </ul>
+            )}
+            {addOnsShown && !plansShown && <AddOnList shared={shared} />}
+          </section>
+          {addOnsShown && plansShown && (
+            <section className="schematic-pricing-table__section">
+              {showHeader && (
+                <SectionHeading
+                  className="schematic-pricing-table__heading"
+                  level={headingLevel}
+                >
+                  {t("pricingTableAddOns")}
+                </SectionHeading>
               )}
-            </ul>
-          )}
-          {addOnsShown && plansShown && showHeader && (
-            <SectionHeading
-              className="schematic-pricing-table__heading"
-              level={headingLevel}
-            >
-              {t("pricingTableAddOns")}
-            </SectionHeading>
-          )}
-          {addOnsShown && (
-            <ul
-              aria-label={t("pricingTableAddOns")}
-              className="schematic-pricing-table__plans"
-            >
-              {view.addOns.map((addOn) => (
-                <Card
-                  card={addOn}
-                  inclusion={null}
-                  key={addOn.id}
-                  kind="addOn"
-                  shared={shared}
-                />
-              ))}
-            </ul>
+              <AddOnList shared={shared} />
+            </section>
           )}
         </>
       )}
     </StatusFrame>
+  );
+}
+
+function AddOnList({ shared }: { shared: CardShared }) {
+  return (
+    <ul
+      aria-label={shared.t("pricingTableAddOns")}
+      className="schematic-pricing-table__plans"
+    >
+      {shared.view.addOns.map((addOn) => (
+        <Card
+          card={addOn}
+          inclusion={null}
+          key={addOn.id}
+          kind="addOn"
+          shared={shared}
+        />
+      ))}
+    </ul>
   );
 }
 
@@ -379,6 +394,7 @@ function Controls({
   onPeriod,
   period,
   periods,
+  savings,
   t,
 }: {
   currencies: string[];
@@ -389,6 +405,7 @@ function Controls({
   onPeriod: (period: PricingPeriod) => void;
   period: PricingPeriod | null;
   periods: PricingPeriod[];
+  savings: PricingTableView["savings"];
   t: Translator;
 }) {
   const showCurrencies = currencies.length > 1;
@@ -432,21 +449,47 @@ function Controls({
               className="schematic-toggle"
               role="group"
             >
-              {periods.map((option) => (
-                <button
-                  aria-pressed={option === period}
-                  className="schematic-toggle__option"
-                  key={option}
-                  type="button"
-                  onClick={() => {
-                    if (option !== period) {
-                      onPeriod(option);
-                    }
-                  }}
-                >
-                  {t(BILLED_KEY[option])}
-                </button>
-              ))}
+              {periods.map((option) => {
+                const button = (
+                  <button
+                    aria-pressed={option === period}
+                    className="schematic-toggle__option"
+                    key={option}
+                    type="button"
+                    onClick={() => {
+                      if (option !== period) {
+                        onPeriod(option);
+                      }
+                    }}
+                  >
+                    {t(BILLED_KEY[option])}
+                  </button>
+                );
+                const saved = savings[option];
+                if (saved === undefined || option === "month") {
+                  return button;
+                }
+                return (
+                  <span className="schematic-toggle__tip" key={option}>
+                    {button}
+                    <span
+                      className="schematic-tooltip__content schematic-toggle__tip-content"
+                      role="tooltip"
+                    >
+                      {t(
+                        option === period
+                          ? option === "year"
+                            ? "pricingTableSavingYearly"
+                            : "pricingTableSavingQuarterly"
+                          : option === "year"
+                            ? "pricingTableSaveYearly"
+                            : "pricingTableSaveQuarterly",
+                        { percent: saved },
+                      )}
+                    </span>
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
@@ -513,36 +556,44 @@ function Card({
       </div>
 
       <div className="schematic-plan-card__body">
-        {shared.showEntitlements && card.entitlements.length > 0 && (
-          <ul className="schematic-plan-card__entitlements" id={listId}>
-            {inclusion !== null && (
-              <li className="schematic-plan-card__inclusion">
-                {t("pricingTableEverythingIn", { plan: inclusion })}
-              </li>
-            )}
-            {entitlements.map((row) => (
-              <EntitlementItem key={row.featureId} row={row} shared={shared} />
-            ))}
-          </ul>
-        )}
-        {shared.showEntitlements &&
-          card.entitlements.length > VISIBLE_ENTITLEMENT_COUNT && (
-            <button
-              aria-controls={listId}
-              aria-expanded={expanded}
-              className="schematic-link-button schematic-plan-card__show-all"
-              type="button"
-              onClick={() => setExpanded((value) => !value)}
-            >
-              <i
-                aria-hidden="true"
-                className={`schematic-icon schematic-icon--${expanded ? "chevron-up" : "chevron-down"} schematic-chevron`}
-              />
-              <span className="schematic-link-button__label">
-                {expanded ? t("pricingTableHideAll") : t("pricingTableSeeAll")}
-              </span>
-            </button>
+        <div className="schematic-plan-card__features">
+          {shared.showEntitlements && card.entitlements.length > 0 && (
+            <ul className="schematic-plan-card__entitlements" id={listId}>
+              {inclusion !== null && (
+                <li className="schematic-plan-card__inclusion">
+                  {t("pricingTableEverythingIn", { plan: inclusion })}
+                </li>
+              )}
+              {entitlements.map((row) => (
+                <EntitlementItem
+                  key={row.featureId}
+                  row={row}
+                  shared={shared}
+                />
+              ))}
+            </ul>
           )}
+          {shared.showEntitlements &&
+            card.entitlements.length > VISIBLE_ENTITLEMENT_COUNT && (
+              <button
+                aria-controls={listId}
+                aria-expanded={expanded}
+                className="schematic-link-button schematic-plan-card__show-all"
+                type="button"
+                onClick={() => setExpanded((value) => !value)}
+              >
+                <i
+                  aria-hidden="true"
+                  className={`schematic-icon schematic-icon--${expanded ? "chevron-up" : "chevron-down"} schematic-chevron`}
+                />
+                <span className="schematic-link-button__label">
+                  {expanded
+                    ? t("pricingTableHideAll")
+                    : t("pricingTableSeeAll")}
+                </span>
+              </button>
+            )}
+        </div>
         <Action card={card} kind={kind} shared={shared} />
       </div>
     </li>
@@ -550,9 +601,9 @@ function Card({
 }
 
 function Price({ price, t }: { price: PricingPrice; t: Translator }) {
-  const short =
+  const per =
     price.kind === "amount" && price.period !== null
-      ? shortPeriod(price.period, t)
+      ? periodWord(price.period, t)
       : undefined;
   return (
     <div className="schematic-plan-card__price">
@@ -561,8 +612,8 @@ function Price({ price, t }: { price: PricingPrice; t: Translator }) {
         : price.kind === "free"
           ? t("pricingTableFree")
           : price.amount}
-      {short !== undefined && (
-        <sub className="schematic-plan-card__period">/{short}</sub>
+      {per !== undefined && (
+        <sub className="schematic-plan-card__period">/{per}</sub>
       )}
     </div>
   );
@@ -609,7 +660,23 @@ function CreditItem({
           className={`schematic-icon schematic-icon--${credit.icon} schematic-plan-card__icon`}
         />
       )}
-      <span className="schematic-plan-card__feature">{text}</span>
+      <div className="schematic-plan-card__feature">
+        <span className="schematic-plan-card__feature-text">{text}</span>
+        {credit.plus !== null && (
+          <span className="schematic-muted schematic-plan-card__detail">
+            {credit.plus.period === null
+              ? t("pricingTableCreditsPlus", {
+                  amount: credit.plus.amount,
+                  creditName: credit.plus.creditName,
+                })
+              : t("pricingTableCreditsPlusPerPeriod", {
+                  amount: credit.plus.amount,
+                  creditName: credit.plus.creditName,
+                  period: periodWord(credit.plus.period, t),
+                })}
+          </span>
+        )}
+      </div>
     </li>
   );
 }
@@ -757,7 +824,7 @@ function Action({
   kind: "plan" | "addOn";
   shared: CardShared;
 }) {
-  const { t, view } = shared;
+  const { locale, t, view } = shared;
   const action: PricingAction = card.action ?? {
     kind: "choose",
     upgrade: true,
@@ -850,9 +917,10 @@ function Action({
       {action.kind === "overLimit" && action.violations.length > 0 && (
         <p className="schematic-muted schematic-small schematic-plan-card__violations">
           {t("pricingTableOverLimitDetail", {
-            features: action.violations
-              .map((violation) => violation.featureName)
-              .join(", "),
+            features: conjunction(
+              action.violations.map((violation) => violation.featureName),
+              locale,
+            ),
           })}
         </p>
       )}
@@ -896,6 +964,20 @@ function CustomPlanCard({
       </div>
     </li>
   );
+}
+
+/** "API call and Seat", in the locale's words. */
+function conjunction(items: string[], locale: string): string {
+  // Intl.ListFormat is ES2021, past this package's lib target.
+  const { ListFormat } = Intl as unknown as {
+    ListFormat?: new (
+      locale: string,
+      options: { type: "conjunction" },
+    ) => { format: (items: string[]) => string };
+  };
+  return ListFormat === undefined
+    ? items.join(", ")
+    : new ListFormat(locale, { type: "conjunction" }).format(items);
 }
 
 function periodWord(period: string, t: Translator): string {
