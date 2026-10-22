@@ -144,7 +144,7 @@ describe("PricingTable", () => {
     );
     expect(onPeriodChange).toHaveBeenCalledWith("year");
     expect(within(card("Pro")).getByText("$290.00")).toBeInTheDocument();
-    expect(within(card("Pro")).getByText("/yr")).toBeInTheDocument();
+    expect(within(card("Pro")).getByText("/year")).toBeInTheDocument();
   });
 
   test("leaves a controlled period to the host", () => {
@@ -179,7 +179,7 @@ describe("PricingTable", () => {
       within(scale).getByRole("button", { name: "Over plan limit" }),
     ).toBeDisabled();
     expect(
-      within(scale).getByText("API call usage is over the limit"),
+      within(scale).getByText("API call usage is over the limit."),
     ).toBeInTheDocument();
 
     expect(
@@ -226,16 +226,42 @@ describe("PricingTable", () => {
       ],
       includedCreditGrants: [
         catalogCreditGrant({
+          creditId: "bilcr_ai",
           creditAmount: 40,
           scaling: "per_license",
           licenseId: "lic_1",
         }),
+        catalogCreditGrant({ creditId: "bilcr_ai", creditAmount: 100 }),
       ],
     });
     renderTable({ publicCatalog: publicCatalog({ plans: [plan] }) });
     expect(
       within(card("Team")).getByText("40 AI credits per Seat per month"),
     ).toBeInTheDocument();
+    expect(
+      within(card("Team")).getByText(
+        "Plus 100 AI credits per month for your company",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(card("Team")).queryByText("100 AI credits per month"),
+    ).toBeNull();
+  });
+
+  test("tells the company what yearly billing saves on its plan", () => {
+    renderTable();
+    expect(screen.getByRole("tooltip", { hidden: true })).toHaveTextContent(
+      "Save up to 16.67% with yearly billing",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Billed yearly" }));
+    expect(screen.getByRole("tooltip", { hidden: true })).toHaveTextContent(
+      "You are saving 16.67% with yearly billing",
+    );
+  });
+
+  test("offers no savings tip in the public catalog", () => {
+    renderTable(SCENARIOS.pricingTablePublic());
+    expect(screen.queryByRole("tooltip", { hidden: true })).toBeNull();
   });
 
   test("shows four features until asked for all", () => {

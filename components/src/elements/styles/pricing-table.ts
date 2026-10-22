@@ -5,6 +5,12 @@ export const pricingTableCss = `
   gap: calc(var(--schematic-space) * 2);
 }
 
+.schematic-pricing-table__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--schematic-space);
+}
+
 .schematic-pricing-table__header {
   align-items: center;
   display: flex;
@@ -15,8 +21,8 @@ export const pricingTableCss = `
 
 .schematic-pricing-table__heading {
   font-family: var(--schematic-font-heading);
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.25rem;
+  font-weight: 600;
   line-height: var(--schematic-line-height-heading);
   margin: 0;
 }
@@ -31,7 +37,7 @@ export const pricingTableCss = `
 .schematic-pricing-table__plans {
   display: grid;
   gap: var(--schematic-space);
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   list-style: none;
   margin: 0;
   padding: 0;
@@ -70,7 +76,7 @@ export const pricingTableCss = `
 }
 
 .schematic-plan-card__description {
-  min-height: 1.5em;
+  margin-bottom: 0.5rem;
 }
 
 .schematic-plan-card__price {
@@ -90,6 +96,10 @@ export const pricingTableCss = `
   inset-inline-end: var(--schematic-space);
   position: absolute;
   top: var(--schematic-space);
+}
+
+.schematic-plan-card__credits {
+  margin-top: 0.5rem;
 }
 
 .schematic-plan-card__credits,
@@ -125,7 +135,7 @@ export const pricingTableCss = `
 .schematic-plan-card__feature {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .schematic-plan-card__detail {
@@ -145,28 +155,54 @@ export const pricingTableCss = `
     var(--schematic-card-padding) 0;
 }
 
-.schematic-plan-card__entitlements {
+.schematic-plan-card__features {
+  display: flex;
+  flex-direction: column;
   flex-grow: 1;
+  gap: var(--schematic-space);
 }
 
 .schematic-plan-card__inclusion {
-  margin-bottom: calc(var(--schematic-space) / 2);
+  margin-bottom: 1.5rem;
 }
 
 .schematic-plan-card__show-all {
   align-self: start;
+  margin-top: var(--schematic-space);
 }
 
 .schematic-plan-card__current {
   align-items: center;
   display: flex;
+  font-size: 0.9375rem;
   gap: 0.25rem;
   justify-content: center;
+  line-height: 1;
   padding: 0.625rem 0;
 }
 
-.schematic-plan-card__check {
-  color: var(--schematic-accent);
+.schematic-plan-card .schematic-plan-card__check {
+  color: var(--schematic-primary);
+  font-size: 1.25rem;
+}
+
+.schematic-plan-card__violations {
+  font-size: 0.875rem;
+}
+
+.schematic-toggle__tip {
+  display: inline-flex;
+  position: relative;
+}
+
+.schematic-toggle__tip-content {
+  font-size: 0.6875rem;
+  line-height: 1;
+}
+
+.schematic-toggle__tip:hover .schematic-toggle__tip-content,
+.schematic-toggle__tip:focus-within .schematic-toggle__tip-content {
+  visibility: visible;
 }
 
 .schematic-plan-card__action {
