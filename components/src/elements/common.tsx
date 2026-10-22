@@ -21,7 +21,7 @@ import {
   type StringVars,
   type Translator,
 } from "./strings";
-import { ICON_NAMES } from "./styles/icons";
+import { isIconName } from "./styles/icons";
 
 export const cx = (...names: (string | undefined | false | null)[]): string =>
   names
@@ -179,7 +179,7 @@ export const Icon: React.FC<{ className?: string; name: string }> = ({
   className,
   name,
 }) =>
-  ICON_NAMES.has(name) ? (
+  isIconName(name) ? (
     <i
       aria-hidden="true"
       className={cx("schematic-icon", `schematic-icon--${name}`, className)}
