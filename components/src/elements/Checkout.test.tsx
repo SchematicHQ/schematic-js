@@ -670,7 +670,9 @@ describe("Checkout one-time charges", () => {
     expect(summary()).toHaveTextContent("One-time");
     expect(once).toHaveTextContent("Onboarding$99.00");
     expect(once).toHaveTextContent("2 × 100 credits$20.00");
-    expect(once?.querySelectorAll(".schematic-checkout__line--one-time")).toHaveLength(2);
+    expect(
+      once?.querySelectorAll(".schematic-checkout__line--one-time"),
+    ).toHaveLength(2);
   });
 
   test("marks a one-time add-on's price on its card", async () => {
@@ -701,11 +703,14 @@ describe("Checkout in the page", () => {
     expect(document.querySelector("dialog")).toBeNull();
     const root = screen.getByRole("region", { name: "Checkout" });
     expect(root.tagName).toBe("SECTION");
-    expect(root.className).toBe("schematic-checkout schematic-checkout--inline");
+    expect(root.className).toBe(
+      "schematic-checkout schematic-checkout--inline",
+    );
     expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
-    expect(
-      root.querySelector(".schematic-checkout__layout"),
-    ).toHaveAttribute("data-step", "plan");
+    expect(root.querySelector(".schematic-checkout__layout")).toHaveAttribute(
+      "data-step",
+      "plan",
+    );
     await waitFor(() => expect(actions.createCheckout).toHaveBeenCalled());
     await waitFor(() =>
       expect(
@@ -738,15 +743,18 @@ describe("Checkout in the page", () => {
 describe("Checkout period and currency choices", () => {
   test("says what a longer period saves while it is not chosen", async () => {
     renderCheckout();
-    expect(
-      screen.getByText("Save 17% with yearly billing"),
-    ).toHaveClass("schematic-checkout__savings");
+    expect(screen.getByText("Save 17% with yearly billing")).toHaveClass(
+      "schematic-checkout__savings",
+    );
     fireEvent.click(screen.getByRole("button", { name: "Yearly" }));
     expect(screen.queryByText(/with yearly billing/)).toBeNull();
   });
 
   test("keeps the currency choice on the first step when the plan step is skipped", async () => {
-    const eur = { currency: "eur" as const, monthlyPrice: monthly(2300, "eur") };
+    const eur = {
+      currency: "eur" as const,
+      monthlyPrice: monthly(2300, "eur"),
+    };
     const data = {
       ...baseData(),
       catalog: catalog({
@@ -769,7 +777,10 @@ describe("Checkout period and currency choices", () => {
       expect(actions.updateCheckout).toHaveBeenLastCalledWith(
         "chk_1",
         expect.any(Number),
-        expect.objectContaining({ currency: "eur", priceId: eur.monthlyPrice.id }),
+        expect.objectContaining({
+          currency: "eur",
+          priceId: eur.monthlyPrice.id,
+        }),
       ),
     );
   });
@@ -799,7 +810,9 @@ describe("Checkout steps and fields", () => {
       expect(step()).toBe("usage");
       const scrolled = scrollTo.mock.contexts as HTMLElement[];
       expect(
-        scrolled.some((el) => el.classList.contains("schematic-checkout__main")),
+        scrolled.some((el) =>
+          el.classList.contains("schematic-checkout__main"),
+        ),
       ).toBe(true);
       expect(scrolled.some((el) => el.tagName === "DIALOG")).toBe(true);
       expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
@@ -816,10 +829,7 @@ describe("Checkout steps and fields", () => {
       {
         ...data,
         catalog: catalog({
-          plans: [
-            catalogPlan({ ...starter, autoTopups: [topup] }),
-            pro,
-          ],
+          plans: [catalogPlan({ ...starter, autoTopups: [topup] }), pro],
         }),
       },
     );
@@ -834,14 +844,15 @@ describe("Checkout steps and fields", () => {
     fireEvent.change(amount, { target: { value: "0" } });
     await waitFor(() =>
       expect(sent()).toEqual([
-        expect.objectContaining({ autoTopupAmount: 1, planCreditGrantId: "pcg_1" }),
+        expect.objectContaining({
+          autoTopupAmount: 1,
+          planCreditGrantId: "pcg_1",
+        }),
       ]),
     );
     fireEvent.change(amount, { target: { value: "2.7" } });
     await waitFor(() =>
-      expect(sent()).toEqual([
-        expect.objectContaining({ autoTopupAmount: 2 }),
-      ]),
+      expect(sent()).toEqual([expect.objectContaining({ autoTopupAmount: 2 })]),
     );
     fireEvent.blur(amount);
     expect(amount).toHaveValue(2);
@@ -994,7 +1005,11 @@ describe("Checkout trial, tax ID, agreement and fields", () => {
     });
     const { actions } = renderCheckout(
       { selection: { planId: trial.id } },
-      { ...baseData(), catalog: catalog({ plans: [starter, trial] }), company: company() },
+      {
+        ...baseData(),
+        catalog: catalog({ plans: [starter, trial] }),
+        company: company(),
+      },
       fakeActions(
         {},
         priceSnapshot({
@@ -1004,7 +1019,9 @@ describe("Checkout trial, tax ID, agreement and fields", () => {
         }),
       ),
     );
-    expect(within(cards()[1]).getByText("14 day free trial")).toBeInTheDocument();
+    expect(
+      within(cards()[1]).getByText("14 day free trial"),
+    ).toBeInTheDocument();
     const toggle = screen.getByRole("checkbox", {
       name: "Start with a free trial",
     });
@@ -1047,7 +1064,10 @@ describe("Checkout trial, tax ID, agreement and fields", () => {
       {
         ...baseData(),
         catalog: catalog({
-          checkoutSettings: { ...catalog().checkoutSettings, collectTaxId: true },
+          checkoutSettings: {
+            ...catalog().checkoutSettings,
+            collectTaxId: true,
+          },
           plans: [starter, pro],
         }),
         taxIds: [],
@@ -1143,7 +1163,11 @@ describe("Checkout trial, tax ID, agreement and fields", () => {
           checkoutSettings: {
             ...catalog().checkoutSettings,
             customFields: [
-              checkoutField({ id: "cfc_po", name: "PO number", required: true }),
+              checkoutField({
+                id: "cfc_po",
+                name: "PO number",
+                required: true,
+              }),
             ],
           },
           plans: [starter, pro],

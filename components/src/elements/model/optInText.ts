@@ -5,8 +5,7 @@
  */
 
 export type OptInSegment =
-  | { kind: "text"; text: string }
-  | { kind: "link"; text: string; url: string };
+  { kind: "text"; text: string } | { kind: "link"; text: string; url: string };
 
 const LINK = /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
 

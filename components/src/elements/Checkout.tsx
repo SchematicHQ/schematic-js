@@ -111,7 +111,8 @@ export function Checkout({
   ...rest
 }: CheckoutProps) {
   const t = useTranslator(strings, localeProp);
-  const stacked = display?.layout === "stacked" && "schematic-checkout--stacked";
+  const stacked =
+    display?.layout === "stacked" && "schematic-checkout--stacked";
   const body = (
     <CheckoutBody
       {...rest}

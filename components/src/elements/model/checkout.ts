@@ -390,7 +390,9 @@ function prorationBlock(
       name:
         catalogName(catalog, line.planId) ??
         catalogPriceName(catalog, line.priceId) ??
-        (line.planId != null && current !== undefined && current.id === line.planId
+        (line.planId != null &&
+        current !== undefined &&
+        current.id === line.planId
           ? current.name
           : null),
       periodText:
