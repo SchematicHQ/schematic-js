@@ -165,18 +165,25 @@ export function CurrencySelect({
   );
 }
 
-/** A plan or add-on, with its price for the period and what choosing it does. */
+/**
+ * A plan or add-on, with its price for the period and what choosing it does.
+ * One the company may not move to says why, and, when a downgrade rule is
+ * the reason and the catalog names somewhere to ask, links there.
+ */
 function Card({
   action,
+  contact = null,
   period,
   row,
   t,
 }: {
   action: React.ReactNode;
+  contact?: CheckoutModel["downgradeContact"];
   period: CheckoutPeriod;
   row: PlanRow;
   t: Translator;
 }) {
+  const blockedDowngrade = row.invalidReason === "downgrade_not_permitted";
   return (
     <li
       className="schematic-checkout__card"
@@ -218,12 +225,64 @@ function Card({
       )}
       {!row.valid && (
         <p className="schematic-error schematic-small">
-          {row.invalidReason === "downgrade_not_permitted"
+          {blockedDowngrade
             ? t("checkoutPlanDowngradeBlocked")
-            : t("checkoutPlanOverLimit")}
+            : row.violations.length > 0
+              ? t("checkoutPlanOverLimitFeatures", {
+                  features: row.violations.join(", "),
+                })
+              : t("checkoutPlanOverLimit")}
         </p>
       )}
+      {blockedDowngrade && contact !== null && (
+        <a
+          className="schematic-link-button schematic-checkout__card-link"
+          href={contact.url}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {contact.text ?? t("checkoutTalkToSupport")}
+        </a>
+      )}
       {action}
+    </li>
+  );
+}
+
+/**
+ * The catalog's custom plan: a card with no price to choose, only a way to
+ * ask for one.
+ */
+function CustomPlanCard({
+  custom,
+  t,
+}: {
+  custom: NonNullable<CheckoutModel["customPlan"]>;
+  t: Translator;
+}) {
+  return (
+    <li
+      className="schematic-checkout__card schematic-checkout__card--custom"
+      data-selected="false"
+      data-testid="schematic-checkout-card"
+      data-valid="true"
+    >
+      <h3 className="schematic-checkout__card-name">
+        {t("checkoutCustomPlan")}
+      </h3>
+      <span className="schematic-checkout__card-price">
+        {custom.priceText ?? t("checkoutCustomPlanPrice")}
+      </span>
+      {custom.ctaUrl !== null && (
+        <a
+          className="schematic-cta schematic-cta--small schematic-cta--outline"
+          href={custom.ctaUrl}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {custom.ctaText ?? t("checkoutTalkToSupport")}
+        </a>
+      )}
     </li>
   );
 }
@@ -266,12 +325,16 @@ export function PlanStep({
                 {row.selected ? t("checkoutSelected") : t("checkoutSelect")}
               </button>
             }
+            contact={model.downgradeContact}
             key={row.id}
             period={model.period.value}
             row={row}
             t={t}
           />
         ))}
+        {model.customPlan !== null && (
+          <CustomPlanCard custom={model.customPlan} t={t} />
+        )}
       </ul>
       {trialOffered && (
         <label className="schematic-checkout__check">

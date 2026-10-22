@@ -226,6 +226,11 @@ export const checkoutCss = `
   width: 100%;
 }
 
+.schematic-checkout__card-link {
+  align-self: flex-start;
+  font-size: 0.875rem;
+}
+
 .schematic-checkout__rows {
   display: flex;
   flex-direction: column;

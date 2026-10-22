@@ -303,11 +303,24 @@ function checkoutData(individual = false): BillingData {
       }),
     ],
     creditBundles: [creditBundle()],
+    customPlanCta: {
+      ctaText: "Talk to sales",
+      ctaUrl: "https://acme.test/sales",
+      priceText: "Custom pricing",
+    },
     plans: [
       main,
       catalogPlan({
         invalidReason: "feature_usage_exceeded",
         name: "Legacy",
+        usageViolations: [
+          { featureId: "feat_seats", featureName: "Seats", limit: 5, usage: 8 },
+        ],
+        valid: false,
+      }),
+      catalogPlan({
+        invalidReason: "downgrade_not_permitted",
+        name: "Basic",
         valid: false,
       }),
       catalogPlan({
@@ -318,6 +331,9 @@ function checkoutData(individual = false): BillingData {
         trialDays: 14,
       }),
     ],
+    preventSelfServiceDowngrade: true,
+    preventSelfServiceDowngradeButtonText: "Ask support",
+    preventSelfServiceDowngradeUrl: "https://acme.test/support",
   });
   return {
     catalog: {

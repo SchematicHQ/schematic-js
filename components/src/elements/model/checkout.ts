@@ -67,6 +67,8 @@ export interface PlanRow {
   /** The company may move to it; `false` comes with `invalidReason`. */
   valid: boolean;
   invalidReason: CatalogPlan["invalidReason"] | null;
+  /** The features the company uses more of than the plan allows, by name. */
+  violations: string[];
   /** Days of trial the company would get; `null` when there is none for it. */
   trialDays: number | null;
 }
@@ -197,6 +199,17 @@ export interface CheckoutModel {
     savings: { period: "quarter" | "year"; percentText: string } | null;
   };
   plans: PlanRow[];
+  /**
+   * The catalog's custom plan, offered as a link to ask rather than a
+   * choice; `null` when it offers none.
+   */
+  customPlan: {
+    ctaText: string | null;
+    ctaUrl: string | null;
+    priceText: string | null;
+  } | null;
+  /** Where a company a downgrade rule stops goes to ask; `null` when the catalog names nowhere. */
+  downgradeContact: { url: string; text: string | null } | null;
   addOns: PlanRow[];
   usage: QuantityRow[];
   addOnUsage: QuantityRow[];
@@ -296,6 +309,7 @@ function planRow(
     selected,
     valid: plan.valid,
     invalidReason: plan.invalidReason ?? null,
+    violations: plan.usageViolations.map((v) => v.featureName),
     trialDays:
       plan.isTrialable && plan.companyCanTrial
         ? (plan.trialDays ?? null)
@@ -399,6 +413,24 @@ function prorationBlock(
         ? formatDate(billedAt, locale)
         : null,
   };
+}
+
+/** The catalog's custom plan as a card's worth of words; `null` when it offers none worth showing. */
+function customPlanOf(catalog: Catalog): CheckoutModel["customPlan"] {
+  const cta = catalog.customPlanCta;
+  if (cta === undefined) {
+    return null;
+  }
+  const custom = {
+    ctaText: cta.ctaText || null,
+    ctaUrl: cta.ctaUrl || null,
+    priceText: cta.priceText || null,
+  };
+  return custom.ctaText === null &&
+    custom.ctaUrl === null &&
+    custom.priceText === null
+    ? null
+    : custom;
 }
 
 const MONTHS: Record<"quarter" | "year", number> = { quarter: 3, year: 12 };
@@ -625,6 +657,13 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
     plans: catalog.plans.map((p) =>
       planRow(p, cart, locale, p.id === plan?.id),
     ),
+    customPlan: customPlanOf(catalog),
+    downgradeContact: catalog.preventSelfServiceDowngradeUrl
+      ? {
+          url: catalog.preventSelfServiceDowngradeUrl,
+          text: catalog.preventSelfServiceDowngradeButtonText || null,
+        }
+      : null,
     addOns: addOnsOffered.map((addOn) =>
       planRow(addOn, cart, locale, cart.addOnIds.includes(addOn.id)),
     ),

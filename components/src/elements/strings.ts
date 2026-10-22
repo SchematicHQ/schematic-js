@@ -257,7 +257,11 @@ export type ElementStrings = {
   checkoutTrialDays: string;
   checkoutTrialToggle: string;
   checkoutPlanOverLimit: string;
+  checkoutPlanOverLimitFeatures: string;
   checkoutPlanDowngradeBlocked: string;
+  checkoutTalkToSupport: string;
+  checkoutCustomPlan: string;
+  checkoutCustomPlanPrice: string;
   checkoutPlanNotPriced: string;
   checkoutAddOnsEmpty: string;
   checkoutAdd: string;
@@ -635,7 +639,11 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   checkoutTrialDays_other: "{{count}} day free trial",
   checkoutTrialToggle: "Start with a free trial",
   checkoutPlanOverLimit: "Over plan limit",
+  checkoutPlanOverLimitFeatures: "Over the plan limit for {{features}}",
   checkoutPlanDowngradeBlocked: "Downgrade not permitted",
+  checkoutTalkToSupport: "Talk to us",
+  checkoutCustomPlan: "Custom plan",
+  checkoutCustomPlanPrice: "Custom pricing",
   checkoutPlanNotPriced: "Not available for this billing period",
   checkoutAddOnsEmpty: "No add-ons are available for this plan.",
   checkoutAdd: "Add",

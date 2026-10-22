@@ -92,7 +92,7 @@ Everything else is CSS. The class names below are API, every step and card carri
 
 The API has no steps. The dialog derives them from the catalog and the cart, in this order, each only when there is something to choose in it:
 
-1. **Plan** — whenever the catalog sells plans; with the period toggle, a note on what a longer period saves, and the currency choice. A skipped plan step hands the currency choice to the first step shown, while no subscription fixes it.
+1. **Plan** — whenever the catalog sells plans; with the period toggle, a note on what a longer period saves, and the currency choice. A skipped plan step hands the currency choice to the first step shown, while no subscription fixes it. A plan the company may not move to says why — the features it is over the limit for, or a downgrade rule, with a link to ask when the catalog names one — and a catalog with a custom plan ends the cards with it, a link to ask in place of a price.
 2. **Auto top-up** — the plan has included credits whose top-up the company may set itself.
 3. **Quantity** — the plan has pay-in-advance entitlements.
 4. **Add-ons** — some add-on can be sold with the plan, and no trial is starting.
@@ -162,6 +162,7 @@ The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--sta
 | `schematic-checkout__savings`                                                         | "Save 17% with yearly billing" beside the toggle, while a longer period the plan costs less on is not the one chosen. |
 | `schematic-checkout__cards`, `__card`, `__card-name`, `__card-price`, `__card-period` | Plan and add-on cards; `data-selected`, `data-valid`.                                                 |
 | `schematic-checkout__card-description`, `__card-badges`                               | A card's description and its trial, current and invalid badges.                                       |
+| `schematic-checkout__card--custom`, `__card-link`                                     | The catalog's custom plan, a card with a link to ask rather than a price; and the link to ask under a plan a downgrade rule blocks, when the catalog names somewhere. |
 | `schematic-checkout__rows`, `__row`, `__row-name`, `__row-detail`, `__row-amount`     | Quantity, bundle and auto top-up rows.                                                                |
 | `schematic-checkout__input`, `__input--quantity`                                      | Text and number inputs; the quantity modifier narrows them.                                           |
 | `schematic-checkout__field`, `__field-label`, `__field-helper`, `__inline`            | A labelled control, its helper, and a row of them.                                                    |

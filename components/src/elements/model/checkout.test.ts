@@ -455,3 +455,97 @@ describe("deriveCheckout credit", () => {
     });
   });
 });
+
+describe("deriveCheckout plans the company may not choose", () => {
+  test("names the features a plan is over the limit for", () => {
+    const over = catalogPlan({
+      invalidReason: "feature_usage_exceeded",
+      name: "Lite",
+      usageViolations: [
+        { featureId: "f1", featureName: "Seats", limit: 5, usage: 8 },
+        { featureId: "f2", featureName: "Projects", usage: 3 },
+      ],
+      valid: false,
+    });
+    const model = deriveCheckout({
+      catalog: catalog({ plans: [pro, over] }),
+      cart: cartOn(),
+      locale: "en-US",
+    });
+    expect(model.plans[1]).toMatchObject({
+      invalidReason: "feature_usage_exceeded",
+      valid: false,
+      violations: ["Seats", "Projects"],
+    });
+    expect(model.plans[0].violations).toEqual([]);
+  });
+
+  test("hands over where to ask about a blocked downgrade, when the catalog says", () => {
+    const named = deriveCheckout({
+      catalog: catalog({
+        plans: [pro],
+        preventSelfServiceDowngrade: true,
+        preventSelfServiceDowngradeButtonText: "Ask support",
+        preventSelfServiceDowngradeUrl: "https://acme.test/support",
+      }),
+      cart: cartOn(),
+      locale: "en-US",
+    });
+    expect(named.downgradeContact).toEqual({
+      text: "Ask support",
+      url: "https://acme.test/support",
+    });
+
+    const unnamed = deriveCheckout({
+      catalog: catalog({
+        plans: [pro],
+        preventSelfServiceDowngrade: true,
+        preventSelfServiceDowngradeUrl: "https://acme.test/support",
+      }),
+      cart: cartOn(),
+      locale: "en-US",
+    });
+    expect(unnamed.downgradeContact).toEqual({
+      text: null,
+      url: "https://acme.test/support",
+    });
+    expect(
+      deriveCheckout({ catalog: cat, cart: cartOn(), locale: "en-US" })
+        .downgradeContact,
+    ).toBeNull();
+  });
+
+  test("offers the catalog's custom plan when it has one worth showing", () => {
+    expect(
+      deriveCheckout({ catalog: cat, cart: cartOn(), locale: "en-US" })
+        .customPlan,
+    ).toBeNull();
+    expect(
+      deriveCheckout({
+        catalog: catalog({
+          customPlanCta: {
+            ctaText: "Talk to sales",
+            ctaUrl: "https://acme.test/sales",
+          },
+          plans: [pro],
+        }),
+        cart: cartOn(),
+        locale: "en-US",
+      }).customPlan,
+    ).toEqual({
+      ctaText: "Talk to sales",
+      ctaUrl: "https://acme.test/sales",
+      priceText: null,
+    });
+    expect(
+      deriveCheckout({
+        catalog: catalog({
+          customPlanCta: { ctaText: "", ctaUrl: null },
+          plans: [pro],
+        }),
+        cart: cartOn(),
+        locale: "en-US",
+      }).customPlan,
+    ).toBeNull();
+  });
+});

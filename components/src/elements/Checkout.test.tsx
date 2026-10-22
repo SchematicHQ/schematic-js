@@ -867,3 +867,75 @@ describe("Checkout steps and fields", () => {
     );
   });
 });
+
+describe("Checkout plans the company may not choose", () => {
+  test("ends the cards with the catalog's custom plan as a link to ask", async () => {
+    renderCheckout(
+      {},
+      {
+        ...baseData(),
+        catalog: catalog({
+          customPlanCta: {
+            ctaText: "Talk to sales",
+            ctaUrl: "https://acme.test/sales",
+            priceText: "Let's talk",
+          },
+          plans: [starter, pro],
+        }),
+      },
+    );
+    const custom = cards()[2];
+    expect(custom).toHaveClass("schematic-checkout__card--custom");
+    expect(within(custom).getByRole("heading")).toHaveTextContent(
+      "Custom plan",
+    );
+    expect(custom).toHaveTextContent("Let's talk");
+    const link = within(custom).getByRole("link", { name: "Talk to sales" });
+    expect(link).toHaveAttribute("href", "https://acme.test/sales");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(within(custom).queryByRole("button")).toBeNull();
+  });
+
+  test("says which features a plan is over the limit for", () => {
+    const over = catalogPlan({
+      invalidReason: "feature_usage_exceeded",
+      name: "Lite",
+      usageViolations: [
+        { featureId: "f1", featureName: "Seats", limit: 5, usage: 8 },
+        { featureId: "f2", featureName: "Projects", usage: 3 },
+      ],
+      valid: false,
+    });
+    renderCheckout(
+      {},
+      { ...baseData(), catalog: catalog({ plans: [starter, over] }) },
+    );
+    const card = cards()[1];
+    expect(card).toHaveTextContent("Over the plan limit for Seats, Projects");
+    expect(within(card).getByRole("button", { name: "Select" })).toBeDisabled();
+  });
+
+  test("links a blocked downgrade to where the catalog says to ask", () => {
+    const lite = catalogPlan({
+      invalidReason: "downgrade_not_permitted",
+      name: "Lite",
+      valid: false,
+    });
+    renderCheckout(
+      {},
+      {
+        ...baseData(),
+        catalog: catalog({
+          plans: [starter, lite],
+          preventSelfServiceDowngrade: true,
+          preventSelfServiceDowngradeUrl: "https://acme.test/support",
+        }),
+      },
+    );
+    const card = cards()[1];
+    expect(card).toHaveTextContent("Downgrade not permitted");
+    const link = within(card).getByRole("link", { name: "Talk to us" });
+    expect(link).toHaveAttribute("href", "https://acme.test/support");
+    expect(link).toHaveClass("schematic-checkout__card-link");
+  });
+});
