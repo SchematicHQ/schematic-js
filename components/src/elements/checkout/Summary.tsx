@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import type {
   CheckoutModel,
@@ -36,19 +36,18 @@ const LINE_LABEL: Record<
 };
 
 /**
- * What the cart holds, what it costs now and each period, and the action
- * that moves on or charges. The totals are the server's last price; while a
- * newer cart is being priced they stay up, marked as updating.
+ * What the cart holds and what it costs now and each period. The totals are
+ * the server's last price; while a newer cart is being priced they stay up,
+ * marked as updating. The action that moves on or charges sits under it, in
+ * the flow's own bar.
  */
 export function Summary({
-  action,
   isPricing,
   model,
   pricingError,
   showDisclaimer,
   t,
 }: {
-  action: React.ReactNode;
   isPricing: boolean;
   model: CheckoutModel;
   pricingError: boolean;
@@ -162,7 +161,6 @@ export function Summary({
           {t(DISCLAIMER[period])}
         </p>
       )}
-      {action}
     </aside>
   );
 }

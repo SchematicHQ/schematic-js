@@ -80,7 +80,7 @@ A plan change the server prorates shows as one Proration line, or itemized under
 
 ## Layout
 
-From 768px up the steps take the left and the summary — the lines, the totals and the action — the right, each scrolling on its own; below that the summary sits under the steps and the whole dialog scrolls. Two props change that, for a sheet that cannot:
+From 768px up the steps take the left and the summary — the lines and the totals, with the action under it — the right, each scrolling on its own; below that the summary sits under the steps, the whole dialog scrolls, and the action keeps to the bottom of the screen so Next and Pay are in reach however long the plan list. Three props change that, for a sheet that cannot:
 
 - `display.layout: "stacked"` keeps the summary under the steps at every width. The root carries `schematic-checkout--stacked`, so a bottom sheet on a phone and a narrow card on a desktop are the same stylesheet.
 - `display.summary: "payment"` shows the summary on the payment step alone. The steps before it carry their Next action in `.schematic-checkout__nav`, and the layout carries `data-summary="payment"`, so a wizard of one choice per screen asks nothing of the stylesheet but the column.
@@ -170,6 +170,7 @@ The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--sta
 | `schematic-checkout__problems`                                                        | The problems on a step, each a `schematic-notice` with `data-code`.                                   |
 | `schematic-checkout__nav`                                                             | Back, and Next while the summary is held.                                                             |
 | `schematic-checkout__summary`, `__summary-title`                                      | The right column, an `aside` with `aria-busy` while pricing.                                          |
+| `schematic-checkout__action`                                                          | Next, or Pay now and its error, under the summary; sticky to the bottom of what scrolls when stacked. |
 | `schematic-checkout__lines`, `__line`, `__line-amount`                                | What the cart holds, one line each.                                                                   |
 | `schematic-checkout__lines--one-time`, `__line--one-time`, `__lines-caption`          | The lines charged once (a one-time plan or add-on, a bundle), after what renews, under a caption when both are there. |
 | `schematic-checkout__totals`, `__total`, `__total--due`, `__total-amount`             | Proration, discount, tax, the period's total, the credit applied and the amount due now.              |

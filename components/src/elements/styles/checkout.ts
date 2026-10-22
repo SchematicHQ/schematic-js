@@ -62,7 +62,7 @@ export const checkoutCss = `
   ${columns} .schematic-checkout__layout {
     flex: 1;
     grid-template-columns: minmax(0, 1fr) 22rem;
-    grid-template-rows: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
     min-height: 0;
   }
 
@@ -71,14 +71,29 @@ export const checkoutCss = `
     grid-template-columns: minmax(0, 1fr);
   }
 
+  ${columns} .schematic-checkout__main {
+    grid-row: 1 / span 2;
+  }
+
   ${columns} .schematic-checkout__main,
   ${columns} .schematic-checkout__summary {
     overflow-y: auto;
   }
 
-  ${columns} .schematic-checkout__summary {
+  ${columns} .schematic-checkout__summary,
+  ${columns} .schematic-checkout__action {
     border-inline-start: 1px solid var(--schematic-card-divider);
+    grid-column: 2;
+  }
+
+  ${columns} .schematic-checkout__summary {
     border-top: none;
+  }
+
+  /* Side by side, the summary's column scrolls and the action stays put
+     under it; nothing to stick to. */
+  ${columns} .schematic-checkout__action {
+    position: static;
   }
 }
 
@@ -472,7 +487,21 @@ export const checkoutCss = `
   font-size: 0.8125rem;
 }
 
-.schematic-checkout__summary .schematic-cta {
+/* The action under the summary. Stacked, it keeps to the bottom of whatever
+   scrolls — the dialog, or the page around an inline checkout — so Next and
+   Pay are in reach on a phone however long the plan list is. */
+.schematic-checkout__action {
+  background: var(--schematic-background);
+  border-top: 1px solid var(--schematic-card-divider);
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--schematic-space) / 2);
+  padding: var(--schematic-space) calc(var(--schematic-space) * 1.5);
+  position: sticky;
+}
+
+.schematic-checkout__action .schematic-cta {
   width: 100%;
 }
 `;

@@ -595,14 +595,18 @@ function CheckoutFlow({
         )}
       </div>
       {summaryShown && (
-        <Summary
-          action={action}
-          isPricing={isPricing}
-          model={model}
-          pricingError={pricingError}
-          showDisclaimer={display?.showBillingDisclaimer !== false}
-          t={t}
-        />
+        <>
+          <Summary
+            isPricing={isPricing}
+            model={model}
+            pricingError={pricingError}
+            showDisclaimer={display?.showBillingDisclaimer !== false}
+            t={t}
+          />
+          {/* Under the summary, and kept in view on a narrow screen while
+              the rest scrolls, so Next and Pay are never below the fold. */}
+          <div className="schematic-checkout__action">{action}</div>
+        </>
       )}
     </div>
   );

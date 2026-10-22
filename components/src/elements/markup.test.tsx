@@ -736,6 +736,7 @@ describe("Checkout markup contract", () => {
     // The dialog's header and body, without its close control.
     expect(classNames(root)).toEqual([
       "schematic-badge",
+      "schematic-checkout__action",
       "schematic-checkout__card",
       "schematic-checkout__card-badges",
       "schematic-checkout__card-name",
@@ -821,6 +822,7 @@ describe("Checkout markup contract", () => {
     );
     expect(classNames(root)).toEqual([
       "schematic-badge",
+      "schematic-checkout__action",
       "schematic-checkout__card",
       "schematic-checkout__card-badges",
       "schematic-checkout__card-name",
@@ -864,6 +866,7 @@ describe("Checkout markup contract", () => {
   test("the payment step with the card on file", async () => {
     const root = await renderCheckout("payment");
     expect(classNames(root)).toEqual([
+      "schematic-checkout__action",
       "schematic-checkout__disclaimer",
       "schematic-checkout__field",
       "schematic-checkout__field-label",
@@ -922,6 +925,7 @@ describe("Checkout markup contract", () => {
       },
     );
     expect(classNames(root)).toEqual([
+      "schematic-checkout__action",
       "schematic-checkout__disclaimer",
       "schematic-checkout__field",
       "schematic-checkout__field-label",
@@ -994,6 +998,7 @@ describe("Checkout markup contract", () => {
       root.querySelector(".schematic-checkout__proration-toggle") as Element,
     );
     expect(classNames(root)).toEqual([
+      "schematic-checkout__action",
       "schematic-checkout__disclaimer",
       "schematic-checkout__field",
       "schematic-checkout__field-label",
@@ -1061,6 +1066,7 @@ describe("Checkout markup contract", () => {
       },
     );
     expect(classNames(root)).toEqual([
+      "schematic-checkout__action",
       "schematic-checkout__disclaimer",
       "schematic-checkout__field",
       "schematic-checkout__field-label",

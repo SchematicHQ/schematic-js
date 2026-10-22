@@ -401,9 +401,9 @@ describe("Checkout", () => {
       fireEvent.click(next());
     }
     expect(step()).toBe("payment");
-    expect(screen.getByTestId("schematic-checkout-summary")).toContainElement(
-      finalizeButton(),
-    );
+    expect(
+      finalizeButton().closest(".schematic-checkout__action"),
+    ).not.toBeNull();
     expect(dialog().querySelector(".schematic-checkout__nav")).not.toContain(
       finalizeButton(),
     );
