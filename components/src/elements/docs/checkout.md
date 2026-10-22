@@ -135,6 +135,8 @@ A new card goes through Stripe's Payment Element on a setup intent, so the check
 
 The tax ID is not part of the cart: it saves on its own, when the field is left and again before a finalize.
 
+The agreement's text, when the catalog asks for one, may carry Markdown links — `[Terms](https://…)` — which render as links opening in a new tab; nothing else in it is Markdown. Accepting one wording is not accepting another, so new copy clears the box.
+
 ## Before it can load
 
 `GET /catalog/view` is gated on the `multi-product-catalog` flag and the `/company` reads on `company-context-api`. Without the first the dialog says checkout is not available; without the second it still sells, without the currency lock or current quantities. A catalog whose `capabilities.checkout` is false — no Stripe integration, more than one subscription, or one managed elsewhere — says checkout is not available too.
@@ -163,7 +165,7 @@ The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--sta
 | `schematic-checkout__rows`, `__row`, `__row-name`, `__row-detail`, `__row-amount`     | Quantity, bundle and auto top-up rows.                                                                |
 | `schematic-checkout__input`, `__input--quantity`                                      | Text and number inputs; the quantity modifier narrows them.                                           |
 | `schematic-checkout__field`, `__field-label`, `__field-helper`, `__inline`            | A labelled control, its helper, and a row of them.                                                    |
-| `schematic-checkout__check`, `__opt-in-text`                                          | The agreement checkbox and its text.                                                                  |
+| `schematic-checkout__check`, `__opt-in-text`, `__opt-in-link`                         | The agreement checkbox, its text, and the links its Markdown carries.                                 |
 | `schematic-checkout__problems`                                                        | The problems on a step, each a `schematic-notice` with `data-code`.                                   |
 | `schematic-checkout__nav`                                                             | Back, and Next while the summary is held.                                                             |
 | `schematic-checkout__summary`, `__summary-title`                                      | The right column, an `aside` with `aria-busy` while pricing.                                          |

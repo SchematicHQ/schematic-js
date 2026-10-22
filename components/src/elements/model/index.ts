@@ -9,6 +9,7 @@ export * from "./checkoutConfig";
 export * from "./checkoutPrices";
 export * from "./checkoutSelections";
 export * from "./checkoutSteps";
+export * from "./optInText";
 export * from "./creditUsage";
 export * from "./featureUsage";
 export * from "./includedFeatures";

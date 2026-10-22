@@ -3,7 +3,7 @@ import {
   useTaxIds,
   type CheckoutProblem,
 } from "@schematichq/schematic-react";
-import { Suspense, lazy, useEffect, useId, useState } from "react";
+import React, { Suspense, lazy, useEffect, useId, useState } from "react";
 
 import {
   findTaxIdJurisdiction,
@@ -19,7 +19,7 @@ import {
   type PaymentMethodsCheckoutSettings,
 } from "../PaymentMethods";
 import type { CartAction, CheckoutCart, CheckoutModel } from "../model";
-import { derivePaymentMethods } from "../model";
+import { derivePaymentMethods, parseOptInText } from "../model";
 import type { Translator } from "../strings";
 
 import { ProblemList, type ProblemFormatter } from "./parts";
@@ -486,7 +486,23 @@ function OptIn({
         <h3 className="schematic-checkout__section-title">{title}</h3>
       )}
       {text !== null && (
-        <p className="schematic-checkout__opt-in-text">{text}</p>
+        <p className="schematic-checkout__opt-in-text">
+          {parseOptInText(text).map((segment, index) =>
+            segment.kind === "link" ? (
+              <a
+                className="schematic-checkout__opt-in-link"
+                href={segment.url}
+                key={index}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {segment.text}
+              </a>
+            ) : (
+              <React.Fragment key={index}>{segment.text}</React.Fragment>
+            ),
+          )}
+        </p>
       )}
       <label className="schematic-checkout__check">
         <input

@@ -346,7 +346,7 @@ const checkoutActions = () => ({
         discountAmount: 200,
         isScheduledDowngrade: true,
         optInRequired: true,
-        optInText: "I agree to the terms.",
+        optInText: "I agree to the [terms](https://acme.test/terms).",
         optInTitle: "Terms",
         proration: -100,
         prorationDetail: prorationDetail({

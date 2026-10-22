@@ -19,6 +19,7 @@ import { Checkout, type CheckoutProps } from "./Checkout";
 import type { PaymentMethodFormProps } from "./PaymentMethodForm";
 import { cardPaymentMethod, daysFromNow } from "./fixtures/builders";
 import {
+  autoTopup,
   catalog,
   catalogAddOn,
   catalogPlan,
@@ -776,5 +777,93 @@ describe("Checkout period and currency choices", () => {
     renderCheckout({ steps: { skip: ["plan"] } });
     expect(step()).toBe("addOns");
     expect(screen.queryByLabelText("Currency")).toBeNull();
+  });
+});
+
+describe("Checkout steps and fields", () => {
+  test("starts each step at its top", async () => {
+    // jsdom has no scrollTo; the element only calls one that exists.
+    const scrollTo = vi.fn();
+    const proto = HTMLElement.prototype as { scrollTo?: unknown };
+    const had = proto.scrollTo;
+    proto.scrollTo = scrollTo;
+    try {
+      const { actions } = renderCheckout();
+      await waitFor(() => expect(actions.createCheckout).toHaveBeenCalled());
+      fireEvent.click(
+        within(cards()[1]).getByRole("button", { name: "Select" }),
+      );
+      scrollTo.mockClear();
+      fireEvent.click(next());
+      expect(step()).toBe("usage");
+      const scrolled = scrollTo.mock.contexts as HTMLElement[];
+      expect(
+        scrolled.some((el) => el.classList.contains("schematic-checkout__main")),
+      ).toBe(true);
+      expect(scrolled.some((el) => el.tagName === "DIALOG")).toBe(true);
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+    } finally {
+      proto.scrollTo = had;
+    }
+  });
+
+  test("keeps a top-up's amount whole and at least one", async () => {
+    const topup = autoTopup({ planCreditGrantId: "pcg_1" });
+    const data = baseData();
+    const { actions } = renderCheckout(
+      { steps: { initial: "autoTopup" } },
+      {
+        ...data,
+        catalog: catalog({
+          plans: [
+            catalogPlan({ ...starter, autoTopups: [topup] }),
+            pro,
+          ],
+        }),
+      },
+    );
+    expect(step()).toBe("autoTopup");
+    await waitFor(() => expect(actions.createCheckout).toHaveBeenCalled());
+    const amount = screen.getByLabelText("Buy");
+    const sent = () =>
+      vi.mocked(actions.updateCheckout).mock.lastCall?.[2].autoTopupOverrides;
+
+    fireEvent.change(amount, { target: { value: "" } });
+    expect(amount).toHaveValue(null);
+    fireEvent.change(amount, { target: { value: "0" } });
+    await waitFor(() =>
+      expect(sent()).toEqual([
+        expect.objectContaining({ autoTopupAmount: 1, planCreditGrantId: "pcg_1" }),
+      ]),
+    );
+    fireEvent.change(amount, { target: { value: "2.7" } });
+    await waitFor(() =>
+      expect(sent()).toEqual([
+        expect.objectContaining({ autoTopupAmount: 2 }),
+      ]),
+    );
+    fireEvent.blur(amount);
+    expect(amount).toHaveValue(2);
+  });
+
+  test("links the agreement's Markdown links", async () => {
+    renderCheckout(
+      { steps: { initial: "payment" } },
+      baseData(),
+      fakeActions(
+        {},
+        priceSnapshot({
+          optInRequired: true,
+          optInText: "I agree to the [terms](https://acme.test/terms).",
+          optInTitle: "Terms",
+        }),
+      ),
+    );
+    const link = await screen.findByRole("link", { name: "terms" });
+    expect(link).toHaveAttribute("href", "https://acme.test/terms");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link.closest(".schematic-checkout__opt-in-text")).toHaveTextContent(
+      "I agree to the terms.",
+    );
   });
 });

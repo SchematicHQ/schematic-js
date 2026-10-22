@@ -331,6 +331,10 @@ export const checkoutCss = `
   white-space: pre-wrap;
 }
 
+.schematic-checkout__opt-in-link {
+  color: var(--schematic-accent);
+}
+
 .schematic-checkout__problems {
   display: flex;
   flex-direction: column;

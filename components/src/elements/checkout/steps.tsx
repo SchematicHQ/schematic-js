@@ -342,33 +342,39 @@ export function AddOnsStep({
 
 /**
  * A number field that holds what is typed while it is being edited, so
- * clearing it to type a new count does not snap back to zero mid-edit.
+ * clearing it to type a new count does not snap back to zero mid-edit. What
+ * it reports is whole and at least `min`; an empty field reports nothing.
  */
 function QuantityInput({
+  id,
   label,
+  min = 0,
   onChange,
   value,
 }: {
-  label: string;
+  id?: string;
+  label?: string;
+  min?: number;
   onChange: (quantity: number) => void;
-  value: number;
+  value: number | null;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   return (
     <input
       aria-label={label}
       className="schematic-checkout__input schematic-checkout__input--quantity"
+      id={id}
       inputMode="numeric"
-      min={0}
+      min={min}
       step={1}
       type="number"
-      value={draft ?? String(value)}
+      value={draft ?? (value === null ? "" : String(value))}
       onBlur={() => setDraft(null)}
       onChange={(event) => {
         setDraft(event.target.value);
         const parsed = Number(event.target.value);
         if (event.target.value !== "" && Number.isFinite(parsed)) {
-          onChange(parsed);
+          onChange(Math.max(min, Math.floor(parsed)));
         }
       }}
     />
@@ -570,17 +576,14 @@ function AutoTopupItem({
             >
               {t("checkoutAutoTopupThreshold")}
             </label>
-            <input
-              className="schematic-checkout__input schematic-checkout__input--quantity"
+            <QuantityInput
               id={thresholdId}
-              min={0}
-              type="number"
-              value={row.thresholdCredits ?? ""}
-              onChange={(event) =>
+              value={row.thresholdCredits}
+              onChange={(thresholdCredits) =>
                 dispatch({
                   type: "autoTopup",
                   grantId: row.grantId,
-                  choice: { thresholdCredits: Number(event.target.value) },
+                  choice: { thresholdCredits },
                 })
               }
             />
@@ -592,17 +595,15 @@ function AutoTopupItem({
             >
               {t("checkoutAutoTopupAmount")}
             </label>
-            <input
-              className="schematic-checkout__input schematic-checkout__input--quantity"
+            <QuantityInput
               id={amountId}
               min={1}
-              type="number"
-              value={row.amount ?? ""}
-              onChange={(event) =>
+              value={row.amount}
+              onChange={(amount) =>
                 dispatch({
                   type: "autoTopup",
                   grantId: row.grantId,
-                  choice: { amount: Number(event.target.value) },
+                  choice: { amount },
                 })
               }
             />

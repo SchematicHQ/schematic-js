@@ -376,6 +376,21 @@ function CheckoutFlow({
     setChosenStep(next);
   };
 
+  // A new step starts at its top: the column that scrolls side by side, and
+  // the dialog that scrolls as a whole when stacked.
+  const mainRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const main = mainRef.current;
+    if (main === null) {
+      return;
+    }
+    for (const node of [main, main.closest("dialog")]) {
+      if (node !== null && typeof node.scrollTo === "function") {
+        node.scrollTo({ top: 0 });
+      }
+    }
+  }, [step]);
+
   const [finalizing, setFinalizing] = useState(false);
   const [addingMethod, setAddingMethod] = useState(false);
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
@@ -487,7 +502,7 @@ function CheckoutFlow({
       data-step={step}
       data-summary={summaryHeld ? "payment" : undefined}
     >
-      <div className="schematic-checkout__main">
+      <div className="schematic-checkout__main" ref={mainRef}>
         <Stepper current={step} plan={stepPlan} t={t} onSelect={goTo} />
         <h3 className="schematic-checkout__heading">{stepLabel(step, t)}</h3>
         {/* A plan step passed over takes its currency choice with it; a new
