@@ -37,8 +37,7 @@ export const creditUsageCss = `
   width: 2.75rem;
 }
 
-.schematic-credit-usage__icon .schematic-icon,
-.schematic-credit-usage__icon .schematic-icon-text {
+.schematic-credit-usage__icon .schematic-icon {
   color: var(--schematic-accent);
 }
 
