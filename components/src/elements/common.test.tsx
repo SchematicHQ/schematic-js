@@ -36,8 +36,8 @@ describe("Icon", () => {
   test("draws anything else, an emoji, as its text", () => {
     const { container } = render(<Icon className="x" name="🚀" />);
     const node = container.firstElementChild;
-    expect(node).toMatchObject({ tagName: "SPAN", textContent: "🚀" });
-    expect(node).toHaveClass("schematic-icon-text", "x");
+    expect(node).toMatchObject({ tagName: "I", textContent: "🚀" });
+    expect(node).toHaveClass("schematic-icon", "x");
     expect(node?.className).not.toContain("schematic-icon--");
     expect(node).toHaveAttribute("aria-hidden", "true");
   });
