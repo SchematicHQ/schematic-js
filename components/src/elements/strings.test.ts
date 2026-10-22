@@ -84,6 +84,8 @@ const KEYS = [
   "checkoutQuantityLabel",
   "checkoutRemove",
   "checkoutRequired",
+  "checkoutSavingsQuarter",
+  "checkoutSavingsYear",
   "checkoutScheduledChange",
   "checkoutSelect",
   "checkoutSelected",

@@ -35,6 +35,7 @@ import {
   AddOnsStep,
   AutoTopupStep,
   CreditsStep,
+  CurrencySelect,
   PlanStep,
   QuantityStep,
   Stepper,
@@ -489,6 +490,15 @@ function CheckoutFlow({
       <div className="schematic-checkout__main">
         <Stepper current={step} plan={stepPlan} t={t} onSelect={goTo} />
         <h3 className="schematic-checkout__heading">{stepLabel(step, t)}</h3>
+        {/* A plan step passed over takes its currency choice with it; a new
+            customer still gets to pick, on the first step shown. */}
+        {step !== "plan" &&
+          stepPlan.skipped.has("plan") &&
+          model.currency.selectable && (
+            <div className="schematic-checkout__controls">
+              <CurrencySelect dispatch={dispatch} model={model} t={t} />
+            </div>
+          )}
         {step === "plan" && (
           <PlanStep
             dispatch={dispatch}

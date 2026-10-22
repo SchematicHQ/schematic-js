@@ -13,7 +13,7 @@ import type {
   QuantityRow,
   StepPlan,
 } from "../model";
-import type { Translator } from "../strings";
+import type { StringKey, Translator } from "../strings";
 
 import {
   Price,
@@ -92,27 +92,44 @@ function PeriodToggle({
   if (!model.period.selectable) {
     return null;
   }
+  const { savings } = model.period;
   return (
-    <div
-      aria-label={t("checkoutPeriodLabel")}
-      className="schematic-toggle"
-      role="group"
-    >
-      {model.period.options.map((period: CheckoutPeriod) => (
-        <button
-          aria-pressed={period === model.period.value}
-          key={period}
-          type="button"
-          onClick={() => dispatch({ type: "period", period })}
-        >
-          {periodName(period, t)}
-        </button>
-      ))}
-    </div>
+    <>
+      <div
+        aria-label={t("checkoutPeriodLabel")}
+        className="schematic-toggle"
+        role="group"
+      >
+        {model.period.options.map((period: CheckoutPeriod) => (
+          <button
+            aria-pressed={period === model.period.value}
+            key={period}
+            type="button"
+            onClick={() => dispatch({ type: "period", period })}
+          >
+            {periodName(period, t)}
+          </button>
+        ))}
+      </div>
+      {savings !== null && (
+        <span className="schematic-checkout__savings">
+          {t(SAVINGS[savings.period], { percent: savings.percentText })}
+        </span>
+      )}
+    </>
   );
 }
 
-function CurrencySelect({
+const SAVINGS: Record<"quarter" | "year", StringKey> = {
+  quarter: "checkoutSavingsQuarter",
+  year: "checkoutSavingsYear",
+};
+
+/**
+ * The currency choice, on the plan step, or on the first step shown when the
+ * plan step is passed over and nothing fixes the currency yet.
+ */
+export function CurrencySelect({
   dispatch,
   model,
   t,

@@ -26,6 +26,7 @@ import {
   company,
   companyOn,
   creditBundle,
+  monthly,
   oneTime,
   payInAdvanceEntitlement,
   priceSnapshot,
@@ -729,5 +730,51 @@ describe("Checkout in the page", () => {
     expect(screen.getByRole("region", { name: "Checkout" }).className).toBe(
       "schematic-checkout schematic-checkout--inline schematic-checkout--stacked",
     );
+  });
+});
+
+describe("Checkout period and currency choices", () => {
+  test("says what a longer period saves while it is not chosen", async () => {
+    renderCheckout();
+    expect(
+      screen.getByText("Save 17% with yearly billing"),
+    ).toHaveClass("schematic-checkout__savings");
+    fireEvent.click(screen.getByRole("button", { name: "Yearly" }));
+    expect(screen.queryByText(/with yearly billing/)).toBeNull();
+  });
+
+  test("keeps the currency choice on the first step when the plan step is skipped", async () => {
+    const eur = { currency: "eur", monthlyPrice: monthly(2300, "eur") };
+    const data = {
+      ...baseData(),
+      catalog: catalog({
+        addOns: [addOn],
+        plans: [
+          catalogPlan({ ...starter, currencyPrices: [eur] }),
+          catalogPlan({ ...pro, currencyPrices: [eur] }),
+        ],
+      }),
+      // No subscription, so nothing fixes the currency.
+      company: company(),
+    };
+    const { actions } = renderCheckout({ steps: { skip: ["plan"] } }, data);
+    expect(step()).toBe("addOns");
+    const select = screen.getByLabelText("Currency");
+    expect(select).toHaveValue("usd");
+    await waitFor(() => expect(actions.createCheckout).toHaveBeenCalled());
+    fireEvent.change(select, { target: { value: "eur" } });
+    await waitFor(() =>
+      expect(actions.updateCheckout).toHaveBeenLastCalledWith(
+        "chk_1",
+        expect.any(Number),
+        expect.objectContaining({ currency: "eur", priceId: eur.monthlyPrice.id }),
+      ),
+    );
+  });
+
+  test("offers no currency choice off the plan step once a subscription fixes it", () => {
+    renderCheckout({ steps: { skip: ["plan"] } });
+    expect(step()).toBe("addOns");
+    expect(screen.queryByLabelText("Currency")).toBeNull();
   });
 });

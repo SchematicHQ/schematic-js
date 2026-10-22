@@ -92,7 +92,7 @@ Everything else is CSS. The class names below are API, every step and card carri
 
 The API has no steps. The dialog derives them from the catalog and the cart, in this order, each only when there is something to choose in it:
 
-1. **Plan** — whenever the catalog sells plans; with the period toggle and currency choice.
+1. **Plan** — whenever the catalog sells plans; with the period toggle, a note on what a longer period saves, and the currency choice. A skipped plan step hands the currency choice to the first step shown, while no subscription fixes it.
 2. **Auto top-up** — the plan has included credits whose top-up the company may set itself.
 3. **Quantity** — the plan has pay-in-advance entitlements.
 4. **Add-ons** — some add-on can be sold with the plan, and no trial is starting.
@@ -156,7 +156,8 @@ The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--sta
 | `schematic-checkout__stepper`, `__step`, `__step-link`                                | The step list, one `li` per visible step, the link within it.                                         |
 | `schematic-checkout__heading`                                                         | The step's title.                                                                                     |
 | `schematic-checkout__section`, `__section-title`                                      | A group within a step, with `data-step`; the payment step's promo code, tax ID, fields and agreement. |
-| `schematic-checkout__controls`                                                        | The period toggle and currency choice above the plan cards.                                           |
+| `schematic-checkout__controls`                                                        | The period toggle and currency choice above the plan cards, or the currency choice alone on the first step shown when the plan step is skipped. |
+| `schematic-checkout__savings`                                                         | "Save 17% with yearly billing" beside the toggle, while a longer period the plan costs less on is not the one chosen. |
 | `schematic-checkout__cards`, `__card`, `__card-name`, `__card-price`, `__card-period` | Plan and add-on cards; `data-selected`, `data-valid`.                                                 |
 | `schematic-checkout__card-description`, `__card-badges`                               | A card's description and its trial, current and invalid badges.                                       |
 | `schematic-checkout__rows`, `__row`, `__row-name`, `__row-detail`, `__row-amount`     | Quantity, bundle and auto top-up rows.                                                                |

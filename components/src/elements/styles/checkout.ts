@@ -157,6 +157,11 @@ export const checkoutCss = `
   gap: var(--schematic-space);
 }
 
+.schematic-checkout__savings {
+  color: var(--schematic-muted);
+  font-size: 0.875rem;
+}
+
 .schematic-checkout__cards {
   display: grid;
   gap: var(--schematic-space);

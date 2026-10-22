@@ -247,6 +247,8 @@ export type ElementStrings = {
   checkoutPerQuarter: string;
   checkoutPerYear: string;
   checkoutPeriodLabel: string;
+  checkoutSavingsQuarter: string;
+  checkoutSavingsYear: string;
   checkoutCurrencyLabel: string;
   checkoutFree: string;
   checkoutCurrentPlan: string;
@@ -621,6 +623,8 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   checkoutPerQuarter: "/quarter",
   checkoutPerYear: "/year",
   checkoutPeriodLabel: "Billing period",
+  checkoutSavingsQuarter: "Save {{percent}} with quarterly billing",
+  checkoutSavingsYear: "Save {{percent}} with yearly billing",
   checkoutCurrencyLabel: "Currency",
   checkoutFree: "Free",
   checkoutCurrentPlan: "Current plan",

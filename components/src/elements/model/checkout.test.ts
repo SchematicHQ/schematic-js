@@ -54,7 +54,33 @@ describe("deriveCheckout", () => {
       value: "month",
       options: ["month", "year"],
       selectable: true,
+      savings: { period: "year", percentText: "17%" },
     });
+  });
+
+  test("says nothing about savings on the period chosen, or without a monthly price", () => {
+    const onYear = deriveCheckout({
+      catalog: cat,
+      cart: cartOn({ period: "year" }),
+      locale: "en-US",
+    });
+    expect(onYear.period.savings).toBeNull();
+
+    const yearOnly = catalogPlan({ monthlyPrice: undefined, name: "Annual" });
+    const noMonthly = deriveCheckout({
+      catalog: catalog({ plans: [yearOnly] }),
+      cart: cartOn({ period: "year", planId: yearOnly.id }),
+      locale: "en-US",
+    });
+    expect(noMonthly.period.savings).toBeNull();
+
+    const dearer = catalogPlan({ name: "Dearer", yearlyPrice: yearly(40000) });
+    const noSaving = deriveCheckout({
+      catalog: catalog({ plans: [dearer] }),
+      cart: cartOn({ planId: dearer.id }),
+      locale: "en-US",
+    });
+    expect(noSaving.period.savings).toBeNull();
   });
 
   test("lines up what the cart holds at catalog prices, and leaves the totals to the server", () => {

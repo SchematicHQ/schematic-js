@@ -41,6 +41,7 @@ import {
   featureName,
   formatCurrency,
   formatDate,
+  formatNumber,
   formatShortDateRange,
   usableDate,
 } from "./format";
@@ -189,6 +190,11 @@ export interface CheckoutModel {
     /** The periods the chosen plan, else any plan, is sold on. */
     options: CheckoutPeriod[];
     selectable: boolean;
+    /**
+     * The longer period the chosen plan costs less on than monthly, and by
+     * what share, while it is not the one chosen; `null` when there is none.
+     */
+    savings: { period: "quarter" | "year"; percentText: string } | null;
   };
   plans: PlanRow[];
   addOns: PlanRow[];
@@ -395,6 +401,55 @@ function prorationBlock(
   };
 }
 
+const MONTHS: Record<"quarter" | "year", number> = { quarter: 3, year: 12 };
+
+const amountOf = (price: CatalogPrice): number =>
+  typeof price.priceDecimal === "string"
+    ? Number(price.priceDecimal)
+    : price.price;
+
+/**
+ * The longer period the plan costs less on, against monthly, as the share it
+ * saves: the biggest when more than one does. Nothing while that period is
+ * the cart's own, or the plan has no monthly price to compare with.
+ */
+function periodSavings(
+  plan: CatalogPlan,
+  cart: CheckoutCart,
+  locale: string,
+): CheckoutModel["period"]["savings"] {
+  if (isOneTime(plan)) {
+    return null;
+  }
+  const monthly = planPrice(plan, "month", cart.currency);
+  if (monthly === undefined || amountOf(monthly) <= 0) {
+    return null;
+  }
+  let best: { period: "quarter" | "year"; fraction: number } | null = null;
+  for (const period of ["quarter", "year"] as const) {
+    if (period === cart.period) {
+      continue;
+    }
+    const price = planPrice(plan, period, cart.currency);
+    if (price === undefined) {
+      continue;
+    }
+    const fraction = 1 - amountOf(price) / (amountOf(monthly) * MONTHS[period]);
+    if (fraction > 0 && (best === null || fraction > best.fraction)) {
+      best = { period, fraction };
+    }
+  }
+  return best === null
+    ? null
+    : {
+        period: best.period,
+        percentText: formatNumber(best.fraction, locale, {
+          maximumFractionDigits: 0,
+          style: "percent",
+        }),
+      };
+}
+
 export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
   const {
     catalog,
@@ -565,6 +620,7 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
       options: periodOptions,
       selectable:
         periodOptions.length > 1 && display?.showPeriodToggle !== false,
+      savings: plan === undefined ? null : periodSavings(plan, cart, locale),
     },
     plans: catalog.plans.map((p) =>
       planRow(p, cart, locale, p.id === plan?.id),
