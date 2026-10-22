@@ -1,15 +1,10 @@
 #!/bin/bash
-# Regenerates the narrow billing API client (src/billing/api/generated)
-# from the temporary-access-token OpenAPI spec, filtered to the surface this
-# branch ships (/company, /company/invoices, /company/upcoming-invoice,
-# /company/payment-methods and its writes, /company/usage and
-# /company/credits with their per-user breakdowns; hydrate, checkout and the
-# rest join with their elements).
+# Regenerates the narrow billing API client (src/billing/api/generated):
+# the temporary-access-token OpenAPI spec filtered to the paths below.
 #
-# Until the endpoints deploy, the source of truth is a local schematic-api
-# checkout; point SCHEMATIC_API_DIR at it (default: ../../schematic-api).
-# After deploy this can switch to the published spec:
-#   https://openapi.schematichq.com/prod/api/temporaryaccesstoken.yml
+# The spec is read from a local schematic-api checkout (SCHEMATIC_API_DIR,
+# default ../../schematic-api), so routes can be generated before they are
+# published at https://openapi.schematichq.com/prod/api/temporaryaccesstoken.yml.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -26,6 +21,9 @@ node scripts/filter-openapi.mjs "$TMP_DIR/spec.json" "$TMP_DIR/spec.filtered.jso
   /company /company/invoices /company/upcoming-invoice /company/payment-methods \
   /company/usage '/company/usage/{feature_id}/users' \
   /company/credits '/company/credits/{credit_id}/users' \
+  /catalog/view '/catalogs/{catalog_id}/view' \
+  /checkouts '/checkouts/{checkout_id}' '/checkouts/{checkout_id}/finalize' \
+  /checkout/tax-id \
   /checkout/paymentmethod/update '/checkout/paymentmethod/{checkout_id}' /checkout/unsubscribe \
   /components/setup-intent
 rm -rf src/billing/api/generated
