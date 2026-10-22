@@ -727,6 +727,51 @@ describe("Checkout markup contract", () => {
     );
   });
 
+  test("the root, in the page", async () => {
+    const root = await renderCheckout("plan", { container: "inline" });
+    expect(root.tagName).toBe("SECTION");
+    expect(root.className).toBe(
+      "schematic-checkout schematic-checkout--inline",
+    );
+    // The dialog's header and body, without its close control.
+    expect(classNames(root)).toEqual([
+      "schematic-badge",
+      "schematic-checkout__card",
+      "schematic-checkout__card-badges",
+      "schematic-checkout__card-name",
+      "schematic-checkout__card-period",
+      "schematic-checkout__card-price",
+      "schematic-checkout__cards",
+      "schematic-checkout__controls",
+      "schematic-checkout__disclaimer",
+      "schematic-checkout__frame",
+      "schematic-checkout__heading",
+      "schematic-checkout__layout",
+      "schematic-checkout__line",
+      "schematic-checkout__line-amount",
+      "schematic-checkout__lines",
+      "schematic-checkout__main",
+      "schematic-checkout__section",
+      "schematic-checkout__step",
+      "schematic-checkout__step-link",
+      "schematic-checkout__stepper",
+      "schematic-checkout__summary",
+      "schematic-checkout__summary-title",
+      "schematic-checkout__total",
+      "schematic-checkout__total--due",
+      "schematic-checkout__total-amount",
+      "schematic-checkout__totals",
+      "schematic-cta",
+      "schematic-cta--outline",
+      "schematic-cta--small",
+      "schematic-dialog__body",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-element",
+      "schematic-toggle",
+    ]);
+  });
+
   test("the plan step with the summary held for payment", async () => {
     const root = await renderCheckout("plan", { summary: "payment" });
     expect(root.querySelector(".schematic-checkout__layout")).toHaveAttribute(

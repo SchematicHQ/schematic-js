@@ -14,7 +14,14 @@ import {
   type FeatureUsage,
   type PaymentMethod,
 } from "@schematichq/schematic-react";
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useId,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 
 import type { PaymentMethodsCheckoutPrefill } from "./PaymentMethods";
 import { PaymentStep } from "./checkout/PaymentStep";
@@ -103,27 +110,75 @@ export function Checkout({
   ...rest
 }: CheckoutProps) {
   const t = useTranslator(strings, localeProp);
+  const stacked = display?.layout === "stacked" && "schematic-checkout--stacked";
+  const body = (
+    <CheckoutBody
+      {...rest}
+      display={display}
+      locale={localeProp}
+      strings={strings}
+      t={t}
+      onOpenChange={onOpenChange}
+    />
+  );
+  if (display?.container === "inline") {
+    return (
+      <InlineFrame
+        className={cx(
+          "schematic-checkout",
+          "schematic-checkout--inline",
+          stacked,
+          className,
+        )}
+        open={open}
+        title={t("checkoutTitle")}
+      >
+        {body}
+      </InlineFrame>
+    );
+  }
   return (
     <Dialog
-      className={cx(
-        "schematic-checkout",
-        display?.layout === "stacked" && "schematic-checkout--stacked",
-        className,
-      )}
+      className={cx("schematic-checkout", stacked, className)}
       closeLabel={t("checkoutClose")}
       open={open}
       title={t("checkoutTitle")}
       onClose={() => onOpenChange(false)}
     >
-      <CheckoutBody
-        {...rest}
-        display={display}
-        locale={localeProp}
-        strings={strings}
-        t={t}
-        onOpenChange={onOpenChange}
-      />
+      {body}
     </Dialog>
+  );
+}
+
+/**
+ * The checkout in the page rather than over it: the dialog's header and
+ * body without the dialog, so the same stylesheet applies. Nothing renders
+ * while closed, as in the dialog; the host's page owns any way out.
+ */
+function InlineFrame({
+  children,
+  className,
+  open,
+  title,
+}: {
+  children: React.ReactNode;
+  className: string;
+  open: boolean;
+  title: string;
+}) {
+  const headingId = useId();
+  if (!open) {
+    return null;
+  }
+  return (
+    <section aria-labelledby={headingId} className={className}>
+      <div className="schematic-dialog__header">
+        <h2 className="schematic-dialog__title" id={headingId}>
+          {title}
+        </h2>
+      </div>
+      <div className="schematic-dialog__body">{children}</div>
+    </section>
   );
 }
 

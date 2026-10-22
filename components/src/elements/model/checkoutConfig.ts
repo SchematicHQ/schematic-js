@@ -96,6 +96,13 @@ export interface CheckoutDisplay {
    * `.schematic-checkout__nav`, and the layout carries `data-summary`.
    */
   summary?: "always" | "payment";
+  /**
+   * Where the checkout renders. `"dialog"` (default): a modal over the page.
+   * `"inline"`: in the page, where the host puts it, with no backdrop and no
+   * close control; the root carries `schematic-checkout--inline`. `open`
+   * still says whether it renders at all.
+   */
+  container?: "dialog" | "inline";
 }
 
 /** Shared by `<Checkout />` and `useCheckoutLauncher().open(config)`. */

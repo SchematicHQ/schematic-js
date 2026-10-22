@@ -431,6 +431,7 @@ async function everyCheckout() {
     }),
     // A bundle beside the plan: the one-time lines under their caption.
     await checkoutWithBundle(),
+    await checkoutAt({ display: { container: "inline" } }),
     tree(<Checkout locale="en-US" open onOpenChange={() => {}} />, {
       ...checkoutData(),
       catalog: catalog({

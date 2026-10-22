@@ -19,6 +19,20 @@ export const checkoutCss = `
   padding: 0;
 }
 
+/* In the page rather than over it: the dialog's chrome on a section the host
+   places, as tall as its content. */
+.schematic-checkout--inline {
+  background: var(--schematic-background);
+  border: 1px solid var(--schematic-border);
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+  color: var(--schematic-text);
+  display: flex;
+  flex-direction: column;
+  max-width: 72rem;
+  overflow: hidden;
+}
+
 .schematic-checkout__layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

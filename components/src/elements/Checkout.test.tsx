@@ -691,3 +691,43 @@ describe("Checkout one-time charges", () => {
     expect(card).toHaveTextContent("$99.00 one time");
   });
 });
+
+describe("Checkout in the page", () => {
+  test("renders inline when asked, without the dialog", async () => {
+    const { actions } = renderCheckout({ display: { container: "inline" } });
+    expect(document.querySelector("dialog")).toBeNull();
+    const root = screen.getByRole("region", { name: "Checkout" });
+    expect(root.tagName).toBe("SECTION");
+    expect(root.className).toBe("schematic-checkout schematic-checkout--inline");
+    expect(screen.queryByRole("button", { name: "Close" })).toBeNull();
+    expect(
+      root.querySelector(".schematic-checkout__layout"),
+    ).toHaveAttribute("data-step", "plan");
+    await waitFor(() => expect(actions.createCheckout).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("schematic-checkout-summary"),
+      ).toHaveTextContent("Due today$25.00"),
+    );
+  });
+
+  test("renders nothing inline while closed", () => {
+    render(
+      <BillingDataProvider data={baseData()}>
+        <Checkout
+          display={{ container: "inline" }}
+          open={false}
+          onOpenChange={() => {}}
+        />
+      </BillingDataProvider>,
+    );
+    expect(document.querySelector(".schematic-checkout")).toBeNull();
+  });
+
+  test("stacks inline too", () => {
+    renderCheckout({ display: { container: "inline", layout: "stacked" } });
+    expect(screen.getByRole("region", { name: "Checkout" }).className).toBe(
+      "schematic-checkout schematic-checkout--inline schematic-checkout--stacked",
+    );
+  });
+});

@@ -84,6 +84,7 @@ From 768px up the steps take the left and the summary — the lines, the totals 
 
 - `display.layout: "stacked"` keeps the summary under the steps at every width. The root carries `schematic-checkout--stacked`, so a bottom sheet on a phone and a narrow card on a desktop are the same stylesheet.
 - `display.summary: "payment"` shows the summary on the payment step alone. The steps before it carry their Next action in `.schematic-checkout__nav`, and the layout carries `data-summary="payment"`, so a wizard of one choice per screen asks nothing of the stylesheet but the column.
+- `display.container: "inline"` renders the checkout in the page, where the host puts it, rather than in a modal over it: the same header and body on a `section`, as tall as its content, with no backdrop and no close control. The root carries `schematic-checkout--inline`, and `open` still says whether it renders at all. A checkout page of its own, or a preview, is this.
 
 Everything else is CSS. The class names below are API, every step and card carries a `data-*` for its state, and a stylesheet rendered after `<SchematicStyles />` wins at equal specificity, so a host restyles the dialog without a prop for each part.
 
@@ -144,7 +145,7 @@ Tiered prices are shown at their flat unit price, not broken out by tier. A chec
 
 ## Markup
 
-The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--stacked` under `display.layout: "stacked"`. `.schematic-checkout__layout` carries `data-step` with the step on screen and `data-summary="payment"` when the summary is held for it. Step links carry `aria-current="step"`, `data-state` (`done`, `current`, `upcoming`) and `data-skipped`; plan and add-on cards `data-selected` and `data-valid`; problems `data-code`. The class names are pinned by `markup.test.tsx` and are API.
+The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--stacked` under `display.layout: "stacked"`; under `display.container: "inline"` it is a `section` with `schematic-checkout schematic-checkout--inline`, carrying the same `schematic-dialog__header` and `__body` inside. `.schematic-checkout__layout` carries `data-step` with the step on screen and `data-summary="payment"` when the summary is held for it. Step links carry `aria-current="step"`, `data-state` (`done`, `current`, `upcoming`) and `data-skipped`; plan and add-on cards `data-selected` and `data-valid`; problems `data-code`. The class names are pinned by `markup.test.tsx` and are API.
 
 | Class                                                                                 | Where                                                                                                 |
 | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
