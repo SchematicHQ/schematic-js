@@ -362,6 +362,12 @@ export const checkoutCss = `
   padding-top: var(--schematic-space);
 }
 
+.schematic-checkout__lines-caption {
+  color: var(--schematic-muted);
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
 .schematic-checkout__line,
 .schematic-checkout__total {
   display: flex;

@@ -64,14 +64,14 @@ describe("deriveCheckout", () => {
       quantities: { [seats.featureId]: 3 },
     });
     const model = deriveCheckout({ catalog: cat, cart, locale: "en-US" });
-    expect(model.lines.map((l) => [l.label, l.quantity, l.amountText])).toEqual(
-      [
-        ["Pro", null, "$25.00"],
-        ["Support", null, "$5.00"],
-        ["Seats", 3, "$15.00"],
-        ["100 credits", 2, "$20.00"],
-      ],
-    );
+    expect(
+      model.lines.map((l) => [l.label, l.quantity, l.amountText, l.oneTime]),
+    ).toEqual([
+      ["Pro", null, "$25.00", false],
+      ["Support", null, "$5.00", false],
+      ["Seats", 3, "$15.00", false],
+      ["100 credits", 2, "$20.00", true],
+    ]);
     expect(model.totals).toBeNull();
 
     const priced = deriveCheckout({

@@ -166,6 +166,7 @@ The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--sta
 | `schematic-checkout__nav`                                                             | Back, and Next while the summary is held.                                                             |
 | `schematic-checkout__summary`, `__summary-title`                                      | The right column, an `aside` with `aria-busy` while pricing.                                          |
 | `schematic-checkout__lines`, `__line`, `__line-amount`                                | What the cart holds, one line each.                                                                   |
+| `schematic-checkout__lines--one-time`, `__line--one-time`, `__lines-caption`          | The lines charged once (a one-time plan or add-on, a bundle), after what renews, under a caption when both are there. |
 | `schematic-checkout__totals`, `__total`, `__total--due`, `__total-amount`             | Proration, discount, tax, the period's total, the credit applied and the amount due now.              |
 | `schematic-checkout__total--proration`, `__proration-toggle`, `__proration`, `__proration-line`, `__proration-period` | The proration row when the price itemizes it: the Show/Hide details toggle (`aria-expanded`), and the credit and charge lines under it with their periods. |
 | `schematic-checkout__disclaimer`                                                      | The renewal, trial-end, scheduled-change, next-invoice proration and remaining-credit lines under the totals. |

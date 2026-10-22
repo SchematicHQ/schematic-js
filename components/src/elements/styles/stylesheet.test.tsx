@@ -395,6 +395,18 @@ async function checkoutWithProrationOpen() {
   return root;
 }
 
+/** The payment step with a bundle beside the plan: one-time lines under their caption. */
+async function checkoutWithBundle() {
+  const data = checkoutData();
+  return checkoutAt(
+    {
+      selection: { creditBundles: { [data.catalog.creditBundles[0].id]: 1 } },
+      steps: { initial: "payment" },
+    },
+    data,
+  );
+}
+
 /** Every checkout render that reaches a selector in the sheet. */
 async function everyCheckout() {
   return [
@@ -417,6 +429,8 @@ async function everyCheckout() {
       selection: { promoCode: "SAVE10" },
       steps: { initial: "payment" },
     }),
+    // A bundle beside the plan: the one-time lines under their caption.
+    await checkoutWithBundle(),
     tree(<Checkout locale="en-US" open onOpenChange={() => {}} />, {
       ...checkoutData(),
       catalog: catalog({

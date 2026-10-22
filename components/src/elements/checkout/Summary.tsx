@@ -5,6 +5,7 @@ import type {
   CheckoutPeriod,
   CheckoutProration,
   ProrationLine,
+  SummaryLine,
 } from "../model";
 import type { StringKey, Translator } from "../strings";
 
@@ -56,6 +57,10 @@ export function Summary({
 }) {
   const { lines, totals } = model;
   const period = model.period.value;
+  // What renews, then what is charged once, so the period's total reads
+  // against the lines it adds up.
+  const recurring = lines.filter((line) => !line.oneTime);
+  const oneTime = lines.filter((line) => line.oneTime);
   // Held here rather than in the row: a re-price the server refuses drops
   // the totals, and the row with them, and the customer's choice to see the
   // lines should outlive that.
@@ -69,20 +74,16 @@ export function Summary({
       <h3 className="schematic-checkout__summary-title">
         {t("checkoutSummary")}
       </h3>
-      {lines.length > 0 && (
-        <ul className="schematic-checkout__lines">
-          {lines.map((line) => (
-            <li className="schematic-checkout__line" key={line.key}>
-              <span>
-                {line.quantity !== null && `${line.quantity} × `}
-                {line.label}
-              </span>
-              <span className="schematic-checkout__line-amount">
-                {line.amountText}
-              </span>
-            </li>
-          ))}
-        </ul>
+      {recurring.length > 0 && <Lines lines={recurring} />}
+      {oneTime.length > 0 && (
+        <>
+          {recurring.length > 0 && (
+            <p className="schematic-checkout__lines-caption">
+              {t("checkoutOneTime")}
+            </p>
+          )}
+          <Lines lines={oneTime} oneTime />
+        </>
       )}
       {totals !== null && model.priceable && (
         <ul className="schematic-checkout__totals">
@@ -163,6 +164,43 @@ export function Summary({
       )}
       {action}
     </aside>
+  );
+}
+
+function Lines({
+  lines,
+  oneTime = false,
+}: {
+  lines: SummaryLine[];
+  oneTime?: boolean;
+}) {
+  return (
+    <ul
+      className={
+        oneTime
+          ? "schematic-checkout__lines schematic-checkout__lines--one-time"
+          : "schematic-checkout__lines"
+      }
+    >
+      {lines.map((line) => (
+        <li
+          className={
+            oneTime
+              ? "schematic-checkout__line schematic-checkout__line--one-time"
+              : "schematic-checkout__line"
+          }
+          key={line.key}
+        >
+          <span>
+            {line.quantity !== null && `${line.quantity} × `}
+            {line.label}
+          </span>
+          <span className="schematic-checkout__line-amount">
+            {line.amountText}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

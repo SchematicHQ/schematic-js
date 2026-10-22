@@ -75,7 +75,7 @@ export function ProblemList({
   );
 }
 
-/** A price with its period after it. */
+/** A price with its period after it, or "one time" for one charged once. */
 export function Price({
   period,
   recurring,
@@ -90,11 +90,9 @@ export function Price({
   return (
     <span className="schematic-checkout__card-price">
       {text}
-      {recurring && (
-        <sub className="schematic-checkout__card-period">
-          {perPeriod(period, t)}
-        </sub>
-      )}
+      <sub className="schematic-checkout__card-period">
+        {recurring ? perPeriod(period, t) : ` ${t("checkoutOneTimePrice")}`}
+      </sub>
     </span>
   );
 }

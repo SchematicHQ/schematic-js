@@ -22,6 +22,7 @@ import {
   catalogPlan,
   checkoutDraft,
   companyOn,
+  creditBundle,
   priceSnapshot,
   prorationDetail,
   prorationLine,
@@ -682,6 +683,8 @@ async function renderCheckout(
   initial: "plan" | "payment",
   display: React.ComponentProps<typeof Checkout>["display"] = undefined,
   checkout = checkoutDraft(),
+  props: Partial<React.ComponentProps<typeof Checkout>> = {},
+  data: Partial<BillingData> = {},
 ) {
   const starter = contractStarter;
   const { container } = render(
@@ -694,6 +697,7 @@ async function renderCheckout(
         company: companyOn(starter),
         featureUsage: [],
         paymentMethods: [cardPaymentMethod({ isDefault: true })],
+        ...data,
       }}
     >
       <Checkout
@@ -702,6 +706,7 @@ async function renderCheckout(
         open
         steps={{ initial }}
         onOpenChange={() => {}}
+        {...props}
       />
     </BillingDataProvider>,
   );
@@ -923,6 +928,68 @@ describe("Checkout markup contract", () => {
       "schematic-icon--visa",
       "schematic-link-button",
       "schematic-link-button__label",
+      "schematic-payment-methods__current",
+      "schematic-payment-methods__icon",
+      "schematic-payment-methods__label",
+      "schematic-payment-methods__last4",
+      "schematic-payment-methods__method",
+    ]);
+  });
+
+  test("the payment step with a one-time purchase beside the plan", async () => {
+    const bundle = creditBundle();
+    const root = await renderCheckout(
+      "payment",
+      undefined,
+      checkoutDraft(),
+      { selection: { creditBundles: { [bundle.id]: 1 } } },
+      {
+        catalog: catalog({
+          creditBundles: [bundle],
+          plans: [contractStarter, contractPro],
+        }),
+      },
+    );
+    expect(classNames(root)).toEqual([
+      "schematic-checkout__disclaimer",
+      "schematic-checkout__field",
+      "schematic-checkout__field-label",
+      "schematic-checkout__frame",
+      "schematic-checkout__heading",
+      "schematic-checkout__inline",
+      "schematic-checkout__input",
+      "schematic-checkout__layout",
+      "schematic-checkout__line",
+      "schematic-checkout__line--one-time",
+      "schematic-checkout__line-amount",
+      "schematic-checkout__lines",
+      "schematic-checkout__lines--one-time",
+      "schematic-checkout__lines-caption",
+      "schematic-checkout__main",
+      "schematic-checkout__nav",
+      "schematic-checkout__section",
+      "schematic-checkout__section-title",
+      "schematic-checkout__step",
+      "schematic-checkout__step-link",
+      "schematic-checkout__stepper",
+      "schematic-checkout__summary",
+      "schematic-checkout__summary-title",
+      "schematic-checkout__total",
+      "schematic-checkout__total--due",
+      "schematic-checkout__total-amount",
+      "schematic-checkout__totals",
+      "schematic-cta",
+      "schematic-cta--outline",
+      "schematic-cta--small",
+      "schematic-dialog__body",
+      "schematic-dialog__close",
+      "schematic-dialog__header",
+      "schematic-dialog__title",
+      "schematic-element",
+      "schematic-icon",
+      "schematic-icon--close",
+      "schematic-icon--visa",
+      "schematic-link-button",
       "schematic-payment-methods__current",
       "schematic-payment-methods__icon",
       "schematic-payment-methods__label",

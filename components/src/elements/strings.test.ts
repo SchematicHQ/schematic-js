@@ -49,6 +49,8 @@ const KEYS = [
   "checkoutFree",
   "checkoutLoading",
   "checkoutNext",
+  "checkoutOneTime",
+  "checkoutOneTimePrice",
   "checkoutOptInAccept",
   "checkoutPay",
   "checkoutPaymentFailed",

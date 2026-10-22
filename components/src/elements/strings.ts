@@ -260,6 +260,8 @@ export type ElementStrings = {
   checkoutAddOnsEmpty: string;
   checkoutAdd: string;
   checkoutRemove: string;
+  checkoutOneTime: string;
+  checkoutOneTimePrice: string;
   checkoutQuantityLabel: string;
   checkoutCurrentQuantity: string;
   checkoutPerUnit: string;
@@ -634,6 +636,8 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   checkoutAddOnsEmpty: "No add-ons are available for this plan.",
   checkoutAdd: "Add",
   checkoutRemove: "Remove",
+  checkoutOneTime: "One-time",
+  checkoutOneTimePrice: "one time",
   checkoutQuantityLabel: "Quantity of {{name}}",
   checkoutCurrentQuantity: "Currently {{count}}",
   checkoutPerUnit: "{{price}} each",

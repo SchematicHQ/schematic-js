@@ -109,6 +109,8 @@ export interface SummaryLine {
   /** How many, for a line bought in a quantity. */
   quantity: number | null;
   amountText: string;
+  /** Charged once rather than each period: a one-time plan or add-on, a bundle. */
+  oneTime: boolean;
 }
 
 /**
@@ -458,6 +460,7 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
         label: plan.name,
         quantity: null,
         amountText: priceText(price, locale) as string,
+        oneTime: isOneTime(plan),
       });
     }
     for (const addOn of cartAddOns(cart, catalog)) {
@@ -469,6 +472,7 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
           planPrice(addOn, cart.period, cart.currency),
           locale,
         ) as string,
+        oneTime: isOneTime(addOn),
       });
     }
     for (const row of [...quantityRows("plan"), ...quantityRows("addOns")]) {
@@ -478,6 +482,7 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
           label: row.name,
           quantity: row.quantity,
           amountText: row.totalText,
+          oneTime: false,
         });
       }
     }
@@ -495,6 +500,7 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
         locale,
         count,
       ) as string,
+      oneTime: true,
     });
   }
 

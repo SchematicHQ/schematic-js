@@ -26,6 +26,7 @@ import {
   company,
   companyOn,
   creditBundle,
+  oneTime,
   payInAdvanceEntitlement,
   priceSnapshot,
   problem,
@@ -623,5 +624,70 @@ describe("Checkout after a refused re-price", () => {
       within(summary()).getByRole("button", { name: "Hide details" }),
     ).toHaveAttribute("aria-expanded", "true");
     expect(summary()).toHaveTextContent("Unused time on Starter");
+  });
+});
+
+describe("Checkout one-time charges", () => {
+  const summary = () => screen.getByTestId("schematic-checkout-summary");
+
+  test("groups what is charged once after what renews", async () => {
+    const setup = catalogAddOn({
+      chargeType: "one_time",
+      monthlyPrice: undefined,
+      name: "Onboarding",
+      oneTimePrice: oneTime(9900),
+      yearlyPrice: undefined,
+    });
+    renderCheckout(
+      {
+        selection: {
+          addOnIds: [setup.id],
+          creditBundles: { [bundle.id]: 2 },
+        },
+        steps: { initial: "payment" },
+      },
+      {
+        ...baseData(),
+        catalog: catalog({
+          addOns: [addOn, setup],
+          creditBundles: [bundle],
+          plans: [starter, pro],
+        }),
+      },
+    );
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    const recurring = summary().querySelector(
+      ".schematic-checkout__lines:not(.schematic-checkout__lines--one-time)",
+    );
+    const once = summary().querySelector(
+      ".schematic-checkout__lines--one-time",
+    );
+    expect(recurring).toHaveTextContent("Starter$25.00");
+    expect(recurring).not.toHaveTextContent("Onboarding");
+    expect(summary()).toHaveTextContent("One-time");
+    expect(once).toHaveTextContent("Onboarding$99.00");
+    expect(once).toHaveTextContent("2 × 100 credits$20.00");
+    expect(once?.querySelectorAll(".schematic-checkout__line--one-time")).toHaveLength(2);
+  });
+
+  test("marks a one-time add-on's price on its card", async () => {
+    const setup = catalogAddOn({
+      chargeType: "one_time",
+      monthlyPrice: undefined,
+      name: "Onboarding",
+      oneTimePrice: oneTime(9900),
+      yearlyPrice: undefined,
+    });
+    renderCheckout(
+      { steps: { initial: "addOns" } },
+      {
+        ...baseData(),
+        catalog: catalog({ addOns: [setup], plans: [starter, pro] }),
+      },
+    );
+    const card = cards().find(
+      (c) => within(c).getByRole("heading").textContent === "Onboarding",
+    ) as HTMLElement;
+    expect(card).toHaveTextContent("$99.00 one time");
   });
 });
