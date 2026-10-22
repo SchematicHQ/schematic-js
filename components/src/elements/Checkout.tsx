@@ -446,11 +446,9 @@ function CheckoutFlow({
   // what the last price said rather than flipping to Confirm while disabled.
   const snapshotDueNow = checkout.snapshot?.dueNow;
   const [lastDueNow, setLastDueNow] = useState<number | undefined>();
-  useEffect(() => {
-    if (snapshotDueNow !== undefined) {
-      setLastDueNow(snapshotDueNow);
-    }
-  }, [snapshotDueNow]);
+  if (snapshotDueNow !== undefined && snapshotDueNow !== lastDueNow) {
+    setLastDueNow(snapshotDueNow);
+  }
   const dueNow = snapshotDueNow ?? lastDueNow ?? 0;
 
   const action =
