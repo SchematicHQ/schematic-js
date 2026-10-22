@@ -67,12 +67,15 @@ models/CatalogUsageViolationResponseData.ts
 models/ChangeSubscriptionRequestBody.ts
 models/ChargeType.ts
 models/CheckoutBundlePurchaseBehavior.ts
+models/CheckoutChargeTiming.ts
 models/CheckoutDraftResponseData.ts
 models/CheckoutFieldValue.ts
 models/CheckoutFieldWithValue.ts
 models/CheckoutIntent.ts
 models/CheckoutPriceSnapshot.ts
 models/CheckoutPriceSnapshotDiscount.ts
+models/CheckoutPriceSnapshotProration.ts
+models/CheckoutPriceSnapshotProrationLine.ts
 models/CheckoutProblemCode.ts
 models/CheckoutProblemResponseData.ts
 models/CheckoutProblemSource.ts
@@ -240,8 +243,11 @@ models/PreviewObjectResponseData.ts
 models/PreviewSubscriptionChangeResponseData.ts
 models/PreviewSubscriptionDiscountResponseData.ts
 models/PreviewSubscriptionFinanceResponseData.ts
+models/PreviewSubscriptionProrationLineResponseData.ts
+models/PreviewSubscriptionProrationResponseData.ts
 models/PreviewSubscriptionUpcomingInvoiceLineItems.ts
 models/ProrationBehavior.ts
+models/ProrationLineKind.ts
 models/RenewalPolicy.ts
 models/Rule.ts
 models/RuleConditionDetailResponseData.ts

@@ -34,6 +34,13 @@ import {
   PreviewSubscriptionDiscountResponseDataToJSON,
   PreviewSubscriptionDiscountResponseDataToJSONTyped,
 } from "./PreviewSubscriptionDiscountResponseData";
+import type { PreviewSubscriptionProrationResponseData } from "./PreviewSubscriptionProrationResponseData";
+import {
+  PreviewSubscriptionProrationResponseDataFromJSON,
+  PreviewSubscriptionProrationResponseDataFromJSONTyped,
+  PreviewSubscriptionProrationResponseDataToJSON,
+  PreviewSubscriptionProrationResponseDataToJSONTyped,
+} from "./PreviewSubscriptionProrationResponseData";
 
 /**
  *
@@ -53,6 +60,18 @@ export interface PreviewSubscriptionFinanceResponseData {
    * @memberof PreviewSubscriptionFinanceResponseData
    */
   currency: Currency;
+  /**
+   * What the company's stored credit covers of this invoice, in minor units.
+   * @type {number}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  customerBalanceApplied: number;
+  /**
+   * Credit left on the company's balance after this invoice, in minor units: what it did not consume, plus what a total below zero adds, which the provider applies to later invoices.
+   * @type {number}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  customerBalanceRemaining: number;
   /**
    *
    * @type {number}
@@ -114,6 +133,12 @@ export interface PreviewSubscriptionFinanceResponseData {
    */
   prorationBilledAt?: Date | null;
   /**
+   * The proration itemized in the cart's terms, by plan and price. Null when the change prorates nothing. upcoming_invoice_line_items stays as the billing provider reported it.
+   * @type {PreviewSubscriptionProrationResponseData}
+   * @memberof PreviewSubscriptionFinanceResponseData
+   */
+  prorationDetail?: PreviewSubscriptionProrationResponseData;
+  /**
    *
    * @type {number}
    * @memberof PreviewSubscriptionFinanceResponseData
@@ -159,6 +184,16 @@ export function instanceOfPreviewSubscriptionFinanceResponseData(
 ): value is PreviewSubscriptionFinanceResponseData {
   if (!("amountOff" in value) || value["amountOff"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
+  if (
+    !("customerBalanceApplied" in value) ||
+    value["customerBalanceApplied"] === undefined
+  )
+    return false;
+  if (
+    !("customerBalanceRemaining" in value) ||
+    value["customerBalanceRemaining"] === undefined
+  )
+    return false;
   if (!("discountAmount" in value) || value["discountAmount"] === undefined)
     return false;
   if (!("discounts" in value) || value["discounts"] === undefined) return false;
@@ -207,6 +242,8 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
   return {
     amountOff: json["amount_off"],
     currency: CurrencyFromJSON(json["currency"]),
+    customerBalanceApplied: json["customer_balance_applied"],
+    customerBalanceRemaining: json["customer_balance_remaining"],
     discountAmount: json["discount_amount"],
     discounts: (json["discounts"] as Array<any>).map(
       PreviewSubscriptionDiscountResponseDataFromJSON,
@@ -222,6 +259,12 @@ export function PreviewSubscriptionFinanceResponseDataFromJSONTyped(
       json["proration_billed_at"] == null
         ? undefined
         : new Date(json["proration_billed_at"]),
+    prorationDetail:
+      json["proration_detail"] == null
+        ? undefined
+        : PreviewSubscriptionProrationResponseDataFromJSON(
+            json["proration_detail"],
+          ),
     taxAmount: json["tax_amount"] == null ? undefined : json["tax_amount"],
     taxDisplayName:
       json["tax_display_name"] == null ? undefined : json["tax_display_name"],
@@ -252,6 +295,8 @@ export function PreviewSubscriptionFinanceResponseDataToJSONTyped(
   return {
     amount_off: value["amountOff"],
     currency: CurrencyToJSON(value["currency"]),
+    customer_balance_applied: value["customerBalanceApplied"],
+    customer_balance_remaining: value["customerBalanceRemaining"],
     discount_amount: value["discountAmount"],
     discounts: (value["discounts"] as Array<any>).map(
       PreviewSubscriptionDiscountResponseDataToJSON,
@@ -267,6 +312,9 @@ export function PreviewSubscriptionFinanceResponseDataToJSONTyped(
       value["prorationBilledAt"] == null
         ? undefined
         : (value["prorationBilledAt"] as any).toISOString(),
+    proration_detail: PreviewSubscriptionProrationResponseDataToJSON(
+      value["prorationDetail"],
+    ),
     tax_amount: value["taxAmount"],
     tax_display_name: value["taxDisplayName"],
     tax_require_billing_details: value["taxRequireBillingDetails"],

@@ -20,6 +20,13 @@ import {
   CheckoutPriceSnapshotDiscountToJSON,
   CheckoutPriceSnapshotDiscountToJSONTyped,
 } from "./CheckoutPriceSnapshotDiscount";
+import type { CheckoutPriceSnapshotProration } from "./CheckoutPriceSnapshotProration";
+import {
+  CheckoutPriceSnapshotProrationFromJSON,
+  CheckoutPriceSnapshotProrationFromJSONTyped,
+  CheckoutPriceSnapshotProrationToJSON,
+  CheckoutPriceSnapshotProrationToJSONTyped,
+} from "./CheckoutPriceSnapshotProration";
 import type { Currency } from "./Currency";
 import {
   CurrencyFromJSON,
@@ -46,6 +53,18 @@ export interface CheckoutPriceSnapshot {
    * @memberof CheckoutPriceSnapshot
    */
   currency: Currency;
+  /**
+   *
+   * @type {number}
+   * @memberof CheckoutPriceSnapshot
+   */
+  customerBalanceApplied: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CheckoutPriceSnapshot
+   */
+  customerBalanceRemaining: number;
   /**
    *
    * @type {number}
@@ -132,6 +151,12 @@ export interface CheckoutPriceSnapshot {
   proration: number;
   /**
    *
+   * @type {CheckoutPriceSnapshotProration}
+   * @memberof CheckoutPriceSnapshot
+   */
+  prorationDetail?: CheckoutPriceSnapshotProration;
+  /**
+   *
    * @type {Date}
    * @memberof CheckoutPriceSnapshot
    */
@@ -164,6 +189,16 @@ export function instanceOfCheckoutPriceSnapshot(
 ): value is CheckoutPriceSnapshot {
   if (!("amountOff" in value) || value["amountOff"] === undefined) return false;
   if (!("currency" in value) || value["currency"] === undefined) return false;
+  if (
+    !("customerBalanceApplied" in value) ||
+    value["customerBalanceApplied"] === undefined
+  )
+    return false;
+  if (
+    !("customerBalanceRemaining" in value) ||
+    value["customerBalanceRemaining"] === undefined
+  )
+    return false;
   if (!("discountAmount" in value) || value["discountAmount"] === undefined)
     return false;
   if (!("discounts" in value) || value["discounts"] === undefined) return false;
@@ -214,6 +249,8 @@ export function CheckoutPriceSnapshotFromJSONTyped(
   return {
     amountOff: json["amount_off"],
     currency: CurrencyFromJSON(json["currency"]),
+    customerBalanceApplied: json["customer_balance_applied"],
+    customerBalanceRemaining: json["customer_balance_remaining"],
     discountAmount: json["discount_amount"],
     discounts: (json["discounts"] as Array<any>).map(
       CheckoutPriceSnapshotDiscountFromJSON,
@@ -230,6 +267,10 @@ export function CheckoutPriceSnapshotFromJSONTyped(
     pricedAt: new Date(json["priced_at"]),
     promoCodeApplied: json["promo_code_applied"],
     proration: json["proration"],
+    prorationDetail:
+      json["proration_detail"] == null
+        ? undefined
+        : CheckoutPriceSnapshotProrationFromJSON(json["proration_detail"]),
     scheduledChangeTime:
       json["scheduled_change_time"] == null
         ? undefined
@@ -256,6 +297,8 @@ export function CheckoutPriceSnapshotToJSONTyped(
   return {
     amount_off: value["amountOff"],
     currency: CurrencyToJSON(value["currency"]),
+    customer_balance_applied: value["customerBalanceApplied"],
+    customer_balance_remaining: value["customerBalanceRemaining"],
     discount_amount: value["discountAmount"],
     discounts: (value["discounts"] as Array<any>).map(
       CheckoutPriceSnapshotDiscountToJSON,
@@ -272,6 +315,9 @@ export function CheckoutPriceSnapshotToJSONTyped(
     priced_at: value["pricedAt"].toISOString(),
     promo_code_applied: value["promoCodeApplied"],
     proration: value["proration"],
+    proration_detail: CheckoutPriceSnapshotProrationToJSON(
+      value["prorationDetail"],
+    ),
     scheduled_change_time:
       value["scheduledChangeTime"] == null
         ? undefined
