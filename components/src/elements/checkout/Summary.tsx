@@ -56,6 +56,10 @@ export function Summary({
 }) {
   const { lines, totals } = model;
   const period = model.period.value;
+  // Held here rather than in the row: a re-price the server refuses drops
+  // the totals, and the row with them, and the customer's choice to see the
+  // lines should outlive that.
+  const [prorationOpen, setProrationOpen] = useState(false);
   return (
     <aside
       aria-busy={isPricing}
@@ -83,7 +87,12 @@ export function Summary({
       {totals !== null && model.priceable && (
         <ul className="schematic-checkout__totals">
           {totals.proration !== null ? (
-            <ProrationRow proration={totals.proration} t={t} />
+            <ProrationRow
+              open={prorationOpen}
+              proration={totals.proration}
+              t={t}
+              onToggle={() => setProrationOpen((value) => !value)}
+            />
           ) : (
             totals.prorationText !== null && (
               <Total
@@ -162,13 +171,16 @@ export function Summary({
  * lines under a toggle, closed until asked for.
  */
 function ProrationRow({
+  onToggle,
+  open,
   proration,
   t,
 }: {
+  onToggle: () => void;
+  open: boolean;
   proration: CheckoutProration;
   t: Translator;
 }) {
-  const [open, setOpen] = useState(false);
   return (
     <li className="schematic-checkout__total schematic-checkout__total--proration">
       <span>
@@ -177,7 +189,7 @@ function ProrationRow({
           aria-expanded={open}
           className="schematic-link-button schematic-checkout__proration-toggle"
           type="button"
-          onClick={() => setOpen((value) => !value)}
+          onClick={onToggle}
         >
           <i
             aria-hidden="true"

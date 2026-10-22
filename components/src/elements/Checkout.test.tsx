@@ -541,3 +541,87 @@ describe("Checkout credit", () => {
     expect(finalizeButton()).toHaveTextContent("Confirm");
   });
 });
+
+describe("Checkout after a refused re-price", () => {
+  const summary = () => screen.getByTestId("schematic-checkout-summary");
+  const payment = { steps: { skip: ["plan", "addOns", "credits"] } } as const;
+
+  // The server refuses BOGUS: the draft comes back with the problem and no
+  // snapshot, as it does for a cart it cannot price.
+  function refusingBogus(snapshot = priceSnapshot()) {
+    const actions = fakeActions({}, snapshot);
+    const priced = actions.updateCheckout;
+    actions.updateCheckout = vi.fn(
+      async (id: string, version: number, selections: CheckoutSelections) =>
+        selections.promoCode === "BOGUS"
+          ? {
+              checkout: checkoutDraft({
+                id: "chk_1",
+                priceSnapshot: undefined,
+                problems: [
+                  problem({
+                    code: "selection_invalid",
+                    message: "Invalid promo code",
+                    source: "validation",
+                  }),
+                ],
+                version: version + 1,
+              }),
+            }
+          : priced(id, version, selections),
+    );
+    return actions;
+  }
+
+  const applyPromo = (code: string) => {
+    fireEvent.change(screen.getByLabelText("Promo code"), {
+      target: { value: code },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+  };
+
+  test("keeps saying Pay now while the price is unknown", async () => {
+    renderCheckout(payment, baseData(), refusingBogus());
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    expect(finalizeButton()).toHaveTextContent("Pay now");
+
+    applyPromo("BOGUS");
+    await screen.findByText("Invalid promo code");
+    expect(finalizeButton()).toBeDisabled();
+    expect(finalizeButton()).toHaveTextContent("Pay now");
+  });
+
+  test("keeps the proration details open across it", async () => {
+    renderCheckout(
+      payment,
+      baseData(),
+      refusingBogus(
+        priceSnapshot({
+          proration: 1250,
+          prorationDetail: prorationDetail({
+            lines: [
+              prorationLine({ planId: starter.id }),
+              prorationLine({ amount: 2500, kind: "charge", planId: pro.id }),
+            ],
+          }),
+        }),
+      ),
+    );
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    fireEvent.click(
+      within(summary()).getByRole("button", { name: "Show details" }),
+    );
+    expect(summary()).toHaveTextContent("Unused time on Starter");
+
+    applyPromo("BOGUS");
+    await screen.findByText("Invalid promo code");
+    expect(summary()).not.toHaveTextContent("Proration");
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+    await waitFor(() => expect(summary()).toHaveTextContent("Proration"));
+    expect(
+      within(summary()).getByRole("button", { name: "Hide details" }),
+    ).toHaveAttribute("aria-expanded", "true");
+    expect(summary()).toHaveTextContent("Unused time on Starter");
+  });
+});

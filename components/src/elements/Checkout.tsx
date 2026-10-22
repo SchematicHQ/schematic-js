@@ -371,7 +371,16 @@ function CheckoutFlow({
       model.plans.some((row) => row.selected && row.priceText !== null)) ||
     (plan === undefined && stepPlan.available.includes("credits"));
   const trialStarting = model.trial;
-  const dueNow = checkout.snapshot?.dueNow ?? 0;
+  // A refused re-price answers with no snapshot; the action keeps saying
+  // what the last price said rather than flipping to Confirm while disabled.
+  const snapshotDueNow = checkout.snapshot?.dueNow;
+  const [lastDueNow, setLastDueNow] = useState<number | undefined>();
+  useEffect(() => {
+    if (snapshotDueNow !== undefined) {
+      setLastDueNow(snapshotDueNow);
+    }
+  }, [snapshotDueNow]);
+  const dueNow = snapshotDueNow ?? lastDueNow ?? 0;
 
   const action =
     next === undefined ? (
