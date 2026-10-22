@@ -19,6 +19,7 @@ import {
   creditBalance,
   creditGrant,
   creditUserUsage,
+  featureUsage,
   featureUserUsage,
   invoice,
   invoicePage,
@@ -277,6 +278,20 @@ async function everyCard() {
   });
 
   return [
+    // An icon set to an emoji renders as text in each element's circle.
+    tree(<IncludedFeatures locale="en-US" />, {
+      featureUsage: [featureUsage({ featureIcon: "🚀" })],
+    }),
+    tree(<MeteredFeatures locale="en-US" />, {
+      featureUsage: [featureUsage({ featureIcon: "🚀" })],
+    }),
+    tree(<CreditUsage locale="en-US" />, {
+      ...SCENARIOS.credits(),
+      creditBalances: SCENARIOS.credits().creditBalances?.map((balance) => ({
+        ...balance,
+        creditIcon: "🪙",
+      })),
+    }),
     tree(<PaymentMethods locale="en-US" />, everyExpiry()),
     unfold(tree(<PaymentMethods locale="en-US" />, everyExpiry())),
     tree(

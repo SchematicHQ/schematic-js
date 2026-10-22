@@ -21,6 +21,7 @@ import {
   type StringVars,
   type Translator,
 } from "./strings";
+import { ICON_NAMES } from "./styles/icons";
 
 export const cx = (...names: (string | undefined | false | null)[]): string =>
   names
@@ -169,6 +170,25 @@ function warnRawNumbers(key: StringKey, vars: StringVars | undefined): void {
     }
   }
 }
+
+/**
+ * A feature's or credit's icon as the dashboard sets it: a schematic-icons
+ * glyph by name, or anything else, an emoji, drawn as the text it is.
+ */
+export const Icon: React.FC<{ className?: string; name: string }> = ({
+  className,
+  name,
+}) =>
+  ICON_NAMES.has(name) ? (
+    <i
+      aria-hidden="true"
+      className={cx("schematic-icon", `schematic-icon--${name}`, className)}
+    />
+  ) : (
+    <span aria-hidden="true" className={cx("schematic-icon-text", className)}>
+      {name}
+    </span>
+  );
 
 /** Where a call to action rendered as a link goes. */
 export interface CtaProps {
