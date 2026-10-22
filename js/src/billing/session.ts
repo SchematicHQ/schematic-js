@@ -74,6 +74,11 @@ export interface RequestOptions {
   method?: string;
   body?: unknown;
   /**
+   * Sent beside the client's own. The credential is the session's and cannot
+   * be replaced from here.
+   */
+  headers?: Record<string, string>;
+  /**
    * Success statuses that carry no body — a 204 for a resource that is
    * legitimately absent. The request resolves `undefined` for them, which
    * is distinct from a body that parsed to `null`. A 401 is never one — the
@@ -341,6 +346,17 @@ export class SchematicSession {
    * otherwise come back as the answer to a question asked for another pair.
    */
   async request(path: string, options: RequestOptions = {}): Promise<unknown> {
+    return (await this.requestWithResponse(path, options)).body;
+  }
+
+  /**
+   * `request`, with the headers the answer came back with — for a resource
+   * whose protocol rides beside the body, as a checkout's session does.
+   */
+  async requestWithResponse(
+    path: string,
+    options: RequestOptions = {},
+  ): Promise<{ body: unknown; headers: Headers }> {
     const { method = "GET", body } = options;
     const send = async (credential: string): Promise<Response> =>
       this._fetch(`${this._apiUrl}${path}`, {
@@ -349,6 +365,7 @@ export class SchematicSession {
           "Accept": "application/json",
           ...(body === undefined ? {} : { "Content-Type": "application/json" }),
           ...this._headers,
+          ...options.headers,
           "X-Schematic-Api-Key": credential,
         },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -425,7 +442,7 @@ export class SchematicSession {
       // Drained to release the connection; there is no body to read.
       await discardBody(response);
       await stillOurs();
-      return undefined;
+      return { body: undefined, headers: response.headers };
     }
 
     const parsed = await readBody(response);
@@ -436,7 +453,7 @@ export class SchematicSession {
     if (!response.ok) {
       throw new SchematicApiError(response.status, path, parsed);
     }
-    return parsed;
+    return { body: parsed, headers: response.headers };
   }
 }
 
