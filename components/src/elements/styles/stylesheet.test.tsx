@@ -419,7 +419,9 @@ async function checkoutWithBundle() {
   const data = checkoutData();
   return checkoutAt(
     {
-      selection: { creditBundles: { [data.catalog.creditBundles[0].id]: 1 } },
+      selection: {
+        creditBundles: { [data.catalog?.creditBundles[0]?.id ?? ""]: 1 },
+      },
       steps: { initial: "payment" },
     },
     data,

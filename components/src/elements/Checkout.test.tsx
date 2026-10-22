@@ -24,6 +24,7 @@ import {
   catalogAddOn,
   catalogPlan,
   checkoutDraft,
+  checkoutField,
   company,
   companyOn,
   creditBundle,
@@ -745,7 +746,7 @@ describe("Checkout period and currency choices", () => {
   });
 
   test("keeps the currency choice on the first step when the plan step is skipped", async () => {
-    const eur = { currency: "eur", monthlyPrice: monthly(2300, "eur") };
+    const eur = { currency: "eur" as const, monthlyPrice: monthly(2300, "eur") };
     const data = {
       ...baseData(),
       catalog: catalog({
@@ -978,5 +979,190 @@ describe("Checkout payment methods on file", () => {
     expect(
       screen.queryByRole("list", { name: "Other payment methods on file" }),
     ).toBeNull();
+  });
+});
+
+describe("Checkout trial, tax ID, agreement and fields", () => {
+  const summary = () => screen.getByTestId("schematic-checkout-summary");
+
+  test("starts a trial the plan offers, unless the customer opts out", async () => {
+    const trial = catalogPlan({
+      companyCanTrial: true,
+      isTrialable: true,
+      name: "Team",
+      trialDays: 14,
+    });
+    const { actions } = renderCheckout(
+      { selection: { planId: trial.id } },
+      { ...baseData(), catalog: catalog({ plans: [starter, trial] }), company: company() },
+      fakeActions(
+        {},
+        priceSnapshot({
+          dueNow: 0,
+          paymentMethodRequired: false,
+          trialEnd: daysFromNow(14),
+        }),
+      ),
+    );
+    expect(within(cards()[1]).getByText("14 day free trial")).toBeInTheDocument();
+    const toggle = screen.getByRole("checkbox", {
+      name: "Start with a free trial",
+    });
+    expect(toggle).toBeChecked();
+    await waitFor(() =>
+      expect(actions.createCheckout).toHaveBeenCalledWith(
+        expect.objectContaining({ planId: trial.id, skipTrial: false }),
+      ),
+    );
+    await waitFor(() =>
+      expect(summary()).toHaveTextContent(
+        /Your trial ends [A-Z][a-z]+ \d+, \d{4}; you will be charged then\./,
+      ),
+    );
+    while (screen.queryByTestId("schematic-checkout-finalize") === null) {
+      fireEvent.click(next());
+    }
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    expect(finalizeButton()).toHaveTextContent("Start trial");
+
+    fireEvent.click(screen.getByRole("button", { name: "Plan" }));
+    // The plan step mounted anew; so did its checkbox.
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Start with a free trial" }),
+    );
+    await waitFor(() =>
+      expect(actions.updateCheckout).toHaveBeenLastCalledWith(
+        "chk_1",
+        expect.any(Number),
+        expect.objectContaining({ skipTrial: true }),
+      ),
+    );
+  });
+
+  test("saves the tax ID when the field is left, and again before paying", async () => {
+    const updateTaxId = vi.fn(async () => undefined);
+    const actions = fakeActions({ updateTaxId });
+    renderCheckout(
+      { steps: { initial: "payment" } },
+      {
+        ...baseData(),
+        catalog: catalog({
+          checkoutSettings: { ...catalog().checkoutSettings, collectTaxId: true },
+          plans: [starter, pro],
+        }),
+        taxIds: [],
+      },
+      actions,
+    );
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    fireEvent.change(screen.getByLabelText("Country"), {
+      target: { value: "US" },
+    });
+    const value = screen.getByLabelText("Tax ID number");
+    fireEvent.change(value, { target: { value: "12-3456789" } });
+    fireEvent.blur(value);
+    await waitFor(() =>
+      expect(updateTaxId).toHaveBeenCalledWith({
+        type: "us_ein",
+        value: "12-3456789",
+      }),
+    );
+    await screen.findByText("Tax ID saved");
+
+    // The fixture provider does not echo the save back as the store does,
+    // so the field falls back to its empty data; pick the country again.
+    fireEvent.change(screen.getByLabelText("Country"), {
+      target: { value: "US" },
+    });
+    fireEvent.change(value, { target: { value: "98-7654321" } });
+    fireEvent.click(finalizeButton());
+    await waitFor(() =>
+      expect(updateTaxId).toHaveBeenLastCalledWith({
+        type: "us_ein",
+        value: "98-7654321",
+      }),
+    );
+    await waitFor(() => expect(actions.finalizeCheckout).toHaveBeenCalled());
+    const [saved] = vi.mocked(updateTaxId).mock.invocationCallOrder.slice(-1);
+    const [charged] = vi.mocked(actions.finalizeCheckout).mock
+      .invocationCallOrder;
+    expect(saved).toBeLessThan(charged);
+  });
+
+  test("asks for the agreement again when its wording changes", async () => {
+    const terms = (text: string) =>
+      priceSnapshot({
+        optInRequired: true,
+        optInText: text,
+        optInTitle: "Terms",
+        paymentMethodRequired: false,
+      });
+    const actions = fakeActions({}, terms("I agree to the terms."));
+    const priced = actions.updateCheckout;
+    // Accepting prompts a re-price that comes back with new wording.
+    actions.updateCheckout = vi.fn(
+      async (id: string, version: number, selections: CheckoutSelections) => {
+        const write = await priced(id, version, selections);
+        return selections.optInAccepted === true
+          ? {
+              ...write,
+              checkout: {
+                ...write.checkout,
+                priceSnapshot: terms("I agree to the new terms."),
+              },
+            }
+          : write;
+      },
+    );
+    renderCheckout({ steps: { initial: "payment" } }, baseData(), actions);
+    const box = await screen.findByRole("checkbox", { name: "I agree" });
+    expect(box).not.toBeChecked();
+    fireEvent.click(box);
+    await waitFor(() =>
+      expect(actions.updateCheckout).toHaveBeenCalledWith(
+        "chk_1",
+        expect.any(Number),
+        expect.objectContaining({ optInAccepted: true }),
+      ),
+    );
+    await screen.findByText("I agree to the new terms.");
+    await waitFor(() => expect(box).not.toBeChecked());
+    await waitFor(() =>
+      expect(
+        vi.mocked(actions.updateCheckout).mock.lastCall?.[2],
+      ).not.toHaveProperty("optInAccepted"),
+    );
+  });
+
+  test("sends a custom field's value, and marks the required ones", async () => {
+    const { actions } = renderCheckout(
+      { steps: { initial: "payment" } },
+      {
+        ...baseData(),
+        catalog: catalog({
+          checkoutSettings: {
+            ...catalog().checkoutSettings,
+            customFields: [
+              checkoutField({ id: "cfc_po", name: "PO number", required: true }),
+            ],
+          },
+          plans: [starter, pro],
+        }),
+      },
+    );
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    const field = screen.getByLabelText(/PO number/);
+    expect(field).toBeRequired();
+    expect(screen.getByText("(Required)")).toBeInTheDocument();
+    fireEvent.change(field, { target: { value: "PO-1" } });
+    await waitFor(() =>
+      expect(actions.updateCheckout).toHaveBeenLastCalledWith(
+        "chk_1",
+        expect.any(Number),
+        expect.objectContaining({
+          customFieldValues: [{ id: "cfc_po", value: "PO-1" }],
+        }),
+      ),
+    );
   });
 });
