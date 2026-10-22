@@ -415,10 +415,12 @@ export const checkoutCss = `
   justify-content: space-between;
 }
 
+/* Under the name, so a long plan name and a two-year range never wrap into
+   each other. */
 .schematic-checkout__proration-period {
   color: var(--schematic-muted);
+  display: block;
   font-size: 0.8125rem;
-  margin-inline-start: 0.25rem;
 }
 
 .schematic-checkout__disclaimer {
