@@ -264,6 +264,20 @@ describe("PricingTable", () => {
     expect(screen.queryByRole("tooltip", { hidden: true })).toBeNull();
   });
 
+  test("draws an emoji feature icon as its text", () => {
+    const plan = publicCatalogPlan({
+      name: "Team",
+      entitlements: [catalogEntitlement({ featureIcon: "🚀" })],
+    });
+    const { container } = renderTable({
+      publicCatalog: publicCatalog({ plans: [plan] }),
+    });
+    expect(
+      container.querySelector(".schematic-plan-card__icon"),
+    ).toHaveTextContent("🚀");
+    expect(container.innerHTML).not.toContain("schematic-icon--🚀");
+  });
+
   test("shows four features until asked for all", () => {
     renderTable();
     const pro = card("Pro");

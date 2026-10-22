@@ -2,6 +2,7 @@ import { useCatalog, useCompany } from "@schematichq/schematic-react";
 import { useId, useMemo, useState } from "react";
 
 import {
+  Icon,
   StatusFrame,
   Tooltip,
   cx,
@@ -655,10 +656,7 @@ function CreditItem({
   return (
     <li className="schematic-plan-card__credit">
       {showIcon && credit.icon !== null && (
-        <i
-          aria-hidden="true"
-          className={`schematic-icon schematic-icon--${credit.icon} schematic-plan-card__icon`}
-        />
+        <Icon className="schematic-plan-card__icon" name={credit.icon} />
       )}
       <div className="schematic-plan-card__feature">
         <span className="schematic-plan-card__feature-text">{text}</span>
@@ -692,10 +690,7 @@ function EntitlementItem({
   return (
     <li className="schematic-plan-card__entitlement">
       {shared.showFeatureIcons && row.icon !== null && (
-        <i
-          aria-hidden="true"
-          className={`schematic-icon schematic-icon--${row.icon} schematic-plan-card__icon`}
-        />
+        <Icon className="schematic-plan-card__icon" name={row.icon} />
       )}
       <div className="schematic-plan-card__feature">
         <span className="schematic-plan-card__feature-text">
