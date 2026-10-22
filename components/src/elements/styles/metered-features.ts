@@ -43,7 +43,8 @@ export const meteredFeaturesCss = `
   width: 2.75rem;
 }
 
-.schematic-metered-features__icon .schematic-icon {
+.schematic-metered-features__icon .schematic-icon,
+.schematic-metered-features__icon .schematic-icon-text {
   color: var(--schematic-accent);
 }
 

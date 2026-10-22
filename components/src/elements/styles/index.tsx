@@ -67,6 +67,12 @@ const rulesCss = `
     var(--schematic-card-padding);
 }
 
+.schematic-icon-text {
+  display: inline-block;
+  font-style: normal;
+  line-height: 1;
+}
+
 .schematic-muted {
   color: var(--schematic-muted);
 }

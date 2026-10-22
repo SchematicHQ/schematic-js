@@ -5,7 +5,8 @@
  * Reads the installed `@schematichq/schematic-icons` CSS and writes
  * `src/elements/styles/icons.ts`: the `@font-face` as shipped (plus
  * `font-display: block`), a `.schematic-icon` base rule, and one
- * `.schematic-icon--<name>::before` per glyph. The package's own selectors
+ * `.schematic-icon--<name>::before` per glyph, then `ICON_NAMES`, the glyph
+ * names. The package's own selectors
  * (`i[class^="icon-"]`, `.icon-*`) are not reused: they are global, carry
  * `!important`, and would collide with a host that loads the package itself.
  *
@@ -98,7 +99,15 @@ const out = resolve(
   "styles",
   "icons.ts",
 );
-writeFileSync(out, `${header}${rules}\n\`;\n`);
+// What the font can draw, so an element renders any other name (an emoji
+// set in the dashboard) as text rather than as a class that draws nothing.
+const names = `
+/** Every glyph name above. */
+export const ICON_NAMES: ReadonlySet<string> = new Set([
+${glyphs.map(([name]) => `  "${name}",`).join("\n")}
+]);
+`;
+writeFileSync(out, `${header}${rules}\n\`;\n${names}`);
 console.log(
   `Wrote ${out}: ${glyphs.length} glyphs from @schematichq/schematic-icons@${version}`,
 );
