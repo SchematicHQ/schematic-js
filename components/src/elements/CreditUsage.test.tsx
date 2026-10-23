@@ -32,6 +32,21 @@ function renderCredits(
   );
 }
 
+test("CreditUsage draws an emoji icon as its text", () => {
+  const data = SCENARIOS.credits();
+  const { container } = renderCredits({
+    ...data,
+    creditBalances: data.creditBalances?.map((balance) => ({
+      ...balance,
+      creditIcon: "🪙",
+    })),
+  });
+  expect(
+    container.querySelector(".schematic-credit-usage__icon"),
+  ).toHaveTextContent("🪙");
+  expect(container.innerHTML).not.toContain("schematic-icon--🪙");
+});
+
 function section(name: string): HTMLElement {
   return screen.getByRole("region", { name });
 }

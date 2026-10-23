@@ -6,6 +6,7 @@ import {
 import { useMemo } from "react";
 
 import {
+  Icon,
   StatusFrame,
   Tooltip,
   cx,
@@ -165,12 +166,7 @@ export function MeteredFeatures({
             <div className="schematic-metered-features__main">
               {showIcon && (
                 <span className="schematic-metered-features__icon">
-                  {row.icon !== null && (
-                    <i
-                      aria-hidden="true"
-                      className={`schematic-icon schematic-icon--${row.icon}`}
-                    />
-                  )}
+                  {row.icon !== null && <Icon name={row.icon} />}
                 </span>
               )}
               <div className="schematic-metered-features__body">

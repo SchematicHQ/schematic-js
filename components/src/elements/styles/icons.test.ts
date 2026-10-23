@@ -1,14 +1,14 @@
 import { iconsList } from "@schematichq/schematic-icons";
 import packageCss from "@schematichq/schematic-icons/styles.css?raw";
 
-import { iconsCss } from "./icons";
+import { iconsCss, isIconName } from "./icons";
 
 import { schematicStylesCss } from ".";
 
 /**
- * icons.ts is generated from the installed `@schematichq/schematic-icons`
- * by scripts/inline-icons.mjs. These tests hold the generated file to the
- * package it was cut from, so a bump without `pnpm run icons` fails here.
+ * icon-font.ts is generated from the installed `@schematichq/schematic-icons`
+ * by scripts/inline-icons.mjs. These tests hold it to the package it was cut
+ * from, so a bump without `pnpm run icons` fails here.
  * `iconsList` is the package's glyph map, the same data as its
  * schematic-icons.json.
  */
@@ -52,6 +52,24 @@ describe("the inlined icon font", () => {
     expect(
       iconsCss.match(/\.schematic-icon--[a-z0-9-]+::before/g),
     ).toHaveLength(names.length);
+  });
+
+  test("draws each glyph at the codepoint the package's font has it", () => {
+    const fromCss = Object.fromEntries(
+      Array.from(
+        packageCss.matchAll(
+          /\.icon-([a-z0-9-]+):before\s*\{\s*content:\s*"\\([0-9a-f]+)"/g,
+        ),
+        ([, name, hex]) => [name, parseInt(hex, 16)],
+      ),
+    );
+    expect(fromCss).toEqual(glyphs);
+  });
+
+  test("knows a glyph name from anything else", () => {
+    expect(Object.keys(glyphs).every(isIconName)).toBe(true);
+    expect(isIconName("🚀")).toBe(false);
+    expect(isIconName("toString")).toBe(false);
   });
 
   test("puts the Visa mark where the package does", () => {

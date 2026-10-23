@@ -170,6 +170,7 @@ export {
 } from "./UnsubscribeButton";
 export { UpcomingBill, type UpcomingBillProps } from "./UpcomingBill";
 export {
+  Icon,
   Tooltip,
   billingResources,
   useResolvedLocale,
