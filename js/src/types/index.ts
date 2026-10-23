@@ -85,6 +85,8 @@ export type CheckFlagReturn = {
   featureUsageExceeded?: boolean;
   /** If company keys were provided and matched a company, its ID */
   companyId?: string;
+  /** If the company has a credit-based entitlement for this feature, the credit cost per unit of usage */
+  consumptionRate?: number;
   /** If the company has a credit-based entitlement for this feature, the ID of the credit */
   creditId?: string;
   /** If the company has a credit-based entitlement for this feature, the credit available to fund new consumption excluding any open lease hold (the value lease-holding SDKs gate on) */
@@ -107,8 +109,12 @@ export type CheckFlagReturn = {
   featureUsageResetAt?: Date;
   /** The key used to check the flag */
   flag: string;
+  /** For event-based or credit-metered feature entitlements, the event subtype whose usage is tracked */
+  eventSubtype?: string;
   /** If a flag was found, its ID */
   flagId?: string;
+  /** If the company has a credit-based entitlement for this feature, the credit cost per unit of each quantity an event carries, keyed by quantity key (per token for inference features). Absent when the entitlement prices requests only */
+  quantityRates?: Record<string, number>;
   /** A human-readable explanation of the result */
   reason: string;
   /** If a rule was found, its ID */
@@ -140,6 +146,10 @@ export type CreditBalance = {
   remaining: number;
   /** Amount held by the company's open credit lease, 0 when none is open */
   reserved: number;
+  /** Whether consumption may continue past a zero balance. When true and overdraftLimit is absent, the balance has no floor. Absent when unknown, as from a server or cache that predates the field */
+  postpaid?: boolean;
+  /** For a postpaid credit, how far below zero the balance may run. Absent when the credit is not postpaid or postpaid has no limit */
+  overdraftLimit?: number;
 };
 
 /** A company's lease-aware credit balances keyed by credit ID */
@@ -268,10 +278,32 @@ export type SchematicOptions = {
   flagCheckDefaults?: Record<string, CheckFlagReturn>;
 };
 
+/** An action to simulate on a flag check: would the flag still be on if the
+ * company took it? Mirrors the `preflight` body of the flag check endpoint. */
+export type PreflightInput = {
+  /** Cost in credits of the action, keyed by credit ID, for callers that have already computed it. Takes precedence over eventQuantities, eventUsage and usage on credit balance conditions for the same credit. A cost of zero means the action is free, not that the input is absent */
+  creditCost?: Record<string, number>;
+  /** An event of a specific subtype, priced the way it would burn credits: quantity at the entitlement's consumption rate, plus each of quantities at its rate in the entitlement's quantity rates. Applies only to credit balance conditions whose event subtype matches, where it takes precedence over eventUsage and usage */
+  eventQuantities?: {
+    eventSubtype: string;
+    /** Base units of the event; absent or zero means one */
+    quantity?: number;
+    /** Named quantities the event would carry, keyed by quantity key. For an inference call, input_tokens includes the cached_input_tokens and cache_creation_input_tokens subsets */
+    quantities?: Record<string, number>;
+  };
+  /** Usage of a specific event subtype. Preferred over usage when the subtype is known, since it only affects conditions measuring that subtype */
+  eventUsage?: { eventSubtype: string; quantity: number };
+  /** Quantity of usage to simulate against any numeric condition encountered while evaluating the flag. Zero has no effect */
+  usage?: number;
+};
+
 export type CheckOptions = {
   context?: SchematicContext;
   fallback?: boolean;
   key: string;
+  /** Check whether the flag would still be on after the given action, without
+   * recording anything. The result is not cached and does not notify listeners. */
+  preflight?: PreflightInput;
 };
 
 export type BooleanListenerFn = (value: boolean) => void;
@@ -331,6 +363,10 @@ export const CheckFlagReturnFromJSON = (
   return {
     featureUsageExceeded,
     companyId: companyId == null ? undefined : companyId,
+    consumptionRate:
+      entitlement?.consumptionRate == null
+        ? undefined
+        : entitlement.consumptionRate,
     creditId: entitlement?.creditId == null ? undefined : entitlement.creditId,
     creditRemaining:
       entitlement?.creditRemaining == null
@@ -345,6 +381,8 @@ export const CheckFlagReturnFromJSON = (
         ? undefined
         : entitlement.creditSettled,
     error: error == null ? undefined : error,
+    eventSubtype:
+      entitlement?.eventSubtype == null ? undefined : entitlement.eventSubtype,
     featureAllocation:
       resolvedAllocation == null ? undefined : resolvedAllocation,
     featureUsage: resolvedUsage == null ? undefined : resolvedUsage,
@@ -355,6 +393,10 @@ export const CheckFlagReturnFromJSON = (
       resolvedResetAt == null ? undefined : resolvedResetAt,
     flag,
     flagId: flagId == null ? undefined : flagId,
+    quantityRates:
+      entitlement?.quantityRates == null
+        ? undefined
+        : entitlement.quantityRates,
     reason,
     ruleId: ruleId == null ? undefined : ruleId,
     ruleType: ruleType == null ? undefined : (ruleType as RuleType),
@@ -394,7 +436,8 @@ export const CreditBalancesFromJSON = (
   const balances: CreditBalances = {};
   for (const [creditId, raw] of Object.entries(json)) {
     if (raw == null || typeof raw !== "object") continue;
-    const { remaining, reserved, settled } = CompanyCreditBalanceFromJSON(raw);
+    const { overdraftLimit, postpaid, remaining, reserved, settled } =
+      CompanyCreditBalanceFromJSON(raw);
     // Tolerant reader: the stream is expected to send all three for a credit,
     // but skip any entry that's missing/non-numeric rather than zero-filling. A
     // fabricated 0 would read as a real (and wrong) balance — a false
@@ -409,7 +452,18 @@ export const CreditBalancesFromJSON = (
     ) {
       continue;
     }
-    balances[creditId] = { remaining, reserved, settled };
+    const balance: CreditBalance = {
+      remaining,
+      reserved,
+      settled,
+    };
+    if (typeof postpaid === "boolean") {
+      balance.postpaid = postpaid;
+    }
+    if (typeof overdraftLimit === "number") {
+      balance.overdraftLimit = overdraftLimit;
+    }
+    balances[creditId] = balance;
   }
 
   return balances;
