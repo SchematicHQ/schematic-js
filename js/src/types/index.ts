@@ -205,8 +205,9 @@ export type SchematicOptions = {
    * (`iat.exp.sig`) for a given context. Required only when the Schematic
    * environment has context-signature verification enabled. Because a
    * publishable key is public, the signature must be produced by your backend
-   * (which holds the matching secret API key); this function typically forwards
-   * the context to that backend and returns the value it computes. The SDK
+   * (which holds the matching secret API key), over the context of its own
+   * signed-in session rather than one sent from the browser; this function
+   * typically calls that backend and returns the value it computes. The SDK
    * caches the signature per context, derives its expiry from the returned
    * string, and attaches it as the `X-Schematic-Context-Sig` header on flag
    * checks, the WebSocket bootstrap, and events. */

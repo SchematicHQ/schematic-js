@@ -23,18 +23,19 @@ const maxCachedSignatures = 50;
  * signature (`iat.exp.sig`) for the given context.
  *
  * Because a publishable key is public, the signature must be produced by the
- * customer's backend, which holds the matching secret API key. A typical
- * implementation forwards the context to that backend and returns the
+ * customer's backend, which holds the matching secret API key. The backend
+ * must build the context it signs from its own session, never from the
+ * request: an endpoint that signs a context the browser sends hands out a
+ * valid signature for any company. So a typical implementation calls an
+ * authenticated endpoint with no body and returns the
  * `X-Schematic-Context-Sig` value it computes:
  *
  * ```ts
  * const schematic = new Schematic(pubKey, {
- *   getContextSignature: async (context) => {
+ *   getContextSignature: async () => {
  *     const res = await fetch("/api/schematic/sign", {
  *       method: "POST",
  *       credentials: "include",
- *       headers: { "Content-Type": "application/json" },
- *       body: JSON.stringify(context),
  *     });
  *     const { signature } = await res.json();
  *     return signature; // "iat.exp.sig"
