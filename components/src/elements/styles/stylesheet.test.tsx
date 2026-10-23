@@ -11,17 +11,21 @@ import { Invoices } from "../Invoices";
 import { MeteredFeatures } from "../MeteredFeatures";
 import { PaymentMethods } from "../PaymentMethods";
 import { PlanManager } from "../PlanManager";
+import { PricingTable } from "../PricingTable";
 import { UnsubscribeButton } from "../UnsubscribeButton";
 import { UpcomingBill } from "../UpcomingBill";
 import {
   cardPaymentMethod,
+  catalogPrice,
   company,
   creditBalance,
   creditGrant,
   creditUserUsage,
+  featureUsage,
   featureUserUsage,
   invoice,
   invoicePage,
+  publicCatalogPlan,
 } from "../fixtures/builders";
 import { SCENARIOS, paymentMethodSet } from "../fixtures/scenarios";
 
@@ -35,10 +39,10 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * aimed at a shipped element is checked against the element in every state.
  *
  * Rules for elements not yet shipped match nothing by definition and are
- * skipped; `schematic-badge` is among them, worn only by the plan cards.
+ * skipped.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|included-features|metered-features|credit-usage|plan-manager|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|included-features|metered-features|credit-usage|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -249,6 +253,51 @@ function planManagerOpen() {
   return root;
 }
 
+/**
+ * The company's table with every feature unfolded and every detail on, so
+ * each card part renders.
+ */
+function pricingTableOpen() {
+  const root = tree(
+    <PricingTable
+      locale="en-US"
+      showFeatureDescriptions
+      showHardLimit
+      onSelectPlan={() => {}}
+    />,
+    SCENARIOS.pricingTable(),
+  );
+  for (const button of Array.from(
+    root.querySelectorAll(".schematic-plan-card__show-all"),
+  )) {
+    fireEvent.click(button);
+  }
+  return root;
+}
+
+/** The public table priced in two currencies, so the picker shows. */
+function pricingTableCurrencies() {
+  const scenario = SCENARIOS.pricingTablePublic();
+  const catalog = scenario.publicCatalog!;
+  return tree(<PricingTable locale="en-US" />, {
+    publicCatalog: {
+      ...catalog,
+      plans: [
+        ...catalog.plans,
+        publicCatalogPlan({
+          name: "Euro",
+          currencyPrices: [
+            {
+              currency: "eur",
+              monthlyPrice: catalogPrice({ currency: "eur" }),
+            },
+          ],
+        }),
+      ],
+    },
+  });
+}
+
 /** The unsubscribe dialog, open, with "Manage plan" shown. */
 function unsubscribeOpen() {
   const root = tree(
@@ -277,6 +326,28 @@ async function everyCard() {
   });
 
   return [
+    pricingTableOpen(),
+    pricingTableCurrencies(),
+    tree(<PricingTable locale="en-US" />, {}, {
+      catalog: { isPending: true },
+    } as never),
+    tree(<PricingTable locale="en-US" />, {}, {
+      catalog: { error: boom },
+    } as never),
+    // An icon set to an emoji renders as text in each element's circle.
+    tree(<IncludedFeatures locale="en-US" />, {
+      featureUsage: [featureUsage({ featureIcon: "🚀" })],
+    }),
+    tree(<MeteredFeatures locale="en-US" />, {
+      featureUsage: [featureUsage({ featureIcon: "🚀" })],
+    }),
+    tree(<CreditUsage locale="en-US" />, {
+      ...SCENARIOS.credits(),
+      creditBalances: SCENARIOS.credits().creditBalances?.map((balance) => ({
+        ...balance,
+        creditIcon: "🪙",
+      })),
+    }),
     tree(<PaymentMethods locale="en-US" />, everyExpiry()),
     unfold(tree(<PaymentMethods locale="en-US" />, everyExpiry())),
     tree(

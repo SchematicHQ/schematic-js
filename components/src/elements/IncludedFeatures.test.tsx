@@ -34,6 +34,16 @@ function renderFeatures(
   );
 }
 
+test("IncludedFeatures draws an emoji icon as its text", () => {
+  const { container } = renderFeatures({
+    featureUsage: [featureUsage({ featureIcon: "🚀" })],
+  });
+  expect(
+    container.querySelector(".schematic-included-features__icon"),
+  ).toHaveTextContent("🚀");
+  expect(container.innerHTML).not.toContain("schematic-icon--🚀");
+});
+
 function row(name: string): HTMLElement {
   const rows = screen.getAllByTestId("schematic-included-feature");
   const found = rows.find((r) => within(r).queryByText(name) !== null);

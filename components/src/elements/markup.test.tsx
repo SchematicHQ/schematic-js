@@ -7,13 +7,16 @@ import { vi } from "vitest";
 
 import { Invoices } from "./Invoices";
 import { PaymentMethods } from "./PaymentMethods";
+import { PricingTable } from "./PricingTable";
 import { UpcomingBill } from "./UpcomingBill";
 import {
   NOW,
   cardPaymentMethod,
+  catalogPrice,
   discount,
   invoice,
   invoicePage,
+  publicCatalogPlan,
   upcomingInvoice,
 } from "./fixtures/builders";
 import { SCENARIOS, paymentMethodSet } from "./fixtures/scenarios";
@@ -546,6 +549,26 @@ describe("PaymentMethods markup contract", () => {
   });
 });
 
+/** The public table priced in two currencies, so the picker shows. */
+function twoCurrencies(): BillingData {
+  return {
+    publicCatalog: {
+      ...SCENARIOS.pricingTablePublic().publicCatalog!,
+      plans: [
+        publicCatalogPlan({
+          currencyPrices: [
+            { currency: "usd", monthlyPrice: catalogPrice() },
+            {
+              currency: "eur",
+              monthlyPrice: catalogPrice({ currency: "eur" }),
+            },
+          ],
+        }),
+      ],
+    },
+  };
+}
+
 /**
  * Every node an element renders carries a class, so a host's CSS never has
  * to reach by tag or position and never breaks when a node moves.
@@ -657,6 +680,32 @@ describe("every node carries a schematic class", () => {
     );
     fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]);
     await screen.findByRole("alert");
+    expect(unclassed(root)).toEqual([]);
+  });
+
+  test.each([
+    ["company, unfolded", SCENARIOS.pricingTable(), undefined],
+    ["public", SCENARIOS.pricingTablePublic(), undefined],
+    ["public, in two currencies", twoCurrencies(), undefined],
+    ["pending", {}, { catalog: pending }],
+    ["failed", {}, { catalog: failed }],
+  ] as const)("PricingTable, %s", (_state, data, status) => {
+    const { container } = render(
+      <BillingDataProvider data={data} status={status}>
+        <PricingTable
+          locale="en-US"
+          showFeatureDescriptions
+          showHardLimit
+          onSelectPlan={() => {}}
+        />
+      </BillingDataProvider>,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    for (const button of Array.from(
+      root.querySelectorAll(".schematic-plan-card__show-all"),
+    )) {
+      fireEvent.click(button);
+    }
     expect(unclassed(root)).toEqual([]);
   });
 });
