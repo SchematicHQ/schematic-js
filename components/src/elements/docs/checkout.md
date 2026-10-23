@@ -131,7 +131,7 @@ Everything the server finds wrong arrives as a `CheckoutProblem` with a `code`, 
 
 ## Payment
 
-The checkout pays with the company's default method on file; any other on file is listed under it with a Use action, and a new card goes through Stripe's Payment Element on a setup intent, so the checkout step needs `@stripe/stripe-js` and `@stripe/react-stripe-js`, the same peers as `PaymentMethods`. A card saved there pays for this checkout and joins the company's methods on file. When the charge needs the customer — 3-D Secure — the finalize answers with a client secret and the element confirms it with Stripe before `onComplete`.
+The checkout pays with the company's default method on file; any other on file is listed under it with a Use action, and a new card goes through Stripe's Payment Element on a setup intent, so the checkout step needs `@stripe/stripe-js` and `@stripe/react-stripe-js`, the same peers as `PaymentMethods`. A card saved there pays for this checkout and joins the company's methods on file. When the charge needs the customer — 3-D Secure — the finalize answers with a client secret and the element confirms it with Stripe before `onComplete`. A confirmation the customer fails or abandons leaves the checkout completed on the server, so the action becomes Confirm payment and retries the confirmation alone, naming the card again since Stripe takes it off a failed intent; `onComplete` fires once it goes through.
 
 The tax ID is not part of the cart: it saves on its own, when the field is left and again before a finalize.
 

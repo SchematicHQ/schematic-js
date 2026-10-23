@@ -36,6 +36,7 @@ import {
   prorationDetail,
   prorationLine,
 } from "./fixtures/checkout";
+import { PaymentNotConfirmedError } from "./stripe";
 
 vi.mock("./PaymentMethodForm", () => ({
   default: ({ onSaved }: PaymentMethodFormProps) => (
@@ -51,7 +52,10 @@ const stripe = vi.hoisted(() => ({
   confirmPayment: vi.fn(async () => undefined),
   loadStripeForIntent: vi.fn(async () => ({})),
 }));
-vi.mock("./stripe", () => stripe);
+vi.mock("./stripe", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./stripe")>()),
+  ...stripe,
+}));
 
 const seats = payInAdvanceEntitlement();
 const starter = catalogPlan({ name: "Starter", current: true });
@@ -283,10 +287,87 @@ describe("Checkout", () => {
     await waitFor(() => expect(finalizeButton()).toBeEnabled());
     fireEvent.click(finalizeButton());
     await waitFor(() => expect(onComplete).toHaveBeenCalled());
+    // No card named: the intent still carries the one the server charged.
     expect(stripe.confirmPayment).toHaveBeenCalledWith(
       expect.anything(),
       "pi_secret",
+      undefined,
     );
+  });
+
+  test("keeps a charge the customer did not confirm, and confirms again on retry", async () => {
+    const actions = fakeActions({
+      finalizeCheckout: vi.fn(async () => ({
+        ...charged,
+        confirmPaymentIntentClientSecret: "pi_secret",
+      })),
+    });
+    const confirmations = stripe.confirmPayment.mock.calls.length;
+    stripe.confirmPayment.mockRejectedValueOnce(
+      new PaymentNotConfirmedError("Authentication failed.", "pm_failed"),
+    );
+    const { onComplete, onOpenChange } = renderCheckout(
+      { steps: { initial: "payment" } },
+      baseData(),
+      actions,
+    );
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    fireEvent.click(finalizeButton());
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "The payment was not completed: Authentication failed.",
+      ),
+    );
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(finalizeButton()).toHaveTextContent("Confirm payment");
+    expect(finalizeButton()).toBeEnabled();
+
+    // The checkout is completed already; only the confirmation runs again.
+    fireEvent.click(finalizeButton());
+    await waitFor(() =>
+      expect(onComplete).toHaveBeenCalledWith(
+        expect.objectContaining({ id: charged.id }),
+      ),
+    );
+    expect(actions.finalizeCheckout).toHaveBeenCalledTimes(1);
+    expect(stripe.confirmPayment.mock.calls.length).toBe(confirmations + 2);
+    // Stripe took the card off the failed intent; the retry names it again.
+    expect(stripe.confirmPayment).toHaveBeenLastCalledWith(
+      expect.anything(),
+      "pi_secret",
+      "pm_failed",
+    );
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  test("retries with the card the cart paid with when Stripe did not say which failed", async () => {
+    const actions = fakeActions({
+      finalizeCheckout: vi.fn(async () => ({
+        ...charged,
+        confirmPaymentIntentClientSecret: "pi_secret",
+      })),
+    });
+    stripe.confirmPayment.mockRejectedValueOnce(
+      new PaymentNotConfirmedError("Cancelled.", undefined),
+    );
+    const { onComplete } = renderCheckout(
+      { steps: { initial: "payment" } },
+      baseData(),
+      actions,
+    );
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    fireEvent.click(finalizeButton());
+    await waitFor(() =>
+      expect(finalizeButton()).toHaveTextContent("Confirm payment"),
+    );
+    fireEvent.click(finalizeButton());
+    await waitFor(() => expect(onComplete).toHaveBeenCalled());
+    expect(stripe.confirmPayment).toHaveBeenLastCalledWith(
+      expect.anything(),
+      "pi_secret",
+      card.externalId,
+    );
+    expect(actions.updateCheckout).not.toHaveBeenCalled();
   });
 
   test("shows a refused finalize's problems on the step that can fix them", async () => {

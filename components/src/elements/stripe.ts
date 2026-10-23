@@ -38,17 +38,45 @@ export async function loadStripeForIntent(
 }
 
 /**
+ * A confirmation the customer failed or abandoned. Stripe takes the card off
+ * an intent whose authentication failed, so the retry has to name it again:
+ * `paymentMethodId` is that card, when Stripe said which.
+ */
+export class PaymentNotConfirmedError extends Error {
+  readonly paymentMethodId: string | undefined;
+
+  constructor(message: string, paymentMethodId: string | undefined) {
+    super(message);
+    this.name = "PaymentNotConfirmedError";
+    this.paymentMethodId = paymentMethodId;
+  }
+}
+
+/**
  * Completes a payment that needs the customer — 3-D Secure, most often —
  * after the server has charged the card on file. Resolves once the payment
  * succeeded; rejects with Stripe's message when the customer failed or
- * abandoned it.
+ * abandoned it. `paymentMethodId` names the card for a retry, since a failed
+ * attempt leaves the intent without one.
  */
 export async function confirmPayment(
   stripe: Stripe,
   clientSecret: string,
+  paymentMethodId?: string,
 ): Promise<void> {
-  const result = await stripe.confirmCardPayment(clientSecret);
+  const result =
+    paymentMethodId === undefined
+      ? await stripe.confirmCardPayment(clientSecret)
+      : await stripe.confirmCardPayment(clientSecret, {
+          payment_method: paymentMethodId,
+        });
   if (result.error !== undefined) {
-    throw new Error(result.error.message ?? "The payment was not confirmed.");
+    const failed =
+      result.error.payment_method?.id ??
+      result.error.payment_intent?.last_payment_error?.payment_method?.id;
+    throw new PaymentNotConfirmedError(
+      result.error.message ?? "The payment was not confirmed.",
+      failed,
+    );
   }
 }

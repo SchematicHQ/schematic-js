@@ -25,12 +25,16 @@ import {
   type FakeServerOptions,
   type Seen,
 } from "./fixtures/server";
+import { PaymentNotConfirmedError } from "./stripe";
 
 const stripe = vi.hoisted(() => ({
   confirmPayment: vi.fn(async () => undefined),
   loadStripeForIntent: vi.fn(async () => ({})),
 }));
-vi.mock("./stripe", () => stripe);
+vi.mock("./stripe", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./stripe")>()),
+  ...stripe,
+}));
 // The card form is Stripe's; here it saves a card the fake server then knows.
 vi.mock("./PaymentMethodForm", () => ({
   default: ({ onSaved }: PaymentMethodFormProps) => (
@@ -306,15 +310,39 @@ describe("Checkout end to end on the server's own pricing", () => {
     await waitFor(() => expect(finalizeButton()).toBeEnabled());
     fireEvent.click(finalizeButton());
     await waitFor(() => expect(onComplete).toHaveBeenCalled());
+    // No card named: the intent still carries the one the server charged.
     expect(stripe.confirmPayment).toHaveBeenCalledWith(
       expect.anything(),
       "pi_secret",
+      undefined,
     );
     expect(
       seen.some(
         (s) => s.method === "POST" && s.path === "/components/setup-intent",
       ),
     ).toBe(true);
+  });
+
+  test("does not finalize again after a confirmation the customer abandoned", async () => {
+    const { onComplete, seen } = priced({}, { confirmSecret: "pi_secret" });
+    stripe.confirmPayment.mockRejectedValueOnce(
+      new PaymentNotConfirmedError("Cancelled.", "pm_failed"),
+    );
+    await waitFor(() => expect(finalizeButton()).toBeEnabled());
+    fireEvent.click(finalizeButton());
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent("Cancelled."),
+    );
+    expect(finalizeButton()).toHaveTextContent("Confirm payment");
+
+    fireEvent.click(finalizeButton());
+    await waitFor(() => expect(onComplete).toHaveBeenCalled());
+    expect(seen.filter((s) => s.path.endsWith("/finalize")).length).toBe(1);
+    expect(stripe.confirmPayment).toHaveBeenLastCalledWith(
+      expect.anything(),
+      "pi_secret",
+      "pm_failed",
+    );
   });
 
   test("pays with a card saved on the way, which the server then has on file", async () => {

@@ -66,7 +66,11 @@ import {
   type CheckoutStep,
 } from "./model";
 import type { Translator } from "./strings";
-import { confirmPayment, loadStripeForIntent } from "./stripe";
+import {
+  PaymentNotConfirmedError,
+  confirmPayment,
+  loadStripeForIntent,
+} from "./stripe";
 
 /** How long the cart rests before it is priced, so typing a quantity prices once. */
 export const CHECKOUT_PRICE_DELAY_MS = 250;
@@ -281,6 +285,16 @@ function CheckoutFlow({
   const checkout = useCheckout();
   const { create: createSetupIntent } = useSetupIntent();
   const flushTaxIdRef = useRef<(() => Promise<void>) | null>(null);
+  // A charge the customer has not confirmed: the checkout is completed on
+  // the server, so a retry confirms again rather than finalizing again, which
+  // would only be refused. Stripe takes the card off a failed intent, so the
+  // retry names it: the one Stripe reported, else the one the cart paid with.
+  const [pendingConfirmation, setPendingConfirmation] = useState<{
+    charged: CheckoutResult;
+    secret: string;
+    paymentMethodId: string | undefined;
+  } | null>(null);
+  const confirming = pendingConfirmation !== null;
 
   // A plan chosen after the period may not be sold on it.
   useEffect(() => {
@@ -303,7 +317,9 @@ function CheckoutFlow({
   // the round trip.
   useEffect(() => {
     const next = JSON.parse(selectionsKey) as CheckoutSelections | null;
-    if (next === null) {
+    // Not while a charge waits on its confirmation: the checkout is closed,
+    // and a write would open another beside it.
+    if (next === null || confirming) {
       return;
     }
     const timer = setTimeout(() => {
@@ -314,7 +330,7 @@ function CheckoutFlow({
       );
     }, CHECKOUT_PRICE_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [selectionsKey, setSelections]);
+  }, [confirming, selectionsKey, setSelections]);
 
   const isPricing =
     checkout.isPricing ||
@@ -399,17 +415,24 @@ function CheckoutFlow({
     setFinalizing(true);
     setFinalizeError(null);
     let charged: CheckoutResult | undefined;
+    let secret: string | undefined;
+    let paymentMethodId: string | undefined;
     try {
-      await flushTaxIdRef.current?.();
-      charged = await checkout.finalize();
-      const secret = charged.confirmPaymentIntentClientSecret;
-      if (secret != null && secret !== "") {
+      if (pendingConfirmation !== null) {
+        ({ charged, secret, paymentMethodId } = pendingConfirmation);
+      } else {
+        await flushTaxIdRef.current?.();
+        charged = await checkout.finalize();
+        secret = charged.confirmPaymentIntentClientSecret ?? undefined;
+      }
+      if (secret !== undefined && secret !== "") {
         const stripe = await loadStripeForIntent(
           await createSetupIntent(),
           locale,
         );
-        await confirmPayment(stripe, secret);
+        await confirmPayment(stripe, secret, paymentMethodId);
       }
+      setPendingConfirmation(null);
       onComplete?.(charged);
       onOpenChange(false);
     } catch (error) {
@@ -425,6 +448,17 @@ function CheckoutFlow({
           goTo(fixable);
         }
       } else if (charged !== undefined) {
+        if (secret !== undefined && secret !== "") {
+          const failed =
+            error instanceof PaymentNotConfirmedError
+              ? error.paymentMethodId
+              : undefined;
+          setPendingConfirmation({
+            charged,
+            secret,
+            paymentMethodId: failed ?? paymentMethodId ?? cart.paymentMethodId,
+          });
+        }
         const message = error instanceof Error ? error.message : String(error);
         setFinalizeError(t("checkoutPaymentFailed", { message }));
       } else {
@@ -463,17 +497,23 @@ function CheckoutFlow({
         <button
           className="schematic-cta"
           data-testid="schematic-checkout-finalize"
-          disabled={!model.canFinalize || finalizing || addingMethod}
+          disabled={
+            (pendingConfirmation === null && !model.canFinalize) ||
+            finalizing ||
+            addingMethod
+          }
           type="button"
           onClick={() => void finalize()}
         >
           {finalizing
             ? t("checkoutFinalizing")
-            : trialStarting
-              ? t("checkoutStartTrial")
-              : dueNow > 0
-                ? t("checkoutPay")
-                : t("checkoutConfirm")}
+            : pendingConfirmation !== null
+              ? t("checkoutConfirmPayment")
+              : trialStarting
+                ? t("checkoutStartTrial")
+                : dueNow > 0
+                  ? t("checkoutPay")
+                  : t("checkoutConfirm")}
         </button>
       </>
     ) : (

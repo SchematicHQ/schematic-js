@@ -322,6 +322,7 @@ export type ElementStrings = {
   checkoutPay: string;
   checkoutStartTrial: string;
   checkoutConfirm: string;
+  checkoutConfirmPayment: string;
   checkoutFinalizing: string;
   checkoutFinalizeError: string;
   checkoutPaymentFailed: string;
@@ -708,6 +709,7 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   checkoutPay: "Pay now",
   checkoutStartTrial: "Start trial",
   checkoutConfirm: "Confirm",
+  checkoutConfirmPayment: "Confirm payment",
   checkoutFinalizing: "Processing",
   checkoutFinalizeError: "There was a problem completing checkout.",
   checkoutPaymentFailed: "The payment was not completed: {{message}}",
