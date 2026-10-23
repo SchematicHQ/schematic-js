@@ -13,16 +13,17 @@ is reserved for the offerings resource. The routes those clients call are
 still `/company/*`, and the generated wire models keep their `Company…`
 names — the tier is what `billing` names, not the resource.
 
-| Element           | Hooks                                                | Derivation               | Reads                                       | Recipe                                           |
-| ----------------- | ---------------------------------------------------- | ------------------------ | ------------------------------------------- | ------------------------------------------------ |
-| Invoices          | `useInvoices`                                        | `deriveInvoiceList`      | `invoices`                                  | [invoices.md](./invoices.md)                     |
-| UpcomingBill      | `useUpcomingInvoice`                                 | `deriveUpcomingInvoice`  | `upcomingInvoice`                           | [upcoming-bill.md](./upcoming-bill.md)           |
-| PaymentMethods    | `usePaymentMethods`, `useSetupIntent`                | `derivePaymentMethods`   | `paymentMethods`                            | [payment-methods.md](./payment-methods.md)       |
-| IncludedFeatures  | `useFeatureUsage`                                    | `deriveIncludedFeatures` | `featureUsage`                              | [included-features.md](./included-features.md)   |
-| MeteredFeatures   | `useFeatureUsage`, `useFeatureUserUsage`             | `deriveMeteredFeatures`  | `featureUsage`                              | [metered-features.md](./metered-features.md)     |
-| CreditUsage       | `useCreditBalances`, `useCreditUserUsage`            | `deriveCreditUsage`      | `creditBalances`                            | [credit-usage.md](./credit-usage.md)             |
-| PlanManager       | `useCompany`, `useFeatureUsage`, `useCreditBalances` | `derivePlanManager`      | `company`, `featureUsage`, `creditBalances` | [plan-manager.md](./plan-manager.md)             |
-| UnsubscribeButton | `useCompany`, `useFeatureUsage`, `useUnsubscribe`    | `deriveUnsubscribe`      | `company`, `featureUsage`                   | [unsubscribe-button.md](./unsubscribe-button.md) |
+| Element           | Hooks                                                  | Derivation               | Reads                                                  | Recipe                                           |
+| ----------------- | ------------------------------------------------------ | ------------------------ | ------------------------------------------------------ | ------------------------------------------------ |
+| Invoices          | `useInvoices`                                          | `deriveInvoiceList`      | `invoices`                                             | [invoices.md](./invoices.md)                     |
+| UpcomingBill      | `useUpcomingInvoice`                                   | `deriveUpcomingInvoice`  | `upcomingInvoice`                                      | [upcoming-bill.md](./upcoming-bill.md)           |
+| PaymentMethods    | `usePaymentMethods`, `useSetupIntent`                  | `derivePaymentMethods`   | `paymentMethods`                                       | [payment-methods.md](./payment-methods.md)       |
+| IncludedFeatures  | `useFeatureUsage`                                      | `deriveIncludedFeatures` | `featureUsage`                                         | [included-features.md](./included-features.md)   |
+| MeteredFeatures   | `useFeatureUsage`, `useFeatureUserUsage`               | `deriveMeteredFeatures`  | `featureUsage`                                         | [metered-features.md](./metered-features.md)     |
+| CreditUsage       | `useCreditBalances`, `useCreditUserUsage`              | `deriveCreditUsage`      | `creditBalances`                                       | [credit-usage.md](./credit-usage.md)             |
+| PlanManager       | `useCompany`, `useFeatureUsage`, `useCreditBalances`   | `derivePlanManager`      | `company`, `featureUsage`, `creditBalances`            | [plan-manager.md](./plan-manager.md)             |
+| UnsubscribeButton | `useCompany`, `useFeatureUsage`, `useUnsubscribe`      | `deriveUnsubscribe`      | `company`, `featureUsage`                              | [unsubscribe-button.md](./unsubscribe-button.md) |
+| Checkout          | `useCatalog`, `useCompany`, `useCheckout`, `useTaxIds` | `deriveCheckout`         | `catalog`, `company`, `paymentMethods`, `featureUsage` | [checkout.md](./checkout.md)                     |
 
 ## Before it can load
 
@@ -231,8 +232,9 @@ children: a wrapper of your own around each one hides it from the rule
 that draws the line between elements.
 
 Or skip the stylesheet and write your own against the class names below —
-they are API, and each element's doc shows the tree it renders. A sheet of
-your own has to bring the icon font too: render `<style>{iconsCss}</style>`
+they are API, and each element's doc shows the tree it renders
+([checkout.md](./checkout.md) tables the dialog's). A sheet of your own has
+to bring the icon font too: render `<style>{iconsCss}</style>`
 once (exported beside `SchematicStyles`; the font face and one
 `.schematic-icon--<name>` rule per glyph), or the glyphs render empty. The
 package's own `@schematichq/schematic-icons/styles.css` is not a substitute:

@@ -1,3 +1,4 @@
+import { Checkout } from "./Checkout";
 import { CreditUsage } from "./CreditUsage";
 import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
@@ -28,6 +29,12 @@ describe("what the elements read", () => {
       "creditBalances",
     ]);
     expect(UnsubscribeButton.resources).toEqual(["company", "featureUsage"]);
+    expect(Checkout.resources).toEqual([
+      "catalog",
+      "company",
+      "paymentMethods",
+      "featureUsage",
+    ]);
   });
 
   test("billingResources collects them once each, in the order given", () => {

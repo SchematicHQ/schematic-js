@@ -5,6 +5,7 @@ import {
   formatDate,
   formatNumber,
   formatShortDate,
+  formatShortDateRange,
   plural,
   resolveLocale,
   viewerLocale,
@@ -56,6 +57,15 @@ test("dates render in long and short forms", () => {
   const date = new Date("2026-08-21T12:00:00Z");
   expect(formatDate(date, L, { timeZone: "UTC" })).toBe("August 21, 2026");
   expect(formatShortDate(date, L)).toMatch(/^8\/2[01]$/);
+});
+
+test("a short date range reads as the locale writes one", () => {
+  const start = new Date("2026-08-21T12:00:00Z");
+  const end = new Date("2026-09-20T12:00:00Z");
+  expect(formatShortDateRange(start, end, L)).toMatch(
+    /^8\/2[01]\s?[\u2013-]\s?9\/(19|20)$/u,
+  );
+  expect(formatShortDateRange(start, new Date("not a date"), L)).toBe("");
 });
 
 describe("featureName", () => {
