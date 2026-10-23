@@ -24,10 +24,9 @@ const maxCachedSignatures = 50;
  *
  * Because a publishable key is public, the signature must be produced by the
  * customer's backend, which holds the matching secret API key. The backend
- * must build the context it signs from its own session, never from the
- * request: an endpoint that signs a context the browser sends hands out a
- * valid signature for any company. So a typical implementation calls an
- * authenticated endpoint with no body and returns the
+ * signs only the company and user of the logged-in user, read from its own
+ * session. A typical implementation calls an authenticated endpoint with no
+ * body and returns the
  * `X-Schematic-Context-Sig` value it computes:
  *
  * ```ts
