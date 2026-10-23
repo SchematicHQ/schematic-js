@@ -20,6 +20,7 @@ export {
   type BillingDataProviderProps,
   type BillingDataSource,
   type BillingDataStatus,
+  type CatalogSource,
   type ResourceHandle,
 } from "./context";
 export {

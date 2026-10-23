@@ -7,6 +7,7 @@ import type {
   BillingResourceName,
   BillingResourceParams,
   BillingResources,
+  CatalogView,
   Checkout,
   CheckoutResult,
   CheckoutSelections,
@@ -23,6 +24,9 @@ import type { SessionEvent } from "./client";
 export interface ResourceHandle<T> extends ResourceState<T> {
   refetch: () => void;
 }
+
+/** Which catalog `useCatalog` reads: `catalog` or `publicCatalog`. */
+export type CatalogSource = CatalogView["source"];
 
 /**
  * The writes a source can carry out. Each rejects with the failure; a source
@@ -97,6 +101,21 @@ export interface BillingDataSource {
    * on a source whose session never changes.
    */
   onSessionChange?: (listener: (event: SessionEvent) => void) => () => void;
+  /**
+   * Which catalog a reader sees now; it changes only with the session, so
+   * `onSessionChange` says when to ask again. Absent, the company's view.
+   */
+  catalogSource?: () => CatalogSource;
+}
+
+/**
+ * For a source over plain data: the public catalog where only that was
+ * given, so a fixture for a page nobody has signed in to renders as one.
+ */
+export function catalogSourceOf(data: BillingData): CatalogSource {
+  return data.catalog === undefined && data.publicCatalog !== undefined
+    ? "public"
+    : "company";
 }
 
 export const BillingDataContext = createContext<BillingDataSource | undefined>(
@@ -299,6 +318,7 @@ export function BillingDataProvider({
         return Promise.resolve();
       },
       invalidateAll: () => {},
+      catalogSource: () => catalogSourceOf(data),
     };
   }, [
     actions,

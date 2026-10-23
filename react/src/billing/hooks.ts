@@ -13,6 +13,7 @@ import type {
   BillingResources,
   Catalog,
   CatalogQuery,
+  CatalogView,
   Checkout,
   CheckoutDraftState,
   CheckoutPriceSnapshot,
@@ -27,6 +28,7 @@ import type {
   InvoicePage,
   InvoiceQuery,
   PaymentMethod,
+  PublicCatalog,
   SetupIntent,
   TaxId,
   TaxIdInput,
@@ -43,6 +45,7 @@ import {
 import {
   actionsOf,
   useBillingDataSource,
+  type CatalogSource,
   type ResourceHandle,
 } from "./context";
 import { hashKey } from "./store";
@@ -83,17 +86,44 @@ function useBillingResource<K extends BillingResourceName>(
 }
 
 /**
- * The catalog as the session's company sees it: what it can buy, and how it
- * stands against each plan and add-on. Without a `catalogId`, the catalog the
- * environment sells; an inline object literal is fine, the hook keys by value.
+ * The catalog as whoever is reading sees it. Signed in, the company's view:
+ * what it can buy, and how it stands against each plan and add-on. Signed
+ * out, or before the session resolves, the public catalog, read with the
+ * publishable key; `data.source` says which, and a session starting swaps
+ * one for the other. Without a `catalogId`, the catalog the environment
+ * sells; an inline object literal is fine, the hook keys by value.
  */
 export function useCatalog(
   query: CatalogQuery = DEFAULT_CATALOG_QUERY,
-): ResourceHandle<Catalog> {
-  return useBillingResource(
-    "catalog",
-    useStableParams(normalizeCatalogQuery(query)),
+): ResourceHandle<CatalogView> {
+  const source = useBillingDataSource();
+  const params = useStableParams(normalizeCatalogQuery(query));
+  const subscribeSource = useCallback(
+    (listener: () => void) =>
+      source.onSessionChange?.(() => listener()) ?? (() => {}),
+    [source],
   );
+  const readSource = useCallback(
+    (): CatalogSource => source.catalogSource?.() ?? "company",
+    [source],
+  );
+  const which = useSyncExternalStore(subscribeSource, readSource, readSource);
+  // One resource at a time: subscribing to the other would fetch it too.
+  const handle = useBillingResource<"catalog" | "publicCatalog">(
+    which === "public" ? "publicCatalog" : "catalog",
+    params,
+  );
+  return useMemo(() => {
+    const { data } = handle;
+    let view: CatalogView | undefined;
+    if (data !== undefined) {
+      view =
+        which === "public"
+          ? { source: "public", catalog: data as PublicCatalog }
+          : { source: "company", catalog: data as Catalog };
+    }
+    return { ...handle, data: view };
+  }, [handle, which]);
 }
 
 export interface InvoicesHandle extends ResourceHandle<InvoicePage> {
