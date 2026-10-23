@@ -41,7 +41,10 @@ export interface CheckoutDraftState {
 }
 
 export interface CheckoutDraftOptions {
-  /** Resume this checkout rather than opening one on the first write. */
+  /**
+   * Resume this checkout rather than opening one on the first write. The
+   * draft reads it before the first write or finalize.
+   */
   checkoutId?: string;
 }
 
@@ -75,6 +78,8 @@ export class CheckoutDraft {
   /** Bumped by reset, so an answer for a discarded draft lands nowhere. */
   private generation = 0;
   private inFlight: Promise<void> | undefined;
+  /** The read of a resumed checkout, while one is out. */
+  private loading: Promise<Checkout | undefined> | undefined;
   private queued:
     { selections: CheckoutSelections; waiters: Waiter[] } | undefined;
 
@@ -109,10 +114,19 @@ export class CheckoutDraft {
 
   /**
    * Reads the checkout this draft was opened on, for a resume. A draft with
-   * no checkout yet has nothing to read.
+   * no checkout yet has nothing to read. A call while a read is out shares
+   * its answer.
    */
   load(): Promise<Checkout | undefined> {
-    return this.refresh(this.generation);
+    if (this.loading === undefined) {
+      const generation = this.generation;
+      this.loading = this.refresh(generation).finally(() => {
+        if (generation === this.generation) {
+          this.loading = undefined;
+        }
+      });
+    }
+    return this.loading;
   }
 
   /**
@@ -147,12 +161,13 @@ export class CheckoutDraft {
     if (generation !== this.generation) {
       throw new Error("The checkout was reset before it was finalized.");
     }
-    if (this.checkoutId === undefined || this.version === undefined) {
+    if (this.checkoutId === undefined) {
       throw new Error("There is no checkout to finalize yet.");
     }
 
     this.update({ isFinalizing: true, error: undefined });
     try {
+      await this.readResumed(generation);
       const result = await this.finalizeOnce(generation, true);
       if (generation === this.generation) {
         this.update({ isFinalizing: false, result });
@@ -183,6 +198,7 @@ export class CheckoutDraft {
     const queued = this.queued;
     this.queued = undefined;
     this.inFlight = undefined;
+    this.loading = undefined;
     queued?.waiters.forEach((w) => w.resolve(undefined));
     this.update({ ...INITIAL_STATE });
   }
@@ -238,6 +254,7 @@ export class CheckoutDraft {
     generation: number,
     selections: CheckoutSelections,
   ): Promise<Checkout> {
+    await this.readResumed(generation);
     let written: CheckoutWrite;
     if (this.checkoutId === undefined || this.version === undefined) {
       written = await this.transport.createCheckout(selections);
@@ -307,6 +324,21 @@ export class CheckoutDraft {
         throw error;
       }
       return this.finalizeOnce(generation, false);
+    }
+  }
+
+  /**
+   * A resumed checkout is read before it is written or finalized: a write
+   * ahead of the read would open a second checkout beside it, and the read's
+   * answer would then point the draft back at the first.
+   */
+  private async readResumed(generation: number): Promise<void> {
+    if (this.checkoutId === undefined || this.version !== undefined) {
+      return;
+    }
+    await this.load();
+    if (generation !== this.generation) {
+      throw new Error("The checkout was reset before it was read.");
     }
   }
 
