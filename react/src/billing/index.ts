@@ -23,6 +23,8 @@ export {
   type ResourceHandle,
 } from "./context";
 export {
+  useCatalog,
+  useCheckout,
   useCompany,
   useCreditBalances,
   useCreditUserUsage,
@@ -33,11 +35,15 @@ export {
   usePaymentMethods,
   useSetupIntent,
   useUnsubscribe,
+  useTaxIds,
   useUpcomingInvoice,
+  type CheckoutHandle,
   type InvoicesHandle,
   type PaymentMethodsHandle,
   type SetupIntentHandle,
   type UnsubscribeHandle,
+  type TaxIdsHandle,
+  type UseCheckoutOptions,
 } from "./hooks";
 export { BillingProvider, type BillingProviderProps } from "./provider";
 // `Resource`, `KeyedResource`, `BillingStore` and `BillingDataContext` stay
