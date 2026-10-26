@@ -99,18 +99,21 @@ describe("PricingTable", () => {
 
   test("hands the chosen plan to onSelectPlan", () => {
     const onSelectPlan = vi.fn();
-    renderTable(SCENARIOS.pricingTablePublic(), { onSelectPlan });
+    const data = SCENARIOS.pricingTablePublic();
+    renderTable(data, { onSelectPlan });
     fireEvent.click(
       within(card("Scale")).getByRole("button", { name: "Choose plan" }),
     );
-    const scale = SCENARIOS.pricingTablePublic().publicCatalog!.plans[2];
+    const scale = data.publicCatalog!.plans[2];
     expect(onSelectPlan).toHaveBeenCalledWith({
       kind: "plan",
-      id: expect.any(String),
+      action: "choose",
+      id: scale.id,
       priceId: expect.any(String),
       period: "month",
       currency: "usd",
       trialDays: scale.trialDays,
+      checkout: { planId: scale.id, period: "month", currency: "usd" },
     });
     fireEvent.click(
       within(card("Onboarding")).getByRole("button", {
@@ -119,6 +122,37 @@ describe("PricingTable", () => {
     );
     expect(onSelectPlan).toHaveBeenLastCalledWith(
       expect.objectContaining({ kind: "addOn", period: null }),
+    );
+  });
+
+  test("tells the host an add-on the company holds is being removed", () => {
+    const onSelectPlan = vi.fn();
+    const data = SCENARIOS.pricingTable();
+    const support = data.catalog!.addOns[0];
+    renderTable(
+      {
+        ...data,
+        catalog: {
+          ...data.catalog!,
+          addOns: data.catalog!.addOns.map((addOn) =>
+            addOn.id === support.id ? { ...addOn, current: true } : addOn,
+          ),
+        },
+      },
+      { onSelectPlan },
+    );
+    fireEvent.click(
+      within(card(support.name)).getByRole("button", {
+        name: "Remove add-on",
+      }),
+    );
+    expect(onSelectPlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: "addOn",
+        action: "remove",
+        id: support.id,
+        checkout: { addOnIds: [], currency: "usd" },
+      }),
     );
   });
 

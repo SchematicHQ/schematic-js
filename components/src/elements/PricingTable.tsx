@@ -12,8 +12,11 @@ import {
   type HeadingLevel,
 } from "./common";
 import {
+  checkoutSelectionFor,
   derivePricingTable,
   httpStatus,
+  selectionAction,
+  type CheckoutSelection,
   type PricingAction,
   type PricingCard,
   type PricingCreditLine,
@@ -21,6 +24,7 @@ import {
   type PricingEntitlementRow,
   type PricingPeriod,
   type PricingPrice,
+  type PricingSelectionAction,
   type PricingTableView,
 } from "./model";
 import type { StringKey, Translator } from "./strings";
@@ -31,6 +35,8 @@ const VISIBLE_ENTITLEMENT_COUNT = 4;
 /** What a card's action hands the host, to open a checkout or a sign-up. */
 export interface PricingTableSelection {
   kind: "plan" | "addOn";
+  /** `remove` and `change` are for an add-on the company holds. */
+  action: PricingSelectionAction;
   /** The plan's or add-on's id. */
   id: string;
   /** The price the card shows, for a checkout's selections. */
@@ -40,6 +46,8 @@ export interface PricingTableSelection {
   currency: string;
   /** A trial the plan offers, in days. */
   trialDays: number | null;
+  /** The cart to open `<Checkout selection={...} />` on for this action. */
+  checkout: CheckoutSelection;
 }
 
 export interface PricingTableProps extends ElementProps {
@@ -855,11 +863,13 @@ function Action({
   const select = () =>
     shared.onSelectPlan?.({
       kind,
+      action: selectionAction(card),
       id: card.id,
       priceId: card.priceId,
       period: card.period,
       currency: view.currency,
       trialDays: card.trialDays,
+      checkout: checkoutSelectionFor(view, card, kind),
     });
   if (
     shared.onSelectPlan === undefined &&

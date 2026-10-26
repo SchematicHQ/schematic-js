@@ -45,10 +45,10 @@ function PlanNames() {
 ## The styled element
 
 ```tsx
-<PricingTable onSelectPlan={(selection) => openCheckout(selection)} />
+<PricingTable onSelectPlan={(selection) => openCheckout(selection.checkout)} />
 ```
 
-The table opens nothing itself. A card's action calls `onSelectPlan` with the plan or add-on, the price the card shows, its period, the currency and any trial; a host with a checkout opens it there, and one on a marketing page sends the visitor to sign up. Without `onSelectPlan`, `callToActionUrl` makes each action a link; without either, cards have no action. The custom plan links to the catalog's own URL, and a blocked downgrade to the account's.
+The table opens nothing itself. A card's action calls `onSelectPlan` with the plan or add-on, the price the card shows, its period, the currency and any trial; a host with a checkout opens it there, and one on a marketing page sends the visitor to sign up. `action` says whether the card chooses, removes or changes the period of a held add-on, and `checkout` is the cart to open `<Checkout selection={...} />` on for it: an add-on action restates every add-on the company keeps, since a checkout starts from the list it is given. Without `onSelectPlan`, `callToActionUrl` makes each action a link; without either, cards have no action. The custom plan links to the catalog's own URL, and a blocked downgrade to the account's.
 
 | Prop                                    | Default | Effect                                                                                                                   |
 | --------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |

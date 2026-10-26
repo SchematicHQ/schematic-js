@@ -6,6 +6,7 @@ import type {
   PublicCatalogPlan,
 } from "@schematichq/schematic-react";
 
+import type { CheckoutSelection } from "./checkoutConfig";
 import { isTieredPrice, tierRanges, type TierRange } from "./featureUsage";
 import {
   featureName,
@@ -185,6 +186,8 @@ export interface PricingTableView {
   savings: Partial<Record<PricingPeriod, string>>;
   /** The company's trial, for the current card's badge. */
   trialDaysLeft: { count: number; days: string } | null;
+  /** The add-ons the company holds, shown or not; empty in the public catalog. */
+  heldAddOnIds: string[];
 }
 
 export interface DerivePricingTableOptions {
@@ -284,7 +287,48 @@ export function derivePricingTable(
       options.locale,
     ),
     trialDaysLeft: trialDaysLeft(options.company, options),
+    heldAddOnIds: addOns
+      .filter((addOn) => standing(addOn).current)
+      .map((addOn) => addOn.id),
   };
+}
+
+/** What a card's action does: `remove` and `change` are for a held add-on. */
+export type PricingSelectionAction = "choose" | "remove" | "change";
+
+export function selectionAction(card: PricingCard): PricingSelectionAction {
+  const kind = card.action?.kind;
+  return kind === "remove" || kind === "change" ? kind : "choose";
+}
+
+/**
+ * The cart a card's action opens a checkout on. A checkout starts from the
+ * add-ons it is given, so every add-on action restates the whole list; a
+ * held add-on changes by taking the card's period, which the checkout
+ * applies to the subscription.
+ */
+export function checkoutSelectionFor(
+  view: PricingTableView,
+  card: PricingCard,
+  kind: "plan" | "addOn",
+): CheckoutSelection {
+  const period = card.period ?? undefined;
+  const { currency, heldAddOnIds: held } = view;
+  if (kind === "plan") {
+    return { planId: card.id, period, currency };
+  }
+  switch (selectionAction(card)) {
+    case "remove":
+      return { addOnIds: held.filter((id) => id !== card.id), currency };
+    case "change":
+      return { addOnIds: held, period, currency };
+    case "choose":
+      return {
+        addOnIds: held.includes(card.id) ? held : [...held, card.id],
+        period,
+        currency,
+      };
+  }
 }
 
 const PERIOD_MONTHS: Record<PricingPeriod, number> = {

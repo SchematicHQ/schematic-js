@@ -13,7 +13,7 @@ import {
 } from "../fixtures/builders";
 import { SCENARIOS } from "../fixtures/scenarios";
 
-import { derivePricingTable } from "./pricingTable";
+import { checkoutSelectionFor, derivePricingTable } from "./pricingTable";
 
 const L = "en-US";
 
@@ -374,6 +374,54 @@ describe("derivePricingTable", () => {
         },
       ).addOns[0].action,
     ).toEqual({ kind: "change" });
+  });
+
+  test("opens each add-on action on the whole add-on list", () => {
+    const catalog = companyCatalog({
+      addOns: [
+        catalogPlan({ id: "addon_held", name: "Support", current: true }),
+        catalogPlan({ id: "addon_new", name: "Onboarding" }),
+      ],
+    });
+    const options = {
+      locale: L,
+      company: company({
+        subscription: companySubscription({ period: "month" }),
+      }),
+    };
+    const monthly = derivePricingTable({ source: "company", catalog }, options);
+    expect(monthly.heldAddOnIds).toEqual(["addon_held"]);
+    const [held, fresh] = monthly.addOns;
+    expect(checkoutSelectionFor(monthly, held, "addOn")).toEqual({
+      addOnIds: [],
+      currency: "usd",
+    });
+    expect(checkoutSelectionFor(monthly, fresh, "addOn")).toEqual({
+      addOnIds: ["addon_held", "addon_new"],
+      period: "month",
+      currency: "usd",
+    });
+    const yearly = derivePricingTable(
+      { source: "company", catalog },
+      { ...options, period: "year" },
+    );
+    expect(checkoutSelectionFor(yearly, yearly.addOns[0], "addOn")).toEqual({
+      addOnIds: ["addon_held"],
+      period: "year",
+      currency: "usd",
+    });
+  });
+
+  test("opens a plan's action on the plan, in the card's period", () => {
+    const view = derivePricingTable(companyView(), {
+      locale: L,
+      period: "year",
+    });
+    expect(checkoutSelectionFor(view, view.plans[0], "plan")).toEqual({
+      planId: view.plans[0].id,
+      period: "year",
+      currency: "usd",
+    });
   });
 
   test("passes the custom plan's call to action through", () => {
