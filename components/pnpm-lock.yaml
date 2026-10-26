@@ -61,8 +61,8 @@ importers:
         specifier: ^1.16.0
         version: 1.16.0
       '@schematichq/schematic-react':
-        specifier: ^1.15.0
-        version: 1.15.0(react@19.3.0)
+        specifier: ^1.16.0
+        version: 1.16.0(react@19.3.0)
       '@stripe/react-stripe-js':
         specifier: ^6.12.0
         version: 6.12.0(@stripe/stripe-js@9.17.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -843,8 +843,8 @@ packages:
   '@schematichq/schematic-js@1.16.0':
     resolution: {integrity: sha512-XaeePIytkJhJy8ZK+lEu7o90u2jQ8QZeA/EcnvL9BxcgNR9dcAEh4nIG10KnHPMy5IELEusyPftW+hJLm9b3IQ==}
 
-  '@schematichq/schematic-react@1.15.0':
-    resolution: {integrity: sha512-Fk6XD3Mem1SYuSK2eiYHvYmfiYhQjHJRGXTdBLrpfHencem6C8XL3J3LStH+nwGa6ZTIn/RL8SmmJmOwe42jgg==}
+  '@schematichq/schematic-react@1.16.0':
+    resolution: {integrity: sha512-KWhWRsFqhQtMvduqdhhA/JXy1mH3H2xV/OFNfuBWMsMZdFeHvj7iWL7LCSCgId0ofQB5hloJovginHGIVvi3zw==}
     peerDependencies:
       react: '>=18'
 
@@ -4083,7 +4083,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@schematichq/schematic-react@1.15.0(react@19.3.0)':
+  '@schematichq/schematic-react@1.16.0(react@19.3.0)':
     dependencies:
       react: 19.3.0
 
