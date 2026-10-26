@@ -139,8 +139,9 @@ const PERIOD_KEY: Record<string, StringKey> = {
  * It reads the catalog through `useCatalog`: the public catalog until
  * someone signs in, then the company's view, which adds the current plan,
  * the plans the company cannot move to and why, and whether it can check
- * out. With a session it also reads the company, for the period its
- * subscription bills in; a company that fails to load costs only that.
+ * out. With a session it also waits for the company, for the period its
+ * subscription bills in; a company that fails to load costs only that
+ * period.
  * The table opens nothing itself: each card's action calls `onSelectPlan`.
  */
 export function PricingTable({
