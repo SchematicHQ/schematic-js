@@ -202,7 +202,9 @@ function CheckoutBody(props: BodyProps) {
   const company = useCompany();
   const methods = usePaymentMethods();
   const usage = useFeatureUsage();
-  const catalogData = catalog.data;
+  // Buying needs the company's catalog; the public one waits for a session.
+  const catalogData =
+    catalog.data?.source === "company" ? catalog.data.catalog : undefined;
   const ready =
     catalogData !== undefined &&
     settled(company) &&
