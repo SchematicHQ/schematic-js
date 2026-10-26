@@ -17,7 +17,11 @@ import { vi } from "vitest";
 
 import { Checkout, type CheckoutProps } from "./Checkout";
 import type { PaymentMethodFormProps } from "./PaymentMethodForm";
-import { cardPaymentMethod, daysFromNow } from "./fixtures/builders";
+import {
+  cardPaymentMethod,
+  daysFromNow,
+  publicCatalog,
+} from "./fixtures/builders";
 import {
   autoTopup,
   catalog,
@@ -459,6 +463,26 @@ describe("Checkout", () => {
       },
     );
     expect(dialog()).toHaveTextContent(
+      "Checkout is not available for this account.",
+    );
+  });
+
+  test("waits for a session rather than showing the public catalog's error", () => {
+    const { catalog: _company, ...rest } = baseData();
+    render(
+      <BillingDataProvider
+        data={{ ...rest, publicCatalog: publicCatalog() }}
+        status={{
+          publicCatalog: {
+            error: new SchematicApiError(404, "/public/catalog", "not found"),
+          },
+        }}
+      >
+        <Checkout locale="en-US" open onOpenChange={() => {}} />
+      </BillingDataProvider>,
+    );
+    expect(dialog()).toHaveTextContent("Loading checkout");
+    expect(dialog()).not.toHaveTextContent(
       "Checkout is not available for this account.",
     );
   });

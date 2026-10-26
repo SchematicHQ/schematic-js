@@ -38,6 +38,7 @@ export {
   type CatalogEntitlement,
   type CatalogPlan,
   type CatalogQuery,
+  type CatalogView,
   type CheckoutHandle,
   type CheckoutPriceSnapshot,
   type CheckoutProblem,
@@ -63,6 +64,8 @@ export {
   type PaymentMethod,
   type PaymentMethodsHandle,
   type PerLicenseCreditGrant,
+  type PublicCatalog,
+  type PublicCatalogPlan,
   type ResourceHandle,
   type ResourceState,
   type ScheduledDowngrade,
@@ -82,6 +85,7 @@ export {
   cartReducer,
   catalogName,
   catalogPriceName,
+  checkoutSelectionFor,
   checkoutSelections,
   currentTier,
   deriveCheckout,
@@ -91,6 +95,7 @@ export {
   deriveMeteredFeatures,
   derivePaymentMethods,
   derivePlanManager,
+  derivePricingTable,
   deriveUnsubscribe,
   deriveUpcomingInvoice,
   featureName,
@@ -142,6 +147,7 @@ export {
   type DeriveMeteredFeaturesOptions,
   type DerivePaymentMethodsOptions,
   type DerivePlanManagerOptions,
+  type DerivePricingTableOptions,
   type DeriveUnsubscribeOptions,
   type DeriveUpcomingInvoiceOptions,
   type DerivedPaymentMethods,
@@ -173,6 +179,18 @@ export {
   type PlanPrice,
   type PlanRow,
   type PriceTier,
+  type PricingAction,
+  type PricingCard,
+  type PricingCreditLine,
+  type PricingCustomPlan,
+  type PricingEntitlementDetail,
+  type PricingEntitlementRow,
+  type PricingEntitlementText,
+  type PricingPeriod,
+  type PricingPrice,
+  type PricingSelectionAction,
+  type PricingTableView,
+  type PricingViolation,
   type ProrationLine,
   type QuantityRow,
   type SkippableStep,
@@ -223,11 +241,17 @@ export {
 } from "./PaymentMethods";
 export { PlanManager, type PlanManagerProps } from "./PlanManager";
 export {
+  PricingTable,
+  type PricingTableProps,
+  type PricingTableSelection,
+} from "./PricingTable";
+export {
   UnsubscribeButton,
   type UnsubscribeButtonProps,
 } from "./UnsubscribeButton";
 export { UpcomingBill, type UpcomingBillProps } from "./UpcomingBill";
 export {
+  Icon,
   Tooltip,
   billingResources,
   useResolvedLocale,

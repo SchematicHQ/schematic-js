@@ -10,6 +10,7 @@ import { invoicesCss } from "./invoices";
 import { meteredFeaturesCss } from "./metered-features";
 import { paymentMethodsCss } from "./payment-methods";
 import { planManagerCss } from "./plan-manager";
+import { pricingTableCss } from "./pricing-table";
 import { withTokenDefaults } from "./tokens";
 import { tooltipCss } from "./tooltip";
 import { unsubscribeCss } from "./unsubscribe";
@@ -311,7 +312,7 @@ const rulesCss = `
   display: inline-flex;
 }
 
-.schematic-toggle button {
+.schematic-toggle__option {
   background: none;
   border: none;
   border-radius: 2.5rem;
@@ -326,7 +327,7 @@ const rulesCss = `
   white-space: nowrap;
 }
 
-.schematic-toggle button[aria-pressed="true"] {
+.schematic-toggle__option[aria-pressed="true"] {
   background: var(--schematic-border);
   font-weight: 600;
 }
@@ -428,134 +429,6 @@ const rulesCss = `
   text-transform: uppercase;
 }
 
-.schematic-pricing-table {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--schematic-space) * 2);
-}
-
-.schematic-pricing-table__controls {
-  align-items: center;
-  display: flex;
-  gap: 0.75rem;
-  margin-inline-start: auto;
-}
-
-.schematic-pricing-table__plans {
-  display: grid;
-  gap: var(--schematic-space);
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-}
-
-.schematic-plan-card {
-  display: flex;
-  flex-direction: column;
-  padding: var(--schematic-card-padding) 0;
-  position: relative;
-}
-
-.schematic-plan-card--active {
-  outline: 2px solid var(--schematic-primary);
-}
-
-.schematic-plan-card__header {
-  border-bottom: 1px solid var(--schematic-card-divider);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 0 var(--schematic-card-padding)
-    calc(var(--schematic-card-padding) * 0.75);
-}
-
-.schematic-plan-card__header h3 {
-  align-items: center;
-  display: flex;
-  font-size: 1.8125rem;
-  font-weight: 800;
-  gap: 0.5rem;
-  margin: 0;
-}
-
-.schematic-plan-card__description {
-  min-height: 1.5em;
-}
-
-.schematic-plan-card__price {
-  font-family: var(--schematic-font-heading);
-  font-size: 1.8125rem;
-  font-weight: 800;
-  line-height: var(--schematic-line-height-heading);
-}
-
-.schematic-plan-card__price sub {
-  font-family: var(--schematic-font-body);
-  font-size: 0.875rem;
-  font-weight: 400;
-  vertical-align: baseline;
-}
-
-.schematic-plan-card__badge {
-  position: absolute;
-  inset-inline-end: var(--schematic-space);
-  top: var(--schematic-space);
-}
-
-.schematic-plan-card__body {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  gap: var(--schematic-card-padding);
-  justify-content: end;
-  padding: calc(var(--schematic-card-padding) * 0.75)
-    var(--schematic-card-padding) 0;
-}
-
-.schematic-plan-card__entitlements {
-  display: flex;
-  flex-direction: column;
-  gap: var(--schematic-space);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.schematic-plan-card__entitlements li {
-  align-items: center;
-  display: flex;
-  gap: var(--schematic-space);
-}
-
-.schematic-plan-card__inclusion {
-  margin-bottom: calc(var(--schematic-space) / 2);
-}
-
-.schematic-plan-card__detail {
-  display: block;
-  font-size: 0.875rem;
-}
-
-.schematic-plan-card__show-all {
-  margin-top: var(--schematic-space);
-}
-
-.schematic-plan-card__current {
-  align-items: center;
-  display: flex;
-  gap: 0.25rem;
-  justify-content: center;
-  padding: 0.625rem 0;
-}
-
-.schematic-plan-card__action {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--schematic-space) / 2);
-}
-
-.schematic-plan-card .schematic-cta {
-  width: 100%;
-}
-
 ${dialogCss}
 ${invoicesCss}
 ${upcomingBillCss}
@@ -565,6 +438,7 @@ ${includedFeaturesCss}
 ${meteredFeaturesCss}
 ${creditUsageCss}
 ${planManagerCss}
+${pricingTableCss}
 ${unsubscribeCss}
 ${cardGroupCss}
 ${checkoutCss}

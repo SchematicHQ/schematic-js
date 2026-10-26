@@ -24,6 +24,7 @@ names — the tier is what `billing` names, not the resource.
 | PlanManager       | `useCompany`, `useFeatureUsage`, `useCreditBalances`   | `derivePlanManager`      | `company`, `featureUsage`, `creditBalances`            | [plan-manager.md](./plan-manager.md)             |
 | UnsubscribeButton | `useCompany`, `useFeatureUsage`, `useUnsubscribe`      | `deriveUnsubscribe`      | `company`, `featureUsage`                              | [unsubscribe-button.md](./unsubscribe-button.md) |
 | Checkout          | `useCatalog`, `useCompany`, `useCheckout`, `useTaxIds` | `deriveCheckout`         | `catalog`, `company`, `paymentMethods`, `featureUsage` | [checkout.md](./checkout.md)                     |
+| PricingTable      | `useCatalog`, `useCompany`                             | `derivePricingTable`     | `catalog`, `publicCatalog`, `company`                  | [pricing-table.md](./pricing-table.md)           |
 
 ## Before it can load
 

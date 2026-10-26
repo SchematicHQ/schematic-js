@@ -2,6 +2,7 @@ import { useFeatureUsage } from "@schematichq/schematic-react";
 import { useMemo, useState } from "react";
 
 import {
+  Icon,
   StatusFrame,
   Tooltip,
   cx,
@@ -139,9 +140,9 @@ export function IncludedFeatures({
             key={row.featureId}
           >
             {showIcon && row.icon !== null && (
-              <i
-                aria-hidden="true"
-                className={`schematic-icon schematic-icon--${row.icon} schematic-included-features__icon`}
+              <Icon
+                className="schematic-included-features__icon"
+                name={row.icon}
               />
             )}
             <div className="schematic-included-features__details">
