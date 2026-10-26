@@ -1,5 +1,6 @@
 import {
   checkoutProblemsOf,
+  useBillingDataSource,
   useCatalog,
   useCheckout,
   useCompany,
@@ -202,9 +203,12 @@ function CheckoutBody(props: BodyProps) {
   const company = useCompany();
   const methods = usePaymentMethods();
   const usage = useFeatureUsage();
-  // Buying needs the company's catalog; the public one waits for a session.
+  // Buying needs the company's catalog; the public one waits for a session,
+  // and so does its error, which says nothing about this company.
+  const readingPublic = useBillingDataSource().catalogSource?.() === "public";
   const catalogData =
     catalog.data?.source === "company" ? catalog.data.catalog : undefined;
+  const catalogError = readingPublic ? undefined : catalog.error;
   const ready =
     catalogData !== undefined &&
     settled(company) &&
@@ -212,16 +216,16 @@ function CheckoutBody(props: BodyProps) {
     settled(usage);
 
   const errorMessage =
-    catalog.error === undefined
+    catalogError === undefined
       ? undefined
-      : httpStatus(catalog.error) === 404
+      : httpStatus(catalogError) === 404
         ? t("checkoutUnavailable")
         : t("checkoutError");
 
   return (
     <StatusFrame
       className="schematic-checkout__frame"
-      error={catalog.error}
+      error={catalogError}
       errorMessage={errorMessage}
       hasData={ready}
       isPending={!ready}
