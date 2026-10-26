@@ -10,6 +10,8 @@ import { PricingTable, type PricingTableProps } from "./PricingTable";
 import {
   catalogCreditGrant,
   catalogEntitlement,
+  catalogPlan,
+  companyCatalog,
   publicCatalog,
   publicCatalogPlan,
 } from "./fixtures/builders";
@@ -154,6 +156,46 @@ describe("PricingTable", () => {
         checkout: { addOnIds: [], currency: "usd" },
       }),
     );
+  });
+
+  test("links a blocked downgrade to the account's page, else the host's", () => {
+    const blocked = (url?: string) => ({
+      catalog: companyCatalog({
+        plans: [
+          catalogPlan({
+            name: "Low",
+            valid: false,
+            invalidReason: "downgrade_not_permitted",
+          }),
+          catalogPlan({ name: "High", current: true }),
+        ],
+        preventSelfServiceDowngrade: true,
+        preventSelfServiceDowngradeUrl: url,
+      }),
+      company: SCENARIOS.pricingTable().company,
+    });
+
+    const { unmount } = renderTable(blocked("https://example.com/support"));
+    expect(
+      within(card("Low")).getByRole("link", { name: "Talk to support" }),
+    ).toHaveAttribute("href", "https://example.com/support");
+    unmount();
+
+    const { unmount: unmountHost } = renderTable(blocked(), {
+      callToActionUrl: "https://example.com/contact",
+      callToActionTarget: "_self",
+    });
+    const host = within(card("Low")).getByRole("link", {
+      name: "Talk to support",
+    });
+    expect(host).toHaveAttribute("href", "https://example.com/contact");
+    expect(host).toHaveAttribute("target", "_self");
+    unmountHost();
+
+    renderTable(blocked());
+    expect(
+      within(card("Low")).getByRole("button", { name: "Talk to support" }),
+    ).toBeDisabled();
   });
 
   test("links each card to callToActionUrl without onSelectPlan", () => {

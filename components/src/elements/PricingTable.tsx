@@ -847,16 +847,35 @@ function Action({
   }
 
   if (action.kind === "downgradeBlocked") {
+    const text = action.text ?? t("pricingTableTalkToSupport");
+    // The account's link is optional; without it or the host's, the card
+    // says what it cannot do rather than drawing a link to nowhere.
+    const link =
+      action.url !== null
+        ? { href: action.url, target: "_blank" }
+        : shared.callToActionUrl !== undefined
+          ? { href: shared.callToActionUrl, target: shared.callToActionTarget }
+          : undefined;
     return (
       <div className="schematic-plan-card__action">
-        <a
-          className="schematic-cta schematic-cta--outline"
-          href={action.url ?? undefined}
-          rel="noreferrer"
-          target="_blank"
-        >
-          {action.text ?? t("pricingTableTalkToSupport")}
-        </a>
+        {link === undefined ? (
+          <button
+            className="schematic-cta schematic-cta--outline"
+            disabled
+            type="button"
+          >
+            {text}
+          </button>
+        ) : (
+          <a
+            className="schematic-cta schematic-cta--outline"
+            href={link.href}
+            rel="noreferrer"
+            target={link.target}
+          >
+            {text}
+          </a>
+        )}
       </div>
     );
   }
