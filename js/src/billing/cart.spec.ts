@@ -96,6 +96,13 @@ const plan = (planId: string): CheckoutSelections => ({
 
 const conflict = () => new SchematicApiError(409, "/checkouts/chk_1", {});
 
+/** Lets every pending microtask run. */
+const tick = async () => {
+  for (let i = 0; i < 10; i++) {
+    await Promise.resolve();
+  }
+};
+
 describe("CheckoutDraft", () => {
   it("opens the checkout on the first write and prices the rest by PUT", async () => {
     const { transport, nth } = fakeTransport();
@@ -303,5 +310,71 @@ describe("CheckoutDraft", () => {
 
     void draft.setSelections(plan("a"));
     expect((await nth(1)).args).toEqual(["chk_9", 7, plan("a")]);
+  });
+
+  it("reads a resumed checkout before the first write, which then updates it", async () => {
+    const { transport, calls, nth } = fakeTransport();
+    const draft = new CheckoutDraft(transport, { checkoutId: "chk_9" });
+    void draft.load().catch(() => undefined);
+    const write = draft.setSelections(plan("a"));
+
+    const read = await nth(0);
+    expect(read.args).toEqual(["chk_9"]);
+    await tick();
+    expect(calls.map((x) => x.name)).toEqual(["get"]);
+    read.answer.resolve(checkout({ id: "chk_9", version: 7 }));
+
+    const put = await nth(1);
+    expect(put.args).toEqual(["chk_9", 7, plan("a")]);
+    put.answer.resolve({ checkout: checkout({ id: "chk_9", version: 8 }) });
+    await expect(write).resolves.toMatchObject({ version: 8 });
+    expect(calls.map((x) => x.name)).toEqual(["get", "update"]);
+  });
+
+  it("fails the first write when the resumed checkout cannot be read, and reads again on the next", async () => {
+    const { transport, calls, nth } = fakeTransport();
+    const draft = new CheckoutDraft(transport, { checkoutId: "chk_9" });
+
+    const write = draft.setSelections(plan("a"));
+    const read = await nth(0);
+    expect(read.args).toEqual(["chk_9"]);
+    read.answer.reject(new Error("offline"));
+    await expect(write).rejects.toThrow("offline");
+    expect(draft.state.error?.message).toBe("offline");
+    expect(draft.state.isPricing).toBe(false);
+    expect(draft.state.checkout).toBeUndefined();
+
+    void draft.setSelections(plan("b"));
+    expect((await nth(1)).args).toEqual(["chk_9"]);
+    expect(calls.map((x) => x.name)).toEqual(["get", "get"]);
+  });
+
+  it("reads a resumed checkout before finalizing it", async () => {
+    const { transport, nth } = fakeTransport();
+    const draft = new CheckoutDraft(transport, { checkoutId: "chk_9" });
+
+    const finalized = draft.finalize();
+    const read = await nth(0);
+    expect(read.args).toEqual(["chk_9"]);
+    read.answer.resolve(checkout({ id: "chk_9", version: 7 }));
+
+    const finalize = await nth(1);
+    expect(finalize.args).toEqual(["chk_9", 7, {}]);
+    finalize.answer.resolve(result);
+    await expect(finalized).resolves.toBe(result);
+    expect(draft.state.result).toBe(result);
+  });
+
+  it("drops a write whose resumed read lands after a reset", async () => {
+    const { transport, calls, nth } = fakeTransport();
+    const draft = new CheckoutDraft(transport, { checkoutId: "chk_9" });
+    const write = draft.setSelections(plan("a"));
+    const read = await nth(0);
+    draft.reset();
+    read.answer.resolve(checkout({ id: "chk_9", version: 7 }));
+    await expect(write).resolves.toBeUndefined();
+    expect(draft.state.checkout).toBeUndefined();
+    expect(draft.state.isPricing).toBe(false);
+    expect(calls.map((x) => x.name)).toEqual(["get"]);
   });
 });
