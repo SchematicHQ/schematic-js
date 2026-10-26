@@ -303,9 +303,10 @@ export function selectionAction(card: PricingCard): PricingSelectionAction {
 
 /**
  * The cart a card's action opens a checkout on. A checkout starts from the
- * add-ons it is given, so every add-on action restates the whole list; a
- * held add-on changes by taking the card's period, which the checkout
- * applies to the subscription.
+ * add-ons it is given, so every add-on action restates the whole list. An
+ * add-on chosen or changed takes the card's period, which the checkout
+ * applies to the whole subscription. The public catalog holds nothing, so
+ * its carts are only good before sign-in.
  */
 export function checkoutSelectionFor(
   view: PricingTableView,

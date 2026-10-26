@@ -46,7 +46,11 @@ export interface PricingTableSelection {
   currency: string;
   /** A trial the plan offers, in days. */
   trialDays: number | null;
-  /** The cart to open `<Checkout selection={...} />` on for this action. */
+  /**
+   * The cart to open `<Checkout selection={...} />` on for this action, from
+   * the catalog the table read: build it again after sign-in, since the
+   * public catalog knows no add-ons the company holds.
+   */
   checkout: CheckoutSelection;
 }
 
@@ -102,7 +106,10 @@ export interface PricingTableProps extends ElementProps {
    * `callToActionUrl`, cards have no action.
    */
   onSelectPlan?: (selection: PricingTableSelection) => void;
-  /** A card's action links here when there is no `onSelectPlan`. */
+  /**
+   * A card's action links here when there is no `onSelectPlan`, and a
+   * blocked downgrade does when the account has no link of its own.
+   */
   callToActionUrl?: string;
   /** `target` for `callToActionUrl`. */
   callToActionTarget?: string;
