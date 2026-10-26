@@ -100,6 +100,12 @@ export interface CatalogCreditGrantResponseData {
    * @memberof CatalogCreditGrantResponseData
    */
   scaling: PlanCreditGrantScaling;
+  /**
+   * Whether the catalog shows this credit on the plan. Display-only: a hidden grant is still granted and priced at checkout.
+   * @type {boolean}
+   * @memberof CatalogCreditGrantResponseData
+   */
+  visible: boolean;
 }
 
 /**
@@ -120,6 +126,7 @@ export function instanceOfCatalogCreditGrantResponseData(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("scaling" in value) || value["scaling"] === undefined) return false;
+  if (!("visible" in value) || value["visible"] === undefined) return false;
   return true;
 }
 
@@ -157,6 +164,7 @@ export function CatalogCreditGrantResponseDataFromJSONTyped(
         ? undefined
         : BillingPlanCreditGrantResetCadenceFromJSON(json["reset_cadence"]),
     scaling: PlanCreditGrantScalingFromJSON(json["scaling"]),
+    visible: json["visible"],
   };
 }
 
@@ -188,5 +196,6 @@ export function CatalogCreditGrantResponseDataToJSONTyped(
       value["resetCadence"],
     ),
     scaling: PlanCreditGrantScalingToJSON(value["scaling"]),
+    visible: value["visible"],
   };
 }
