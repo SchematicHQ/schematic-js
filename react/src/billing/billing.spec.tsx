@@ -14,7 +14,7 @@ import { vi } from "vitest";
 
 import { SchematicProvider } from "../context";
 
-import { BillingStore, type SessionEvent } from "./client";
+import { BillingStore, type SessionEvent, type SessionStatus } from "./client";
 import {
   normalizeInvoiceQuery,
   type BillingData,
@@ -29,6 +29,7 @@ import {
   type FeatureUserUsage,
   type Invoice,
   type PaymentMethod,
+  type PublicCatalog,
   type SetupIntent,
   type TaxId,
   type UpcomingInvoice,
@@ -137,6 +138,15 @@ const company = (name: string): Company =>
   ({ addOns: [], id: "comp_a", name }) as unknown as Company;
 
 /** Only the fields the tests read; the rest of the wire shape is the API's. */
+const publicCatalog = (id: string): PublicCatalog =>
+  ({
+    id,
+    name: id,
+    plans: [],
+    addOns: [],
+    creditBundles: [],
+  }) as unknown as PublicCatalog;
+
 const catalog = (id: string): Catalog =>
   ({
     id,
@@ -1442,6 +1452,59 @@ describe("billing hooks", () => {
     }
   });
 
+  it_(
+    "reads the public catalog with the publishable key before anyone signs in",
+    async () => {
+      const requests: Array<{ url: string; headers: Record<string, string> }> =
+        [];
+      const realFetch = globalThis.fetch;
+      globalThis.fetch = (async (url: string, init: RequestInit) => {
+        requests.push({
+          url: String(url),
+          headers: (init.headers ?? {}) as Record<string, string>,
+        });
+        return new Response(
+          JSON.stringify({
+            data: {
+              add_ons: [],
+              capabilities: { badge_visibility: false, checkout: false },
+              credit_bundles: [],
+              custom_plan_cta: {},
+              default_currency: "usd",
+              id: "cat_1",
+              name: "Default",
+              plans: [],
+            },
+          }),
+          { status: 200 },
+        );
+      }) as unknown as typeof fetch;
+
+      try {
+        function Probe() {
+          const { data } = useCatalog();
+          return <span>{data === undefined ? "pending" : data.source}</span>;
+        }
+        render(
+          <SchematicProvider
+            client={new Schematic("pk_live", { apiUrl: "https://api.test" })}
+            session={null}
+          >
+            <Probe />
+          </SchematicProvider>,
+        );
+        await flush();
+
+        expect(screen.getByText("public")).toBeTruthy();
+        expect(requests).toHaveLength(1);
+        expect(requests[0].url).toBe("https://api.test/public/catalog");
+        expect(requests[0].headers["X-Schematic-Api-Key"]).toBe("pk_live");
+      } finally {
+        globalThis.fetch = realFetch;
+      }
+    },
+  );
+
   it_("keeps what it loaded when only the client object changes", async () => {
     // `client={new Schematic(...)}` inline is a new object every render, and
     // says nothing new. The billing client owns the store, so rebuilding it
@@ -2557,8 +2620,13 @@ describe("useCatalog", () => {
     );
     expect(result.current[0].isPending).toBe(true);
     await flush();
-    expect(result.current[0].data?.id).toBe("cat_env");
-    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(result.current[0].data).toMatchObject({
+      source: "company",
+      catalog: { id: "cat_env" },
+    });
+    expect(result.current[1].data?.catalog).toBe(
+      result.current[0].data?.catalog,
+    );
     expect(client.fetchCatalog).toHaveBeenCalledTimes(1);
     expect(client.fetchCatalog).toHaveBeenCalledWith({});
   });
@@ -2576,8 +2644,8 @@ describe("useCatalog", () => {
         { wrapper: wrap(client) },
       );
       await flush();
-      expect(result.current[0].data?.id).toBe("cat_2");
-      expect(result.current[1].data?.id).toBe("cat_env");
+      expect(result.current[0].data?.catalog.id).toBe("cat_2");
+      expect(result.current[1].data?.catalog.id).toBe("cat_env");
       expect(client.fetchCatalog).toHaveBeenCalledTimes(2);
     },
   );
@@ -2592,7 +2660,7 @@ describe("useCatalog", () => {
           params: { catalog: { catalogId: "cat_2" } },
         }),
       });
-      expect(result.current.data?.id).toBe("seeded");
+      expect(result.current.data?.catalog.id).toBe("seeded");
       await flush();
       expect(client.fetchCatalog).not.toHaveBeenCalled();
     },
@@ -2606,7 +2674,139 @@ describe("useCatalog", () => {
         </BillingDataProvider>
       ),
     });
-    expect(result.current.data?.id).toBe("fixture");
+    expect(result.current.data?.catalog.id).toBe("fixture");
+  });
+
+  /** A client whose session the test moves, as `setSession` would. */
+  const movable = (
+    status: SessionStatus,
+    overrides: Partial<BillingProviderClient> = {},
+  ) => {
+    const client = fakeClient({
+      sessionStatus: status,
+      hasPublishableKey: true,
+      fetchPublicCatalog: vi.fn(async (query) =>
+        publicCatalog(query?.catalogId ?? "pub_env"),
+      ),
+      ...overrides,
+    });
+    const move = (next: SessionStatus, type: SessionEvent["type"]) =>
+      act(() => {
+        (client as { sessionStatus: SessionStatus }).sessionStatus = next;
+        for (const listener of client.listeners) {
+          listener({ type });
+        }
+      });
+    return { client, move };
+  };
+
+  it_(
+    "reads the public catalog with the key when nobody is signed in",
+    async () => {
+      const { client } = movable("ended");
+      const { result } = renderHook(() => useCatalog({ catalogId: "cat_2" }), {
+        wrapper: wrap(client),
+      });
+      await flush();
+      expect(result.current.data).toMatchObject({
+        source: "public",
+        catalog: { id: "cat_2" },
+      });
+      expect(client.fetchPublicCatalog).toHaveBeenCalledWith({
+        catalogId: "cat_2",
+      });
+      expect(client.fetchCatalog).not.toHaveBeenCalled();
+    },
+  );
+
+  it_(
+    "reads the public catalog while the session is still pending",
+    async () => {
+      const { client } = movable("pending");
+      const { result } = renderHook(() => useCatalog(), {
+        wrapper: wrap(client),
+      });
+      await flush();
+      expect(result.current.data?.source).toBe("public");
+      expect(client.fetchCatalog).not.toHaveBeenCalled();
+    },
+  );
+
+  it_(
+    "moves to the company's view when a session starts, and back when it ends",
+    async () => {
+      const { client, move } = movable("ended");
+      const { result } = renderHook(() => useCatalog(), {
+        wrapper: wrap(client),
+      });
+      await flush();
+      expect(result.current.data?.source).toBe("public");
+
+      move("active", "started");
+      await flush();
+      expect(result.current.data).toMatchObject({
+        source: "company",
+        catalog: { id: "cat_env" },
+      });
+      expect(client.fetchCatalog).toHaveBeenCalledTimes(1);
+
+      // The public catalog belongs to nobody, so it is still loaded.
+      move("ended", "ended");
+      expect(result.current.data).toMatchObject({
+        source: "public",
+        catalog: { id: "pub_env" },
+      });
+      await flush();
+      expect(client.fetchPublicCatalog).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it_("settles empty with neither a session nor a key", async () => {
+    const client = fakeClient({ sessionStatus: "ended" });
+    const { result } = renderHook(() => useCatalog(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current).toMatchObject({
+      data: undefined,
+      error: undefined,
+      isPending: false,
+    });
+    expect(client.fetchCatalog).not.toHaveBeenCalled();
+  });
+
+  it_(
+    "adopts a prefetched public catalog whoever the session turns out to be",
+    async () => {
+      const { client } = movable("ended");
+      const { result } = renderHook(() => useCatalog({ catalogId: "cat_2" }), {
+        wrapper: wrap(client, {
+          publicCatalog: publicCatalog("seeded"),
+          params: { publicCatalog: { catalogId: "cat_2" } },
+          sessionKey: "someone else",
+        }),
+      });
+      expect(result.current.data).toMatchObject({
+        source: "public",
+        catalog: { id: "seeded" },
+      });
+      await flush();
+      expect(client.fetchPublicCatalog).not.toHaveBeenCalled();
+    },
+  );
+
+  it_("serves a public fixture as the public catalog", () => {
+    const { result } = renderHook(() => useCatalog(), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <BillingDataProvider data={{ publicCatalog: publicCatalog("fixture") }}>
+          {children}
+        </BillingDataProvider>
+      ),
+    });
+    expect(result.current.data).toMatchObject({
+      source: "public",
+      catalog: { id: "fixture" },
+    });
   });
 });
 
