@@ -23,8 +23,8 @@ importers:
         specifier: ^7.59.4
         version: 7.59.4(@types/node@26.6.5)
       '@schematichq/schematic-js':
-        specifier: ^1.16.0
-        version: 1.16.0
+        specifier: ^1.16.1
+        version: 1.16.1
       '@testing-library/dom':
         specifier: ^10.4.2
         version: 10.4.2
@@ -625,8 +625,8 @@ packages:
     resolution: {integrity: sha512-pIwhWawZXAT0nTXwvcE/InQ7uaVAgSeIzILMb2mBrI01Hz1yEvxrhV2+DE2Fzux8aZY9OJTdLsI+sk9kZDuAJw==}
     engines: {node: '>=20.9.0'}
 
-  '@schematichq/schematic-js@1.16.0':
-    resolution: {integrity: sha512-XaeePIytkJhJy8ZK+lEu7o90u2jQ8QZeA/EcnvL9BxcgNR9dcAEh4nIG10KnHPMy5IELEusyPftW+hJLm9b3IQ==}
+  '@schematichq/schematic-js@1.16.1':
+    resolution: {integrity: sha512-4dzFvwHXF1ylFEM66IR4t67DkQHf25fJLUnod1AAW4iBpv3G4lKCTprr6pHzLTAUhU5qHEqoyEnk58TkaAG6bQ==}
 
   '@testing-library/dom@10.4.2':
     resolution: {integrity: sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q==}
@@ -2693,7 +2693,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@schematichq/schematic-js@1.16.0':
+  '@schematichq/schematic-js@1.16.1':
     dependencies:
       cross-fetch: 4.1.0
       uuid: 14.0.3
