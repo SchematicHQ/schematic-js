@@ -5,13 +5,14 @@ the billing API. Each element reads one or more resources through hooks from
 `@schematichq/schematic-react`, reduces them to a domain model with a pure
 derivation, and renders with CSS-variable styling.
 
-The rest of the elements land with the endpoints that feed them.
-
 Naming: `billing` is the end-customer API tier that the elements read from
 (`SchematicBillingClient`, `BillingProvider`, `fetchBillingData`); `catalog`
-is reserved for the offerings resource. The routes those clients call are
-still `/company/*`, and the generated wire models keep their `Company…`
-names — the tier is what `billing` names, not the resource.
+is the offerings resource. The tier's routes are `/company/*` for what the
+company holds, `/catalog/view` and `/catalogs/{id}/view` for what it can
+buy, `/public/catalog` and `/public/catalogs/{id}` for the same before
+sign-in, `/checkouts` for a purchase and `/checkout/tax-id` for the tax ID.
+The generated wire models keep their `Company…` names because `billing`
+names the tier, not the resource.
 
 | Element           | Hooks                                                  | Derivation               | Reads                                                  | Recipe                                           |
 | ----------------- | ------------------------------------------------------ | ------------------------ | ------------------------------------------------------ | ------------------------------------------------ |
@@ -28,8 +29,10 @@ names — the tier is what `billing` names, not the resource.
 
 ## Before it can load
 
-The company endpoints are gated on the `company-context-api` flag, per
-account. An account without it gets a 404 from every `/company/*` read, and
+The company endpoints are gated on the `company-context-api` flag and the
+catalog endpoints on `multi-product-catalog`, per account; `checkout.md` and
+`pricing-table.md` say what their elements do without the second. An account
+without the first gets a 404 from every `/company/*` read, and
 because a 404 is not an answer the elements report it as "not available"
 rather than showing a company with invoices, or a subscription, an empty
 card.
