@@ -502,6 +502,13 @@ async function everyCheckout() {
     // A bundle beside the plan: the one-time lines under their caption.
     await checkoutWithBundle(),
     await checkoutAt({ display: { container: "inline" } }),
+    // In the page with the summary held: the inline column rules read the
+    // section's width, so the sheet carries them a second time.
+    await checkoutAt(
+      { display: { container: "inline", summary: "payment" } },
+      checkoutData(),
+      ".schematic-checkout__nav .schematic-cta",
+    ),
     tree(<Checkout locale="en-US" open onOpenChange={() => {}} />, {
       ...checkoutData(),
       catalog: catalog({
