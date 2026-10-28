@@ -820,6 +820,7 @@ describe("Checkout markup contract", () => {
       "schematic-dialog__title",
       "schematic-element",
       "schematic-toggle",
+      "schematic-toggle__option",
     ]);
   });
 
@@ -859,6 +860,7 @@ describe("Checkout markup contract", () => {
       "schematic-icon",
       "schematic-icon--close",
       "schematic-toggle",
+      "schematic-toggle__option",
     ]);
   });
 
@@ -909,6 +911,7 @@ describe("Checkout markup contract", () => {
       "schematic-icon",
       "schematic-icon--close",
       "schematic-toggle",
+      "schematic-toggle__option",
     ]);
   });
 

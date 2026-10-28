@@ -103,6 +103,7 @@ function PeriodToggle({
         {model.period.options.map((period: CheckoutPeriod) => (
           <button
             aria-pressed={period === model.period.value}
+            className="schematic-toggle__option"
             key={period}
             type="button"
             onClick={() => dispatch({ type: "period", period })}
