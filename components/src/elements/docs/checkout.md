@@ -80,7 +80,7 @@ A plan change the server prorates shows as one Proration line, or itemized under
 
 ## Layout
 
-From 768px up the steps take the left and the summary — the lines and the totals, with the action under it — the right, each scrolling on its own; below that the summary sits under the steps, the whole dialog scrolls, and the action keeps to the bottom of the screen so Next and Pay are in reach however long the plan list. Three props change that, for a sheet that cannot:
+From 768px up, measured on the viewport by the dialog and on its own width by the inline section, the steps take the left and the summary — the lines and the totals, with the action under it — the right, each scrolling on its own; below that the summary sits under the steps, the whole dialog scrolls, and the action keeps to the bottom of the screen so Next and Pay are in reach however long the plan list. Three props change that, for a sheet that cannot:
 
 - `display.layout: "stacked"` keeps the summary under the steps at every width. The root carries `schematic-checkout--stacked`, so a bottom sheet on a phone and a narrow card on a desktop are the same stylesheet.
 - `display.summary: "payment"` shows the summary on the payment step alone. The steps before it carry their Next action in `.schematic-checkout__nav`, and the layout carries `data-summary="payment"`, so a wizard of one choice per screen asks nothing of the stylesheet but the column.
@@ -153,7 +153,7 @@ The root is `schematic-dialog schematic-checkout`, with `schematic-checkout--sta
 | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `schematic-checkout__frame`                                                           | The status frame inside the dialog body; `data-state` is `pending`, `error` or `ready`.               |
 | `schematic-checkout__unavailable`                                                     | The notice shown when the catalog cannot be bought from.                                              |
-| `schematic-checkout__layout`                                                          | The steps and the summary; a grid of one column, two from 768px up.                                   |
+| `schematic-checkout__layout`                                                          | The steps and the summary; a grid of one column, two from 768px up (the dialog's viewport, or the inline section's own width).                                   |
 | `schematic-checkout__main`                                                            | The left column: stepper, heading, the step on screen, its problems and navigation.                   |
 | `schematic-checkout__stepper`, `__step`, `__step-link`                                | The step list, one `li` per visible step, the link within it.                                         |
 | `schematic-checkout__heading`                                                         | The step's title.                                                                                     |

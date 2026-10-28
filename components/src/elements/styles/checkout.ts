@@ -1,53 +1,19 @@
 /**
- * A checkout that keeps its columns: every one but `display.layout:
- * "stacked"`, which carries the modifier.
+ * The checkout that keeps its columns: a `variant` of the root, every one but
+ * `display.layout: "stacked"`, which carries the modifier. `:where` keeps the
+ * variant out of the specificity, so a host's override of a
+ * `schematic-checkout__*` class meets the same weight in the dialog and in
+ * the page.
  */
-const columns = ".schematic-checkout:not(.schematic-checkout--stacked)";
+const columns = (variant: string) =>
+  `.schematic-checkout:where(${variant}):not(.schematic-checkout--stacked)`;
 
 /**
- * `<Checkout />`: a wide dialog with the steps and their choices on the left
- * and the summary, totals and action on the right; stacked on a narrow one,
- * or on every width when the host asks.
+ * Side by side, the header and the summary stay put and each column scrolls
+ * on its own, so the total and the action are in view on every step. Stacked,
+ * the whole dialog scrolls.
  */
-export const checkoutCss = `
-.schematic-checkout.schematic-dialog {
-  max-width: 72rem;
-}
-
-.schematic-checkout .schematic-dialog__body {
-  gap: 0;
-  padding: 0;
-}
-
-/* In the page rather than over it: the dialog's chrome on a section the host
-   places, as tall as its content. */
-.schematic-checkout--inline {
-  background: var(--schematic-background);
-  border: 1px solid var(--schematic-border);
-  border-radius: 0.5rem;
-  box-sizing: border-box;
-  color: var(--schematic-text);
-  display: flex;
-  flex-direction: column;
-  max-width: 72rem;
-  overflow: hidden;
-}
-
-.schematic-checkout__layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-/* Side by side, the header and the summary stay put and each column scrolls
-   on its own, so the total and the action are in view on every step. Stacked,
-   the whole dialog scrolls. */
-@media (min-width: 768px) {
-  ${columns}.schematic-dialog[open] {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
+const columnsCss = (columns: string) => `
   ${columns} .schematic-dialog__body,
   ${columns} .schematic-checkout__frame {
     flex: 1;
@@ -95,7 +61,59 @@ export const checkoutCss = `
   ${columns} .schematic-checkout__action {
     position: static;
   }
+`;
+
+/**
+ * `<Checkout />`: a wide dialog with the steps and their choices on the left
+ * and the summary, totals and action on the right; stacked on a narrow one,
+ * or on every width when the host asks.
+ */
+export const checkoutCss = `
+.schematic-checkout.schematic-dialog {
+  max-width: 72rem;
 }
+
+.schematic-checkout .schematic-dialog__body {
+  gap: 0;
+  padding: 0;
+}
+
+/* In the page rather than over it: the dialog's chrome on a section the host
+   places, as tall as its content. The section is the container its columns
+   are measured against, so a narrow column of a wide page stacks them. Size
+   containment zeroes its intrinsic width, so it fills the host's box rather
+   than shrinking to fit. */
+.schematic-checkout--inline {
+  background: var(--schematic-background);
+  border: 1px solid var(--schematic-border);
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+  color: var(--schematic-text);
+  container: schematic-checkout / inline-size;
+  display: flex;
+  flex-direction: column;
+  max-width: 72rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+.schematic-checkout__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The dialog's width follows the viewport, so its columns do too. */
+@media (min-width: 768px) {
+  .schematic-checkout.schematic-dialog[open]:not(.schematic-checkout--stacked) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+${columnsCss(columns(".schematic-dialog"))}}
+
+/* In the page, the columns follow the section's own width. */
+@container schematic-checkout (min-width: 768px) {
+${columnsCss(columns(".schematic-checkout--inline"))}}
 
 .schematic-checkout__main {
   display: flex;
