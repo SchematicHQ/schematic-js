@@ -50,6 +50,12 @@ import {
 export interface CheckoutResponseData {
   /**
    *
+   * @type {Date}
+   * @memberof CheckoutResponseData
+   */
+  accessRevokedAt?: Date | null;
+  /**
+   *
    * @type {string}
    * @memberof CheckoutResponseData
    */
@@ -242,6 +248,10 @@ export function CheckoutResponseDataFromJSONTyped(
     return json;
   }
   return {
+    accessRevokedAt:
+      json["access_revoked_at"] == null
+        ? undefined
+        : new Date(json["access_revoked_at"]),
     applicationId:
       json["application_id"] == null ? undefined : json["application_id"],
     cancelAt: json["cancel_at"] == null ? undefined : json["cancel_at"],
@@ -304,6 +314,10 @@ export function CheckoutResponseDataToJSONTyped(
   }
 
   return {
+    access_revoked_at:
+      value["accessRevokedAt"] == null
+        ? undefined
+        : (value["accessRevokedAt"] as any).toISOString(),
     application_id: value["applicationId"],
     cancel_at: value["cancelAt"],
     cancel_at_period_end: value["cancelAtPeriodEnd"],
