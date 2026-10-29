@@ -54,6 +54,9 @@ needs `@stripe/stripe-js` and `@stripe/react-stripe-js`. Both are peers of
 this package, so a package manager installs them beside it. The elements
 bundle leaves them out and imports them when the form first opens, so a page
 that only shows the method on file never loads Stripe.
+That holds for the `./elements` entry on its own: the package's root entry
+(the builder's `PaymentMethodDetails`) imports Stripe.js at load, so a page
+that mounts both downloads Stripe up front.
 
 The server refuses to remove the last payment method on an active paid
 subscription, and nothing else. `PaymentMethods` offers Remove in its dialog,

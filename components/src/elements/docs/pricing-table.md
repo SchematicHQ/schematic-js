@@ -79,7 +79,7 @@ The table opens nothing itself. A card's action calls `onSelectPlan` with the pl
 
 Each card shows four features before "See all". With `onSelectPlan` opening a checkout that changes the plan without leaving the page, call the function `useInvalidateBillingData()` returns once it is done, and the table reloads with the new current plan.
 
-Server-rendered, prefetch with `fetchBillingData(client, { names: billingResources(PricingTable) })`: a resource the client cannot read, the company's view with no session or the public catalog with no key, is left out rather than failing the page.
+Server-rendered, prefetch with `fetchBillingData(client, { names: billingResources(PricingTable) })` from `@schematichq/schematic-js`: a resource the client cannot read, the company's view with no session or the public catalog with no key, is left out rather than failing the page.
 
 ## Localizing it
 
