@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schematic API
- * Schematic API
+ * Components API
+ * The browser-facing billing API behind the drop-in components and the schematic-react hooks. A temporary access token scopes every call to one company.
  *
  * The version of the OpenAPI document: 0.1
  *
@@ -315,7 +315,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Checkout unsubscribe
+   * Cancels the company\'s subscription at the end of the current period.
+   * Cancel the subscription
    */
   async checkoutUnsubscribeRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -346,7 +347,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Checkout unsubscribe
+   * Cancels the company\'s subscription at the end of the current period.
+   * Cancel the subscription
    */
   async checkoutUnsubscribe(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -356,7 +358,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Create checkout
+   * Opens a checkout for the token\'s company and prices the cart when it is priceable. A cart the purchase rules reject is still created, open, with the one problem that says why; a refusal creates nothing. The response carries the `version` every later write must send, and `expires_at` says when an open checkout closes on its own.
+   * Create a checkout
    */
   async createCheckoutRaw(
     requestParameters: CreateCheckoutOperationRequest,
@@ -400,7 +403,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Create checkout
+   * Opens a checkout for the token\'s company and prices the cart when it is priceable. A cart the purchase rules reject is still created, open, with the one problem that says why; a refusal creates nothing. The response carries the `version` every later write must send, and `expires_at` says when an open checkout closes on its own.
+   * Create a checkout
    */
   async createCheckout(
     requestParameters: CreateCheckoutOperationRequest,
@@ -414,7 +418,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Create setup intent
+   * A Stripe SetupIntent for collecting a new payment method with Stripe\'s Payment Element. Confirm it with `stripe.confirmSetup`; the method it saves joins the company\'s methods on file.
+   * Create a setup intent
    */
   async createSetupIntentRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -445,7 +450,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Create setup intent
+   * A Stripe SetupIntent for collecting a new payment method with Stripe\'s Payment Element. Confirm it with `stripe.confirmSetup`; the method it saves joins the company\'s methods on file.
+   * Create a setup intent
    */
   async createSetupIntent(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -455,7 +461,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Delete payment method
+   * Detaches a payment method from the company\'s billing customer. The path parameter is the payment method\'s `id` from the list, not a checkout\'s; `usePaymentMethods().remove` calls this and reloads the list. The list says whether each method can be removed.
+   * Remove a payment method
    */
   async deletePaymentMethodRaw(
     requestParameters: DeletePaymentMethodRequest,
@@ -497,7 +504,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Delete payment method
+   * Detaches a payment method from the company\'s billing customer. The path parameter is the payment method\'s `id` from the list, not a checkout\'s; `usePaymentMethods().remove` calls this and reloads the list. The list says whether each method can be removed.
+   * Remove a payment method
    */
   async deletePaymentMethod(
     requestParameters: DeletePaymentMethodRequest,
@@ -552,7 +560,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Finalize checkout
+   * Charges the cart at `version` and applies it to the subscription. The version is claimed before the billing provider is called, so of two concurrent finalizes only one charges. The cart is priced once more first: a blocking problem refuses the purchase with 400 and the fresh `problems` list, and a checkout priced before a sibling completed is refused with 409. The claim is not released when the charge fails, so read the checkout before trying again. When the charge needs the customer, as with 3-D Secure, the response carries `confirm_payment_intent_client_secret` to confirm with Stripe.
+   * Finalize a checkout
    */
   async finalizeCheckoutRaw(
     requestParameters: FinalizeCheckoutOperationRequest,
@@ -612,7 +621,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Finalize checkout
+   * Charges the cart at `version` and applies it to the subscription. The version is claimed before the billing provider is called, so of two concurrent finalizes only one charges. The cart is priced once more first: a blocking problem refuses the purchase with 400 and the fresh `problems` list, and a checkout priced before a sibling completed is refused with 409. The claim is not released when the charge fails, so read the checkout before trying again. When the charge needs the customer, as with 3-D Secure, the response carries `confirm_payment_intent_client_secret` to confirm with Stripe.
+   * Finalize a checkout
    */
   async finalizeCheckout(
     requestParameters: FinalizeCheckoutOperationRequest,
@@ -626,7 +636,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get catalog view
+   * The environment\'s catalog as the company sees it: plans, add-ons and credit bundles, each with the company\'s standing against it (`current`, `valid`, `invalid_reason`, `company_can_trial`), the checkout settings, and `capabilities.checkout`. Needs the `multi-product-catalog` flag on the account.
+   * Get the catalog view
    */
   async getCatalogViewRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -657,7 +668,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get catalog view
+   * The environment\'s catalog as the company sees it: plans, add-ons and credit bundles, each with the company\'s standing against it (`current`, `valid`, `invalid_reason`, `company_can_trial`), the checkout settings, and `capabilities.checkout`. Needs the `multi-product-catalog` flag on the account.
+   * Get the catalog view
    */
   async getCatalogView(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -667,7 +679,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get catalog view by ID
+   * The same view for the catalog `catalog_id` names rather than the environment\'s default catalog.
+   * Get a catalog view by ID
    */
   async getCatalogViewByIDRaw(
     requestParameters: GetCatalogViewByIDRequest,
@@ -709,7 +722,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get catalog view by ID
+   * The same view for the catalog `catalog_id` names rather than the environment\'s default catalog.
+   * Get a catalog view by ID
    */
   async getCatalogViewByID(
     requestParameters: GetCatalogViewByIDRequest,
@@ -723,7 +737,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get checkout
+   * Reads a checkout this session opened. Resume from here before writing: the `version` it returns is the one the next update must send. A checkout another session built, or one for another company, reads as not found.
+   * Get a checkout
    */
   async getCheckoutRaw(
     requestParameters: GetCheckoutRequest,
@@ -765,7 +780,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get checkout
+   * Reads a checkout this session opened. Resume from here before writing: the `version` it returns is the one the next update must send. A checkout another session built, or one for another company, reads as not found.
+   * Get a checkout
    */
   async getCheckout(
     requestParameters: GetCheckoutRequest,
@@ -779,7 +795,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get checkout tax ID
+   * The company\'s tax IDs on file with the billing provider.
+   * List tax IDs
    */
   async getCheckoutTaxIDRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -810,7 +827,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get checkout tax ID
+   * The company\'s tax IDs on file with the billing provider.
+   * List tax IDs
    */
   async getCheckoutTaxID(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -820,7 +838,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company
+   * The token\'s company: its plan and add-ons, the subscription\'s period and currency, and the payment method on file. Needs the `company-context-api` flag on the account; without it every `/company` read answers 404.
+   * Get the company
    */
   async getCompanyRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -851,7 +870,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company
+   * The token\'s company: its plan and add-ons, the subscription\'s period and currency, and the payment method on file. Needs the `company-context-api` flag on the account; without it every `/company` read answers 404.
+   * Get the company
    */
   async getCompany(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -861,7 +881,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company credit balances
+   * The company\'s credit balances, with what each grant holds and what is purchasable.
+   * List credit balances
    */
   async getCompanyCreditBalancesRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -892,7 +913,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company credit balances
+   * The company\'s credit balances, with what each grant holds and what is purchasable.
+   * List credit balances
    */
   async getCompanyCreditBalances(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -902,7 +924,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company credit user usage
+   * Who in the company consumed the credit, and how much each.
+   * List credit usage by user
    */
   async getCompanyCreditUserUsageRaw(
     requestParameters: GetCompanyCreditUserUsageRequest,
@@ -952,7 +975,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company credit user usage
+   * Who in the company consumed the credit, and how much each.
+   * List credit usage by user
    */
   async getCompanyCreditUserUsage(
     requestParameters: GetCompanyCreditUserUsageRequest,
@@ -966,7 +990,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company feature usage
+   * The company\'s entitlements and usage against each metered feature.
+   * List feature usage
    */
   async getCompanyFeatureUsageRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -997,7 +1022,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company feature usage
+   * The company\'s entitlements and usage against each metered feature.
+   * List feature usage
    */
   async getCompanyFeatureUsage(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -1007,7 +1033,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company feature user usage
+   * Who in the company used the feature, and how much each.
+   * List feature usage by user
    */
   async getCompanyFeatureUserUsageRaw(
     requestParameters: GetCompanyFeatureUserUsageRequest,
@@ -1057,7 +1084,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company feature user usage
+   * Who in the company used the feature, and how much each.
+   * List feature usage by user
    */
   async getCompanyFeatureUserUsage(
     requestParameters: GetCompanyFeatureUserUsageRequest,
@@ -1071,7 +1099,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company invoices
+   * The company\'s invoices, newest first. An empty list is a company with none.
+   * List invoices
    */
   async getCompanyInvoicesRaw(
     requestParameters: GetCompanyInvoicesRequest,
@@ -1115,7 +1144,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company invoices
+   * The company\'s invoices, newest first. An empty list is a company with none.
+   * List invoices
    */
   async getCompanyInvoices(
     requestParameters: GetCompanyInvoicesRequest = {},
@@ -1129,7 +1159,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company payment methods
+   * The company\'s payment methods on file, with the default marked and whether each can be removed.
+   * List payment methods
    */
   async getCompanyPaymentMethodsRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -1160,7 +1191,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company payment methods
+   * The company\'s payment methods on file, with the default marked and whether each can be removed.
+   * List payment methods
    */
   async getCompanyPaymentMethods(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -1170,7 +1202,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company upcoming invoice
+   * A live preview of the company\'s next invoice from the billing provider. A company with nothing to bill answers 204.
+   * Get the upcoming invoice
    */
   async getCompanyUpcomingInvoiceRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -1201,7 +1234,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Get company upcoming invoice
+   * A live preview of the company\'s next invoice from the billing provider. A company with nothing to bill answers 204.
+   * Get the upcoming invoice
    */
   async getCompanyUpcomingInvoice(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -1570,6 +1604,7 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
+   * The checkouts this session opened for the token\'s company. Filter by `statuses`.
    * List checkouts
    */
   async listCheckoutsRaw(
@@ -1618,6 +1653,7 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
+   * The checkouts this session opened for the token\'s company. Filter by `statuses`.
    * List checkouts
    */
   async listCheckouts(
@@ -1744,7 +1780,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Update checkout
+   * Replaces the cart and prices it again. Send the `version` last read; a stale one answers 409 and changes nothing, so read the checkout and send the write again at its version. A cart the purchase rules reject is saved with its price cleared and one problem saying why, and the version still advances. The `X-Checkout-Session-ID` response header names the session this price belongs to; send it back on the finalize that follows.
+   * Update a checkout
    */
   async updateCheckoutRaw(
     requestParameters: UpdateCheckoutOperationRequest,
@@ -1798,7 +1835,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Update checkout
+   * Replaces the cart and prices it again. Send the `version` last read; a stale one answers 409 and changes nothing, so read the checkout and send the write again at its version. A cart the purchase rules reject is saved with its price cleared and one problem saying why, and the version still advances. The `X-Checkout-Session-ID` response header names the session this price belongs to; send it back on the finalize that follows.
+   * Update a checkout
    */
   async updateCheckout(
     requestParameters: UpdateCheckoutOperationRequest,
@@ -1870,7 +1908,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Update checkout tax ID
+   * Saves a tax ID on the company\'s billing customer and answers with every tax ID now on file. The tax ID is not part of a checkout\'s cart; save it before the finalize that needs it.
+   * Set the tax ID
    */
   async updateCheckoutTaxIDRaw(
     requestParameters: UpdateCheckoutTaxIDRequest,
@@ -1914,7 +1953,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Update checkout tax ID
+   * Saves a tax ID on the company\'s billing customer and answers with every tax ID now on file. The tax ID is not part of a checkout\'s cart; save it before the finalize that needs it.
+   * Set the tax ID
    */
   async updateCheckoutTaxID(
     requestParameters: UpdateCheckoutTaxIDRequest,
@@ -1928,7 +1968,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Update payment method
+   * Makes a method on file the one the company\'s charges use. The body\'s `payment_method_id` is the provider\'s id of the method, the `external_id` the list returns; `usePaymentMethods().setDefault` calls this and reloads the list. A card saved during a checkout joins the methods on file and becomes the default the same way.
+   * Make a payment method the default
    */
   async updatePaymentMethodRaw(
     requestParameters: UpdatePaymentMethodRequest,
@@ -1972,7 +2013,8 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * Update payment method
+   * Makes a method on file the one the company\'s charges use. The body\'s `payment_method_id` is the provider\'s id of the method, the `external_id` the list returns; `usePaymentMethods().setDefault` calls this and reloads the list. A card saved during a checkout joins the methods on file and becomes the default the same way.
+   * Make a payment method the default
    */
   async updatePaymentMethod(
     requestParameters: UpdatePaymentMethodRequest,
