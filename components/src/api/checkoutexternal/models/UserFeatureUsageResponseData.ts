@@ -57,7 +57,7 @@ export interface UserFeatureUsageResponseData {
    * @type {UserResponseData}
    * @memberof UserFeatureUsageResponseData
    */
-  user?: UserResponseData;
+  user?: UserResponseData | null;
   /**
    * The user the usage is attributed to; null for unattributed usage
    * @type {string}

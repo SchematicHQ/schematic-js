@@ -354,7 +354,7 @@ export interface BillingPlanCreditGrantResponseData {
    * @type {BillingPriceResponseData}
    * @memberof BillingPlanCreditGrantResponseData
    */
-  price?: BillingPriceResponseData;
+  price?: BillingPriceResponseData | null;
   /**
    * Tier table pricing the credits, cheapest bound first. Empty unless billing_mode is billed and the credits are priced on tiers.
    * @type {Array<BillingPlanCreditGrantPriceTierResponseData>}

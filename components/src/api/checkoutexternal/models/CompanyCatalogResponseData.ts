@@ -98,7 +98,7 @@ export interface CompanyCatalogResponseData {
    * @type {CatalogCustomPlanCTAResponseData}
    * @memberof CompanyCatalogResponseData
    */
-  customPlanCta?: CatalogCustomPlanCTAResponseData;
+  customPlanCta?: CatalogCustomPlanCTAResponseData | null;
   /**
    * ISO 4217 currency of every top-level price slot; currency_prices carries the others.
    * @type {Currency}
@@ -164,7 +164,7 @@ export interface CompanyCatalogResponseData {
    * @type {CatalogPlanRefResponseData}
    * @memberof CompanyCatalogResponseData
    */
-  trialExpiryPlan?: CatalogPlanRefResponseData;
+  trialExpiryPlan?: CatalogPlanRefResponseData | null;
   /**
    * Whether starting a trial requires a payment method; a null value means required.
    * @type {boolean}

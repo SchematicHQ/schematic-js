@@ -63,7 +63,7 @@ export interface CatalogCheckoutBehaviorResponseData {
    * @type {CatalogPlanRefResponseData}
    * @memberof CatalogCheckoutBehaviorResponseData
    */
-  trialExpiryPlan?: CatalogPlanRefResponseData;
+  trialExpiryPlan?: CatalogPlanRefResponseData | null;
   /**
    * Whether starting a trial requires a payment method; a null value means required.
    * @type {boolean}

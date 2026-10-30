@@ -38,7 +38,7 @@ export interface CheckFlagRequestBody {
    * @type {PreflightRequestBody}
    * @memberof CheckFlagRequestBody
    */
-  preflight?: PreflightRequestBody;
+  preflight?: PreflightRequestBody | null;
   /**
    *
    * @type {{ [key: string]: string; }}

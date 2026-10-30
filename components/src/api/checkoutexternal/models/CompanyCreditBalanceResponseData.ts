@@ -46,13 +46,13 @@ export interface CompanyCreditBalanceResponseData {
    * @type {CompanyCreditAutoTopupResponseData}
    * @memberof CompanyCreditBalanceResponseData
    */
-  autoTopup?: CompanyCreditAutoTopupResponseData;
+  autoTopup?: CompanyCreditAutoTopupResponseData | null;
   /**
    * How the plan's grants of this credit add up per period; null unless the plan grants it per license and the license count is known.
    * @type {CompanyCreditCompositionResponseData}
    * @memberof CompanyCreditBalanceResponseData
    */
-  composition?: CompanyCreditCompositionResponseData;
+  composition?: CompanyCreditCompositionResponseData | null;
   /**
    *
    * @type {string}

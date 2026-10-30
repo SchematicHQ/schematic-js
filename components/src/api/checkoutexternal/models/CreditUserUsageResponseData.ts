@@ -74,7 +74,7 @@ export interface CreditUserUsageResponseData {
    * @type {UserCreditUsageResponseData}
    * @memberof CreditUserUsageResponseData
    */
-  unattributed?: UserCreditUsageResponseData;
+  unattributed?: UserCreditUsageResponseData | null;
 }
 
 /**

@@ -75,7 +75,7 @@ export interface FeatureUserUsageResponseData {
    * @type {UserFeatureUsageResponseData}
    * @memberof FeatureUserUsageResponseData
    */
-  unattributed?: UserFeatureUsageResponseData;
+  unattributed?: UserFeatureUsageResponseData | null;
 }
 
 /**

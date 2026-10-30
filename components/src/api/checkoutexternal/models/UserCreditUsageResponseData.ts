@@ -56,7 +56,7 @@ export interface UserCreditUsageResponseData {
    * @type {UserResponseData}
    * @memberof UserCreditUsageResponseData
    */
-  user?: UserResponseData;
+  user?: UserResponseData | null;
   /**
    * The user the consumption is attributed to; null for unattributed consumption
    * @type {string}
