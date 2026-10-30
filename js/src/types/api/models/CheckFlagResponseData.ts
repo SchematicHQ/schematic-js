@@ -52,7 +52,7 @@ export interface CheckFlagResponseData {
    * @type {FeatureEntitlement}
    * @memberof CheckFlagResponseData
    */
-  entitlement?: FeatureEntitlement;
+  entitlement?: FeatureEntitlement | null;
   /**
    * If an error occurred while checking the flag, the error message
    * @type {string}

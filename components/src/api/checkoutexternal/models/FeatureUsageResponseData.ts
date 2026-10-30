@@ -183,7 +183,7 @@ export interface FeatureUsageResponseData {
    * @type {CreditUsageAggregation}
    * @memberof FeatureUsageResponseData
    */
-  creditUsageAggregation?: CreditUsageAggregation;
+  creditUsageAggregation?: CreditUsageAggregation | null;
   /**
    *
    * @type {number}

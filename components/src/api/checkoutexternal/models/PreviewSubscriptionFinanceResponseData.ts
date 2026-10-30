@@ -137,7 +137,7 @@ export interface PreviewSubscriptionFinanceResponseData {
    * @type {PreviewSubscriptionProrationResponseData}
    * @memberof PreviewSubscriptionFinanceResponseData
    */
-  prorationDetail?: PreviewSubscriptionProrationResponseData;
+  prorationDetail?: PreviewSubscriptionProrationResponseData | null;
   /**
    *
    * @type {number}

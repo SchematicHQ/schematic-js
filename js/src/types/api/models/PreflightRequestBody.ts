@@ -45,13 +45,13 @@ export interface PreflightRequestBody {
    * @type {PreflightEventQuantitiesRequestBody}
    * @memberof PreflightRequestBody
    */
-  eventQuantities?: PreflightEventQuantitiesRequestBody;
+  eventQuantities?: PreflightEventQuantitiesRequestBody | null;
   /**
    * Usage of a specific event subtype. Preferred over usage when the subtype is known, since it only affects conditions measuring that subtype
    * @type {PreflightEventUsageRequestBody}
    * @memberof PreflightRequestBody
    */
-  eventUsage?: PreflightEventUsageRequestBody;
+  eventUsage?: PreflightEventUsageRequestBody | null;
   /**
    * Quantity of usage to simulate against any numeric condition encountered while evaluating the flag. Zero has no effect
    * @type {number}

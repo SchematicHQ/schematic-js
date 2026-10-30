@@ -106,7 +106,7 @@ export interface CatalogAutoTopupResponseData {
    * @type {CatalogPriceResponseData}
    * @memberof CatalogAutoTopupResponseData
    */
-  unitPrice?: CatalogPriceResponseData;
+  unitPrice?: CatalogPriceResponseData | null;
 }
 
 /**

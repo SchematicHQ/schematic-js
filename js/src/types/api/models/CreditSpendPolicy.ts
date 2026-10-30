@@ -93,7 +93,7 @@ export interface CreditSpendPolicy {
    * @type {CreditSpendWindow}
    * @memberof CreditSpendPolicy
    */
-  window?: CreditSpendWindow;
+  window?: CreditSpendWindow | null;
 }
 
 /**

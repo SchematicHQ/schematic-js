@@ -225,7 +225,7 @@ export interface CompanyFeatureUsageResponseData {
    * @type {CatalogPriceResponseData}
    * @memberof CompanyFeatureUsageResponseData
    */
-  price?: CatalogPriceResponseData;
+  price?: CatalogPriceResponseData | null;
   /**
    *
    * @type {EntitlementPriceBehavior}

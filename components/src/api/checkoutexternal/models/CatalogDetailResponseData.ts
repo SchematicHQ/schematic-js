@@ -52,7 +52,7 @@ export interface CatalogDetailResponseData {
    * @type {CatalogCustomPlanCTAResponseData}
    * @memberof CatalogDetailResponseData
    */
-  customPlanCta?: CatalogCustomPlanCTAResponseData;
+  customPlanCta?: CatalogCustomPlanCTAResponseData | null;
   /**
    * ISO 4217 currency of every top-level price slot; currency_prices carries the others.
    * @type {Currency}
