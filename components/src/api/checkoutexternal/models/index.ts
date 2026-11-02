@@ -141,6 +141,7 @@ export * from "./CreditCompanyGrantView";
 export * from "./CreditCurrencyPrice";
 export * from "./CreditCurrencyPriceResponseData";
 export * from "./CreditGrantDetail";
+export * from "./CreditModelRate";
 export * from "./CreditTransferView";
 export * from "./CreditUsageAggregation";
 export * from "./CreditUserUsageResponseData";

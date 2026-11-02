@@ -41,6 +41,13 @@ import {
   BillingCreditResponseDataToJSON,
   BillingCreditResponseDataToJSONTyped,
 } from "./BillingCreditResponseData";
+import type { CreditModelRate } from "./CreditModelRate";
+import {
+  CreditModelRateFromJSON,
+  CreditModelRateFromJSONTyped,
+  CreditModelRateToJSON,
+  CreditModelRateToJSONTyped,
+} from "./CreditModelRate";
 import type { FeatureResponseData } from "./FeatureResponseData";
 import {
   FeatureResponseDataFromJSON,
@@ -142,6 +149,12 @@ export interface CompanyOverrideResponseData {
    * @memberof CompanyOverrideResponseData
    */
   metricPeriodMonthReset?: MetricPeriodMonthReset | null;
+  /**
+   * Per-model rate overrides for inference features, keyed by provider and model. Each entry replaces consumption_rate and quantity_rates for events from that model. Absent when every model burns at the entitlement's own rates.
+   * @type {Array<CreditModelRate>}
+   * @memberof CompanyOverrideResponseData
+   */
+  modelRates?: Array<CreditModelRate>;
   /**
    *
    * @type {Array<CompanyOverrideNoteResponseData>}
@@ -275,6 +288,10 @@ export function CompanyOverrideResponseDataFromJSONTyped(
       json["metric_period_month_reset"] == null
         ? undefined
         : MetricPeriodMonthResetFromJSON(json["metric_period_month_reset"]),
+    modelRates:
+      json["model_rates"] == null
+        ? undefined
+        : (json["model_rates"] as Array<any>).map(CreditModelRateFromJSON),
     notes: (json["notes"] as Array<any>).map(
       CompanyOverrideNoteResponseDataFromJSON,
     ),
@@ -336,6 +353,10 @@ export function CompanyOverrideResponseDataToJSONTyped(
     metric_period_month_reset: MetricPeriodMonthResetToJSON(
       value["metricPeriodMonthReset"],
     ),
+    model_rates:
+      value["modelRates"] == null
+        ? undefined
+        : (value["modelRates"] as Array<any>).map(CreditModelRateToJSON),
     notes: (value["notes"] as Array<any>).map(
       CompanyOverrideNoteResponseDataToJSON,
     ),
