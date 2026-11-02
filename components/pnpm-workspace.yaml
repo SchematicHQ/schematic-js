@@ -23,7 +23,7 @@ overrides:
   shell-quote: ~1.11.0
   source-map-js: ^1.2.2
   katex: ~0.18.2
-  follow-redirects: ^1.16.1
+  follow-redirects: ^1.16.2
   vite: ^8.2.4
 
 allowBuilds:
