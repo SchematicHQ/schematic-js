@@ -143,6 +143,7 @@ models/CreditCompanyGrantView.ts
 models/CreditCurrencyPrice.ts
 models/CreditCurrencyPriceResponseData.ts
 models/CreditGrantDetail.ts
+models/CreditModelRate.ts
 models/CreditTransferView.ts
 models/CreditUsageAggregation.ts
 models/CreditUserUsageResponseData.ts

@@ -65,6 +65,7 @@ export * from "./CreateEventRequestBody";
 export * from "./CreateEventResponse";
 export * from "./CreditCurrencyPrice";
 export * from "./CreditCurrencyPriceResponseData";
+export * from "./CreditModelRate";
 export * from "./CreditSpendPolicy";
 export * from "./CreditSpendPolicyScope";
 export * from "./CreditSpendWindow";
