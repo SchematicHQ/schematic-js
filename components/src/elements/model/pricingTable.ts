@@ -222,11 +222,7 @@ export function derivePricingTable(
   const plans: AnyPlan[] = catalog.plans;
   const addOns: AnyPlan[] = catalog.addOns;
 
-  const currencies = unique(
-    [...plans, ...addOns].flatMap((plan) =>
-      plan.currencyPrices.map((prices) => prices.currency.toLowerCase()),
-    ),
-  );
+  const currencies = unique([...plans, ...addOns].flatMap(currenciesOf));
   const defaultCurrency = catalog.defaultCurrency?.toLowerCase();
   const currency =
     pick(currencies, options.currency?.toLowerCase(), [defaultCurrency]) ??
@@ -777,11 +773,19 @@ function planPrice(
   if (period === null) {
     return undefined;
   }
-  const prices = plan.currencyPrices.find(
+  const key = PRICE_KEY[period];
+  const row = plan.currencyPrices.find(
     (candidate) => candidate.currency.toLowerCase() === currency,
   );
-  const key = PRICE_KEY[period];
-  return prices?.[key] ?? undefined;
+  if (row !== undefined) {
+    return row[key] ?? undefined;
+  }
+  // A plan priced before per-currency rows existed carries its prices only
+  // on the single-currency slots; a row for the currency, once there, wins.
+  const slot = plan[key];
+  return slot !== undefined && slot.currency.toLowerCase() === currency
+    ? slot
+    : undefined;
 }
 
 const PRICE_KEY = {
@@ -843,16 +847,27 @@ function periodsOf(plan: AnyPlan): PricingPeriod[] {
 }
 
 /**
+ * The currencies a plan is priced in, lowercase: its per-currency rows, plus
+ * the currency of its single-currency price slots where no row covers it.
+ */
+function currenciesOf(plan: AnyPlan): string[] {
+  const listed = plan.currencyPrices.map((prices) =>
+    prices.currency.toLowerCase(),
+  );
+  const slots = Object.values(PRICE_KEY).flatMap((key) => {
+    const slot = plan[key];
+    return slot === undefined ? [] : [slot.currency.toLowerCase()];
+  });
+  return unique([...listed, ...slots]);
+}
+
+/**
  * Priced in the currency, or priced in none: a free plan has no prices to
  * be missing one.
  */
 function supportsCurrency(plan: AnyPlan, currency: string): boolean {
-  return (
-    plan.currencyPrices.length === 0 ||
-    plan.currencyPrices.some(
-      (prices) => prices.currency.toLowerCase() === currency,
-    )
-  );
+  const currencies = currenciesOf(plan);
+  return currencies.length === 0 || currencies.includes(currency);
 }
 
 function asPeriod(value: string | null | undefined): PricingPeriod | null {

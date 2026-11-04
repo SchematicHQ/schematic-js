@@ -79,6 +79,49 @@ describe("derivePricingTable", () => {
     expect(yearly.period).toBe("year");
   });
 
+  test("prices a plan from its single-currency slots when no row covers that currency", () => {
+    const monthlyPrice = catalogPrice({ price: 125000 });
+    const yearlyPrice = catalogPrice({ interval: "year", price: 1500000 });
+    const legacy = publicCatalogPlan({
+      currencyPrices: [],
+      monthlyPrice,
+      name: "Enterprise",
+      yearlyPrice,
+    });
+    const view = derivePricingTable(
+      { source: "public", catalog: publicCatalog({ plans: [legacy] }) },
+      { locale: L, showZeroPriceAsFree: true },
+    );
+    expect(view.currencies).toEqual(["usd"]);
+    expect(view.periods).toEqual(["month", "year"]);
+    expect(view.plans[0].price).toEqual({
+      kind: "amount",
+      amount: "$1,250.00",
+      period: "month",
+    });
+    expect(view.plans[0].priceId).toBe(monthlyPrice.id);
+  });
+
+  test("a per-currency row wins over the single-currency slots", () => {
+    const row = catalogPrice({ price: 2900 });
+    const plan = publicCatalogPlan({
+      currencyPrices: [{ currency: "usd", monthlyPrice: row }],
+      monthlyPrice: catalogPrice({ price: 9900 }),
+      yearlyPrice: catalogPrice({ interval: "year", price: 99000 }),
+    });
+    const view = derivePricingTable(
+      { source: "public", catalog: publicCatalog({ plans: [plan] }) },
+      { locale: L },
+    );
+    expect(view.currencies).toEqual(["usd"]);
+    expect(view.plans[0].price).toEqual({
+      kind: "amount",
+      amount: "$29.00",
+      period: "month",
+    });
+    expect(view.plans[0].priceId).toBe(row.id);
+  });
+
   test("hides a plan with no price in the currency, keeps one priced in none", () => {
     const euro = publicCatalogPlan({
       name: "Euro",
