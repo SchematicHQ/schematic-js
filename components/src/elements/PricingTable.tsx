@@ -539,6 +539,7 @@ function Card({
       className={cx(
         "schematic-card schematic-plan-card",
         card.active && "schematic-plan-card--active",
+        card.custom !== null && "schematic-plan-card--custom",
       )}
       data-plan-id={card.id}
     >
@@ -628,7 +629,9 @@ function Price({ price, t }: { price: PricingPrice; t: Translator }) {
         ? t("pricingTableUsageBased")
         : price.kind === "free"
           ? t("pricingTableFree")
-          : price.amount}
+          : price.kind === "custom"
+            ? (price.text ?? t("pricingTableCustomPrice"))
+            : price.amount}
       {per !== undefined && (
         <sub className="schematic-plan-card__period">/{per}</sub>
       )}
@@ -853,37 +856,28 @@ function Action({
     );
   }
 
-  if (action.kind === "downgradeBlocked") {
-    const text = action.text ?? t("pricingTableTalkToSupport");
-    // The account's link is optional; without it or the host's, the card
-    // says what it cannot do rather than drawing a link to nowhere.
-    const link =
-      action.url !== null
-        ? { href: action.url, target: "_blank" }
-        : shared.callToActionUrl !== undefined
-          ? { href: shared.callToActionUrl, target: shared.callToActionTarget }
-          : undefined;
+  if (card.custom !== null) {
+    const link = hostedLink(card.custom.ctaUrl, shared);
+    // A table with no actions at all shows none here either.
+    if (link === undefined && shared.onSelectPlan === undefined) {
+      return null;
+    }
     return (
-      <div className="schematic-plan-card__action">
-        {link === undefined ? (
-          <button
-            className="schematic-cta schematic-cta--outline"
-            disabled
-            type="button"
-          >
-            {text}
-          </button>
-        ) : (
-          <a
-            className="schematic-cta schematic-cta--outline"
-            href={link.href}
-            rel="noreferrer"
-            target={link.target}
-          >
-            {text}
-          </a>
-        )}
-      </div>
+      <CallToAction
+        className="schematic-cta"
+        link={link}
+        text={card.custom.ctaText ?? t("pricingTableTalkToSupport")}
+      />
+    );
+  }
+
+  if (action.kind === "downgradeBlocked") {
+    return (
+      <CallToAction
+        className="schematic-cta schematic-cta--outline"
+        link={hostedLink(action.url, shared)}
+        text={action.text ?? t("pricingTableTalkToSupport")}
+      />
     );
   }
 
@@ -955,6 +949,53 @@ function Action({
             ),
           })}
         </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Where a card's own link goes: its own URL, else the host's, else nowhere.
+ * Both are optional, and a card with neither says what it cannot do rather
+ * than drawing a link to nowhere.
+ */
+function hostedLink(
+  url: string | null,
+  shared: CardShared,
+): { href: string; target: string | undefined } | undefined {
+  if (url !== null) {
+    return { href: url, target: "_blank" };
+  }
+  if (shared.callToActionUrl !== undefined) {
+    return { href: shared.callToActionUrl, target: shared.callToActionTarget };
+  }
+  return undefined;
+}
+
+function CallToAction({
+  className,
+  link,
+  text,
+}: {
+  className: string;
+  link: { href: string; target: string | undefined } | undefined;
+  text: string;
+}) {
+  return (
+    <div className="schematic-plan-card__action">
+      {link === undefined ? (
+        <button className={className} disabled type="button">
+          {text}
+        </button>
+      ) : (
+        <a
+          className={className}
+          href={link.href}
+          rel="noreferrer"
+          target={link.target}
+        >
+          {text}
+        </a>
       )}
     </div>
   );

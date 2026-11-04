@@ -428,6 +428,7 @@ export function publicCatalogPlan(
     billingStrategy: "provider_managed",
     chargeType: "recurring",
     currencyPrices: [{ currency: "usd", monthlyPrice, yearlyPrice }],
+    custom: false,
     description: "For growing teams",
     entitlements: [],
     icon: "yellow",

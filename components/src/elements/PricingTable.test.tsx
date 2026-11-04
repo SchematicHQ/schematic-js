@@ -277,6 +277,51 @@ describe("PricingTable", () => {
     ).toHaveAttribute("href", "https://example.com/sales");
   });
 
+  test("marks a plan sold by quote with its text, and links its call to action", () => {
+    const quoted = (ctaUrl?: string) => ({
+      publicCatalog: publicCatalog({
+        plans: [
+          publicCatalogPlan({ name: "Pro" }),
+          publicCatalogPlan({
+            custom: true,
+            customPlanCta: {
+              ctaText: "Book a demo",
+              ctaUrl,
+              priceText: "Talk to us",
+            },
+            name: "Enterprise",
+          }),
+        ],
+      }),
+    });
+
+    const { unmount } = renderTable(quoted("https://example.com/demo"), {
+      callToActionUrl: "https://example.com/signup",
+    });
+    const enterprise = card("Enterprise");
+    expect(within(enterprise).getByText("Talk to us")).toBeInTheDocument();
+    expect(within(enterprise).queryByText("$29.00")).toBeNull();
+    expect(
+      within(enterprise).getByRole("link", { name: "Book a demo" }),
+    ).toHaveAttribute("href", "https://example.com/demo");
+    expect(
+      within(card("Pro")).getByRole("link", { name: "Choose plan" }),
+    ).toHaveAttribute("href", "https://example.com/signup");
+    unmount();
+
+    const { unmount: unmountHost } = renderTable(quoted(), {
+      callToActionUrl: "https://example.com/signup",
+    });
+    expect(
+      within(card("Enterprise")).getByRole("link", { name: "Book a demo" }),
+    ).toHaveAttribute("href", "https://example.com/signup");
+    unmountHost();
+
+    renderTable(quoted());
+    expect(within(card("Enterprise")).queryByRole("link")).toBeNull();
+    expect(within(card("Enterprise")).queryByRole("button")).toBeNull();
+  });
+
   test("words the plan's credits and features, leaving hidden credits off", () => {
     renderTable();
     const pro = card("Pro");
