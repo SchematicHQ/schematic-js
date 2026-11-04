@@ -955,9 +955,8 @@ function Action({
 }
 
 /**
- * Where a card's own link goes: its own URL, else the host's, else nowhere.
- * Both are optional, and a card with neither says what it cannot do rather
- * than drawing a link to nowhere.
+ * A card's own URL, else the host's, else nothing: a card with neither says
+ * what it cannot do rather than linking to nowhere.
  */
 function hostedLink(
   url: string | null,
