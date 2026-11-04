@@ -157,9 +157,8 @@ export interface PricingCard {
   /** `null` in the public catalog, where there is no company. */
   action: PricingAction | null;
   /**
-   * The catalog's custom plan, sold by quote: its call to action stands in
-   * for the card's action, and its price text for the price. `null` for
-   * every other card.
+   * The catalog's custom plan, sold by quote, whose call to action and price
+   * text stand in for the card's action and price; `null` for every other card.
    */
   custom: PricingCustomPlan | null;
   /** The company's plan in the chosen period, for the card's outline. */
