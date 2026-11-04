@@ -27,6 +27,13 @@ import {
   CatalogUsageViolationResponseDataToJSON,
   CatalogUsageViolationResponseDataToJSONTyped,
 } from "./CatalogUsageViolationResponseData";
+import type { CatalogCustomPlanCTAResponseData } from "./CatalogCustomPlanCTAResponseData";
+import {
+  CatalogCustomPlanCTAResponseDataFromJSON,
+  CatalogCustomPlanCTAResponseDataFromJSONTyped,
+  CatalogCustomPlanCTAResponseDataToJSON,
+  CatalogCustomPlanCTAResponseDataToJSONTyped,
+} from "./CatalogCustomPlanCTAResponseData";
 import type { CatalogPlanEntitlementResponseData } from "./CatalogPlanEntitlementResponseData";
 import {
   CatalogPlanEntitlementResponseDataFromJSON,
@@ -139,6 +146,18 @@ export interface CatalogCompanyPlanResponseData {
    */
   current: boolean;
   /**
+   * True for the catalog's custom plan, the one sold by quote: show custom_plan_cta in place of its price and action.
+   * @type {boolean}
+   * @memberof CatalogCompanyPlanResponseData
+   */
+  custom: boolean;
+  /**
+   * The custom plan's price text and call to action; set only where custom is true.
+   * @type {CatalogCustomPlanCTAResponseData}
+   * @memberof CatalogCompanyPlanResponseData
+   */
+  customPlanCta?: CatalogCustomPlanCTAResponseData | null;
+  /**
    *
    * @type {string}
    * @memberof CatalogCompanyPlanResponseData
@@ -249,6 +268,7 @@ export function instanceOfCatalogCompanyPlanResponseData(
   if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
     return false;
   if (!("current" in value) || value["current"] === undefined) return false;
+  if (!("custom" in value) || value["custom"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
   if (!("entitlements" in value) || value["entitlements"] === undefined)
@@ -300,6 +320,11 @@ export function CatalogCompanyPlanResponseDataFromJSONTyped(
       CatalogCurrencyPricesResponseDataFromJSON,
     ),
     current: json["current"],
+    custom: json["custom"],
+    customPlanCta:
+      json["custom_plan_cta"] == null
+        ? undefined
+        : CatalogCustomPlanCTAResponseDataFromJSON(json["custom_plan_cta"]),
     description: json["description"],
     entitlements: (json["entitlements"] as Array<any>).map(
       CatalogPlanEntitlementResponseDataFromJSON,
@@ -368,6 +393,10 @@ export function CatalogCompanyPlanResponseDataToJSONTyped(
       CatalogCurrencyPricesResponseDataToJSON,
     ),
     current: value["current"],
+    custom: value["custom"],
+    custom_plan_cta: CatalogCustomPlanCTAResponseDataToJSON(
+      value["customPlanCta"],
+    ),
     description: value["description"],
     entitlements: (value["entitlements"] as Array<any>).map(
       CatalogPlanEntitlementResponseDataToJSON,
