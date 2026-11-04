@@ -79,7 +79,7 @@ describe("derivePricingTable", () => {
     expect(yearly.period).toBe("year");
   });
 
-  test("prices a plan from its single-currency slots when no row covers that currency", () => {
+  test("prices a plan from its single-currency fields when no row covers that currency", () => {
     const monthlyPrice = catalogPrice({ price: 125000 });
     const yearlyPrice = catalogPrice({ interval: "year", price: 1500000 });
     const legacy = publicCatalogPlan({
@@ -102,7 +102,7 @@ describe("derivePricingTable", () => {
     expect(view.plans[0].priceId).toBe(monthlyPrice.id);
   });
 
-  test("a per-currency row wins over the single-currency slots", () => {
+  test("a per-currency row wins over the single-currency fields", () => {
     const row = catalogPrice({ price: 2900 });
     const plan = publicCatalogPlan({
       currencyPrices: [{ currency: "usd", monthlyPrice: row }],

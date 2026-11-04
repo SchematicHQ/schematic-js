@@ -781,10 +781,10 @@ function planPrice(
     return row[key] ?? undefined;
   }
   // A plan priced before per-currency rows existed carries its prices only
-  // on the single-currency slots; a row for the currency, once there, wins.
-  const slot = plan[key];
-  return slot !== undefined && slot.currency.toLowerCase() === currency
-    ? slot
+  // on the single-currency fields; a row for the currency, once there, wins.
+  const field = plan[key];
+  return field !== undefined && field.currency.toLowerCase() === currency
+    ? field
     : undefined;
 }
 
@@ -848,17 +848,17 @@ function periodsOf(plan: AnyPlan): PricingPeriod[] {
 
 /**
  * The currencies a plan is priced in, lowercase: its per-currency rows, plus
- * the currency of its single-currency price slots where no row covers it.
+ * the currency of its single-currency price fields where no row covers it.
  */
 function currenciesOf(plan: AnyPlan): string[] {
   const listed = plan.currencyPrices.map((prices) =>
     prices.currency.toLowerCase(),
   );
-  const slots = Object.values(PRICE_KEY).flatMap((key) => {
-    const slot = plan[key];
-    return slot === undefined ? [] : [slot.currency.toLowerCase()];
+  const fields = Object.values(PRICE_KEY).flatMap((key) => {
+    const field = plan[key];
+    return field === undefined ? [] : [field.currency.toLowerCase()];
   });
-  return unique([...listed, ...slots]);
+  return unique([...listed, ...fields]);
 }
 
 /**
