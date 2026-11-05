@@ -102,6 +102,22 @@ describe("derivePricingTable", () => {
     expect(view.plans[0].priceId).toBe(monthlyPrice.id);
   });
 
+  test("the fields add no currency once a plan has rows", () => {
+    const plan = publicCatalogPlan({
+      currencyPrices: [
+        { currency: "eur", monthlyPrice: catalogPrice({ currency: "eur" }) },
+      ],
+      monthlyPrice: catalogPrice({ price: 9900 }),
+      name: "Euro",
+      yearlyPrice: catalogPrice({ interval: "year", price: 99000 }),
+    });
+    const view = derivePricingTable(
+      { source: "public", catalog: publicCatalog({ plans: [plan] }) },
+      { locale: L },
+    );
+    expect(view.currencies).toEqual(["eur"]);
+  });
+
   test("a per-currency row wins over the single-currency fields", () => {
     const row = catalogPrice({ price: 2900 });
     const plan = publicCatalogPlan({
@@ -129,7 +145,12 @@ describe("derivePricingTable", () => {
         { currency: "eur", monthlyPrice: catalogPrice({ currency: "eur" }) },
       ],
     });
-    const free = publicCatalogPlan({ name: "Free", currencyPrices: [] });
+    const free = publicCatalogPlan({
+      currencyPrices: [],
+      monthlyPrice: undefined,
+      name: "Free",
+      yearlyPrice: undefined,
+    });
     const view = derivePricingTable(
       {
         source: "public",
