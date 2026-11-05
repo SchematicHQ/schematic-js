@@ -41,6 +41,13 @@ import {
   BillingProviderTypeToJSON,
   BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
+import type { BillingSubscriptionPauseBehavior } from "./BillingSubscriptionPauseBehavior";
+import {
+  BillingSubscriptionPauseBehaviorFromJSON,
+  BillingSubscriptionPauseBehaviorFromJSONTyped,
+  BillingSubscriptionPauseBehaviorToJSON,
+  BillingSubscriptionPauseBehaviorToJSONTyped,
+} from "./BillingSubscriptionPauseBehavior";
 
 /**
  *
@@ -138,6 +145,24 @@ export interface CheckoutResponseData {
    * @memberof CheckoutResponseData
    */
   metadata?: object;
+  /**
+   *
+   * @type {BillingSubscriptionPauseBehavior}
+   * @memberof CheckoutResponseData
+   */
+  pauseBehavior?: BillingSubscriptionPauseBehavior | null;
+  /**
+   *
+   * @type {number}
+   * @memberof CheckoutResponseData
+   */
+  pauseResumesAt?: number | null;
+  /**
+   *
+   * @type {Date}
+   * @memberof CheckoutResponseData
+   */
+  pausedAt?: Date | null;
   /**
    *
    * @type {number}
@@ -277,6 +302,14 @@ export function CheckoutResponseDataFromJSONTyped(
     id: json["id"],
     interval: json["interval"],
     metadata: json["metadata"] == null ? undefined : json["metadata"],
+    pauseBehavior:
+      json["pause_behavior"] == null
+        ? undefined
+        : BillingSubscriptionPauseBehaviorFromJSON(json["pause_behavior"]),
+    pauseResumesAt:
+      json["pause_resumes_at"] == null ? undefined : json["pause_resumes_at"],
+    pausedAt:
+      json["paused_at"] == null ? undefined : new Date(json["paused_at"]),
     periodEnd: json["period_end"],
     periodStart: json["period_start"],
     providerType: BillingProviderTypeFromJSON(json["provider_type"]),
@@ -336,6 +369,14 @@ export function CheckoutResponseDataToJSONTyped(
     id: value["id"],
     interval: value["interval"],
     metadata: value["metadata"],
+    pause_behavior: BillingSubscriptionPauseBehaviorToJSON(
+      value["pauseBehavior"],
+    ),
+    pause_resumes_at: value["pauseResumesAt"],
+    paused_at:
+      value["pausedAt"] == null
+        ? undefined
+        : (value["pausedAt"] as any).toISOString(),
     period_end: value["periodEnd"],
     period_start: value["periodStart"],
     provider_type: BillingProviderTypeToJSON(value["providerType"]),

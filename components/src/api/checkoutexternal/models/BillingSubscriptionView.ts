@@ -62,6 +62,13 @@ import {
   PaymentMethodResponseDataToJSON,
   PaymentMethodResponseDataToJSONTyped,
 } from "./PaymentMethodResponseData";
+import type { BillingSubscriptionPauseBehavior } from "./BillingSubscriptionPauseBehavior";
+import {
+  BillingSubscriptionPauseBehaviorFromJSON,
+  BillingSubscriptionPauseBehaviorFromJSONTyped,
+  BillingSubscriptionPauseBehaviorToJSON,
+  BillingSubscriptionPauseBehaviorToJSONTyped,
+} from "./BillingSubscriptionPauseBehavior";
 
 /**
  *
@@ -159,6 +166,24 @@ export interface BillingSubscriptionView {
    * @memberof BillingSubscriptionView
    */
   metadata?: object;
+  /**
+   *
+   * @type {BillingSubscriptionPauseBehavior}
+   * @memberof BillingSubscriptionView
+   */
+  pauseBehavior?: BillingSubscriptionPauseBehavior | null;
+  /**
+   *
+   * @type {number}
+   * @memberof BillingSubscriptionView
+   */
+  pauseResumesAt?: number | null;
+  /**
+   *
+   * @type {Date}
+   * @memberof BillingSubscriptionView
+   */
+  pausedAt?: Date | null;
   /**
    *
    * @type {PaymentMethodResponseData}
@@ -301,6 +326,14 @@ export function BillingSubscriptionViewFromJSONTyped(
         ? undefined
         : InvoiceResponseDataFromJSON(json["latest_invoice"]),
     metadata: json["metadata"] == null ? undefined : json["metadata"],
+    pauseBehavior:
+      json["pause_behavior"] == null
+        ? undefined
+        : BillingSubscriptionPauseBehaviorFromJSON(json["pause_behavior"]),
+    pauseResumesAt:
+      json["pause_resumes_at"] == null ? undefined : json["pause_resumes_at"],
+    pausedAt:
+      json["paused_at"] == null ? undefined : new Date(json["paused_at"]),
     paymentMethod:
       json["payment_method"] == null
         ? undefined
@@ -360,6 +393,14 @@ export function BillingSubscriptionViewToJSONTyped(
     interval: value["interval"],
     latest_invoice: InvoiceResponseDataToJSON(value["latestInvoice"]),
     metadata: value["metadata"],
+    pause_behavior: BillingSubscriptionPauseBehaviorToJSON(
+      value["pauseBehavior"],
+    ),
+    pause_resumes_at: value["pauseResumesAt"],
+    paused_at:
+      value["pausedAt"] == null
+        ? undefined
+        : (value["pausedAt"] as any).toISOString(),
     payment_method: PaymentMethodResponseDataToJSON(value["paymentMethod"]),
     period_end: value["periodEnd"],
     period_start: value["periodStart"],

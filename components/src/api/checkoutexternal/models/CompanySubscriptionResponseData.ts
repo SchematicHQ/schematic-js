@@ -55,6 +55,13 @@ import {
   PaymentMethodResponseDataToJSON,
   PaymentMethodResponseDataToJSONTyped,
 } from "./PaymentMethodResponseData";
+import type { BillingSubscriptionPauseBehavior } from "./BillingSubscriptionPauseBehavior";
+import {
+  BillingSubscriptionPauseBehaviorFromJSON,
+  BillingSubscriptionPauseBehaviorFromJSONTyped,
+  BillingSubscriptionPauseBehaviorToJSON,
+  BillingSubscriptionPauseBehaviorToJSONTyped,
+} from "./BillingSubscriptionPauseBehavior";
 
 /**
  *
@@ -118,10 +125,40 @@ export interface CompanySubscriptionResponseData {
   latestInvoice?: InvoiceResponseData;
   /**
    *
+   * @type {BillingSubscriptionPauseBehavior}
+   * @memberof CompanySubscriptionResponseData
+   */
+  pauseBehavior?: BillingSubscriptionPauseBehavior | null;
+  /**
+   *
+   * @type {Date}
+   * @memberof CompanySubscriptionResponseData
+   */
+  pauseResumesAt?: Date | null;
+  /**
+   *
+   * @type {Date}
+   * @memberof CompanySubscriptionResponseData
+   */
+  pausedAt?: Date | null;
+  /**
+   *
    * @type {PaymentMethodResponseData}
    * @memberof CompanySubscriptionResponseData
    */
   paymentMethod?: PaymentMethodResponseData;
+  /**
+   *
+   * @type {Date}
+   * @memberof CompanySubscriptionResponseData
+   */
+  periodEnd?: Date | null;
+  /**
+   *
+   * @type {Date}
+   * @memberof CompanySubscriptionResponseData
+   */
+  periodStart?: Date | null;
   /**
    *
    * @type {Array<BillingProductForSubscriptionResponseData>}
@@ -224,10 +261,24 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
       json["latest_invoice"] == null
         ? undefined
         : InvoiceResponseDataFromJSON(json["latest_invoice"]),
+    pauseBehavior:
+      json["pause_behavior"] == null
+        ? undefined
+        : BillingSubscriptionPauseBehaviorFromJSON(json["pause_behavior"]),
+    pauseResumesAt:
+      json["pause_resumes_at"] == null
+        ? undefined
+        : new Date(json["pause_resumes_at"]),
+    pausedAt:
+      json["paused_at"] == null ? undefined : new Date(json["paused_at"]),
     paymentMethod:
       json["payment_method"] == null
         ? undefined
         : PaymentMethodResponseDataFromJSON(json["payment_method"]),
+    periodEnd:
+      json["period_end"] == null ? undefined : new Date(json["period_end"]),
+    periodStart:
+      json["period_start"] == null ? undefined : new Date(json["period_start"]),
     products: (json["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataFromJSON,
     ),
@@ -272,7 +323,26 @@ export function CompanySubscriptionResponseDataToJSONTyped(
     interval: value["interval"],
     is_initial: value["isInitial"],
     latest_invoice: InvoiceResponseDataToJSON(value["latestInvoice"]),
+    pause_behavior: BillingSubscriptionPauseBehaviorToJSON(
+      value["pauseBehavior"],
+    ),
+    pause_resumes_at:
+      value["pauseResumesAt"] == null
+        ? undefined
+        : (value["pauseResumesAt"] as any).toISOString(),
+    paused_at:
+      value["pausedAt"] == null
+        ? undefined
+        : (value["pausedAt"] as any).toISOString(),
     payment_method: PaymentMethodResponseDataToJSON(value["paymentMethod"]),
+    period_end:
+      value["periodEnd"] == null
+        ? undefined
+        : (value["periodEnd"] as any).toISOString(),
+    period_start:
+      value["periodStart"] == null
+        ? undefined
+        : (value["periodStart"] as any).toISOString(),
     products: (value["products"] as Array<any>).map(
       BillingProductForSubscriptionResponseDataToJSON,
     ),
