@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { CatalogCustomPlanCTAResponseData } from "./CatalogCustomPlanCTAResponseData";
+import {
+  CatalogCustomPlanCTAResponseDataFromJSON,
+  CatalogCustomPlanCTAResponseDataFromJSONTyped,
+  CatalogCustomPlanCTAResponseDataToJSON,
+  CatalogCustomPlanCTAResponseDataToJSONTyped,
+} from "./CatalogCustomPlanCTAResponseData";
 import type { CatalogPlanEntitlementResponseData } from "./CatalogPlanEntitlementResponseData";
 import {
   CatalogPlanEntitlementResponseDataFromJSON,
@@ -99,6 +106,18 @@ export interface CatalogPlanResponseData {
    * @memberof CatalogPlanResponseData
    */
   currencyPrices: Array<CatalogCurrencyPricesResponseData>;
+  /**
+   * True for the catalog's custom plan, the one sold by quote: show custom_plan_cta in place of its price and action.
+   * @type {boolean}
+   * @memberof CatalogPlanResponseData
+   */
+  custom: boolean;
+  /**
+   * The custom plan's price text and call to action; set only where custom is true.
+   * @type {CatalogCustomPlanCTAResponseData}
+   * @memberof CatalogPlanResponseData
+   */
+  customPlanCta?: CatalogCustomPlanCTAResponseData | null;
   /**
    *
    * @type {string}
@@ -187,6 +206,7 @@ export function instanceOfCatalogPlanResponseData(
     return false;
   if (!("currencyPrices" in value) || value["currencyPrices"] === undefined)
     return false;
+  if (!("custom" in value) || value["custom"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
   if (!("entitlements" in value) || value["entitlements"] === undefined)
@@ -230,6 +250,11 @@ export function CatalogPlanResponseDataFromJSONTyped(
     currencyPrices: (json["currency_prices"] as Array<any>).map(
       CatalogCurrencyPricesResponseDataFromJSON,
     ),
+    custom: json["custom"],
+    customPlanCta:
+      json["custom_plan_cta"] == null
+        ? undefined
+        : CatalogCustomPlanCTAResponseDataFromJSON(json["custom_plan_cta"]),
     description: json["description"],
     entitlements: (json["entitlements"] as Array<any>).map(
       CatalogPlanEntitlementResponseDataFromJSON,
@@ -284,6 +309,10 @@ export function CatalogPlanResponseDataToJSONTyped(
     compatible_plan_ids: value["compatiblePlanIds"],
     currency_prices: (value["currencyPrices"] as Array<any>).map(
       CatalogCurrencyPricesResponseDataToJSON,
+    ),
+    custom: value["custom"],
+    custom_plan_cta: CatalogCustomPlanCTAResponseDataToJSON(
+      value["customPlanCta"],
     ),
     description: value["description"],
     entitlements: (value["entitlements"] as Array<any>).map(
