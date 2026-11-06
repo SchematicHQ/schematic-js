@@ -41,6 +41,7 @@ models/BillingProductResponseData.ts
 models/BillingProviderType.ts
 models/BillingStrategy.ts
 models/BillingSubscriptionDiscountView.ts
+models/BillingSubscriptionPauseBehavior.ts
 models/BillingSubscriptionResponseData.ts
 models/BillingSubscriptionTrialEndSetting.ts
 models/BillingSubscriptionView.ts

@@ -39,6 +39,7 @@ export * from "./BillingProductResponseData";
 export * from "./BillingProviderType";
 export * from "./BillingStrategy";
 export * from "./BillingSubscriptionDiscountView";
+export * from "./BillingSubscriptionPauseBehavior";
 export * from "./BillingSubscriptionResponseData";
 export * from "./BillingSubscriptionTrialEndSetting";
 export * from "./BillingSubscriptionView";
