@@ -46,7 +46,9 @@ export type PricingPrice =
   /** Priced at zero, with `showZeroPriceAsFree`. */
   | { kind: "free" }
   /** Priced at zero, and billed by what it is used. */
-  | { kind: "usageBased" };
+  | { kind: "usageBased" }
+  /** Sold by quote: the custom plan's price text, or "Custom price". */
+  | { kind: "custom"; text: string | null };
 
 /** What an entitlement grants, worded by the element. */
 export type PricingEntitlementText =
@@ -154,6 +156,11 @@ export interface PricingCard {
   entitlements: PricingEntitlementRow[];
   /** `null` in the public catalog, where there is no company. */
   action: PricingAction | null;
+  /**
+   * The catalog's custom plan, sold by quote, whose call to action and price
+   * text stand in for the card's action and price; `null` for every other card.
+   */
+  custom: PricingCustomPlan | null;
   /** The company's plan in the chosen period, for the card's outline. */
   active: boolean;
   trialDays: number | null;
@@ -382,6 +389,7 @@ function card(
   const period =
     oneTime || periodsOf(plan).length === 0 ? null : context.period;
   const price = planPrice(plan, currency, oneTime ? "oneTime" : period);
+  const custom = customPlanOf(plan);
   const entitlements = plan.entitlements;
   const amount = price === undefined ? 0 : amountOf(price);
   const usageBased = entitlements.some(
@@ -401,20 +409,26 @@ function card(
       context.currentPeriod === null ||
       period === context.currentPeriod);
 
+  let shownPrice: PricingPrice;
+  if (custom !== null) {
+    shownPrice = { kind: "custom", text: custom.priceText };
+  } else if (amount === 0 && usageBased) {
+    shownPrice = { kind: "usageBased" };
+  } else if (amount === 0 && options.showZeroPriceAsFree === true) {
+    shownPrice = { kind: "free" };
+  } else {
+    shownPrice = {
+      kind: "amount",
+      amount: formatCurrency(amount, currency, locale),
+      period,
+    };
+  }
+
   return {
     id: plan.id,
     name: plan.name,
     description: nonEmpty(plan.description),
-    price:
-      amount === 0 && usageBased
-        ? { kind: "usageBased" }
-        : amount === 0 && options.showZeroPriceAsFree === true
-          ? { kind: "free" }
-          : {
-              kind: "amount",
-              amount: formatCurrency(amount, currency, locale),
-              period,
-            },
+    price: shownPrice,
     priceId: price?.id ?? null,
     period,
     credits:
@@ -428,6 +442,7 @@ function card(
       context.view.source === "public"
         ? null
         : action(plan, context, role, active),
+    custom,
     active,
     trialDays:
       plan.isTrialable && typeof plan.trialDays === "number"
@@ -871,6 +886,19 @@ function currenciesOf(plan: AnyPlan): string[] {
 function supportsCurrency(plan: AnyPlan, currency: string): boolean {
   const currencies = currenciesOf(plan);
   return currencies.length === 0 || currencies.includes(currency);
+}
+
+/** The plan's custom-plan text, when the catalog sells it by quote. */
+function customPlanOf(plan: AnyPlan): PricingCustomPlan | null {
+  if (!plan.custom) {
+    return null;
+  }
+  const cta = plan.customPlanCta;
+  return {
+    priceText: nonEmpty(cta?.priceText),
+    ctaText: nonEmpty(cta?.ctaText),
+    ctaUrl: nonEmpty(cta?.ctaUrl),
+  };
 }
 
 function asPeriod(value: string | null | undefined): PricingPeriod | null {

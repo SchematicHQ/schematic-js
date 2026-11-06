@@ -138,6 +138,45 @@ describe("derivePricingTable", () => {
     expect(view.plans[0].priceId).toBe(row.id);
   });
 
+  test("prices a plan sold by quote with its text, and carries its call to action", () => {
+    const enterprise = publicCatalogPlan({
+      custom: true,
+      customPlanCta: {
+        ctaText: "Book a demo",
+        ctaUrl: "https://example.com/demo",
+        priceText: "Talk to us",
+      },
+      name: "Enterprise",
+    });
+    const bare = publicCatalogPlan({ custom: true, name: "Quote" });
+    const pro = publicCatalogPlan({ name: "Pro" });
+    const view = derivePricingTable(
+      {
+        source: "public",
+        catalog: publicCatalog({ plans: [enterprise, bare, pro] }),
+      },
+      { locale: L, showZeroPriceAsFree: true },
+    );
+    expect(view.plans[0].price).toEqual({ kind: "custom", text: "Talk to us" });
+    expect(view.plans[0].custom).toEqual({
+      ctaText: "Book a demo",
+      ctaUrl: "https://example.com/demo",
+      priceText: "Talk to us",
+    });
+    expect(view.plans[1].price).toEqual({ kind: "custom", text: null });
+    expect(view.plans[1].custom).toEqual({
+      ctaText: null,
+      ctaUrl: null,
+      priceText: null,
+    });
+    expect(view.plans[2].price).toEqual({
+      kind: "amount",
+      amount: "$29.00",
+      period: "month",
+    });
+    expect(view.plans[2].custom).toBeNull();
+  });
+
   test("hides a plan with no price in the currency, keeps one priced in none", () => {
     const euro = publicCatalogPlan({
       name: "Euro",

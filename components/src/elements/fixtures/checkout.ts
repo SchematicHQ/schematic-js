@@ -86,6 +86,7 @@ export function catalogPlan(overrides: Partial<CatalogPlan> = {}): CatalogPlan {
     companyCanTrial: false,
     currencyPrices: [],
     current: false,
+    custom: false,
     description: "",
     entitlements: [],
     icon: "",
