@@ -625,18 +625,25 @@ function Price({ price, t }: { price: PricingPrice; t: Translator }) {
       : undefined;
   return (
     <div className="schematic-plan-card__price">
-      {price.kind === "usageBased"
-        ? t("pricingTableUsageBased")
-        : price.kind === "free"
-          ? t("pricingTableFree")
-          : price.kind === "custom"
-            ? (price.text ?? t("pricingTableCustomPrice"))
-            : price.amount}
+      {priceText(price, t)}
       {per !== undefined && (
         <sub className="schematic-plan-card__period">/{per}</sub>
       )}
     </div>
   );
+}
+
+function priceText(price: PricingPrice, t: Translator): string {
+  switch (price.kind) {
+    case "usageBased":
+      return t("pricingTableUsageBased");
+    case "free":
+      return t("pricingTableFree");
+    case "custom":
+      return price.text ?? t("pricingTableCustomPrice");
+    case "amount":
+      return price.amount;
+  }
 }
 
 function CreditItem({

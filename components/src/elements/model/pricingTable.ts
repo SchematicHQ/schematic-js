@@ -409,22 +409,26 @@ function card(
       context.currentPeriod === null ||
       period === context.currentPeriod);
 
+  let shownPrice: PricingPrice;
+  if (custom !== null) {
+    shownPrice = { kind: "custom", text: custom.priceText };
+  } else if (amount === 0 && usageBased) {
+    shownPrice = { kind: "usageBased" };
+  } else if (amount === 0 && options.showZeroPriceAsFree === true) {
+    shownPrice = { kind: "free" };
+  } else {
+    shownPrice = {
+      kind: "amount",
+      amount: formatCurrency(amount, currency, locale),
+      period,
+    };
+  }
+
   return {
     id: plan.id,
     name: plan.name,
     description: nonEmpty(plan.description),
-    price:
-      custom !== null
-        ? { kind: "custom", text: custom.priceText }
-        : amount === 0 && usageBased
-          ? { kind: "usageBased" }
-          : amount === 0 && options.showZeroPriceAsFree === true
-            ? { kind: "free" }
-            : {
-                kind: "amount",
-                amount: formatCurrency(amount, currency, locale),
-                period,
-              },
+    price: shownPrice,
     priceId: price?.id ?? null,
     period,
     credits:
