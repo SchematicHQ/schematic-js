@@ -600,6 +600,15 @@ export const EmbedProvider = ({
     [listInvoices],
   );
 
+  // Not debounced: each click asks about its own invoice, and a debounce
+  // would hand a second click the first one's answer.
+  const getInvoiceLink = useCallback(
+    async (billingInvoiceId: string) => {
+      return checkoutApi?.getInvoiceLink({ billingInvoiceId });
+    },
+    [checkoutApi],
+  );
+
   const getCreditUsageByUser = useCallback(
     async (billingCreditId: string, limit?: number) => {
       return checkoutApi?.getCreditUsageByUser({ billingCreditId, limit });
@@ -840,6 +849,7 @@ export const EmbedProvider = ({
         getUpcomingInvoice: debouncedGetUpcomingInvoice,
         getCustomerBalance: debouncedGetCustomerBalance,
         listInvoices: debouncedListInvoices,
+        getInvoiceLink,
         getCreditUsageByUser: debouncedGetCreditUsageByUser,
         getFeatureUsageByUser: debouncedGetFeatureUsageByUser,
         finishCheckout,
