@@ -1,6 +1,8 @@
 import { useInvoices, type InvoiceQuery } from "@schematichq/schematic-react";
 import { useId, useMemo, useState } from "react";
 
+import { openInvoiceLink } from "../utils/invoiceLink";
+
 import {
   StatusFrame,
   cx,
@@ -57,6 +59,7 @@ export function Invoices({
   const {
     data: page,
     error,
+    fetchLink,
     isPending,
     loadMore,
     refetch,
@@ -143,7 +146,7 @@ export function Invoices({
                 >
                   {showDate && (
                     <span className="schematic-invoices__date">
-                      <InvoiceDate row={row} t={t} />
+                      <InvoiceDate row={row} t={t} fetchLink={fetchLink} />
                     </span>
                   )}
                   {showAmount && (
@@ -244,8 +247,17 @@ function InvoicesSkeleton({
   );
 }
 
-function InvoiceDate({ row, t }: { row: InvoiceRow; t: Translator }) {
-  if (row.url === null) {
+function InvoiceDate({
+  fetchLink,
+  row,
+  t,
+}: {
+  fetchLink: (id: string) => Promise<string>;
+  row: InvoiceRow;
+  t: Translator;
+}) {
+  const { url } = row;
+  if (url === null) {
     return (
       <span className="schematic-invoices__date-text">{row.dateText}</span>
     );
@@ -256,9 +268,12 @@ function InvoiceDate({ row, t }: { row: InvoiceRow; t: Translator }) {
   return (
     <a
       className="schematic-invoices__link"
-      href={row.url}
+      href={url}
       rel="noreferrer"
       target="_blank"
+      onClick={(event) => {
+        void openInvoiceLink(event, url, () => fetchLink(row.id));
+      }}
     >
       {label}
     </a>

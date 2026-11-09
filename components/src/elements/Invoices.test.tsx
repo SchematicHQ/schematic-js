@@ -4,7 +4,13 @@ import {
   type BillingData,
   type InvoiceQuery,
 } from "@schematichq/schematic-react";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { vi } from "vitest";
 
 import { Invoices, type InvoicesProps } from "./Invoices";
@@ -415,5 +421,103 @@ describe("Invoices", () => {
     expect(
       screen.getByRole("heading", { name: "Billing history" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("Invoices link", () => {
+  const STORED_URL = "https://invoice.example/stored";
+  const FRESH_URL = "https://invoice.example/fresh";
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function renderWithLink(fetchInvoiceLink: (id: string) => Promise<string>) {
+    return render(
+      <BillingDataProvider
+        data={{
+          invoices: invoicePage([invoice({ id: "inv_link", url: STORED_URL })]),
+        }}
+        actions={{ fetchInvoiceLink }}
+      >
+        <Invoices locale={L} />
+      </BillingDataProvider>,
+    );
+  }
+
+  function stubTab() {
+    const tab = { opener: window as unknown, location: { href: "" } };
+    const open = vi
+      .spyOn(window, "open")
+      .mockReturnValue(tab as unknown as Window);
+    return { open, tab };
+  }
+
+  test("opens the fresh URL on success", async () => {
+    const { open, tab } = stubTab();
+    const fetchInvoiceLink = vi.fn(async () => FRESH_URL);
+    renderWithLink(fetchInvoiceLink);
+
+    const link = screen.getByRole("link");
+    expect(link).toHaveAttribute("href", STORED_URL);
+    expect(fireEvent.click(link)).toBe(false);
+
+    expect(open).toHaveBeenCalledWith("", "_blank");
+    expect(tab.opener).toBeNull();
+    expect(fetchInvoiceLink).toHaveBeenCalledWith("inv_link");
+    await waitFor(() => expect(tab.location.href).toBe(FRESH_URL));
+  });
+
+  test("falls back to the stored URL when the request fails", async () => {
+    const { tab } = stubTab();
+    renderWithLink(vi.fn(async () => Promise.reject(new Error("not found"))));
+
+    fireEvent.click(screen.getByRole("link"));
+
+    await waitFor(() => expect(tab.location.href).toBe(STORED_URL));
+  });
+
+  test("opens the window before the request resolves", async () => {
+    const { open, tab } = stubTab();
+    let resolve: (url: string) => void = () => {};
+    const fetchInvoiceLink = vi.fn(
+      () =>
+        new Promise<string>((r) => {
+          resolve = r;
+        }),
+    );
+    renderWithLink(fetchInvoiceLink);
+
+    fireEvent.click(screen.getByRole("link"));
+
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(open.mock.invocationCallOrder[0]).toBeLessThan(
+      fetchInvoiceLink.mock.invocationCallOrder[0],
+    );
+    expect(tab.location.href).toBe("");
+
+    resolve(FRESH_URL);
+    await waitFor(() => expect(tab.location.href).toBe(FRESH_URL));
+  });
+
+  test("follows the stored href when the window is blocked", () => {
+    vi.spyOn(window, "open").mockReturnValue(null);
+    const fetchInvoiceLink = vi.fn(async () => FRESH_URL);
+    renderWithLink(fetchInvoiceLink);
+
+    expect(fireEvent.click(screen.getByRole("link"))).toBe(true);
+    expect(fetchInvoiceLink).not.toHaveBeenCalled();
+  });
+
+  test("leaves a modified click to the browser", () => {
+    const { open } = stubTab();
+    const fetchInvoiceLink = vi.fn(async () => FRESH_URL);
+    renderWithLink(fetchInvoiceLink);
+
+    expect(fireEvent.click(screen.getByRole("link"), { ctrlKey: true })).toBe(
+      true,
+    );
+    expect(open).not.toHaveBeenCalled();
+    expect(fetchInvoiceLink).not.toHaveBeenCalled();
   });
 });
