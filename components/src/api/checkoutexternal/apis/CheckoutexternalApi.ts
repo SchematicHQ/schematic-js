@@ -43,6 +43,7 @@ import type {
   GetCompanyUpcomingInvoiceResponse,
   GetCreditUsageByUserResponse,
   GetFeatureUsageByUserResponse,
+  GetInvoiceLinkResponse,
   GetSetupIntentResponse,
   HydrateComponentResponse,
   HydrateResponse,
@@ -121,6 +122,8 @@ import {
   GetCreditUsageByUserResponseToJSON,
   GetFeatureUsageByUserResponseFromJSON,
   GetFeatureUsageByUserResponseToJSON,
+  GetInvoiceLinkResponseFromJSON,
+  GetInvoiceLinkResponseToJSON,
   GetSetupIntentResponseFromJSON,
   GetSetupIntentResponseToJSON,
   HydrateComponentResponseFromJSON,
@@ -222,6 +225,10 @@ export interface GetFeatureUsageByUserRequest {
   featureId: string;
   limit?: number;
   offset?: number;
+}
+
+export interface GetInvoiceLinkRequest {
+  billingInvoiceId: string;
 }
 
 export interface GetSetupIntentRequest {
@@ -1522,6 +1529,62 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<GetFeatureUsageByUserResponse> {
     const response = await this.getFeatureUsageByUserRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Get invoice link
+   */
+  async getInvoiceLinkRaw(
+    requestParameters: GetInvoiceLinkRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetInvoiceLinkResponse>> {
+    if (requestParameters["billingInvoiceId"] == null) {
+      throw new runtime.RequiredError(
+        "billingInvoiceId",
+        'Required parameter "billingInvoiceId" was null or undefined when calling getInvoiceLink().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/components/invoices/{billing_invoice_id}/link`.replace(
+          `{${"billing_invoice_id"}}`,
+          encodeURIComponent(String(requestParameters["billingInvoiceId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetInvoiceLinkResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get invoice link
+   */
+  async getInvoiceLink(
+    requestParameters: GetInvoiceLinkRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetInvoiceLinkResponse> {
+    const response = await this.getInvoiceLinkRaw(
       requestParameters,
       initOverrides,
     );
