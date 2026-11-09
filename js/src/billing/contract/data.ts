@@ -1,5 +1,6 @@
 import type { Catalog, CatalogQuery, PublicCatalog } from "./catalog";
 import type { Company } from "./company";
+import type { CreditLedgerPage, CreditLedgerQuery } from "./creditLedger";
 import type { CreditBalanceEntry } from "./credits";
 import type { FeatureUsage } from "./featureUsage";
 import type { InvoicePage, InvoiceQuery } from "./invoices";
@@ -59,6 +60,8 @@ export interface BillingResources {
    * loaded.
    */
   creditBalances: CreditBalanceEntry[];
+  /** `GET /company/credits/ledger?limit&offset&credit_ids&include_grants`. */
+  creditLedger: CreditLedgerPage;
   /** `GET /company`. */
   company: Company;
   /**
@@ -77,6 +80,7 @@ export interface BillingResourceParams {
   paymentMethods: Record<string, never>;
   featureUsage: Record<string, never>;
   creditBalances: Record<string, never>;
+  creditLedger: CreditLedgerQuery;
   company: Record<string, never>;
   taxIds: Record<string, never>;
 }

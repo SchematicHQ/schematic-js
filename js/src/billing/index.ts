@@ -7,6 +7,7 @@ export {
 } from "./cart";
 export {
   CHECKOUT_SESSION_HEADER,
+  CREDIT_LEDGER_PAGE_SIZE,
   INVOICE_MAX_PAGE_SIZE,
   INVOICE_PAGE_SIZE,
   SchematicBillingClient,
@@ -14,6 +15,7 @@ export {
   type BillingClient,
   type BillingClientOptions,
   type BillingPrefetchOptions,
+  type CreditLedgerRequest,
   type InvoicesRequest,
   type InvoicesResult,
 } from "./client";

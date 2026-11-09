@@ -9,6 +9,7 @@ models/BillingCreditBundleType.ts
 models/BillingCreditExpiryType.ts
 models/BillingCreditExpiryUnit.ts
 models/BillingCreditGrantReason.ts
+models/BillingCreditGrantZeroedOutReason.ts
 models/BillingPlanCreditGrantResetCadence.ts
 models/BillingPriceScheme.ts
 models/BillingProductPriceInterval.ts
@@ -61,6 +62,12 @@ models/CompanyCreditBalanceResponseData.ts
 models/CompanyCreditBalancesResponseData.ts
 models/CompanyCreditCompositionResponseData.ts
 models/CompanyCreditGrantResponseData.ts
+models/CompanyCreditLedgerBundleResponseData.ts
+models/CompanyCreditLedgerCreditResponseData.ts
+models/CompanyCreditLedgerEntryResponseData.ts
+models/CompanyCreditLedgerFeatureResponseData.ts
+models/CompanyCreditLedgerResponseData.ts
+models/CompanyCreditLedgerUserResponseData.ts
 models/CompanyCreditUserUsageResponseData.ts
 models/CompanyCreditUserUsageRowResponseData.ts
 models/CompanyDiscountResponseData.ts
@@ -78,6 +85,8 @@ models/CompanyUserUsageResponseData.ts
 models/CreateCheckoutRequest.ts
 models/CreateCheckoutResponse.ts
 models/CreateSetupIntentResponse.ts
+models/CreditLedgerEntryKind.ts
+models/CreditUsageReason.ts
 models/Currency.ts
 models/CustomPlanActivationStrategy.ts
 models/DeletePaymentMethodResponse.ts
@@ -93,6 +102,8 @@ models/GetCatalogViewResponse.ts
 models/GetCheckoutResponse.ts
 models/GetCheckoutTaxIDResponse.ts
 models/GetCompanyCreditBalancesResponse.ts
+models/GetCompanyCreditLedgerParams.ts
+models/GetCompanyCreditLedgerResponse.ts
 models/GetCompanyCreditUserUsageParams.ts
 models/GetCompanyCreditUserUsageResponse.ts
 models/GetCompanyFeatureUsageResponse.ts
