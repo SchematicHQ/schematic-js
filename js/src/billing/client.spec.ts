@@ -1255,6 +1255,63 @@ describe("company", () => {
   });
 });
 
+describe("invoice link", () => {
+  it("asks for the invoice's current URL", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: {
+        data: { id: "bilin_1", url: "https://invoice.stripe.com/i/fresh" },
+        params: {},
+      },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(client.fetchInvoiceLink("bilin_1")).resolves.toBe(
+      "https://invoice.stripe.com/i/fresh",
+    );
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/components/invoices/bilin_1/link",
+      method: "GET",
+    });
+    expect(calls[0].headers["X-Schematic-Api-Key"]).toBe("t");
+  });
+
+  it("keeps a 404 the error it is", async () => {
+    // Another company's invoice, an upcoming row, or no link at all: the
+    // caller falls back to the URL it already has.
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client
+      .fetchInvoiceLink("bilin_1")
+      .catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({
+      status: 404,
+      path: "/components/invoices/bilin_1/link",
+    });
+  });
+
+  it("reports a malformed response", async () => {
+    for (const body of [null, { data: null }]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchInvoiceLink("bilin_1")).rejects.toThrow(
+        /Malformed response/,
+      );
+    }
+  });
+});
+
 describe("unsubscribe", () => {
   it("cancels the subscription at period end", async () => {
     const { calls, fetchImpl } = fakeFetch(() => ({
