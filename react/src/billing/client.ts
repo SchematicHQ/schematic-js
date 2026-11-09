@@ -604,6 +604,17 @@ export class BillingStore {
   }
 
   /**
+   * The current hosted URL for invoice `id`, which the listed `url` can
+   * outlive. A pass-through: the answer is for one click, not to keep.
+   */
+  fetchInvoiceLink(id: string): Promise<string> {
+    return (
+      this._client.fetchInvoiceLink?.(id) ??
+      Promise.reject(new Error("The billing client cannot read invoice links."))
+    );
+  }
+
+  /**
    * The checkout calls pass straight through: a checkout in progress is one
    * reader's cart, not a resource to share, and `useCheckout` holds it.
    */

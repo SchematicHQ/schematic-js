@@ -40,6 +40,8 @@ export interface BillingActions {
   removePaymentMethod(id: string): Promise<void>;
   /** Mints a new setup intent every call; nothing is cached. */
   createSetupIntent(): Promise<SetupIntent>;
+  /** The current hosted URL for invoice `id`; nothing is cached. */
+  fetchInvoiceLink(id: string): Promise<string>;
   /** Cancels the subscription at period end and reloads what that changes. */
   unsubscribe(): Promise<void>;
   /** Sets the company's tax ID and takes the list it answers with. */
@@ -136,6 +138,7 @@ const ACTION_NAMES: readonly (keyof BillingActions)[] = [
   "setDefaultPaymentMethod",
   "removePaymentMethod",
   "createSetupIntent",
+  "fetchInvoiceLink",
   "unsubscribe",
   "updateTaxId",
   "createCheckout",
