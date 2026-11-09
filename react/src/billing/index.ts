@@ -4,6 +4,7 @@
 // union, so a host implementing either has to be able to name it.
 export * from "./contract";
 export {
+  CREDIT_LEDGER_PAGE_SIZE,
   FEATURE_USER_USAGE_LIMIT,
   INVOICE_PAGE_SIZE,
   type AccessToken,
@@ -28,6 +29,7 @@ export {
   useCheckout,
   useCompany,
   useCreditBalances,
+  useCreditLedger,
   useCreditUserUsage,
   useFeatureUsage,
   useFeatureUserUsage,
@@ -39,6 +41,7 @@ export {
   useTaxIds,
   useUpcomingInvoice,
   type CheckoutHandle,
+  type CreditLedgerHandle,
   type InvoicesHandle,
   type PaymentMethodsHandle,
   type SetupIntentHandle,

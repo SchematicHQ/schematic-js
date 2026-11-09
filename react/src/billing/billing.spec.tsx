@@ -24,6 +24,7 @@ import {
   type CheckoutResult,
   type Company,
   type CreditBalanceEntry,
+  type CreditLedgerEntry,
   type CreditUserUsage,
   type FeatureUsage,
   type FeatureUserUsage,
@@ -45,6 +46,7 @@ import {
   useCheckout,
   useCompany,
   useCreditBalances,
+  useCreditLedger,
   useCreditUserUsage,
   useFeatureUsage,
   useFeatureUserUsage,
@@ -202,6 +204,7 @@ function fakeClient(
     fetchFeatureUserUsage: vi.fn(async ({ featureId }) => userUsage(featureId)),
     fetchCreditBalances: vi.fn(async () => []),
     fetchCreditUserUsage: vi.fn(async ({ creditId }) => creditUsage(creditId)),
+    fetchCreditLedger: vi.fn(async () => ({ entries: [], hasMore: false })),
     fetchCompany: vi.fn(async () => company("Acme")),
     cancelSubscription: vi.fn(async () => {}),
     onSessionChange: (listener) => {
@@ -3047,5 +3050,163 @@ describe("useTaxIds", () => {
       "That tax ID is not valid.",
     );
     expect(result.current.error).toBeUndefined();
+  });
+});
+
+const ledgerEntry = (id: string): CreditLedgerEntry =>
+  ({ id, amount: -1, kind: "drawdown" }) as unknown as CreditLedgerEntry;
+
+/** A fake ledger over `ids`, answering `hasMore` the way the API does. */
+const serveLedger =
+  (ids: string[]) =>
+  async ({ limit, offset }: { limit: number; offset: number }) => ({
+    entries: ids.slice(offset, offset + limit).map(ledgerEntry),
+    hasMore: offset + limit < ids.length,
+  });
+
+describe("useCreditLedger", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+  const ids = (n: number) => Array.from({ length: n }, (_, i) => `e${i}`);
+
+  it_("loads the first page and appends the next on loadMore", async () => {
+    const fetchCreditLedger = vi.fn(serveLedger(ids(25)));
+    const client = fakeClient({ fetchCreditLedger });
+    const { result } = renderHook(() => useCreditLedger(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current.data?.entries).toHaveLength(20);
+    expect(result.current.data?.hasMore).toBe(true);
+    expect(fetchCreditLedger).toHaveBeenLastCalledWith({
+      limit: 20,
+      offset: 0,
+    });
+
+    act(() => void result.current.loadMore());
+    await flush();
+    expect(result.current.data?.entries).toHaveLength(25);
+    expect(result.current.data?.hasMore).toBe(false);
+    expect(fetchCreditLedger).toHaveBeenLastCalledWith({
+      limit: 20,
+      offset: 20,
+    });
+
+    await act(() => result.current.loadMore());
+    expect(fetchCreditLedger).toHaveBeenCalledTimes(2);
+  });
+
+  it_("ends the list on an empty page whatever hasMore says", async () => {
+    const fetchCreditLedger = vi.fn(
+      async ({ offset }: { limit: number; offset: number }) =>
+        offset === 0
+          ? { entries: ids(20).map(ledgerEntry), hasMore: true }
+          : { entries: [], hasMore: true },
+    );
+    const { result } = renderHook(() => useCreditLedger(), {
+      wrapper: wrap(fakeClient({ fetchCreditLedger })),
+    });
+    await flush();
+    act(() => void result.current.loadMore());
+    await flush();
+    expect(result.current.data).toMatchObject({ hasMore: false });
+    expect(result.current.data?.entries).toHaveLength(20);
+  });
+
+  it_("keys a list by its credits and grants, in any spelling", async () => {
+    const fetchCreditLedger = vi.fn(serveLedger(ids(2)));
+    const client = fakeClient({ fetchCreditLedger });
+    const { result } = renderHook(
+      () =>
+        [
+          useCreditLedger({ credits: ["b", "a"], includeGrants: true }),
+          useCreditLedger({ credits: ["a", "b", "a"] }),
+          useCreditLedger({ includeGrants: false }),
+        ] as const,
+      { wrapper: wrap(client) },
+    );
+    await flush();
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(fetchCreditLedger).toHaveBeenCalledTimes(2);
+    expect(fetchCreditLedger).toHaveBeenCalledWith({
+      credits: ["a", "b"],
+      limit: 20,
+      offset: 0,
+    });
+    expect(fetchCreditLedger).toHaveBeenCalledWith({
+      includeGrants: false,
+      limit: 20,
+      offset: 0,
+    });
+  });
+
+  it_(
+    "serves a prefetched page under its query without a request",
+    async () => {
+      const fetchCreditLedger = vi.fn(serveLedger(ids(5)));
+      const { result } = renderHook(
+        () => useCreditLedger({ credits: ["bcr_ai"] }),
+        {
+          wrapper: wrap(fakeClient({ fetchCreditLedger }), {
+            creditLedger: { entries: [ledgerEntry("seeded")], hasMore: false },
+            params: { creditLedger: { credits: ["bcr_ai"] } },
+          }),
+        },
+      );
+      expect(result.current.data?.entries[0].id).toBe("seeded");
+      await flush();
+      expect(fetchCreditLedger).not.toHaveBeenCalled();
+    },
+  );
+
+  it_("refetches the whole window it has loaded", async () => {
+    const fetchCreditLedger = vi.fn(serveLedger(ids(45)));
+    const { result } = renderHook(() => useCreditLedger(), {
+      wrapper: wrap(fakeClient({ fetchCreditLedger })),
+    });
+    await flush();
+    act(() => void result.current.loadMore());
+    await flush();
+    expect(result.current.data?.entries).toHaveLength(40);
+
+    fetchCreditLedger.mockClear();
+    act(() => void result.current.refetch());
+    await flush();
+    expect(fetchCreditLedger).toHaveBeenCalledWith({ limit: 40, offset: 0 });
+    expect(result.current.data?.entries).toHaveLength(40);
+    expect(result.current.data?.hasMore).toBe(true);
+  });
+
+  it_("serves fixtures and reports loadMore to the host", async () => {
+    const onLoadMoreCreditLedger = vi.fn();
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingDataProvider
+          data={{
+            creditLedger: { entries: [ledgerEntry("f")], hasMore: true },
+          }}
+          onLoadMoreCreditLedger={onLoadMoreCreditLedger}
+        >
+          {children}
+        </BillingDataProvider>
+      );
+    }
+    const { result } = renderHook(
+      () => useCreditLedger({ includeGrants: false }),
+      { wrapper: Wrapper },
+    );
+    expect(result.current.data?.entries[0].id).toBe("f");
+    await act(() => result.current.loadMore());
+    expect(onLoadMoreCreditLedger).toHaveBeenCalledWith({
+      includeGrants: false,
+    });
   });
 });

@@ -1,4 +1,5 @@
 import {
+  CREDIT_LEDGER_PAGE_SIZE,
   INVOICE_MAX_PAGE_SIZE,
   INVOICE_PAGE_SIZE,
   SINGLETON,
@@ -23,6 +24,9 @@ import type {
   CheckoutWrite,
   Company,
   CreditBalanceEntry,
+  CreditLedgerEntry,
+  CreditLedgerPage,
+  CreditLedgerQuery,
   CreditUserUsage,
   FeatureUsage,
   FeatureUserUsage,
@@ -38,8 +42,10 @@ import type {
 } from "./contract";
 import {
   DEFAULT_CATALOG_QUERY,
+  DEFAULT_CREDIT_LEDGER_QUERY,
   DEFAULT_INVOICE_QUERY,
   normalizeCatalogQuery,
+  normalizeCreditLedgerQuery,
   normalizeInvoiceQuery,
 } from "./contract";
 import type { CatalogSource } from "./context";
@@ -121,6 +127,9 @@ export type {
  */
 export { INVOICE_PAGE_SIZE };
 
+/** Entries requested per credit ledger page, re-exported as `INVOICE_PAGE_SIZE` is. */
+export { CREDIT_LEDGER_PAGE_SIZE };
+
 /**
  * Users fetched for one feature's breakdown. The breakdown is read once, not
  * paged: it lists the heaviest users and says how many more there are.
@@ -159,6 +168,7 @@ interface HeldSeed {
   paymentMethods?: PaymentMethod[];
   featureUsage?: FeatureUsage[];
   creditBalances?: CreditBalanceEntry[];
+  creditLedger?: { params: CreditLedgerQuery; data: CreditLedgerPage };
   company?: Company;
   taxIds?: TaxId[];
 }
@@ -168,7 +178,8 @@ interface HeldSeed {
  * over a `BillingProviderClient`. The session is the client's credential — the store
  * never sees a company or user id — and a credential change drops every
  * resource. The catalog, invoices, the upcoming invoice, the payment methods,
- * feature usage, credits, the company and tax IDs so far; the rest join with
+ * feature usage, credits, the credit ledger, the company and tax IDs so far;
+ * the rest join with
  * their elements.
  *
  * `publicCatalog` belongs to no session: it is read with the publishable
@@ -202,6 +213,7 @@ export class BillingStore {
     CreditBalanceEntry[],
     Record<string, never>
   >;
+  readonly creditLedger: KeyedResource<CreditLedgerPage, CreditLedgerQuery>;
   readonly company: KeyedResource<Company, Record<string, never>>;
   readonly creditUserUsage: KeyedResource<
     CreditUserUsage,
@@ -299,6 +311,15 @@ export class BillingStore {
       () => this._client.fetchCreditBalances(),
       { readiness },
     );
+    // Re-reads the loaded window on refetch, as the invoices do.
+    this.creditLedger = new KeyedResource(
+      (query, current) =>
+        this._reloadCreditLedgerWindow(
+          query,
+          Math.max(CREDIT_LEDGER_PAGE_SIZE, current?.entries.length ?? 0),
+        ),
+      { readiness },
+    );
     this.company = new KeyedResource(() => this._client.fetchCompany(), {
       readiness,
     });
@@ -345,6 +366,14 @@ export class BillingStore {
     if (initialData.creditBalances !== undefined) {
       held.creditBalances = initialData.creditBalances;
     }
+    if (initialData.creditLedger !== undefined) {
+      held.creditLedger = {
+        params: normalizeCreditLedgerQuery(
+          initialData.params?.creditLedger ?? DEFAULT_CREDIT_LEDGER_QUERY,
+        ),
+        data: initialData.creditLedger,
+      };
+    }
     if (initialData.company !== undefined) {
       held.company = initialData.company;
     }
@@ -358,6 +387,7 @@ export class BillingStore {
       held.paymentMethods !== undefined ||
       held.featureUsage !== undefined ||
       held.creditBalances !== undefined ||
+      held.creditLedger !== undefined ||
       held.company !== undefined ||
       held.taxIds !== undefined
     ) {
@@ -450,6 +480,12 @@ export class BillingStore {
       }
       if (held.creditBalances !== undefined) {
         this.creditBalances.seed(SINGLETON, held.creditBalances);
+      }
+      if (held.creditLedger !== undefined) {
+        this.creditLedger.seed(
+          held.creditLedger.params,
+          held.creditLedger.data,
+        );
       }
       if (held.company !== undefined) {
         this.company.seed(SINGLETON, held.company);
@@ -550,6 +586,33 @@ export class BillingStore {
         // that outruns the rows would otherwise leave `hasMore` true for
         // good, with every further page fetching nothing.
         hasMore: page.invoices.length > 0 && invoices.length < page.count,
+      };
+    });
+  }
+
+  /**
+   * Appends the next page to the credit ledger for `query`, as
+   * `loadMoreInvoices` does for invoices.
+   */
+  loadMoreCreditLedger(
+    query: CreditLedgerQuery = DEFAULT_CREDIT_LEDGER_QUERY,
+  ): Promise<void> {
+    const params = normalizeCreditLedgerQuery(query);
+    const resource = this.creditLedger.get(params);
+    if (resource.snapshot.data?.hasMore !== true) {
+      return Promise.resolve();
+    }
+    return resource.extend(async (current) => {
+      const page = await this._client.fetchCreditLedger({
+        ...params,
+        limit: CREDIT_LEDGER_PAGE_SIZE,
+        offset: current.entries.length,
+      });
+      return {
+        entries: [...current.entries, ...page.entries],
+        // An empty page ends the list whatever the server says, so a ledger
+        // that shrank under the offset cannot page nothing forever.
+        hasMore: page.entries.length > 0 && page.hasMore,
       };
     });
   }
@@ -706,6 +769,29 @@ export class BillingStore {
     };
   }
 
+  /** `_reloadWindow` for the credit ledger, which pages by `hasMore`. */
+  private async _reloadCreditLedgerWindow(
+    query: CreditLedgerQuery,
+    window: number,
+  ): Promise<CreditLedgerPage> {
+    const entries: CreditLedgerEntry[] = [];
+    let hasMore = false;
+    while (entries.length < window) {
+      const page = await this._client.fetchCreditLedger({
+        ...query,
+        limit: Math.min(INVOICE_MAX_PAGE_SIZE, window - entries.length),
+        offset: entries.length,
+      });
+      entries.push(...page.entries);
+      hasMore = page.entries.length > 0 && page.hasMore;
+      if (!hasMore) {
+        break;
+      }
+    }
+
+    return { entries, hasMore };
+  }
+
   /**
    * Returns what the server said and nothing more: whether there is more to
    * load depends on the whole window, which only the caller assembling it
@@ -728,6 +814,7 @@ export const RESOURCE_NAMES: readonly BillingResourceName[] = [
   "paymentMethods",
   "featureUsage",
   "creditBalances",
+  "creditLedger",
   "company",
   "taxIds",
 ];

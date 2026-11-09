@@ -22,6 +22,8 @@ import type {
   CheckoutTransport,
   Company,
   CreditBalanceEntry,
+  CreditLedgerPage,
+  CreditLedgerQuery,
   CreditUserUsage,
   FeatureUsage,
   FeatureUserUsage,
@@ -37,9 +39,11 @@ import type {
 import {
   CheckoutDraft,
   DEFAULT_CATALOG_QUERY,
+  DEFAULT_CREDIT_LEDGER_QUERY,
   DEFAULT_INVOICE_QUERY,
   SINGLETON,
   normalizeCatalogQuery,
+  normalizeCreditLedgerQuery,
   normalizeInvoiceQuery,
 } from "./contract";
 import {
@@ -54,7 +58,7 @@ import { hashKey } from "./store";
  * Hooks never fetch during server rendering: without `initialData` they
  * report pending on the server and load on the client. `useCatalog`,
  * `useInvoices`, `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`,
- * `useFeatureUserUsage`, `useCreditBalances`, `useCreditUserUsage`,
+ * `useFeatureUserUsage`, `useCreditBalances`, `useCreditLedger`, `useCreditUserUsage`,
  * `useCompany` and `useTaxIds` so far; the other resource hooks ship with
  * their elements.
  */
@@ -483,6 +487,29 @@ export function useCheckout(options: UseCheckoutOptions = {}): CheckoutHandle {
     }),
     [finalize, reset, setSelections, state],
   );
+}
+
+export interface CreditLedgerHandle extends ResourceHandle<CreditLedgerPage> {
+  /** Requests the next page, as `InvoicesHandle.loadMore` does. */
+  loadMore: () => Promise<void>;
+}
+
+/**
+ * The company's credit activity for `query`, newest first: draws by feature
+ * and user, grants, and expiries. Each distinct query is its own list with
+ * its own paging; an inline object literal is fine, the hook keys by value.
+ */
+export function useCreditLedger(
+  query: CreditLedgerQuery = DEFAULT_CREDIT_LEDGER_QUERY,
+): CreditLedgerHandle {
+  const source = useBillingDataSource();
+  const params = useStableParams(normalizeCreditLedgerQuery(query));
+  const handle = useBillingResource("creditLedger", params);
+  const loadMore = useCallback(
+    () => source.loadMoreCreditLedger(params),
+    [params, source],
+  );
+  return useMemo(() => ({ ...handle, loadMore }), [handle, loadMore]);
 }
 
 /** Reloads every loaded billing resource (after a plan change, for instance). */

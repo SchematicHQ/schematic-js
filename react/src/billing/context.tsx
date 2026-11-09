@@ -12,6 +12,7 @@ import type {
   CheckoutResult,
   CheckoutSelections,
   CheckoutWrite,
+  CreditLedgerQuery,
   CreditUserUsage,
   FeatureUserUsage,
   InvoiceQuery,
@@ -94,6 +95,8 @@ export interface BillingDataSource {
   creditUserUsage(creditId: string): ResourceHandle<CreditUserUsage>;
   /** Never rejects: a failure lands on the resource's `error`. */
   loadMoreInvoices: (query: InvoiceQuery) => Promise<void>;
+  /** Never rejects, as `loadMoreInvoices`. */
+  loadMoreCreditLedger: (query: CreditLedgerQuery) => Promise<void>;
   invalidateAll: () => void;
   /** Absent on a source that only reads. */
   actions?: BillingActions;
@@ -191,6 +194,7 @@ export const missingBillingSource: BillingDataSource = {
   subscribeCreditUserUsage: () => () => {},
   creditUserUsage: () => missingHandle,
   loadMoreInvoices: () => Promise.resolve(),
+  loadMoreCreditLedger: () => Promise.resolve(),
   invalidateAll: () => {},
   // The same error a read reports, so a write outside any provider names
   // the misconfiguration rather than a source that only reads.
@@ -220,6 +224,7 @@ interface BillingDataProviderDataProps {
   status?: BillingDataStatus;
   onRefetch?: (name: BillingResourceName) => void;
   onLoadMoreInvoices?: (query: InvoiceQuery) => void;
+  onLoadMoreCreditLedger?: (query: CreditLedgerQuery) => void;
   /**
    * What the write hooks call. Each rejects on its own; an action left out
    * rejects with `BILLING_ACTION_UNAVAILABLE_MESSAGE`. Nothing here touches
@@ -245,6 +250,7 @@ export function BillingDataProvider({
   data,
   featureUserUsage,
   locale,
+  onLoadMoreCreditLedger,
   onLoadMoreInvoices,
   onMissingString,
   onRefetch,
@@ -320,6 +326,10 @@ export function BillingDataProvider({
         onLoadMoreInvoices?.(query);
         return Promise.resolve();
       },
+      loadMoreCreditLedger: (query) => {
+        onLoadMoreCreditLedger?.(query);
+        return Promise.resolve();
+      },
       invalidateAll: () => {},
       catalogSource: () => catalogSourceOf(data),
     };
@@ -328,6 +338,7 @@ export function BillingDataProvider({
     creditUserUsage,
     data,
     featureUserUsage,
+    onLoadMoreCreditLedger,
     onLoadMoreInvoices,
     onRefetch,
     status,
