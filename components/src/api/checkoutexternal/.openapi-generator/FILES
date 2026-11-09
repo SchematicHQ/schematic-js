@@ -138,6 +138,8 @@ models/ConditionType.ts
 models/CountResponse.ts
 models/CreateCheckoutRequest.ts
 models/CreateCheckoutResponse.ts
+models/CreateCompanySpendPolicyRequestBody.ts
+models/CreateCompanySpendPolicyResponse.ts
 models/CreateSetupIntentResponse.ts
 models/CreditBundleCurrencyPrice.ts
 models/CreditCompanyGrantView.ts
@@ -145,6 +147,9 @@ models/CreditCurrencyPrice.ts
 models/CreditCurrencyPriceResponseData.ts
 models/CreditGrantDetail.ts
 models/CreditModelRate.ts
+models/CreditSpendPolicyResponseData.ts
+models/CreditSpendPolicyScope.ts
+models/CreditSpendWindowUnit.ts
 models/CreditTransferView.ts
 models/CreditUsageAggregation.ts
 models/CreditUserUsageResponseData.ts
@@ -155,6 +160,7 @@ models/CustomPlanBillingResponseData.ts
 models/CustomPlanBillingStatus.ts
 models/CustomPlanConfig.ts
 models/CustomPlanViewConfigResponseData.ts
+models/DeleteCompanySpendPolicyResponse.ts
 models/DeletePaymentMethodResponse.ts
 models/DeleteResponse.ts
 models/EntitlementCurrencyPricesResponseData.ts
@@ -215,6 +221,8 @@ models/InvoiceResponseData.ts
 models/InvoiceStatus.ts
 models/ListCheckoutsParams.ts
 models/ListCheckoutsResponse.ts
+models/ListCompanySpendPoliciesParams.ts
+models/ListCompanySpendPoliciesResponse.ts
 models/ListInvoicesParams.ts
 models/ListInvoicesResponse.ts
 models/MetricPeriod.ts
@@ -279,7 +287,9 @@ models/UpdateCheckoutResponse.ts
 models/UpdateCheckoutTaxIDRequestBody.ts
 models/UpdateCheckoutTaxIDResponse.ts
 models/UpdateCheckoutTaxIDResponseData.ts
+models/UpdateCompanySpendPolicyResponse.ts
 models/UpdateCreditBundleRequestBody.ts
+models/UpdateCreditSpendPolicyRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
 models/UpdatePaymentMethodResponse.ts
