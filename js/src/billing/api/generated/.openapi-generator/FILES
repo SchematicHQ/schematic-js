@@ -102,8 +102,10 @@ models/GetCompanyInvoicesResponse.ts
 models/GetCompanyPaymentMethodsResponse.ts
 models/GetCompanyResponse.ts
 models/GetCompanyUpcomingInvoiceResponse.ts
+models/GetInvoiceLinkResponse.ts
 models/GetPublicCatalogByIDResponse.ts
 models/GetPublicCatalogResponse.ts
+models/InvoiceLink.ts
 models/InvoiceStatus.ts
 models/ListCheckoutsParams.ts
 models/ListCheckoutsResponse.ts

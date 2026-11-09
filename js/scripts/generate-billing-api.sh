@@ -29,7 +29,7 @@ node scripts/filter-openapi.mjs "$TMP_DIR/token.json" "$TMP_DIR/token.filtered.j
   /checkouts '/checkouts/{checkout_id}' '/checkouts/{checkout_id}/finalize' \
   /checkout/tax-id \
   /checkout/paymentmethod/update '/checkout/paymentmethod/{checkout_id}' /checkout/unsubscribe \
-  /components/setup-intent
+  /components/setup-intent '/components/invoices/{billing_invoice_id}/link'
 node scripts/filter-openapi.mjs "$TMP_DIR/publishable.json" "$TMP_DIR/publishable.filtered.json" \
   /public/catalog '/public/catalogs/{catalog_id}'
 node scripts/merge-openapi.mjs "$TMP_DIR/spec.json" \
