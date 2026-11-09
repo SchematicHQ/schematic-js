@@ -15,6 +15,7 @@ import { vi } from "vitest";
 import {
   PaymentMethodForm,
   resolveAppearance,
+  resolved,
   type PaymentMethodFormProps,
 } from "./PaymentMethodForm";
 import { defaultString } from "./strings";
@@ -280,14 +281,32 @@ describe("PaymentMethodForm", () => {
     expect(host.childElementCount).toBe(0);
   });
 
-  test("resolveAppearance drops a token the browser did not resolve, leaving Stripe its default", () => {
-    // jsdom hands the `var()` back unresolved; a real browser never does.
-    const { variables } = resolveAppearance(document.body);
-    expect(variables).not.toHaveProperty("colorText");
-    expect(variables).not.toHaveProperty("fontFamily");
-    for (const value of Object.values(variables ?? {})) {
-      expect(value).not.toContain("var(");
+  test("resolveAppearance falls back to the default for a token that cannot resolve", () => {
+    const host = document.createElement("div");
+    host.style.setProperty("--schematic-text", "var(--schematic-text)");
+    host.style.setProperty(
+      "--schematic-font-body",
+      "var(--schematic-font-body)",
+    );
+    document.body.appendChild(host);
+    try {
+      const { variables } = resolveAppearance(host);
+      expect(variables?.colorText).toBe("rgb(0, 0, 0)");
+      expect(variables?.fontFamily).toMatch(/Public Sans/);
+      for (const value of Object.values(variables ?? {})) {
+        expect(value).not.toContain("var(");
+      }
+    } finally {
+      host.remove();
     }
+  });
+
+  test.each([
+    ["var(--schematic-text)", false],
+    ["", false],
+    ["rgb(0, 0, 0)", true],
+  ])("resolved(%j) is %s", (value, expected) => {
+    expect(resolved(value)).toBe(expected);
   });
 
   test("offers the way back to the methods on file when there are any", async () => {

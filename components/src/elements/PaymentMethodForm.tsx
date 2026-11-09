@@ -89,8 +89,8 @@ function orUndefined(value: string | undefined): string | undefined {
   return value === undefined || value === "" ? undefined : value;
 }
 
-/** A computed value the browser resolved; jsdom hands back the `var()`. */
-function resolved(value: string): boolean {
+/** A computed value the engine resolved; one that cannot hands back the `var()`. */
+export function resolved(value: string): boolean {
   return value !== "" && !value.includes("var(");
 }
 
