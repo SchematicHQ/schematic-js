@@ -134,6 +134,12 @@ export interface InvoicesHandle extends ResourceHandle<InvoicePage> {
    * never rejects.
    */
   loadMore: () => Promise<void>;
+  /**
+   * The current hosted URL for invoice `id`. The listed `url` can expire, so
+   * a link asks for this when clicked. Rejects with the failure, which
+   * leaves the list as it is.
+   */
+  fetchLink: (id: string) => Promise<string>;
 }
 
 /**
@@ -152,7 +158,14 @@ export function useInvoices(
     () => source.loadMoreInvoices(params),
     [params, source],
   );
-  return useMemo(() => ({ ...handle, loadMore }), [handle, loadMore]);
+  const fetchLink = useCallback(
+    (id: string) => actionsOf(source).fetchInvoiceLink(id),
+    [source],
+  );
+  return useMemo(
+    () => ({ ...handle, loadMore, fetchLink }),
+    [handle, loadMore, fetchLink],
+  );
 }
 
 /**

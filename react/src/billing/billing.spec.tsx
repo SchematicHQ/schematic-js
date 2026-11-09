@@ -2231,6 +2231,61 @@ describe("useSetupIntent", () => {
   });
 });
 
+describe("useInvoices fetchLink", () => {
+  it_("asks the client for the invoice's current URL", async () => {
+    const client = fakeClient({
+      fetchInvoiceLink: vi.fn(async (id: string) => `https://pay/${id}`),
+    });
+    const { result } = renderHook(() => useInvoices(), {
+      wrapper: ({ children }) => (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      ),
+    });
+    await expect(result.current.fetchLink("bilin_1")).resolves.toBe(
+      "https://pay/bilin_1",
+    );
+    expect(client.fetchInvoiceLink).toHaveBeenCalledWith("bilin_1");
+  });
+
+  it_("rejects when the client cannot read links", async () => {
+    // A host's client written before the route: the element falls back to
+    // the URL the invoice was listed with.
+    const { result } = renderHook(() => useInvoices(), {
+      wrapper: ({ children }) => (
+        <BillingProvider billingClient={fakeClient()}>
+          {children}
+        </BillingProvider>
+      ),
+    });
+    await expect(result.current.fetchLink("bilin_1")).rejects.toThrow(
+      "cannot read invoice links",
+    );
+  });
+
+  it_("BillingDataProvider serves the link given, or rejects", async () => {
+    const fetchInvoiceLink = vi.fn(async () => "https://pay/fixture");
+    const withAction = renderHook(() => useInvoices(), {
+      wrapper: ({ children }) => (
+        <BillingDataProvider data={{}} actions={{ fetchInvoiceLink }}>
+          {children}
+        </BillingDataProvider>
+      ),
+    });
+    await expect(withAction.result.current.fetchLink("bilin_1")).resolves.toBe(
+      "https://pay/fixture",
+    );
+
+    const without = renderHook(() => useInvoices(), {
+      wrapper: ({ children }) => (
+        <BillingDataProvider data={{}}>{children}</BillingDataProvider>
+      ),
+    });
+    await expect(without.result.current.fetchLink("bilin_1")).rejects.toThrow(
+      BILLING_ACTION_UNAVAILABLE_MESSAGE("fetchInvoiceLink"),
+    );
+  });
+});
+
 describe("BillingStore", () => {
   it("invalidateAll refetches a loaded null, not an unloaded resource", async () => {
     // A company with no next bill today may have one after a checkout; the
