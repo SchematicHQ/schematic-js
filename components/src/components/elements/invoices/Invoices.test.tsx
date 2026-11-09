@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { InvoiceStatus } from "../../../api/checkoutexternal";
 import { MAX_VISIBLE_INVOICE_COUNT } from "../../../const";
@@ -10,6 +10,7 @@ import { Invoices } from "./Invoices";
 
 const state = vi.hoisted(() => ({
   invoices: [] as unknown[],
+  getInvoiceLink: vi.fn(),
 }));
 
 vi.mock("../../../hooks", async (importOriginal) => {
@@ -20,10 +21,16 @@ vi.mock("../../../hooks", async (importOriginal) => {
   // the component re-fetches itself into an update loop.
   const data = {};
   const listInvoices = () => Promise.resolve({ data: state.invoices });
+  const getInvoiceLink = (id: string) => state.getInvoiceLink(id);
 
   return {
     ...actual,
-    useEmbed: () => ({ data, settings: defaultSettings, listInvoices }),
+    useEmbed: () => ({
+      data,
+      settings: defaultSettings,
+      listInvoices,
+      getInvoiceLink,
+    }),
   };
 });
 
@@ -46,6 +53,7 @@ const DEFAULT_LIMIT = 2;
 
 beforeEach(() => {
   state.invoices = [];
+  state.getInvoiceLink.mockReset();
 });
 
 describe("`Invoices` truncation", () => {
@@ -99,5 +107,113 @@ describe("`Invoices` truncation", () => {
 
     await waitFor(() => expect(invoiceRows()).toHaveLength(4));
     expect(screen.getByText("See more")).toBeInTheDocument();
+  });
+});
+
+describe("`Invoices` links", () => {
+  const STORED_URL = "https://invoice.stripe.com/i/stored";
+  const FRESH_URL = "https://invoice.stripe.com/i/fresh";
+
+  beforeEach(() => {
+    state.invoices = [
+      {
+        ...invoicesFor(1)[0],
+        id: "bilin_1",
+        url: STORED_URL,
+      },
+    ];
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function stubWindowOpen(tab: unknown) {
+    return vi.spyOn(window, "open").mockReturnValue(tab as Window);
+  }
+
+  async function findLink() {
+    return screen.findByRole("link");
+  }
+
+  test("keeps the stored URL as the link's href", async () => {
+    render(<Invoices />);
+
+    const link = await findLink();
+    expect(link).toHaveAttribute("href", STORED_URL);
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noreferrer");
+  });
+
+  test("opens the fresh URL on success", async () => {
+    const tab = { opener: window, location: { href: "" } };
+    const open = stubWindowOpen(tab);
+    state.getInvoiceLink.mockResolvedValue({
+      data: { id: "bilin_1", url: FRESH_URL },
+    });
+    render(<Invoices />);
+
+    const notPrevented = fireEvent.click(await findLink());
+
+    expect(notPrevented).toBe(false);
+    expect(open).toHaveBeenCalledWith("", "_blank");
+    expect(tab.opener).toBeNull();
+    expect(state.getInvoiceLink).toHaveBeenCalledWith("bilin_1");
+    await waitFor(() => expect(tab.location.href).toBe(FRESH_URL));
+  });
+
+  test("falls back to the stored URL when the request fails", async () => {
+    const tab = { opener: window, location: { href: "" } };
+    stubWindowOpen(tab);
+    state.getInvoiceLink.mockRejectedValue(new Error("not found"));
+    render(<Invoices />);
+
+    fireEvent.click(await findLink());
+
+    await waitFor(() => expect(tab.location.href).toBe(STORED_URL));
+  });
+
+  test("opens the window before the request resolves", async () => {
+    const tab = { opener: window, location: { href: "" } };
+    const open = stubWindowOpen(tab);
+    let resolve: (value: unknown) => void = () => {};
+    state.getInvoiceLink.mockReturnValue(
+      new Promise((r) => {
+        resolve = r;
+      }),
+    );
+    render(<Invoices />);
+
+    fireEvent.click(await findLink());
+
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(open.mock.invocationCallOrder[0]).toBeLessThan(
+      state.getInvoiceLink.mock.invocationCallOrder[0],
+    );
+    expect(tab.location.href).toBe("");
+
+    resolve({ data: { id: "bilin_1", url: FRESH_URL } });
+    await waitFor(() => expect(tab.location.href).toBe(FRESH_URL));
+  });
+
+  test("follows the stored href when the window is blocked", async () => {
+    stubWindowOpen(null);
+    render(<Invoices />);
+
+    const notPrevented = fireEvent.click(await findLink());
+
+    expect(notPrevented).toBe(true);
+    expect(state.getInvoiceLink).not.toHaveBeenCalled();
+  });
+
+  test("leaves a modified click to the browser", async () => {
+    const open = stubWindowOpen({ opener: window, location: { href: "" } });
+    render(<Invoices />);
+
+    const notPrevented = fireEvent.click(await findLink(), { metaKey: true });
+
+    expect(notPrevented).toBe(true);
+    expect(open).not.toHaveBeenCalled();
+    expect(state.getInvoiceLink).not.toHaveBeenCalled();
   });
 });

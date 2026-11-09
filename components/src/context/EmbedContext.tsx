@@ -10,6 +10,7 @@ import {
   type GetCheckoutTaxIDResponse,
   type GetCreditUsageByUserResponse,
   type GetFeatureUsageByUserResponse,
+  type GetInvoiceLinkResponse,
   type GetSetupIntentResponse,
   type HydrateUpcomingInvoiceResponse,
   type ListInvoicesResponse,
@@ -73,6 +74,9 @@ export interface EmbedContextProps extends Omit<EmbedState, SettingsLayer> {
   ) => DebouncedApiPromise<HydrateUpcomingInvoiceResponse>;
   getCustomerBalance: () => DebouncedApiPromise<FetchCustomerBalanceResponse>;
   listInvoices: () => DebouncedApiPromise<ListInvoicesResponse>;
+  getInvoiceLink: (
+    billingInvoiceId: string,
+  ) => Promise<GetInvoiceLinkResponse | undefined>;
   getCreditUsageByUser: (
     billingCreditId: string,
     limit?: number,
@@ -145,6 +149,7 @@ export const initialContext = {
   getUpcomingInvoice: stub,
   getCustomerBalance: stub,
   listInvoices: stub,
+  getInvoiceLink: stub,
   getCreditUsageByUser: stub,
   getFeatureUsageByUser: stub,
   createSetupIntent: stub,
