@@ -22,11 +22,13 @@ import {
   companySubscription,
   creditBalance,
   creditGrant,
+  creditLedgerEntry,
   daysFromNow,
   discount,
   featureUsage,
   invoice,
   invoicePage,
+  logMinutesAgo,
   meteredPrice,
   perLicenseCreditGrant,
   publicCatalog,
@@ -585,6 +587,77 @@ export function pricingTablePublicScenario(): BillingData {
   };
 }
 
+/**
+ * The roadmap's credit log: draws by three people, an auto top-up, and an
+ * older plan grant and period reset, newest first.
+ */
+export function creditLogScenario(): BillingData {
+  const day = 24 * 60;
+  const grant = {
+    feature: undefined,
+    usageReason: undefined,
+    user: undefined,
+  } as const;
+  return {
+    creditLedger: {
+      entries: [
+        creditLedgerEntry({
+          amount: -1.5,
+          eventAt: logMinutesAgo(46),
+          feature: { id: "feat_prompt", name: "Dashboard prompt" },
+          user: { id: "user_fynn", name: "Fynn Glover" },
+        }),
+        creditLedgerEntry({
+          ...grant,
+          amount: 1000,
+          bundle: { id: "bcb_booster", name: "Booster pack" },
+          eventAt: logMinutesAgo(68),
+          grantReason: "billing_credit_auto_topup",
+          kind: "grant",
+        }),
+        creditLedgerEntry({
+          eventAt: logMinutesAgo(72),
+          user: { id: "user_sana", name: "Sana Chen" },
+        }),
+        creditLedgerEntry({
+          amount: -3,
+          eventAt: logMinutesAgo(238),
+          feature: { id: "feat_chat", name: "AI conversation" },
+          user: { id: "user_sana", name: "Sana Chen" },
+        }),
+        creditLedgerEntry({
+          amount: -1.5,
+          eventAt: logMinutesAgo(day),
+          feature: { id: "feat_prompt", name: "Dashboard prompt" },
+          user: { id: "user_marcus", name: "Marcus Okafor" },
+        }),
+        creditLedgerEntry({
+          amount: -1,
+          eventAt: logMinutesAgo(day + 345),
+          feature: { id: "feat_prompt", name: "Dashboard prompt" },
+          user: undefined,
+        }),
+        creditLedgerEntry({
+          ...grant,
+          amount: 5000,
+          eventAt: logMinutesAgo(23 * day),
+          grantReason: "plan",
+          kind: "grant",
+        }),
+        creditLedgerEntry({
+          ...grant,
+          amount: -410,
+          eventAt: logMinutesAgo(23 * day + 1),
+          grantReason: "plan",
+          kind: "zero_out",
+          zeroedOutReason: "plan_period_reset",
+        }),
+      ],
+      hasMore: false,
+    },
+  };
+}
+
 export const SCENARIOS = {
   pro: proCompany,
   trialing: trialingCompany,
@@ -595,6 +668,7 @@ export const SCENARIOS = {
   featureUsage: featureUsageScenario,
   featureUsageEmpty,
   credits: creditsScenario,
+  creditLog: creditLogScenario,
   planManager: planManagerScenario,
   planManagerTrialing: planManagerTrialingScenario,
   pricingTable: pricingTableScenario,

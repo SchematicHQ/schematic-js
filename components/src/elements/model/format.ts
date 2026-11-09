@@ -194,6 +194,26 @@ export function formatDate(
   }).format(date);
 }
 
+/**
+ * "Oct 26, 3:40 PM", or "3:40 PM" with `timeOnly`, in the viewer's time
+ * zone. Empty for an Invalid Date.
+ */
+export function formatDateTime(
+  date: Date,
+  locale: string,
+  options: { timeOnly?: boolean } = {},
+): string {
+  if (usableDate(date) === undefined) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(usableLocale(locale), {
+    ...(options.timeOnly === true ? {} : { month: "short", day: "numeric" }),
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
 /** "8/21". Empty for an Invalid Date. */
 export function formatShortDate(date: Date, locale: string): string {
   if (usableDate(date) === undefined) {

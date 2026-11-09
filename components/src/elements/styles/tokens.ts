@@ -40,6 +40,7 @@ export const SCHEMATIC_TOKENS: Record<string, string> = {
   "--schematic-line-height-heading": "1.2",
   "--schematic-meter-track": ld("#f2f4f7", "#26282d"),
   "--schematic-muted": ld("#8a8a8a", "#a1a1a1"),
+  "--schematic-positive": ld("#1a7f37", "#3fb950"),
   "--schematic-primary": ld("#000000", "#ffffff"),
   "--schematic-primary-contrast": ld("#ffffff", "#000000"),
   "--schematic-radius": "0.625rem",

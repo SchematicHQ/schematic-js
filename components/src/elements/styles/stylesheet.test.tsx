@@ -6,6 +6,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { Checkout } from "../Checkout";
+import { CreditLog } from "../CreditLog";
 import { CreditUsage } from "../CreditUsage";
 import { IncludedFeatures } from "../IncludedFeatures";
 import { Invoices } from "../Invoices";
@@ -21,6 +22,7 @@ import {
   company,
   creditBalance,
   creditGrant,
+  creditLedgerEntry,
   creditUserUsage,
   daysFromNow,
   featureUsage,
@@ -60,7 +62,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|credit-log|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -200,6 +202,27 @@ function adding() {
   );
   fireEvent.click(
     root.querySelector(".schematic-payment-methods__edit") as Element,
+  );
+  return root;
+}
+
+/** The credit log opened in place, with another page to load. */
+function creditLogOpen() {
+  const data = SCENARIOS.creditLog();
+  const root = tree(<CreditLog locale="en-US" />, {
+    creditLedger: {
+      entries: [
+        ...(data.creditLedger?.entries ?? []),
+        creditLedgerEntry({ amount: 7 }),
+        creditLedgerEntry({
+          credit: { id: "bcr_export", name: "Export credit" },
+        }),
+      ],
+      hasMore: true,
+    },
+  });
+  fireEvent.click(
+    root.querySelector(".schematic-credit-log__toggle") as Element,
   );
   return root;
 }
@@ -617,6 +640,22 @@ async function everyCard() {
       featureUsage: { error: boom },
     } as never),
     await creditsOpen(),
+    tree(<CreditLog locale="en-US" />, SCENARIOS.creditLog()),
+    tree(<CreditLog locale="en-US" seeAllUrl="/log" />, SCENARIOS.creditLog()),
+    tree(
+      <CreditLog locale="en-US" onSeeAll={() => {}} />,
+      SCENARIOS.creditLog(),
+    ),
+    creditLogOpen(),
+    tree(<CreditLog locale="en-US" />, {
+      creditLedger: { entries: [], hasMore: false },
+    }),
+    tree(<CreditLog locale="en-US" />, {}, {
+      creditLedger: { isPending: true },
+    } as never),
+    tree(<CreditLog locale="en-US" />, {}, {
+      creditLedger: { error: boom },
+    } as never),
     planManagerOpen(),
     unsubscribeOpen(),
     tree(<PlanManager locale="en-US" />, {}, {
