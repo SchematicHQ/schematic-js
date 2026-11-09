@@ -126,6 +126,44 @@ export type ElementStrings = {
   creditUsageCompanyGrant: string;
   creditUsageRenewsOn: string;
 
+  creditLogLoading: string;
+  creditLogHeader: string;
+  creditLogError: string;
+  creditLogUnavailable: string;
+  creditLogEmpty: string;
+  creditLogSeeMore: string;
+  creditLogSeeLess: string;
+  creditLogSeeAll: string;
+  creditLogLoadMore: string;
+  creditLogToday: string;
+  creditLogYesterday: string;
+  creditLogColumnDate: string;
+  creditLogColumnActivity: string;
+  creditLogColumnCredit: string;
+  creditLogColumnBy: string;
+  creditLogColumnAmount: string;
+  creditLogActionUsage: string;
+  creditLogActionRefund: string;
+  creditLogActionRefundUnnamed: string;
+  creditLogActionUsageAdjustment: string;
+  creditLogActionAutoTopup: string;
+  creditLogActionAutoTopupUnnamed: string;
+  creditLogActionPurchase: string;
+  creditLogActionPurchaseUnnamed: string;
+  creditLogActionPlanGrant: string;
+  creditLogActionFreeGrant: string;
+  creditLogActionAdjustmentGrant: string;
+  creditLogActionRollover: string;
+  creditLogActionExpired: string;
+  creditLogActionReset: string;
+  creditLogActionPlanChange: string;
+  creditLogActionLicenseRetired: string;
+  creditLogActionRemoved: string;
+  creditLogWhoAutoTopup: string;
+  creditLogWhoPurchase: string;
+  creditLogWhoPlan: string;
+  creditLogWhoManual: string;
+
   planManagerLoading: string;
   planManagerError: string;
   planManagerUnavailable: string;
@@ -533,6 +571,44 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   creditUsagePerLicense: "{{quantity}} {{licenseName}} × {{perUnit}}",
   creditUsageCompanyGrant: "{{amount}} company grant",
   creditUsageRenewsOn: "Renews on the {{day}}.",
+
+  creditLogLoading: "Loading credit activity",
+  creditLogHeader: "Credit activity",
+  creditLogError: "There was a problem retrieving your credit activity.",
+  creditLogUnavailable: "Credit activity is not available for this account.",
+  creditLogEmpty: "No credit activity yet",
+  creditLogSeeMore: "See full log",
+  creditLogSeeLess: "See less",
+  creditLogSeeAll: "See all",
+  creditLogLoadMore: "Load more",
+  creditLogToday: "Today, {{time}}",
+  creditLogYesterday: "Yesterday, {{time}}",
+  creditLogColumnDate: "Date",
+  creditLogColumnActivity: "Activity",
+  creditLogColumnCredit: "Credit",
+  creditLogColumnBy: "By",
+  creditLogColumnAmount: "Amount",
+  creditLogActionUsage: "Usage",
+  creditLogActionRefund: "Refund: {{feature}}",
+  creditLogActionRefundUnnamed: "Refund",
+  creditLogActionUsageAdjustment: "Usage adjustment",
+  creditLogActionAutoTopup: "Auto top-up, {{bundle}}",
+  creditLogActionAutoTopupUnnamed: "Auto top-up",
+  creditLogActionPurchase: "Purchased {{bundle}}",
+  creditLogActionPurchaseUnnamed: "Credits purchased",
+  creditLogActionPlanGrant: "Plan grant",
+  creditLogActionFreeGrant: "Free credits",
+  creditLogActionAdjustmentGrant: "Credit adjustment",
+  creditLogActionRollover: "Rolled over",
+  creditLogActionExpired: "Unused grant expired",
+  creditLogActionReset: "Unused credits reset",
+  creditLogActionPlanChange: "Removed on plan change",
+  creditLogActionLicenseRetired: "Removed with license",
+  creditLogActionRemoved: "Credits removed",
+  creditLogWhoAutoTopup: "Auto top-up",
+  creditLogWhoPurchase: "Purchase",
+  creditLogWhoPlan: "Plan",
+  creditLogWhoManual: "Manual",
 
   planManagerLoading: "Loading your plan",
   planManagerError: "There was a problem retrieving your plan.",

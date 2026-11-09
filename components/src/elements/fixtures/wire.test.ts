@@ -66,6 +66,21 @@ describe("wire round trip", () => {
   });
 
   test.each(Object.keys(SCENARIOS) as ScenarioName[])(
+    "%s, the credit ledger",
+    (name) => {
+      const rows = SCENARIOS[name]().creditLedger?.entries ?? [];
+      const wire = rows.map((row) =>
+        billingApi.CompanyCreditLedgerEntryResponseDataToJSON(row),
+      );
+      expect(JSON.stringify(wire)).not.toMatch(/"[a-z]+[A-Z]/);
+      const decoded = JSON.parse(JSON.stringify(wire)).map(
+        billingApi.CompanyCreditLedgerEntryResponseDataFromJSON,
+      );
+      expect(decoded).toEqual(rows);
+    },
+  );
+
+  test.each(Object.keys(SCENARIOS) as ScenarioName[])(
     "%s, the feature usage",
     (name) => {
       const rows = SCENARIOS[name]().featureUsage ?? [];
