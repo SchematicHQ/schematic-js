@@ -17,7 +17,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@schematichq/schematic-js": "^1.16.1"
+    "@schematichq/schematic-js": "^1.17.0"
   },
   "devDependencies": {
     "@angular/compiler": "^22.2.4",

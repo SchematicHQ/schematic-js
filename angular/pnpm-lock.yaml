@@ -19,8 +19,8 @@ importers:
   .:
     dependencies:
       '@schematichq/schematic-js':
-        specifier: ^1.16.1
-        version: 1.16.1
+        specifier: ^1.17.0
+        version: 1.17.0
     devDependencies:
       '@angular/compiler':
         specifier: ^22.2.4
@@ -174,8 +174,8 @@ packages:
     resolution: {integrity: sha512-0GEz8qJWokkUVYQYRukmkSHIFNoBH8QTreeHrAFbvz1XFYc3Y+puhMs8PQ5x8GNugiC2l5jvDBXKLbBIByeSBw==}
     hasBin: true
 
-  '@bufbuild/protobuf@2.16.0':
-    resolution: {integrity: sha512-FWa0sPlqYGJgpTs6OxBRcL/AW4JT0OIO+W1ajerluoTVh8CV0B7XM1qsNCRgnkSCkRCgOICKHRQlY17jrsm0+Q==}
+  '@bufbuild/protobuf@2.17.0':
+    resolution: {integrity: sha512-hcPkSz6D7MiTU/5VBBhK+kxaYDoOdQ6yJRFJ3kS8Nydp+VZXfg1vrpABKPNod8bXMufsVCmiUJVIKFzCzta4uw==}
 
   '@cacheable/memory@2.2.0':
     resolution: {integrity: sha512-CTLKqLItRCEixEAewD3/j9DB3/o96gpTPD4eJ1v+DGOlxZRZncRQkGYqqnAGCscYd6RNeXfGeiuCphsPtqyIfQ==}
@@ -658,8 +658,8 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@schematichq/schematic-js@1.16.1':
-    resolution: {integrity: sha512-4dzFvwHXF1ylFEM66IR4t67DkQHf25fJLUnod1AAW4iBpv3G4lKCTprr6pHzLTAUhU5qHEqoyEnk58TkaAG6bQ==}
+  '@schematichq/schematic-js@1.17.0':
+    resolution: {integrity: sha512-wron7MlxPnTXPzbnMJcg49MDe1DQcvVtwPpl4FMjTTw6Fus5hq6cT7ii0MuOb4/ih9wAJAjHAiCVSlutijIk7A==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -2596,7 +2596,7 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
-  '@bufbuild/protobuf@2.16.0': {}
+  '@bufbuild/protobuf@2.17.0': {}
 
   '@cacheable/memory@2.2.0':
     dependencies:
@@ -2901,7 +2901,7 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@schematichq/schematic-js@1.16.1':
+  '@schematichq/schematic-js@1.17.0':
     dependencies:
       cross-fetch: 4.1.0
       uuid: 14.0.3
@@ -4389,7 +4389,7 @@ snapshots:
 
   sass-embedded@1.107.0:
     dependencies:
-      '@bufbuild/protobuf': 2.16.0
+      '@bufbuild/protobuf': 2.17.0
       colorjs.io: 0.7.1
       immutable: 5.1.9
       rxjs: 7.8.2
