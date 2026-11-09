@@ -211,12 +211,14 @@ models/GetCreditUsageByUserParams.ts
 models/GetCreditUsageByUserResponse.ts
 models/GetFeatureUsageByUserParams.ts
 models/GetFeatureUsageByUserResponse.ts
+models/GetInvoiceLinkResponse.ts
 models/GetSetupIntentResponse.ts
 models/HydrateComponentParams.ts
 models/HydrateComponentResponse.ts
 models/HydrateParams.ts
 models/HydrateResponse.ts
 models/HydrateUpcomingInvoiceResponse.ts
+models/InvoiceLink.ts
 models/InvoiceResponseData.ts
 models/InvoiceStatus.ts
 models/ListCheckoutsParams.ts
