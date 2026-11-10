@@ -14,6 +14,7 @@ models/BillingPriceScheme.ts
 models/BillingProductPriceInterval.ts
 models/BillingProviderType.ts
 models/BillingStrategy.ts
+models/BillingSubscriptionPauseBehavior.ts
 models/BillingSubscriptionTrialEndSetting.ts
 models/BillingTiersMode.ts
 models/CatalogAutoTopupResponseData.ts

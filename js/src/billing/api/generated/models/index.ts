@@ -11,6 +11,7 @@ export * from "./BillingPriceScheme";
 export * from "./BillingProductPriceInterval";
 export * from "./BillingProviderType";
 export * from "./BillingStrategy";
+export * from "./BillingSubscriptionPauseBehavior";
 export * from "./BillingSubscriptionTrialEndSetting";
 export * from "./BillingTiersMode";
 export * from "./CatalogAutoTopupResponseData";
