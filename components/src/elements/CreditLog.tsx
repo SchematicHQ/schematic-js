@@ -193,7 +193,7 @@ export function CreditLog({
                   aria-labelledby={labelledBy}
                 >
                   <thead>
-                    <tr>
+                    <tr className="schematic-credit-log__heading-row">
                       <th className="schematic-credit-log__heading" scope="col">
                         {t("creditLogColumnDate")}
                       </th>
@@ -225,35 +225,44 @@ export function CreditLog({
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((row) => (
-                      <tr data-testid="schematic-credit-log-entry" key={row.id}>
-                        <td className="schematic-muted schematic-credit-log__cell">
-                          {whenText(row, t)}
-                        </td>
-                        <td className="schematic-credit-log__cell">
-                          <span className="schematic-credit-log__wrap">
+                    {rows.map((row) => {
+                      const who = whoText(row.who, t);
+                      return (
+                        <tr
+                          className="schematic-credit-log__table-row"
+                          data-testid="schematic-credit-log-entry"
+                          key={row.id}
+                        >
+                          <td className="schematic-muted schematic-credit-log__cell schematic-credit-log__date">
+                            {whenText(row, t)}
+                          </td>
+                          <td className="schematic-credit-log__cell schematic-credit-log__activity">
                             {actionText(row, t)}
-                          </span>
-                        </td>
-                        {showUser && (
-                          <td className="schematic-muted schematic-credit-log__cell">
-                            <span className="schematic-credit-log__wrap">
-                              {whoText(row.who, t) ?? "—"}
-                            </span>
                           </td>
-                        )}
-                        {showCredit && (
-                          <td className="schematic-muted schematic-credit-log__cell">
-                            <span className="schematic-credit-log__wrap">
-                              {row.creditName}
-                            </span>
+                          {showUser && (
+                            <td
+                              className={cx(
+                                "schematic-muted",
+                                "schematic-credit-log__cell",
+                                "schematic-credit-log__by",
+                                who === undefined &&
+                                  "schematic-credit-log__by--none",
+                              )}
+                            >
+                              <Truncated text={who ?? "—"} />
+                            </td>
+                          )}
+                          {showCredit && (
+                            <td className="schematic-muted schematic-credit-log__cell schematic-credit-log__credit">
+                              <Truncated text={row.creditName} />
+                            </td>
+                          )}
+                          <td className="schematic-credit-log__cell schematic-credit-log__amount-cell">
+                            <Amount row={row} />
                           </td>
-                        )}
-                        <td className="schematic-credit-log__cell schematic-credit-log__amount-cell">
-                          <Amount row={row} />
-                        </td>
-                      </tr>
-                    ))}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -391,6 +400,18 @@ function SeeAll({
     >
       {label}
     </button>
+  );
+}
+
+/**
+ * A name cut to its column with an ellipsis. The whole name stays in the text,
+ * so a screen reader reads it, and `title` shows it on hover.
+ */
+function Truncated({ text }: { text: string }) {
+  return (
+    <span className="schematic-credit-log__truncate" title={text}>
+      {text}
+    </span>
   );
 }
 
