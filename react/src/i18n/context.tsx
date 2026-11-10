@@ -19,11 +19,14 @@ import React, { createContext, useContext, useMemo } from "react";
  * Returning `undefined` means "no translation" and the caller falls back to
  * its English default. Elements also pass a sentinel `defaultValue`, so a stack
  * that answers every key with something still reports a real miss.
+ *
+ * Two signatures, not one with optional `vars`: i18next 27's `t` has separate
+ * `(key)` and `(key, options)` overloads, and only this shape accepts it.
  */
-export type Translate = (
-  key: string,
-  vars?: Record<string, unknown>,
-) => string | undefined;
+export interface Translate {
+  (key: string): string | undefined;
+  (key: string, vars: Record<string, unknown>): string | undefined;
+}
 
 /** Copy overrides by key. Keys are the element package's `StringKey`s. */
 export type StringOverrides = Record<string, string | undefined>;
