@@ -599,21 +599,24 @@ export class BillingStore {
   ): Promise<void> {
     const params = normalizeCreditLedgerQuery(query);
     const resource = this.creditLedger.get(params);
-    if (resource.snapshot.data?.hasMore !== true) {
+    if (resource.snapshot.data?.nextCursor === undefined) {
       return Promise.resolve();
     }
     return resource.extend(async (current) => {
+      if (current.nextCursor === undefined) {
+        return current;
+      }
       const page = await this._client.fetchCreditLedger({
         ...params,
+        cursor: current.nextCursor,
         limit: CREDIT_LEDGER_PAGE_SIZE,
-        offset: current.entries.length,
       });
-      return {
-        entries: [...current.entries, ...page.entries],
-        // An empty page ends the list whatever the server says, so a ledger
-        // that shrank under the offset cannot page nothing forever.
-        hasMore: page.entries.length > 0 && page.hasMore,
-      };
+      // An empty page ends the list whatever cursor it carries, so a cursor
+      // that pages nothing cannot be followed forever.
+      return creditLedgerPage(
+        [...current.entries, ...page.entries],
+        page.entries.length > 0 ? page.nextCursor : undefined,
+      );
     });
   }
 
@@ -769,27 +772,28 @@ export class BillingStore {
     };
   }
 
-  /** `_reloadWindow` for the credit ledger, which pages by `hasMore`. */
+  /**
+   * `_reloadWindow` for the credit ledger: re-reads from the newest entry,
+   * following cursors until it has as many rows as were loaded.
+   */
   private async _reloadCreditLedgerWindow(
     query: CreditLedgerQuery,
     window: number,
   ): Promise<CreditLedgerPage> {
     const entries: CreditLedgerEntry[] = [];
-    let hasMore = false;
-    while (entries.length < window) {
+    let cursor: string | undefined;
+    do {
       const page = await this._client.fetchCreditLedger({
         ...query,
+        ...(cursor === undefined ? {} : { cursor }),
         limit: Math.min(INVOICE_MAX_PAGE_SIZE, window - entries.length),
-        offset: entries.length,
       });
       entries.push(...page.entries);
-      hasMore = page.entries.length > 0 && page.hasMore;
-      if (!hasMore) {
-        break;
-      }
-    }
+      // An empty page ends the walk, as in loadMoreCreditLedger.
+      cursor = page.entries.length > 0 ? page.nextCursor : undefined;
+    } while (cursor !== undefined && entries.length < window);
 
-    return { entries, hasMore };
+    return creditLedgerPage(entries, cursor);
   }
 
   /**
@@ -818,3 +822,11 @@ export const RESOURCE_NAMES: readonly BillingResourceName[] = [
   "company",
   "taxIds",
 ];
+
+/** A ledger page that carries `nextCursor` only when there is a next page. */
+function creditLedgerPage(
+  entries: CreditLedgerEntry[],
+  nextCursor: string | undefined,
+): CreditLedgerPage {
+  return nextCursor === undefined ? { entries } : { entries, nextCursor };
+}
