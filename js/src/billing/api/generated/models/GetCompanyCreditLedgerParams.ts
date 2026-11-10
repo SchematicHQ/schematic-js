@@ -26,23 +26,23 @@ export interface GetCompanyCreditLedgerParams {
    */
   creditIds?: Array<string>;
   /**
+   * The previous page's next_cursor. The newest page when omitted.
+   * @type {string}
+   * @memberof GetCompanyCreditLedgerParams
+   */
+  cursor?: string;
+  /**
    * Include grants and expiries alongside draws. Default true.
    * @type {boolean}
    * @memberof GetCompanyCreditLedgerParams
    */
   includeGrants?: boolean;
   /**
-   * Page limit (default 100)
+   * Entries per page (default 100).
    * @type {number}
    * @memberof GetCompanyCreditLedgerParams
    */
   limit?: number;
-  /**
-   * Page offset (default 0)
-   * @type {number}
-   * @memberof GetCompanyCreditLedgerParams
-   */
-  offset?: number;
 }
 
 /**
@@ -69,10 +69,10 @@ export function GetCompanyCreditLedgerParamsFromJSONTyped(
   }
   return {
     creditIds: json["credit_ids"] == null ? undefined : json["credit_ids"],
+    cursor: json["cursor"] == null ? undefined : json["cursor"],
     includeGrants:
       json["include_grants"] == null ? undefined : json["include_grants"],
     limit: json["limit"] == null ? undefined : json["limit"],
-    offset: json["offset"] == null ? undefined : json["offset"],
   };
 }
 
@@ -92,8 +92,8 @@ export function GetCompanyCreditLedgerParamsToJSONTyped(
 
   return {
     credit_ids: value["creditIds"],
+    cursor: value["cursor"],
     include_grants: value["includeGrants"],
     limit: value["limit"],
-    offset: value["offset"],
   };
 }

@@ -75,8 +75,9 @@ export interface InvoicesRequest extends InvoiceQuery {
 export type InvoicesResult = Omit<InvoicePage, "hasMore">;
 
 export interface CreditLedgerRequest extends CreditLedgerQuery {
+  /** The previous page's `nextCursor`; the newest page when omitted. */
+  cursor?: string;
   limit: number;
-  offset: number;
 }
 
 export interface CreditUserUsageRequest {
@@ -507,8 +508,10 @@ export class SchematicBillingClient implements BillingClient {
   fetchCreditLedger(params: CreditLedgerRequest): Promise<CreditLedgerPage> {
     const query = new URLSearchParams({
       limit: String(Math.min(params.limit, INVOICE_MAX_PAGE_SIZE)),
-      offset: String(params.offset),
     });
+    if (params.cursor !== undefined) {
+      query.set("cursor", params.cursor);
+    }
     for (const credit of params.credits ?? []) {
       query.append("credit_ids", credit);
     }
@@ -526,10 +529,11 @@ export class SchematicBillingClient implements BillingClient {
         entries?: unknown;
       } | null;
       if (data == null || data.entries == null) {
-        return { entries: [], hasMore: false };
+        return { entries: [] };
       }
-      const decoded = GetCompanyCreditLedgerResponseFromJSON(body).data;
-      return { entries: decoded.entries, hasMore: decoded.hasMore };
+      const { entries, nextCursor } =
+        GetCompanyCreditLedgerResponseFromJSON(body).data;
+      return nextCursor == null ? { entries } : { entries, nextCursor };
     });
   }
 
@@ -685,7 +689,6 @@ export async function fetchBillingData(
             data.creditLedger = await client.fetchCreditLedger({
               ...(creditLedger ?? {}),
               limit: CREDIT_LEDGER_PAGE_SIZE,
-              offset: 0,
             });
             break;
           }

@@ -1771,7 +1771,7 @@ const wireCreditLedger = {
         zeroed_out_reason: null,
       },
     ],
-    has_more: true,
+    next_cursor: "cur_2",
   },
 };
 
@@ -1785,13 +1785,13 @@ describe("credit ledger", () => {
     const page = await client.fetchCreditLedger({
       credits: ["bcr_ai", "bcr_export"],
       includeGrants: false,
+      cursor: "cur_1",
       limit: 3,
-      offset: 3,
     });
     expect(calls[0].url).toBe(
-      "https://api.schematichq.com/company/credits/ledger?limit=3&offset=3&credit_ids=bcr_ai&credit_ids=bcr_export&include_grants=false",
+      "https://api.schematichq.com/company/credits/ledger?limit=3&cursor=cur_1&credit_ids=bcr_ai&credit_ids=bcr_export&include_grants=false",
     );
-    expect(page.hasMore).toBe(true);
+    expect(page.nextCursor).toBe("cur_2");
     expect(page.entries[0]).toMatchObject({
       amount: -42,
       kind: "drawdown",
@@ -1812,25 +1812,25 @@ describe("credit ledger", () => {
       session: { company: "comp_a", token: "t" },
       fetch: fetchImpl,
     });
-    await client.fetchCreditLedger({ limit: 4000, offset: 0 });
+    await client.fetchCreditLedger({ limit: 4000 });
     expect(calls[0].url).toBe(
-      "https://api.schematichq.com/company/credits/ledger?limit=250&offset=0",
+      "https://api.schematichq.com/company/credits/ledger?limit=250",
     );
   });
 
   it("reads no activity from a null page or a null entry array", async () => {
     for (const body of [
       { data: null },
-      { data: { entries: null, has_more: false } },
+      { data: { entries: null, next_cursor: null } },
     ]) {
       const { fetchImpl } = fakeFetch(() => ({ body }));
       const client = new SchematicBillingClient({
         session: { company: "comp_a", token: "t" },
         fetch: fetchImpl,
       });
-      await expect(
-        client.fetchCreditLedger({ limit: 1, offset: 0 }),
-      ).resolves.toEqual({ entries: [], hasMore: false });
+      await expect(client.fetchCreditLedger({ limit: 1 })).resolves.toEqual({
+        entries: [],
+      });
     }
   });
 
@@ -1852,9 +1852,10 @@ describe("credit ledger", () => {
       },
     );
     expect(calls[0].url).toBe(
-      "https://api.schematichq.com/company/credits/ledger?limit=20&offset=0&credit_ids=bcr_a&credit_ids=bcr_b",
+      "https://api.schematichq.com/company/credits/ledger?limit=20&credit_ids=bcr_a&credit_ids=bcr_b",
     );
     expect(data.creditLedger?.entries).toHaveLength(2);
+    expect(data.creditLedger?.nextCursor).toBe("cur_2");
     expect(data.params?.creditLedger).toEqual({ credits: ["bcr_a", "bcr_b"] });
   });
 });

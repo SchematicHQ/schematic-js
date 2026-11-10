@@ -41,7 +41,8 @@ export type CreditLedgerEntry = CompanyCreditLedgerEntryResponseData;
 
 export interface CreditLedgerPage {
   entries: CreditLedgerEntry[];
-  hasMore: boolean;
+  /** Reads the page after this one; absent on the last page. */
+  nextCursor?: string;
 }
 
 /** Each distinct query is its own row set with its own paging. */

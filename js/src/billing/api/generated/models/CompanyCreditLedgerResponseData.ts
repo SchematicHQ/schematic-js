@@ -34,11 +34,11 @@ export interface CompanyCreditLedgerResponseData {
    */
   entries: Array<CompanyCreditLedgerEntryResponseData>;
   /**
-   * Whether another page follows this one.
-   * @type {boolean}
+   * Pass as cursor to read the next page; null on the last page.
+   * @type {string}
    * @memberof CompanyCreditLedgerResponseData
    */
-  hasMore: boolean;
+  nextCursor?: string | null;
 }
 
 /**
@@ -48,7 +48,6 @@ export function instanceOfCompanyCreditLedgerResponseData(
   value: object,
 ): value is CompanyCreditLedgerResponseData {
   if (!("entries" in value) || value["entries"] === undefined) return false;
-  if (!("hasMore" in value) || value["hasMore"] === undefined) return false;
   return true;
 }
 
@@ -69,7 +68,7 @@ export function CompanyCreditLedgerResponseDataFromJSONTyped(
     entries: (json["entries"] as Array<any>).map(
       CompanyCreditLedgerEntryResponseDataFromJSON,
     ),
-    hasMore: json["has_more"],
+    nextCursor: json["next_cursor"] == null ? undefined : json["next_cursor"],
   };
 }
 
@@ -91,6 +90,6 @@ export function CompanyCreditLedgerResponseDataToJSONTyped(
     entries: (value["entries"] as Array<any>).map(
       CompanyCreditLedgerEntryResponseDataToJSON,
     ),
-    has_more: value["hasMore"],
+    next_cursor: value["nextCursor"],
   };
 }

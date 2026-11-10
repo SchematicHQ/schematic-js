@@ -132,9 +132,9 @@ export interface GetCheckoutRequest {
 
 export interface GetCompanyCreditLedgerRequest {
   creditIds?: Array<string>;
+  cursor?: string;
   includeGrants?: boolean;
   limit?: number;
-  offset?: number;
 }
 
 export interface GetCompanyCreditUserUsageRequest {
@@ -752,7 +752,7 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * The company\'s credit activity, newest first: draws by feature and user, grants, and credits removed when they expired or reset. A draw written against several grants is one entry.
+   * The company\'s credit activity, newest first: draws by feature and user, grants, and credits removed when they expired or reset. A draw written against several grants is one entry. Pass the response\'s `next_cursor` as `cursor` to read the next page.
    * List credit activity
    */
   async getCompanyCreditLedgerRaw(
@@ -765,16 +765,16 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
       queryParameters["credit_ids"] = requestParameters["creditIds"];
     }
 
+    if (requestParameters["cursor"] != null) {
+      queryParameters["cursor"] = requestParameters["cursor"];
+    }
+
     if (requestParameters["includeGrants"] != null) {
       queryParameters["include_grants"] = requestParameters["includeGrants"];
     }
 
     if (requestParameters["limit"] != null) {
       queryParameters["limit"] = requestParameters["limit"];
-    }
-
-    if (requestParameters["offset"] != null) {
-      queryParameters["offset"] = requestParameters["offset"];
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -801,7 +801,7 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
-   * The company\'s credit activity, newest first: draws by feature and user, grants, and credits removed when they expired or reset. A draw written against several grants is one entry.
+   * The company\'s credit activity, newest first: draws by feature and user, grants, and credits removed when they expired or reset. A draw written against several grants is one entry. Pass the response\'s `next_cursor` as `cursor` to read the next page.
    * List credit activity
    */
   async getCompanyCreditLedger(
