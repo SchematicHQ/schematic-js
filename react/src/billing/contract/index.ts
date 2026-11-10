@@ -132,7 +132,14 @@ export type BillingProviderClient = Pick<
 > &
   // Optional, so a host's client written before the public catalog still
   // satisfies this; without them, a reader with no session gets nothing.
-  Partial<Pick<ContractClient, "fetchPublicCatalog" | "hasPublishableKey">>;
+  // `fetchInvoiceLink` likewise: without it, an invoice opens at the URL
+  // it was listed with.
+  Partial<
+    Pick<
+      ContractClient,
+      "fetchPublicCatalog" | "hasPublishableKey" | "fetchInvoiceLink"
+    >
+  >;
 
 /**
  * Keeps only the fields the request reads. The store keys a row set by the
