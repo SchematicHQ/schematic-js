@@ -4,7 +4,7 @@ The company's recent credit activity, newest first: what drew credits and who, p
 
 ## Hooks and derivation
 
-`useCreditLedger(query)` reads the company's credit activity, which the store loads from `GET /company/credits/ledger` the first time any component reads it, 20 entries a page. `data` is a `CreditLedgerPage` (`entries`, `hasMore`); `loadMore()` appends the next page, and `refetch()` reloads every page already loaded. Each distinct query is its own list: `credits` narrows it to some credit ids, and `includeGrants: false` to draws. A 404 means the account is not on the `company-context-api` flag and surfaces as an error.
+`useCreditLedger(query)` reads the company's credit activity, which the store loads from `GET /company/credits/ledger` the first time any component reads it, 20 entries a page. `data` is a `CreditLedgerPage` (`entries`, and `nextCursor` when another page follows); `loadMore()` appends the next page, and `refetch()` reloads every page already loaded. Each distinct query is its own list: `credits` narrows it to some credit ids, and `includeGrants: false` to draws. A 404 means the account is not on the `company-context-api` flag and surfaces as an error.
 
 The server folds the ledger before it arrives:
 

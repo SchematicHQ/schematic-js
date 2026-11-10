@@ -98,7 +98,7 @@ export function deriveCreditLog(
     credit: single
       ? { id: first.id, name: featureName(first, 2, options.locale) }
       : null,
-    hasMore: page.hasMore,
+    hasMore: page.nextCursor !== undefined,
   };
 }
 

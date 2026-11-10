@@ -54,7 +54,7 @@ describe("CreditLog", () => {
   });
 
   test("says there is nothing yet, with no link", () => {
-    renderLog({ creditLedger: { entries: [], hasMore: false } });
+    renderLog({ creditLedger: { entries: [] } });
     expect(screen.getByText("No credit activity yet")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "See full log" })).toBeNull();
   });
@@ -124,7 +124,7 @@ describe("CreditLog", () => {
               feature: { id: "feat_csv", name: "CSV export" },
             }),
           ],
-          hasMore: true,
+          nextCursor: "next",
         },
       },
       { limit: 1 },
@@ -158,7 +158,7 @@ describe("CreditLog", () => {
       {
         creditLedger: {
           entries: data.creditLedger?.entries ?? [],
-          hasMore: true,
+          nextCursor: "next",
         },
       },
       { credits: ["bcr_ai"], showGrants: false, showUser: false },
@@ -175,7 +175,7 @@ describe("CreditLog", () => {
 
   test("offers the full log when more rows wait on the server", () => {
     renderLog(
-      { creditLedger: { entries: [creditLedgerEntry()], hasMore: true } },
+      { creditLedger: { entries: [creditLedgerEntry()], nextCursor: "next" } },
       { limit: 3 },
     );
     expect(

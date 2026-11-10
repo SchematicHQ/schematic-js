@@ -13,7 +13,7 @@ const L = "en-US";
 
 function row(overrides: Partial<CreditLedgerEntry>) {
   return deriveCreditLog(
-    { entries: [creditLedgerEntry(overrides)], hasMore: false },
+    { entries: [creditLedgerEntry(overrides)] },
     { locale: L, now: LOG_NOW },
   ).rows[0];
 }
@@ -142,8 +142,7 @@ describe("deriveCreditLog", () => {
 
   test("names the one credit a log is in, and none for several", () => {
     const view = (entries: CreditLedgerEntry[]) =>
-      deriveCreditLog({ entries, hasMore: false }, { locale: L, now: LOG_NOW })
-        .credit;
+      deriveCreditLog({ entries }, { locale: L, now: LOG_NOW }).credit;
     expect(view([creditLedgerEntry(), creditLedgerEntry()])).toEqual({
       id: "bcr_ai",
       name: "AI credits",

@@ -218,7 +218,7 @@ function creditLogOpen() {
           credit: { id: "bcr_export", name: "Export credit" },
         }),
       ],
-      hasMore: true,
+      nextCursor: "next",
     },
   });
   fireEvent.click(
@@ -648,7 +648,7 @@ async function everyCard() {
     ),
     creditLogOpen(),
     tree(<CreditLog locale="en-US" />, {
-      creditLedger: { entries: [], hasMore: false },
+      creditLedger: { entries: [] },
     }),
     tree(<CreditLog locale="en-US" />, {}, {
       creditLedger: { isPending: true },
