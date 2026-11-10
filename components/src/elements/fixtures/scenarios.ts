@@ -653,7 +653,6 @@ export function creditLogScenario(): BillingData {
           zeroedOutReason: "plan_period_reset",
         }),
       ],
-      hasMore: false,
     },
   };
 }

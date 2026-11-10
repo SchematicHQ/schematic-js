@@ -24,10 +24,7 @@ function CancelLink() {
   if (!company?.subscription || company.subscription.cancelAt) return null;
 
   return (
-    <button
-      disabled={isMutating}
-      onClick={() => unsubscribe().catch(() => {})}
-    >
+    <button disabled={isMutating} onClick={() => unsubscribe().catch(() => {})}>
       Cancel at period end
     </button>
   );
