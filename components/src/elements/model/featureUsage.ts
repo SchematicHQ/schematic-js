@@ -23,8 +23,10 @@ export interface TierRange {
  * interval and interval count (a quarter is three months). `null` without a
  * price.
  */
-export function pricePeriod(price: MeteredPrice | undefined): string | null {
-  if (price === undefined) {
+export function pricePeriod(
+  price: MeteredPrice | null | undefined,
+): string | null {
+  if (price == null) {
     return null;
   }
   if (price.interval === "month" && price.intervalCount === 3) {
@@ -34,9 +36,9 @@ export function pricePeriod(price: MeteredPrice | undefined): string | null {
 }
 
 /** Tiered when it has more than one tier, or a tiers mode says so. */
-export function isTieredPrice(price: MeteredPrice | undefined): boolean {
+export function isTieredPrice(price: MeteredPrice | null | undefined): boolean {
   return (
-    price !== undefined &&
+    price != null &&
     (price.priceTiers.length > 1 ||
       (price.tiersMode !== undefined && price.tiersMode !== null))
   );
@@ -111,7 +113,9 @@ export function currentTier(row: FeatureUsage): TierRange | null {
 }
 
 /** Every tier of the price, the first starting at one unit. */
-export function tierRanges(price: MeteredPrice | undefined): TierRange[] {
+export function tierRanges(
+  price: MeteredPrice | null | undefined,
+): TierRange[] {
   return (price?.priceTiers ?? []).map((tier, index) => {
     const range = tierRange(tier);
     return index === 0 ? { ...range, from: Math.max(1, range.from) } : range;
