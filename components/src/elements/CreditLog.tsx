@@ -179,63 +179,78 @@ export function CreditLog({
             </p>
           ) : full ? (
             <>
-              <table
-                className="schematic-small schematic-credit-log__table"
+              {/* Focusable so a keyboard can scroll a table too wide for the card. */}
+              <div
                 aria-label={label}
                 aria-labelledby={labelledBy}
+                className="schematic-credit-log__scroll"
+                role="region"
+                tabIndex={0}
               >
-                <thead>
-                  <tr>
-                    <th className="schematic-credit-log__heading" scope="col">
-                      {t("creditLogColumnDate")}
-                    </th>
-                    <th className="schematic-credit-log__heading" scope="col">
-                      {t("creditLogColumnActivity")}
-                    </th>
-                    {showUser && (
+                <table
+                  className="schematic-small schematic-credit-log__table"
+                  aria-label={label}
+                  aria-labelledby={labelledBy}
+                >
+                  <thead>
+                    <tr>
                       <th className="schematic-credit-log__heading" scope="col">
-                        {t("creditLogColumnBy")}
+                        {t("creditLogColumnDate")}
                       </th>
-                    )}
-                    {showCredit && (
                       <th className="schematic-credit-log__heading" scope="col">
-                        {t("creditLogColumnCredit")}
+                        {t("creditLogColumnActivity")}
                       </th>
-                    )}
-                    <th
-                      className="schematic-credit-log__heading schematic-credit-log__amount-heading"
-                      scope="col"
-                    >
-                      {t("creditLogColumnAmount")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr data-testid="schematic-credit-log-entry" key={row.id}>
-                      <td className="schematic-muted schematic-credit-log__cell schematic-credit-log__when">
-                        {whenText(row, t)}
-                      </td>
-                      <td className="schematic-credit-log__cell">
-                        {actionText(row, t)}
-                      </td>
                       {showUser && (
-                        <td className="schematic-muted schematic-credit-log__cell">
-                          {whoText(row.who, t) ?? "—"}
-                        </td>
+                        <th
+                          className="schematic-credit-log__heading"
+                          scope="col"
+                        >
+                          {t("creditLogColumnBy")}
+                        </th>
                       )}
                       {showCredit && (
-                        <td className="schematic-muted schematic-credit-log__cell">
-                          {row.creditName}
-                        </td>
+                        <th
+                          className="schematic-credit-log__heading"
+                          scope="col"
+                        >
+                          {t("creditLogColumnCredit")}
+                        </th>
                       )}
-                      <td className="schematic-credit-log__cell schematic-credit-log__amount-cell">
-                        <Amount row={row} />
-                      </td>
+                      <th
+                        className="schematic-credit-log__heading schematic-credit-log__amount-heading"
+                        scope="col"
+                      >
+                        {t("creditLogColumnAmount")}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {rows.map((row) => (
+                      <tr data-testid="schematic-credit-log-entry" key={row.id}>
+                        <td className="schematic-muted schematic-credit-log__cell">
+                          {whenText(row, t)}
+                        </td>
+                        <td className="schematic-credit-log__cell">
+                          {actionText(row, t)}
+                        </td>
+                        {showUser && (
+                          <td className="schematic-muted schematic-credit-log__cell">
+                            {whoText(row.who, t) ?? "—"}
+                          </td>
+                        )}
+                        {showCredit && (
+                          <td className="schematic-muted schematic-credit-log__cell">
+                            {row.creditName}
+                          </td>
+                        )}
+                        <td className="schematic-credit-log__cell schematic-credit-log__amount-cell">
+                          <Amount row={row} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               <div className="schematic-credit-log__actions">
                 <Toggle
                   expanded

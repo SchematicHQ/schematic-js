@@ -48,6 +48,10 @@ export const creditLogCss = `
   margin-inline-start: -0.333rem;
 }
 
+.schematic-credit-log__scroll {
+  overflow-x: auto;
+}
+
 .schematic-credit-log__table {
   border-collapse: collapse;
   width: 100%;
@@ -71,10 +75,6 @@ export const creditLogCss = `
 .schematic-credit-log__cell.schematic-credit-log__amount-cell {
   padding-inline-end: 0;
   text-align: end;
-}
-
-.schematic-credit-log__when {
-  white-space: nowrap;
 }
 
 .schematic-credit-log__actions {
