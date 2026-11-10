@@ -49,6 +49,7 @@ export const creditLogCss = `
 }
 
 .schematic-credit-log__scroll {
+  container-type: inline-size;
   overflow-x: auto;
 }
 
@@ -66,17 +67,21 @@ export const creditLogCss = `
 }
 
 .schematic-credit-log__cell {
-  padding: calc(var(--schematic-space) / 4) var(--schematic-space)
-    calc(var(--schematic-space) / 4) 0;
+  padding: calc(var(--schematic-space) / 2) var(--schematic-space)
+    calc(var(--schematic-space) / 2) 0;
   vertical-align: baseline;
 }
 
-/* A name with no spaces, such as a user named by an ID, breaks at the cap
-   rather than widening its column; ordinary words keep their width. */
-.schematic-credit-log__wrap {
+/* A long name, such as a user named by an ID, is cut with an ellipsis rather
+   than widening its column or wrapping its row. */
+.schematic-credit-log__truncate {
+  color: inherit;
   display: block;
+  font-size: inherit;
   max-width: 8rem;
-  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .schematic-credit-log__action,
@@ -88,6 +93,73 @@ export const creditLogCss = `
 .schematic-credit-log__cell.schematic-credit-log__amount-cell {
   padding-inline-end: 0;
   text-align: end;
+}
+
+/* A narrow card stacks each row: what happened and the amount, then when,
+   who and which credit beneath. */
+@container (max-width: 30rem) {
+  .schematic-credit-log__heading-row {
+    display: none;
+  }
+
+  .schematic-credit-log__table-row {
+    column-gap: 0.25em;
+    display: grid;
+    grid-template-areas:
+      "activity activity activity amount"
+      "date by credit credit";
+    grid-template-columns: auto auto 1fr auto;
+    padding: calc(var(--schematic-space) / 2) 0;
+  }
+
+  .schematic-credit-log__cell {
+    display: block;
+    padding: 0;
+  }
+
+  .schematic-credit-log__activity {
+    grid-area: activity;
+  }
+
+  .schematic-credit-log__cell.schematic-credit-log__amount-cell {
+    grid-area: amount;
+    padding-inline-start: var(--schematic-space);
+  }
+
+  .schematic-credit-log__date,
+  .schematic-credit-log__by,
+  .schematic-credit-log__credit {
+    font-size: 0.75rem;
+  }
+
+  .schematic-credit-log__date {
+    grid-area: date;
+  }
+
+  .schematic-credit-log__by {
+    grid-area: by;
+  }
+
+  .schematic-credit-log__credit {
+    grid-area: credit;
+  }
+
+  .schematic-credit-log__by,
+  .schematic-credit-log__credit {
+    align-items: baseline;
+    display: flex;
+    gap: 0.25em;
+    min-width: 0;
+  }
+
+  .schematic-credit-log__by::before,
+  .schematic-credit-log__credit::before {
+    content: "·";
+  }
+
+  .schematic-credit-log__by.schematic-credit-log__by--none {
+    display: none;
+  }
 }
 
 .schematic-credit-log__actions {

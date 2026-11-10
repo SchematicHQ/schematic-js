@@ -60,7 +60,7 @@ function Activity() {
 | `className`, `locale`       | —       | Root class; BCP 47 tag for formatting.                                   |
 | `strings`                   | —       | Copy for this element by key; wins over the provider's.                  |
 
-Amounts are bare numbers. A log in one credit names it once, beside the heading; a log across several credits, or one without the heading, names each row's credit after its time and who. "See full log" shows when there are more rows than `limit` or more on the server, and opens a table of date, activity, by and amount (with the credit before the amount when the log spans several) in place, with "Load more" until the server has nothing older, and "See less" back. With `onSeeAll` or `seeAllUrl` it is "See all" instead, for the host's own page. A draw sent without a user shows no one. An empty log says so in one line.
+Amounts are bare numbers. A log in one credit names it once, beside the heading; a log across several credits, or one without the heading, names each row's credit after its time and who. "See full log" shows when there are more rows than `limit` or more on the server, and opens a table of date, activity, by and amount (with the credit before the amount when the log spans several) in place, with "Load more" until the server has nothing older, and "See less" back. Long names in the by and credit columns are cut with an ellipsis, with the full name on hover. In a card narrower than 30rem the table stacks each row: what happened and the amount, then the date, who and credit beneath. With `onSeeAll` or `seeAllUrl` it is "See all" instead, for the host's own page. A draw sent without a user shows no one. An empty log says so in one line.
 
 ## Localizing it
 
