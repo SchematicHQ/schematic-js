@@ -13,6 +13,7 @@ import {
   ERROR_UNKNOWN,
   formatCurrency,
   isError,
+  openInvoiceLink,
   toPrettyDate,
 } from "../../../utils";
 import { Element } from "../../layout";
@@ -104,12 +105,13 @@ export function formatInvoices(
       const dateB = b.dueDate ?? b.createdAt;
       return +dateB - +dateA;
     })
-    .map(({ amountDue, dueDate, createdAt, url, currency }) => {
+    .map(({ amountDue, dueDate, createdAt, id, url, currency }) => {
       const formatted = formatCurrency(Math.abs(amountDue), {
         locale,
         currency,
       });
       return {
+        id,
         amount: amountDue < 0 ? `(${formatted})` : formatted,
         amountDue,
         date: toPrettyDate(dueDate ?? createdAt, { locale }),
@@ -133,7 +135,7 @@ export const Invoices = forwardRef<
 
   const { t, locale } = useTranslation();
 
-  const { data, listInvoices, settings } = useEmbed();
+  const { data, getInvoiceLink, listInvoices, settings } = useEmbed();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error>();
@@ -241,7 +243,7 @@ export const Invoices = forwardRef<
                 <>
                   <Flex $flexDirection="column" $gap="0.5rem">
                     {visibleInvoices.items.map(
-                      ({ date, amount, amountDue, url }, index) => {
+                      ({ id, date, amount, amountDue, url }, index) => {
                         return (
                           <Flex
                             key={index}
@@ -251,12 +253,23 @@ export const Invoices = forwardRef<
                             {props.date.isVisible && (
                               <Text
                                 display={props.date.fontStyle}
-                                {...(url && {
-                                  as: "a",
-                                  href: url,
-                                  target: "_blank",
-                                  rel: "noreferrer",
-                                })}
+                                {...(id &&
+                                  url && {
+                                    as: "a",
+                                    href: url,
+                                    target: "_blank",
+                                    rel: "noreferrer",
+                                    onClick: (
+                                      event: React.MouseEvent<HTMLAnchorElement>,
+                                    ) => {
+                                      void openInvoiceLink(
+                                        event,
+                                        url,
+                                        async () =>
+                                          (await getInvoiceLink(id))?.data.url,
+                                      );
+                                    },
+                                  })}
                                 $color={
                                   url
                                     ? settings.theme.typography.link.color

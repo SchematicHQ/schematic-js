@@ -5,6 +5,7 @@ export * from "./debounce";
 export * from "./discount";
 export * from "./error";
 export * from "./event";
+export * from "./invoiceLink";
 export * from "./markdown";
 export * from "./pluralize";
 export * from "./string";

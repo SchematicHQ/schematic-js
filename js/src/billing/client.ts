@@ -20,6 +20,7 @@ import {
   GetCompanyInvoicesResponseFromJSON,
   GetCompanyPaymentMethodsResponseFromJSON,
   GetCompanyUpcomingInvoiceResponseFromJSON,
+  InvoiceLinkFromJSON,
   PublicCatalogResponseDataFromJSON,
 } from "./api/generated/models";
 import type {
@@ -121,6 +122,12 @@ export interface BillingClient {
     options?: { sessionId?: string },
   ): Promise<CheckoutResult>;
   fetchInvoices(params: InvoicesRequest): Promise<InvoicesResult>;
+  /**
+   * The current hosted URL for invoice `id`. The `url` on a listed invoice
+   * can expire; this asks the provider again. Rejects with a 404 when the
+   * invoice is not the company's or has no link.
+   */
+  fetchInvoiceLink(id: string): Promise<string>;
   /** `null` when the company has no next bill. */
   fetchUpcomingInvoice(): Promise<UpcomingInvoice | null>;
   /** Empty when the company has no method on file. */
@@ -323,6 +330,13 @@ export class SchematicBillingClient implements BillingClient {
       const decoded = GetCompanyInvoicesResponseFromJSON(body).data;
       return { invoices: decoded.invoices, count: decoded.count };
     });
+  }
+
+  fetchInvoiceLink(id: string): Promise<string> {
+    const path = `/components/invoices/${encodeURIComponent(id)}/link`;
+    return this.session
+      .request(path)
+      .then((body) => InvoiceLinkFromJSON(dataOf(body, path)).url);
   }
 
   fetchUpcomingInvoice(): Promise<UpcomingInvoice | null> {
