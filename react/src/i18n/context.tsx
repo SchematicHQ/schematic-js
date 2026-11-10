@@ -20,10 +20,13 @@ import React, { createContext, useContext, useMemo } from "react";
  * its English default. Elements also pass a sentinel `defaultValue`, so a stack
  * that answers every key with something still reports a real miss.
  */
-export type Translate = (
-  key: string,
-  vars?: Record<string, unknown>,
-) => string | undefined;
+export interface Translate {
+  // Two overloads, not an optional `vars`: from i18next v27 a `t` only takes
+  // `(key)` or `(key, options)`, and a single signature with an optional
+  // parameter matches neither.
+  (key: string): string | undefined;
+  (key: string, vars: Record<string, unknown>): string | undefined;
+}
 
 /** Copy overrides by key. Keys are the element package's `StringKey`s. */
 export type StringOverrides = Record<string, string | undefined>;

@@ -1,4 +1,5 @@
 import { render, renderHook, screen } from "@testing-library/react";
+import { createInstance } from "i18next";
 import React from "react";
 import { vi } from "vitest";
 
@@ -12,6 +13,7 @@ import {
   useSchematicLocale,
   useSchematicStrings,
   useSchematicTranslate,
+  type Translate,
 } from "./context";
 
 const isDOMEnvironment = typeof document !== "undefined";
@@ -143,5 +145,15 @@ describe("i18n and the data seam", () => {
     const { result } = renderHook(() => useSchematicI18n(), { wrapper });
     expect(result.current.locale).toBe("ja-JP");
     expect(result.current.strings).toEqual({ retry: "再試行" });
+  });
+});
+
+describe("Translate", () => {
+  it("takes i18next's t as it is, so translate={t} is the integration", () => {
+    // Type-level check: fails the build if i18next's signature drifts from ours.
+    const i18n = createInstance();
+    void i18n.init({ lng: "en", initAsync: false });
+    const translate: Translate = i18n.t;
+    expect(translate("retry")).toBe("retry");
   });
 });
