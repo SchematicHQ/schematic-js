@@ -231,16 +231,22 @@ export function CreditLog({
                           {whenText(row, t)}
                         </td>
                         <td className="schematic-credit-log__cell">
-                          {actionText(row, t)}
+                          <span className="schematic-credit-log__wrap">
+                            {actionText(row, t)}
+                          </span>
                         </td>
                         {showUser && (
                           <td className="schematic-muted schematic-credit-log__cell">
-                            {whoText(row.who, t) ?? "—"}
+                            <span className="schematic-credit-log__wrap">
+                              {whoText(row.who, t) ?? "—"}
+                            </span>
                           </td>
                         )}
                         {showCredit && (
                           <td className="schematic-muted schematic-credit-log__cell">
-                            {row.creditName}
+                            <span className="schematic-credit-log__wrap">
+                              {row.creditName}
+                            </span>
                           </td>
                         )}
                         <td className="schematic-credit-log__cell schematic-credit-log__amount-cell">

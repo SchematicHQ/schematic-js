@@ -71,6 +71,19 @@ export const creditLogCss = `
   vertical-align: baseline;
 }
 
+/* A name with no spaces, such as a user named by an ID, breaks at the cap
+   rather than widening its column; ordinary words keep their width. */
+.schematic-credit-log__wrap {
+  display: block;
+  max-width: 8rem;
+  overflow-wrap: break-word;
+}
+
+.schematic-credit-log__action,
+.schematic-credit-log__detail {
+  overflow-wrap: anywhere;
+}
+
 .schematic-credit-log__heading.schematic-credit-log__amount-heading,
 .schematic-credit-log__cell.schematic-credit-log__amount-cell {
   padding-inline-end: 0;
