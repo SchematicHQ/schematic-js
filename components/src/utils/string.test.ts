@@ -1,6 +1,12 @@
 import { describe, expect, test } from "vitest";
 
-import { createSchematicI18n, i18n, type Translate } from "../localization";
+import {
+  createSchematicI18n,
+  i18n,
+  type SchematicTranslationKey,
+  type Translate,
+  type TranslationOptions,
+} from "../localization";
 
 import {
   adjectify,
@@ -49,7 +55,10 @@ describe("camelToHyphen", () => {
 });
 
 const locale = "en-US";
-const t: Translate = (key, options) => i18n.t(key, options);
+const t: Translate = (
+  key: SchematicTranslationKey,
+  options: TranslationOptions = {},
+) => i18n.t(key, options);
 
 describe("formatNumber", () => {
   test("formats number with commas", () => {
@@ -217,8 +226,10 @@ describe("formatOrdinal with a translation", () => {
     const it = createSchematicI18n({
       it: { Ordinal_ordinal_other: "{{count}}º" },
     });
-    const translate: Translate = (key, options) =>
-      it.t(key, { ...options, lng: "it" });
+    const translate: Translate = (
+      key: SchematicTranslationKey,
+      options: TranslationOptions = {},
+    ) => it.t(key, { ...options, lng: "it" });
 
     expect(formatOrdinal(1, translate)).toBe("1º");
     expect(formatOrdinal(22, translate)).toBe("22º");
@@ -236,8 +247,10 @@ describe("adjectify", () => {
 
   test("reads the adjective from the bundle", () => {
     const it = createSchematicI18n({ it: { monthly: "mensile" } });
-    const translate: Translate = (key, options) =>
-      it.t(key, { ...options, lng: "it" });
+    const translate: Translate = (
+      key: SchematicTranslationKey,
+      options: TranslationOptions = {},
+    ) => it.t(key, { ...options, lng: "it" });
 
     expect(adjectify("month", translate)).toBe("mensile");
   });

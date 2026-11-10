@@ -17,6 +17,7 @@ import {
 } from "./i18n";
 import type {
   SchematicI18nInstance,
+  SchematicTranslationKey,
   SchematicTranslations,
   Translate,
   TranslationOptions,
@@ -89,7 +90,7 @@ export function useTranslation(): UseTranslationResult {
   const resolvedLocale = resolveLocale(language);
 
   const t = useCallback<Translate>(
-    (key, options) => {
+    (key: SchematicTranslationKey, options?: TranslationOptions) => {
       const lookup = {
         ...formatNumbers(options, resolvedLocale),
         ...LOOKUP_OPTIONS,

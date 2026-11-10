@@ -27,10 +27,15 @@ export type SchematicTranslations = Partial<
 /** Interpolation values, and `count` for a plural key. */
 export type TranslationOptions = Record<string, unknown>;
 
-export type Translate = (
-  key: SchematicTranslationKey,
-  options?: TranslationOptions,
-) => string;
+/**
+ * Two signatures, not one with optional `options`: i18next 27's `TFunction`
+ * has separate `(key)` and `(key, options)` overloads, and only this shape
+ * lets `translate={t}` type-check against it.
+ */
+export interface Translate {
+  (key: SchematicTranslationKey): string;
+  (key: SchematicTranslationKey, options: TranslationOptions): string;
+}
 
 /**
  * The parts of an i18next instance the components use, so a host on any
@@ -40,7 +45,9 @@ export type Translate = (
 export interface SchematicI18nInstance {
   language: string;
   resolvedLanguage?: string;
-  t(key: string, options?: Record<string, unknown>): string;
+  // `options` is required to match i18next 27, which has no `(key, options?)`
+  // overload. We always pass options, so hosts on older versions still fit.
+  t(key: string, options: Record<string, unknown>): string;
   exists(key: string, options?: Record<string, unknown>): boolean;
   on(event: string, listener: Listener): void;
   off(event: string, listener: Listener): void;
