@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schematic API
- * Schematic API
+ * Components API
+ * The browser-facing billing API behind the drop-in components and the schematic-react hooks. A temporary access token scopes every call to one company.
  *
  * The version of the OpenAPI document: 0.1
  *
@@ -59,7 +59,7 @@ export interface CompanyContextResponseData {
    * @type {CompanyContextCustomPlanBillingResponseData}
    * @memberof CompanyContextResponseData
    */
-  customPlanBilling?: CompanyContextCustomPlanBillingResponseData;
+  customPlanBilling?: CompanyContextCustomPlanBillingResponseData | null;
   /**
    *
    * @type {string}
@@ -77,19 +77,19 @@ export interface CompanyContextResponseData {
    * @type {CompanyContextPlanResponseData}
    * @memberof CompanyContextResponseData
    */
-  plan?: CompanyContextPlanResponseData;
+  plan?: CompanyContextPlanResponseData | null;
   /**
    * A plan change scheduled for the end of the billing period; null when none is.
    * @type {CompanyContextScheduledDowngradeResponseData}
    * @memberof CompanyContextResponseData
    */
-  scheduledDowngrade?: CompanyContextScheduledDowngradeResponseData;
+  scheduledDowngrade?: CompanyContextScheduledDowngradeResponseData | null;
   /**
    * The company's subscription; null when it has none, or several.
    * @type {CompanyContextSubscriptionResponseData}
    * @memberof CompanyContextResponseData
    */
-  subscription?: CompanyContextSubscriptionResponseData;
+  subscription?: CompanyContextSubscriptionResponseData | null;
 }
 
 /**

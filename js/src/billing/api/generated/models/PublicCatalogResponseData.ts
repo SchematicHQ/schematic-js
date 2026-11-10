@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schematic API
- * Schematic API
+ * Components API
+ * The browser-facing billing API behind the drop-in components and the schematic-react hooks. A temporary access token scopes every call to one company.
  *
  * The version of the OpenAPI document: 0.1
  *
@@ -78,7 +78,7 @@ export interface PublicCatalogResponseData {
    * @type {CatalogCustomPlanCTAResponseData}
    * @memberof PublicCatalogResponseData
    */
-  customPlanCta?: CatalogCustomPlanCTAResponseData;
+  customPlanCta?: CatalogCustomPlanCTAResponseData | null;
   /**
    * ISO 4217 currency of every top-level price slot; currency_prices carries the others.
    * @type {Currency}

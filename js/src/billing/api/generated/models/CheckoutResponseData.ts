@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Schematic API
- * Schematic API
+ * Components API
+ * The browser-facing billing API behind the drop-in components and the schematic-react hooks. A temporary access token scopes every call to one company.
  *
  * The version of the OpenAPI document: 0.1
  *
@@ -41,6 +41,13 @@ import {
   BillingProviderTypeToJSON,
   BillingProviderTypeToJSONTyped,
 } from "./BillingProviderType";
+import type { BillingSubscriptionPauseBehavior } from "./BillingSubscriptionPauseBehavior";
+import {
+  BillingSubscriptionPauseBehaviorFromJSON,
+  BillingSubscriptionPauseBehaviorFromJSONTyped,
+  BillingSubscriptionPauseBehaviorToJSON,
+  BillingSubscriptionPauseBehaviorToJSONTyped,
+} from "./BillingSubscriptionPauseBehavior";
 
 /**
  *
@@ -48,6 +55,12 @@ import {
  * @interface CheckoutResponseData
  */
 export interface CheckoutResponseData {
+  /**
+   *
+   * @type {Date}
+   * @memberof CheckoutResponseData
+   */
+  accessRevokedAt?: Date | null;
   /**
    *
    * @type {string}
@@ -132,6 +145,24 @@ export interface CheckoutResponseData {
    * @memberof CheckoutResponseData
    */
   metadata?: object;
+  /**
+   *
+   * @type {BillingSubscriptionPauseBehavior}
+   * @memberof CheckoutResponseData
+   */
+  pauseBehavior?: BillingSubscriptionPauseBehavior | null;
+  /**
+   *
+   * @type {number}
+   * @memberof CheckoutResponseData
+   */
+  pauseResumesAt?: number | null;
+  /**
+   *
+   * @type {Date}
+   * @memberof CheckoutResponseData
+   */
+  pausedAt?: Date | null;
   /**
    *
    * @type {number}
@@ -242,6 +273,10 @@ export function CheckoutResponseDataFromJSONTyped(
     return json;
   }
   return {
+    accessRevokedAt:
+      json["access_revoked_at"] == null
+        ? undefined
+        : new Date(json["access_revoked_at"]),
     applicationId:
       json["application_id"] == null ? undefined : json["application_id"],
     cancelAt: json["cancel_at"] == null ? undefined : json["cancel_at"],
@@ -267,6 +302,14 @@ export function CheckoutResponseDataFromJSONTyped(
     id: json["id"],
     interval: json["interval"],
     metadata: json["metadata"] == null ? undefined : json["metadata"],
+    pauseBehavior:
+      json["pause_behavior"] == null
+        ? undefined
+        : BillingSubscriptionPauseBehaviorFromJSON(json["pause_behavior"]),
+    pauseResumesAt:
+      json["pause_resumes_at"] == null ? undefined : json["pause_resumes_at"],
+    pausedAt:
+      json["paused_at"] == null ? undefined : new Date(json["paused_at"]),
     periodEnd: json["period_end"],
     periodStart: json["period_start"],
     providerType: BillingProviderTypeFromJSON(json["provider_type"]),
@@ -304,6 +347,10 @@ export function CheckoutResponseDataToJSONTyped(
   }
 
   return {
+    access_revoked_at:
+      value["accessRevokedAt"] == null
+        ? undefined
+        : (value["accessRevokedAt"] as any).toISOString(),
     application_id: value["applicationId"],
     cancel_at: value["cancelAt"],
     cancel_at_period_end: value["cancelAtPeriodEnd"],
@@ -322,6 +369,14 @@ export function CheckoutResponseDataToJSONTyped(
     id: value["id"],
     interval: value["interval"],
     metadata: value["metadata"],
+    pause_behavior: BillingSubscriptionPauseBehaviorToJSON(
+      value["pauseBehavior"],
+    ),
+    pause_resumes_at: value["pauseResumesAt"],
+    paused_at:
+      value["pausedAt"] == null
+        ? undefined
+        : (value["pausedAt"] as any).toISOString(),
     period_end: value["periodEnd"],
     period_start: value["periodStart"],
     provider_type: BillingProviderTypeToJSON(value["providerType"]),
