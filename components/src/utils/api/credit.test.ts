@@ -221,7 +221,7 @@ describe("getPurchasableCreditIds", () => {
 });
 
 describe("formatBundleExpiry", () => {
-  const t: Translate = (key, options) => i18n.t(key, options);
+  const t: Translate = (key, options) => i18n.t(key, { ...options });
 
   it("describes a duration in days", () => {
     expect(

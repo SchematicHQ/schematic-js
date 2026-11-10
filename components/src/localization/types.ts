@@ -40,7 +40,10 @@ export type Translate = (
 export interface SchematicI18nInstance {
   language: string;
   resolvedLanguage?: string;
-  t(key: string, options?: Record<string, unknown>): string;
+  // Overloads, not an optional `options`: from i18next v27 the instance's `t`
+  // only takes `(key)` or `(key, options)`.
+  t(key: string): string;
+  t(key: string, options: Record<string, unknown>): string;
   exists(key: string, options?: Record<string, unknown>): boolean;
   on(event: string, listener: Listener): void;
   off(event: string, listener: Listener): void;

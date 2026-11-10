@@ -49,7 +49,7 @@ describe("camelToHyphen", () => {
 });
 
 const locale = "en-US";
-const t: Translate = (key, options) => i18n.t(key, options);
+const t: Translate = (key, options) => i18n.t(key, { ...options });
 
 describe("formatNumber", () => {
   test("formats number with commas", () => {

@@ -151,7 +151,7 @@ describe("getSubscriptionDiscount", () => {
 });
 
 describe("getBillingPreviewText", () => {
-  const t = i18n.t;
+  const t: Translate = (key, options) => i18n.t(key, { ...options });
 
   test("returns null without a subscription price", () => {
     expect(

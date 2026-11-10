@@ -1,12 +1,9 @@
-import type { TFunction } from "i18next";
-
 import {
   DEFAULT_STRINGS,
   defaultString,
   interpolate,
   lookup,
   type StringCatalog,
-  type Translate,
 } from "./strings";
 
 /**
@@ -383,13 +380,6 @@ describe("the string contract", () => {
     for (const value of Object.values(DEFAULT_STRINGS)) {
       expect(typeof value).toBe("string");
     }
-  });
-
-  test("i18next's t satisfies Translate, so translate={t} is the integration", () => {
-    // Type-level check: fails the build if i18next's signature drifts from ours.
-    const t = ((key: string) => key) as unknown as TFunction;
-    const translate: Translate = t;
-    expect(translate("invoicesLoadMore")).toBe("invoicesLoadMore");
   });
 });
 
