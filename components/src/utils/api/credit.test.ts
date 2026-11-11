@@ -11,7 +11,13 @@ import {
   type CreditCompanyGrantView,
   type PlanCreditGrantView,
 } from "../../api/checkoutexternal";
-import { createSchematicI18n, i18n, type Translate } from "../../localization";
+import {
+  createSchematicI18n,
+  i18n,
+  type SchematicTranslationKey,
+  type Translate,
+  type TranslationOptions,
+} from "../../localization";
 
 import {
   aggregateActiveGrantsByBundle,
@@ -221,7 +227,10 @@ describe("getPurchasableCreditIds", () => {
 });
 
 describe("formatBundleExpiry", () => {
-  const t: Translate = (key, options) => i18n.t(key, options);
+  const t: Translate = (
+    key: SchematicTranslationKey,
+    options: TranslationOptions = {},
+  ) => i18n.t(key, options);
 
   it("describes a duration in days", () => {
     expect(
@@ -258,8 +267,10 @@ describe("formatBundleExpiry", () => {
         "day_other": "giorni",
       },
     });
-    const translate: Translate = (key, options) =>
-      italian.t(key, { ...options, lng: "it" });
+    const translate: Translate = (
+      key: SchematicTranslationKey,
+      options: TranslationOptions = {},
+    ) => italian.t(key, { ...options, lng: "it" });
 
     expect(
       formatBundleExpiry(

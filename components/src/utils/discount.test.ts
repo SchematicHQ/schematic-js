@@ -2,7 +2,11 @@ import { describe, expect, test } from "vitest";
 
 import type { PreviewSubscriptionDiscountResponseData } from "../api/checkoutexternal";
 import { createSchematicI18n, i18n } from "../localization/i18n";
-import type { Translate } from "../localization/types";
+import type {
+  SchematicTranslationKey,
+  Translate,
+  TranslationOptions,
+} from "../localization/types";
 
 import { getBillingPreviewText, getSubscriptionDiscount } from "./discount";
 
@@ -195,8 +199,10 @@ describe("getBillingPreviewText", () => {
         "Ordinal_ordinal_other": "{{count, number}}º",
       },
     });
-    const translate: Translate = (key, options) =>
-      italian.t(key, { ...options, lng: "it" });
+    const translate: Translate = (
+      key: SchematicTranslationKey,
+      options: TranslationOptions = {},
+    ) => italian.t(key, { ...options, lng: "it" });
 
     expect(
       getBillingPreviewText(
