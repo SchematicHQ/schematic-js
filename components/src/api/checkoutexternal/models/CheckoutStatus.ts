@@ -21,6 +21,7 @@ export const CheckoutStatus = {
   Completed: "completed",
   Expired: "expired",
   Open: "open",
+  PendingPayment: "pending_payment",
 } as const;
 export type CheckoutStatus =
   (typeof CheckoutStatus)[keyof typeof CheckoutStatus];
