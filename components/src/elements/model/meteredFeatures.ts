@@ -242,7 +242,7 @@ function limitLine(
       }
       break;
     case "pay_as_you_go":
-      if (typeof row.currentCost === "number" && row.price !== undefined) {
+      if (typeof row.currentCost === "number" && row.price != null) {
         return {
           kind: "cost",
           cost: formatCurrency(row.currentCost, row.price.currency, locale),
@@ -334,7 +334,7 @@ function priceDetails(
   locale: string,
 ): MeteredPriceDetails | null {
   const price = row.price;
-  if (price === undefined) {
+  if (price == null) {
     return null;
   }
   const tier = currentTier(row);

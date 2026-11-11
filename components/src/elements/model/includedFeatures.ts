@@ -184,7 +184,7 @@ function includedFeatureRow(
           }
         : null,
     tiers:
-      (row.priceBehavior === "tier" || tiered) && row.price !== undefined
+      (row.priceBehavior === "tier" || tiered) && row.price != null
         ? {
             ranges: tierRanges(row.price),
             currency: row.price.currency,
@@ -225,7 +225,7 @@ function entitlementText(
         ? { kind: "units", ...units(row.allocation) }
         : null;
     case "pay_as_you_go": {
-      if (row.price === undefined) {
+      if (row.price == null) {
         return null;
       }
       const cost = formatCurrency(
@@ -316,7 +316,7 @@ function usageSegments(
     row.priceBehavior === "pay_in_advance" &&
     !tiered &&
     period !== null &&
-    row.price !== undefined
+    row.price != null
   ) {
     const size = row.price.packageSize;
     segments.push({
@@ -344,7 +344,7 @@ function usageSegments(
   if (
     typeof row.currentCost === "number" &&
     row.currentCost > 0 &&
-    row.price !== undefined
+    row.price != null
   ) {
     segments.push({
       kind: "cost",

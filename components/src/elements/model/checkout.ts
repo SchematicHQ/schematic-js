@@ -390,9 +390,7 @@ function prorationBlock(
       name:
         catalogName(catalog, line.planId) ??
         catalogPriceName(catalog, line.priceId) ??
-        (line.planId != null &&
-        current !== undefined &&
-        current.id === line.planId
+        (line.planId != null && current != null && current.id === line.planId
           ? current.name
           : null),
       periodText:
@@ -420,7 +418,7 @@ function prorationBlock(
 /** The catalog's custom plan as a card's worth of words; `null` when it offers none worth showing. */
 function customPlanOf(catalog: Catalog): CheckoutModel["customPlan"] {
   const cta = catalog.customPlanCta;
-  if (cta === undefined) {
+  if (cta == null) {
     return null;
   }
   const custom = {
@@ -697,7 +695,7 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
             null,
           amount,
           costText:
-            amount === null || unit === undefined
+            amount === null || unit == null
               ? null
               : priceText(unit, locale, amount),
         };
