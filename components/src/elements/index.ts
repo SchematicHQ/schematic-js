@@ -87,6 +87,7 @@ export {
   type UserUsage,
 } from "@schematichq/schematic-react";
 export {
+  bundlePlanId,
   cartReducer,
   catalogName,
   catalogPriceName,
@@ -94,6 +95,7 @@ export {
   checkoutSelections,
   currentTier,
   deriveCheckout,
+  deriveCreditBundles,
   deriveCreditLog,
   deriveCreditUsage,
   deriveIncludedFeatures,
@@ -142,6 +144,9 @@ export {
   type CheckoutStep,
   type CheckoutSteps,
   type CheckoutTotals,
+  type CreditBundleExpiry,
+  type CreditBundleRow,
+  type CreditBundlesView,
   type CreditCompositionLine,
   type CreditGrantKind,
   type CreditGroupRow,
@@ -153,6 +158,7 @@ export {
   type CreditLogWho,
   type CreditUsageRow,
   type DeriveCheckoutInput,
+  type DeriveCreditBundlesOptions,
   type DeriveCreditLogOptions,
   type DeriveCreditUsageOptions,
   type DeriveIncludedFeaturesOptions,
@@ -239,6 +245,7 @@ export {
   type CheckoutLauncher,
   type CheckoutLauncherProviderProps,
 } from "./checkout/launcher";
+export { CreditBundles, type CreditBundlesProps } from "./CreditBundles";
 export { CreditLog, type CreditLogProps } from "./CreditLog";
 export { CreditUsage, type CreditUsageProps } from "./CreditUsage";
 export {
