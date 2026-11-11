@@ -62,8 +62,8 @@ importers:
         specifier: ^1.17.0
         version: 1.17.0
       '@schematichq/schematic-react':
-        specifier: ^1.18.0
-        version: 1.18.0(react@19.3.1)
+        specifier: ^1.18.1
+        version: 1.18.1(react@19.3.1)
       '@stripe/react-stripe-js':
         specifier: ^6.12.0
         version: 6.12.0(@stripe/stripe-js@9.17.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -796,8 +796,8 @@ packages:
   '@schematichq/schematic-js@1.17.0':
     resolution: {integrity: sha512-wron7MlxPnTXPzbnMJcg49MDe1DQcvVtwPpl4FMjTTw6Fus5hq6cT7ii0MuOb4/ih9wAJAjHAiCVSlutijIk7A==}
 
-  '@schematichq/schematic-react@1.18.0':
-    resolution: {integrity: sha512-PwPcom4Q7C8IMvrssvULMUJoMNkEdfKBIh71IOMPBGfk/5FHfry4REebATbb9kjwpBSwM8sv8rCISI20apoYTQ==}
+  '@schematichq/schematic-react@1.18.1':
+    resolution: {integrity: sha512-TjMA2cGLhOIy40baygBi9h5Dkay8QJ6nF8KvzsqLOMFUqEt25TNlRi8WfcnKHjlE5+NN1coCdZrr+NfqRgggkA==}
     peerDependencies:
       react: '>=18'
 
@@ -3033,6 +3033,7 @@ packages:
 
   tldts-core@7.4.20:
     resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
+    deprecated: Partial release, see https://github.com/remusao/tldts/issues/2735. Use >=7.4.22.
 
   tldts@7.4.19:
     resolution: {integrity: sha512-48dH6aSpQnpbzDUc4vIQZ1VjB8tkK+e8c1yx05/SZK+rkssgjEOlxDd/yU8/a4vGYQ9vRgJr9dwMq9TJ0b3X2Q==}
@@ -4013,7 +4014,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@schematichq/schematic-react@1.18.0(react@19.3.1)':
+  '@schematichq/schematic-react@1.18.1(react@19.3.1)':
     dependencies:
       react: 19.3.1
 
