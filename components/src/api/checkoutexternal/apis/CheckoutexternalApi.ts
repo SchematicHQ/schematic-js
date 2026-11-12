@@ -34,6 +34,7 @@ import type {
   GetCheckoutResponse,
   GetCheckoutTaxIDResponse,
   GetCompanyCreditBalancesResponse,
+  GetCompanyCreditLedgerResponse,
   GetCompanyCreditUserUsageResponse,
   GetCompanyFeatureUsageResponse,
   GetCompanyFeatureUserUsageResponse,
@@ -104,6 +105,8 @@ import {
   GetCheckoutTaxIDResponseToJSON,
   GetCompanyCreditBalancesResponseFromJSON,
   GetCompanyCreditBalancesResponseToJSON,
+  GetCompanyCreditLedgerResponseFromJSON,
+  GetCompanyCreditLedgerResponseToJSON,
   GetCompanyCreditUserUsageResponseFromJSON,
   GetCompanyCreditUserUsageResponseToJSON,
   GetCompanyFeatureUsageResponseFromJSON,
@@ -195,6 +198,13 @@ export interface GetCatalogViewByIDRequest {
 
 export interface GetCheckoutRequest {
   checkoutId: string;
+}
+
+export interface GetCompanyCreditLedgerRequest {
+  creditIds?: Array<string>;
+  cursor?: string;
+  includeGrants?: boolean;
+  limit?: number;
 }
 
 export interface GetCompanyCreditUserUsageRequest {
@@ -1076,6 +1086,70 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<GetCompanyCreditBalancesResponse> {
     const response = await this.getCompanyCreditBalancesRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * The company\'s credit activity, newest first: draws by feature and user, grants, and credits removed when they expired or reset. A draw written against several grants is one entry. Pass the response\'s `next_cursor` as `cursor` to read the next page.
+   * List credit activity
+   */
+  async getCompanyCreditLedgerRaw(
+    requestParameters: GetCompanyCreditLedgerRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyCreditLedgerResponse>> {
+    const queryParameters: any = {};
+
+    if (requestParameters["creditIds"] != null) {
+      queryParameters["credit_ids"] = requestParameters["creditIds"];
+    }
+
+    if (requestParameters["cursor"] != null) {
+      queryParameters["cursor"] = requestParameters["cursor"];
+    }
+
+    if (requestParameters["includeGrants"] != null) {
+      queryParameters["include_grants"] = requestParameters["includeGrants"];
+    }
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits/ledger`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyCreditLedgerResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * The company\'s credit activity, newest first: draws by feature and user, grants, and credits removed when they expired or reset. A draw written against several grants is one entry. Pass the response\'s `next_cursor` as `cursor` to read the next page.
+   * List credit activity
+   */
+  async getCompanyCreditLedger(
+    requestParameters: GetCompanyCreditLedgerRequest = {},
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyCreditLedgerResponse> {
+    const response = await this.getCompanyCreditLedgerRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 
