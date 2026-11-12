@@ -19,7 +19,10 @@ import type {
   CheckoutUnsubscribeResponse,
   CreateCheckoutRequest,
   CreateCheckoutResponse,
+  CreateCompanySpendPolicyRequestBody,
+  CreateCompanySpendPolicyResponse,
   CreateSetupIntentResponse,
+  DeleteCompanySpendPolicyResponse,
   DeletePaymentMethodResponse,
   FinalizeCheckoutRequest,
   FinalizeCheckoutResponse,
@@ -38,10 +41,13 @@ import type {
   GetCompanyUpcomingInvoiceResponse,
   GetInvoiceLinkResponse,
   ListCheckoutsResponse,
+  ListCompanySpendPoliciesResponse,
   UpdateCheckoutRequest,
   UpdateCheckoutResponse,
   UpdateCheckoutTaxIDRequestBody,
   UpdateCheckoutTaxIDResponse,
+  UpdateCompanySpendPolicyResponse,
+  UpdateCreditSpendPolicyRequestBody,
   UpdatePaymentMethodRequestBody,
   UpdatePaymentMethodResponse,
 } from "../models/index";
@@ -56,8 +62,14 @@ import {
   CreateCheckoutRequestToJSON,
   CreateCheckoutResponseFromJSON,
   CreateCheckoutResponseToJSON,
+  CreateCompanySpendPolicyRequestBodyFromJSON,
+  CreateCompanySpendPolicyRequestBodyToJSON,
+  CreateCompanySpendPolicyResponseFromJSON,
+  CreateCompanySpendPolicyResponseToJSON,
   CreateSetupIntentResponseFromJSON,
   CreateSetupIntentResponseToJSON,
+  DeleteCompanySpendPolicyResponseFromJSON,
+  DeleteCompanySpendPolicyResponseToJSON,
   DeletePaymentMethodResponseFromJSON,
   DeletePaymentMethodResponseToJSON,
   FinalizeCheckoutRequestFromJSON,
@@ -94,6 +106,8 @@ import {
   GetInvoiceLinkResponseToJSON,
   ListCheckoutsResponseFromJSON,
   ListCheckoutsResponseToJSON,
+  ListCompanySpendPoliciesResponseFromJSON,
+  ListCompanySpendPoliciesResponseToJSON,
   UpdateCheckoutRequestFromJSON,
   UpdateCheckoutRequestToJSON,
   UpdateCheckoutResponseFromJSON,
@@ -102,6 +116,10 @@ import {
   UpdateCheckoutTaxIDRequestBodyToJSON,
   UpdateCheckoutTaxIDResponseFromJSON,
   UpdateCheckoutTaxIDResponseToJSON,
+  UpdateCompanySpendPolicyResponseFromJSON,
+  UpdateCompanySpendPolicyResponseToJSON,
+  UpdateCreditSpendPolicyRequestBodyFromJSON,
+  UpdateCreditSpendPolicyRequestBodyToJSON,
   UpdatePaymentMethodRequestBodyFromJSON,
   UpdatePaymentMethodRequestBodyToJSON,
   UpdatePaymentMethodResponseFromJSON,
@@ -110,6 +128,14 @@ import {
 
 export interface CreateCheckoutOperationRequest {
   createCheckoutRequest: CreateCheckoutRequest;
+}
+
+export interface CreateCompanySpendPolicyRequest {
+  createCompanySpendPolicyRequestBody: CreateCompanySpendPolicyRequestBody;
+}
+
+export interface DeleteCompanySpendPolicyRequest {
+  spendPolicyId: string;
 }
 
 export interface DeletePaymentMethodRequest {
@@ -166,6 +192,10 @@ export interface ListCheckoutsRequest {
   offset?: number;
 }
 
+export interface ListCompanySpendPoliciesRequest {
+  billingCreditId?: string;
+}
+
 export interface UpdateCheckoutOperationRequest {
   checkoutId: string;
   updateCheckoutRequest: UpdateCheckoutRequest;
@@ -173,6 +203,11 @@ export interface UpdateCheckoutOperationRequest {
 
 export interface UpdateCheckoutTaxIDRequest {
   updateCheckoutTaxIDRequestBody: UpdateCheckoutTaxIDRequestBody;
+}
+
+export interface UpdateCompanySpendPolicyRequest {
+  spendPolicyId: string;
+  updateCreditSpendPolicyRequestBody: UpdateCreditSpendPolicyRequestBody;
 }
 
 export interface UpdatePaymentMethodRequest {
@@ -287,6 +322,64 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
+   * Create company spend policy
+   */
+  async createCompanySpendPolicyRaw(
+    requestParameters: CreateCompanySpendPolicyRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<CreateCompanySpendPolicyResponse>> {
+    if (requestParameters["createCompanySpendPolicyRequestBody"] == null) {
+      throw new runtime.RequiredError(
+        "createCompanySpendPolicyRequestBody",
+        'Required parameter "createCompanySpendPolicyRequestBody" was null or undefined when calling createCompanySpendPolicy().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits/spend-policies`,
+        method: "POST",
+        headers: headerParameters,
+        query: queryParameters,
+        body: CreateCompanySpendPolicyRequestBodyToJSON(
+          requestParameters["createCompanySpendPolicyRequestBody"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      CreateCompanySpendPolicyResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Create company spend policy
+   */
+  async createCompanySpendPolicy(
+    requestParameters: CreateCompanySpendPolicyRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<CreateCompanySpendPolicyResponse> {
+    const response = await this.createCompanySpendPolicyRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
    * A Stripe SetupIntent for collecting a new payment method with Stripe\'s Payment Element. Confirm it with `stripe.confirmSetup`; the method it saves joins the company\'s methods on file.
    * Create a setup intent
    */
@@ -326,6 +419,62 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<CreateSetupIntentResponse> {
     const response = await this.createSetupIntentRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Delete company spend policy
+   */
+  async deleteCompanySpendPolicyRaw(
+    requestParameters: DeleteCompanySpendPolicyRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<DeleteCompanySpendPolicyResponse>> {
+    if (requestParameters["spendPolicyId"] == null) {
+      throw new runtime.RequiredError(
+        "spendPolicyId",
+        'Required parameter "spendPolicyId" was null or undefined when calling deleteCompanySpendPolicy().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits/spend-policies/{spend_policy_id}`.replace(
+          `{${"spend_policy_id"}}`,
+          encodeURIComponent(String(requestParameters["spendPolicyId"])),
+        ),
+        method: "DELETE",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      DeleteCompanySpendPolicyResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Delete company spend policy
+   */
+  async deleteCompanySpendPolicy(
+    requestParameters: DeleteCompanySpendPolicyRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<DeleteCompanySpendPolicyResponse> {
+    const response = await this.deleteCompanySpendPolicyRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 
@@ -1264,6 +1413,57 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
+   * List company spend policies
+   */
+  async listCompanySpendPoliciesRaw(
+    requestParameters: ListCompanySpendPoliciesRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<ListCompanySpendPoliciesResponse>> {
+    const queryParameters: any = {};
+
+    if (requestParameters["billingCreditId"] != null) {
+      queryParameters["billing_credit_id"] =
+        requestParameters["billingCreditId"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits/spend-policies`,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      ListCompanySpendPoliciesResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * List company spend policies
+   */
+  async listCompanySpendPolicies(
+    requestParameters: ListCompanySpendPoliciesRequest = {},
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<ListCompanySpendPoliciesResponse> {
+    const response = await this.listCompanySpendPoliciesRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
    * Replaces the cart and prices it again. Send the `version` last read; a stale one answers 409 and changes nothing, so read the checkout and send the write again at its version. A cart the purchase rules reject is saved with its price cleared and one problem saying why, and the version still advances. The `X-Checkout-Session-ID` response header names the session this price belongs to; send it back on the finalize that follows.
    * Update a checkout
    */
@@ -1387,6 +1587,74 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<UpdateCheckoutTaxIDResponse> {
     const response = await this.updateCheckoutTaxIDRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Update company spend policy
+   */
+  async updateCompanySpendPolicyRaw(
+    requestParameters: UpdateCompanySpendPolicyRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UpdateCompanySpendPolicyResponse>> {
+    if (requestParameters["spendPolicyId"] == null) {
+      throw new runtime.RequiredError(
+        "spendPolicyId",
+        'Required parameter "spendPolicyId" was null or undefined when calling updateCompanySpendPolicy().',
+      );
+    }
+
+    if (requestParameters["updateCreditSpendPolicyRequestBody"] == null) {
+      throw new runtime.RequiredError(
+        "updateCreditSpendPolicyRequestBody",
+        'Required parameter "updateCreditSpendPolicyRequestBody" was null or undefined when calling updateCompanySpendPolicy().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits/spend-policies/{spend_policy_id}`.replace(
+          `{${"spend_policy_id"}}`,
+          encodeURIComponent(String(requestParameters["spendPolicyId"])),
+        ),
+        method: "PUT",
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdateCreditSpendPolicyRequestBodyToJSON(
+          requestParameters["updateCreditSpendPolicyRequestBody"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      UpdateCompanySpendPolicyResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Update company spend policy
+   */
+  async updateCompanySpendPolicy(
+    requestParameters: UpdateCompanySpendPolicyRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UpdateCompanySpendPolicyResponse> {
+    const response = await this.updateCompanySpendPolicyRaw(
       requestParameters,
       initOverrides,
     );

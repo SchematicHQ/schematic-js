@@ -5,6 +5,7 @@ export * from "./creditLedger";
 export * from "./credits";
 export * from "./data";
 export * from "./featureUsage";
+export * from "./spendPolicies";
 export * from "./invoices";
 export * from "./paymentMethods";
 export * from "./taxId";

@@ -15,6 +15,7 @@ import {
   GetCompanyCreditLedgerResponseFromJSON,
   GetCompanyResponseFromJSON,
   GetCompanyCreditUserUsageResponseFromJSON,
+  ListCompanySpendPoliciesResponseFromJSON,
   UpdateCheckoutTaxIDResponseDataFromJSON,
   GetCompanyFeatureUsageResponseFromJSON,
   GetCompanyFeatureUserUsageResponseFromJSON,
@@ -43,6 +44,9 @@ import type {
   InvoicePage,
   InvoiceQuery,
   PaymentMethod,
+  SpendPolicy,
+  SpendPolicyChanges,
+  SpendPolicyInput,
   PublicCatalog,
   SetupIntent,
   TaxId,
@@ -168,6 +172,15 @@ export interface BillingClient {
   fetchCreditBalances(): Promise<CreditBalanceEntry[]>;
   /** A page of the company's credit activity, newest first. */
   fetchCreditLedger(params: CreditLedgerRequest): Promise<CreditLedgerPage>;
+  /**
+   * Every spend policy that applies in the company — its own and its
+   * members' — across all credits. Window caps carry their current usage.
+   */
+  fetchSpendPolicies(): Promise<SpendPolicy[]>;
+  /** A 409 when the scope already has a cap of that kind and window. */
+  createSpendPolicy(input: SpendPolicyInput): Promise<void>;
+  updateSpendPolicy(id: string, changes: SpendPolicyChanges): Promise<void>;
+  deleteSpendPolicy(id: string): Promise<void>;
   /** One credit's consumption by user over the span of its live grants. */
   fetchCreditUserUsage(
     params: CreditUserUsageRequest,
@@ -199,6 +212,16 @@ function dataOf(body: unknown, path: string): unknown {
     throw new Error(`Malformed response from ${path}`);
   }
   return (body as { data: unknown }).data;
+}
+
+function spendPolicyCapBody(cap: SpendPolicyChanges): Record<string, unknown> {
+  return {
+    ...(cap.maxPerDraw === undefined ? {} : { max_per_draw: cap.maxPerDraw }),
+    ...(cap.windowAmount === undefined
+      ? {}
+      : { window_amount: cap.windowAmount }),
+    ...(cap.windowUnit === undefined ? {} : { window_unit: cap.windowUnit }),
+  };
 }
 
 export const INVOICE_PAGE_SIZE = 12;
@@ -559,6 +582,53 @@ export class SchematicBillingClient implements BillingClient {
     });
   }
 
+  fetchSpendPolicies(): Promise<SpendPolicy[]> {
+    const path = "/company/credits/spend-policies";
+    return this.session.request(path).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      // As for invoices: the generated decoder throws on a null list where
+      // no policies is the right answer.
+      if ((body as { data: unknown }).data == null) {
+        return [];
+      }
+      return ListCompanySpendPoliciesResponseFromJSON(body).data;
+    });
+  }
+
+  // Writes answer with the bare policy, without usage or names; callers
+  // refetch the list rather than splice a partial row into it.
+  createSpendPolicy(input: SpendPolicyInput): Promise<void> {
+    return this.session
+      .request("/company/credits/spend-policies", {
+        method: "POST",
+        body: {
+          billing_credit_id: input.creditId,
+          ...(input.userId === undefined ? {} : { user_id: input.userId }),
+          ...spendPolicyCapBody(input),
+        },
+      })
+      .then(() => undefined);
+  }
+
+  updateSpendPolicy(id: string, changes: SpendPolicyChanges): Promise<void> {
+    return this.session
+      .request(`/company/credits/spend-policies/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        body: spendPolicyCapBody(changes),
+      })
+      .then(() => undefined);
+  }
+
+  deleteSpendPolicy(id: string): Promise<void> {
+    return this.session
+      .request(`/company/credits/spend-policies/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      })
+      .then(() => undefined);
+  }
+
   fetchFeatureUserUsage(
     params: FeatureUserUsageRequest,
   ): Promise<FeatureUserUsage> {
@@ -690,6 +760,10 @@ export async function fetchBillingData(
               ...(creditLedger ?? {}),
               limit: CREDIT_LEDGER_PAGE_SIZE,
             });
+            break;
+          }
+          case "spendPolicies": {
+            data.spendPolicies = await client.fetchSpendPolicies();
             break;
           }
           case "company": {

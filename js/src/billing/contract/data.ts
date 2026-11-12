@@ -3,6 +3,7 @@ import type { Company } from "./company";
 import type { CreditLedgerPage, CreditLedgerQuery } from "./creditLedger";
 import type { CreditBalanceEntry } from "./credits";
 import type { FeatureUsage } from "./featureUsage";
+import type { SpendPolicy } from "./spendPolicies";
 import type { InvoicePage, InvoiceQuery } from "./invoices";
 import type { PaymentMethod } from "./paymentMethods";
 import type { TaxId } from "./taxId";
@@ -62,6 +63,12 @@ export interface BillingResources {
   creditBalances: CreditBalanceEntry[];
   /** `GET /company/credits/ledger?limit&offset&credit_ids&include_grants`. */
   creditLedger: CreditLedgerPage;
+  /**
+   * `GET /company/credits/spend-policies`, every credit's. Empty is a loaded
+   * value — nothing caps the company's spend — so only `undefined` means not
+   * loaded.
+   */
+  spendPolicies: SpendPolicy[];
   /** `GET /company`. */
   company: Company;
   /**
@@ -81,6 +88,7 @@ export interface BillingResourceParams {
   featureUsage: Record<string, never>;
   creditBalances: Record<string, never>;
   creditLedger: CreditLedgerQuery;
+  spendPolicies: Record<string, never>;
   company: Record<string, never>;
   taxIds: Record<string, never>;
 }

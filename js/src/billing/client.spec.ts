@@ -1874,3 +1874,179 @@ describe("normalizeCreditLedgerQuery", () => {
     });
   });
 });
+
+const wireSpendPolicies = {
+  data: [
+    {
+      id: "csp_1",
+      billing_credit_id: "bcr_ai",
+      company_id: "comp_a",
+      consumed: 40,
+      created_at: "2026-11-01T00:00:00Z",
+      credit: {
+        id: "bcr_ai",
+        name: "AI credits",
+        plural_name: "AI credits",
+        singular_name: "AI credit",
+      },
+      headroom: 60,
+      label: null,
+      max_per_draw: null,
+      resets_at: "2026-11-13T00:00:00Z",
+      scope_type: "company",
+      updated_at: "2026-11-01T00:00:00Z",
+      user: null,
+      user_id: null,
+      window_amount: 100,
+      window_count: 1,
+      window_unit: "day",
+    },
+    {
+      id: "csp_2",
+      billing_credit_id: "bcr_ai",
+      company_id: "comp_a",
+      consumed: null,
+      created_at: "2026-11-02T00:00:00Z",
+      credit: {
+        id: "bcr_ai",
+        name: "AI credits",
+        plural_name: null,
+        singular_name: null,
+      },
+      headroom: null,
+      label: null,
+      max_per_draw: 5,
+      resets_at: null,
+      scope_type: "user",
+      updated_at: "2026-11-02T00:00:00Z",
+      user: { id: "user_1", name: "Ada" },
+      user_id: "user_1",
+      window_amount: null,
+      window_count: 0,
+      window_unit: null,
+    },
+  ],
+};
+
+describe("spend policies", () => {
+  it("lists every policy with its usage, credit and user", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireSpendPolicies }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const policies = await client.fetchSpendPolicies();
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/credits/spend-policies",
+    );
+    expect(policies[0]).toMatchObject({
+      consumed: 40,
+      credit: { name: "AI credits", singularName: "AI credit" },
+      scopeType: "company",
+      windowAmount: 100,
+      windowUnit: "day",
+    });
+    expect(policies[0].resetsAt).toEqual(new Date("2026-11-13T00:00:00Z"));
+    expect(policies[1]).toMatchObject({
+      maxPerDraw: 5,
+      scopeType: "user",
+      user: { id: "user_1", name: "Ada" },
+    });
+  });
+
+  it("reads no policies from a null list", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ body: { data: null } }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(client.fetchSpendPolicies()).resolves.toEqual([]);
+  });
+
+  it("writes only the fields it is given", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: { data: {} } }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(
+      client.createSpendPolicy({
+        creditId: "bcr_ai",
+        windowAmount: 2000,
+        windowUnit: "billing_period",
+      }),
+    ).resolves.toBeUndefined();
+    await client.createSpendPolicy({
+      creditId: "bcr_ai",
+      maxPerDraw: 5,
+      userId: "user_1",
+    });
+    await client.updateSpendPolicy("csp/1", { windowAmount: 750 });
+    await client.deleteSpendPolicy("csp/1");
+
+    expect(
+      calls.map(({ url, method, body }) => ({ url, method, body })),
+    ).toEqual([
+      {
+        url: "https://api.schematichq.com/company/credits/spend-policies",
+        method: "POST",
+        body: {
+          billing_credit_id: "bcr_ai",
+          window_amount: 2000,
+          window_unit: "billing_period",
+        },
+      },
+      {
+        url: "https://api.schematichq.com/company/credits/spend-policies",
+        method: "POST",
+        body: {
+          billing_credit_id: "bcr_ai",
+          max_per_draw: 5,
+          user_id: "user_1",
+        },
+      },
+      {
+        url: "https://api.schematichq.com/company/credits/spend-policies/csp%2F1",
+        method: "PUT",
+        body: { window_amount: 750 },
+      },
+      {
+        url: "https://api.schematichq.com/company/credits/spend-policies/csp%2F1",
+        method: "DELETE",
+        body: undefined,
+      },
+    ]);
+  });
+
+  it("throws the server's refusal of a duplicate cap", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 409,
+      body: { error: "A cap over this window already exists." },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client
+      .createSpendPolicy({ creditId: "bcr_ai", maxPerDraw: 5 })
+      .catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({ status: 409 });
+  });
+
+  it("prefetches the list", async () => {
+    const { fetchImpl } = fakeFetch(
+      byPath({
+        "/company/credits/spend-policies": { body: wireSpendPolicies },
+      }),
+    );
+    const data = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      }),
+      { names: ["spendPolicies"] },
+    );
+    expect(data.spendPolicies).toHaveLength(2);
+  });
+});
