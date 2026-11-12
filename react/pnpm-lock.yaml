@@ -24,8 +24,8 @@ importers:
         specifier: ^7.60.1
         version: 7.60.1(@types/node@26.6.5)
       '@schematichq/schematic-js':
-        specifier: ^1.18.0
-        version: 1.18.0
+        specifier: ^1.19.0
+        version: 1.19.0
       '@testing-library/dom':
         specifier: ^10.4.2
         version: 10.4.2
@@ -581,8 +581,8 @@ packages:
     resolution: {integrity: sha512-acP68tGx/DJEIQgTqj/xStBRaghN7axV+uAjNasDjVXgHgHaLQ1f16/bbXtw6mNLjURhTORD4fdfbOZM7kyWcw==}
     engines: {node: '>=20.9.0'}
 
-  '@schematichq/schematic-js@1.18.0':
-    resolution: {integrity: sha512-arCe+94gb7bMJkgvZJYOpqmD5c8J6PzeWsd0+hc2jsWoHlJFutsc2rvkl4Wg6BK1Z6Q2z+ujg/08NDDmNtzavA==}
+  '@schematichq/schematic-js@1.19.0':
+    resolution: {integrity: sha512-NbMLS7xgPwrlz6gAseg6GxcSH5Exl8fIJfOH1VsafSjJBouMXvLT0Yy3ygO137vYuLtbyZN71ZfD9vbQZnXdQw==}
 
   '@testing-library/dom@10.4.2':
     resolution: {integrity: sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q==}
@@ -1941,6 +1941,7 @@ packages:
 
   tldts-core@7.4.20:
     resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
+    deprecated: Partial release, see https://github.com/remusao/tldts/issues/2735. Use >=7.4.22.
 
   tldts@7.4.19:
     resolution: {integrity: sha512-48dH6aSpQnpbzDUc4vIQZ1VjB8tkK+e8c1yx05/SZK+rkssgjEOlxDd/yU8/a4vGYQ9vRgJr9dwMq9TJ0b3X2Q==}
@@ -2623,7 +2624,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@schematichq/schematic-js@1.18.0':
+  '@schematichq/schematic-js@1.19.0':
     dependencies:
       cross-fetch: 4.1.0
       uuid: 14.0.3
