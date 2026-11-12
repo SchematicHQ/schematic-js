@@ -7,7 +7,7 @@
  * a newer schematic-js meant adopting whatever it added. A resource joins
  * this list with the hook that reads it. The catalog (the company's view and
  * the public one), invoices, upcoming-invoice, payment-methods,
- * feature-usage, credits, company and tax-ID slices so far; the rest of the
+ * feature-usage, credits, spend-policy, company and tax-ID slices so far; the rest of the
  * contract ships with its elements.
  */
 import {
@@ -73,6 +73,10 @@ export {
   type ResourceState,
   type ScheduledDowngrade,
   type SetupIntent,
+  type SpendPolicy,
+  type SpendPolicyChanges,
+  type SpendPolicyInput,
+  SpendWindowUnit,
   type TaxId,
   type TaxIdInput,
   type UpcomingInvoice,
@@ -88,6 +92,7 @@ export type BillingResourceName =
   | "paymentMethods"
   | "featureUsage"
   | "creditBalances"
+  | "spendPolicies"
   | "company"
   | "taxIds";
 export type BillingResources = Pick<ContractResources, BillingResourceName>;
@@ -137,7 +142,13 @@ export type BillingProviderClient = Pick<
   Partial<
     Pick<
       ContractClient,
-      "fetchPublicCatalog" | "hasPublishableKey" | "fetchInvoiceLink"
+      | "fetchPublicCatalog"
+      | "hasPublishableKey"
+      | "fetchInvoiceLink"
+      | "fetchSpendPolicies"
+      | "createSpendPolicy"
+      | "updateSpendPolicy"
+      | "deleteSpendPolicy"
     >
   >;
 

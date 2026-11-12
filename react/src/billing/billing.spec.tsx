@@ -31,6 +31,7 @@ import {
   type PaymentMethod,
   type PublicCatalog,
   type SetupIntent,
+  type SpendPolicy,
   type TaxId,
   type UpcomingInvoice,
 } from "./contract";
@@ -45,6 +46,7 @@ import {
   useCheckout,
   useCompany,
   useCreditBalances,
+  useCreditSpendPolicies,
   useCreditUserUsage,
   useFeatureUsage,
   useFeatureUserUsage,
@@ -3047,5 +3049,167 @@ describe("useTaxIds", () => {
       "That tax ID is not valid.",
     );
     expect(result.current.error).toBeUndefined();
+  });
+});
+
+describe("useCreditSpendPolicies", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <BillingProvider billingClient={client} initialData={initialData}>
+        {children}
+      </BillingProvider>
+    );
+    return Wrapper;
+  };
+
+  const policy = (id: string, creditId: string): SpendPolicy =>
+    ({
+      id,
+      billingCreditId: creditId,
+      scopeType: "company",
+      windowAmount: 100,
+      windowUnit: "day",
+      consumed: 40,
+    }) as unknown as SpendPolicy;
+
+  it_("filters the one list by credit without another request", async () => {
+    const client = fakeClient({
+      fetchSpendPolicies: vi.fn(async () => [
+        policy("csp_1", "bcr_ai"),
+        policy("csp_2", "bcr_export"),
+      ]),
+    });
+    const { result } = renderHook(
+      () => ({
+        all: useCreditSpendPolicies(),
+        ai: useCreditSpendPolicies({ credits: ["bcr_ai"] }),
+        none: useCreditSpendPolicies({ credits: [] }),
+      }),
+      { wrapper: wrap(client) },
+    );
+    await flush();
+    expect(result.current.all.data?.map((p) => p.id)).toEqual([
+      "csp_1",
+      "csp_2",
+    ]);
+    expect(result.current.ai.data?.map((p) => p.id)).toEqual(["csp_1"]);
+    expect(result.current.none.data).toHaveLength(2);
+    expect(client.fetchSpendPolicies).toHaveBeenCalledTimes(1);
+  });
+
+  it_(
+    "each write goes through the client, then reloads the list and per-user usage",
+    async () => {
+      let rows = [policy("csp_1", "bcr_ai")];
+      const client = fakeClient({
+        fetchSpendPolicies: vi.fn(async () => rows),
+        createSpendPolicy: vi.fn(async () => {
+          rows = [...rows, policy("csp_2", "bcr_ai")];
+        }),
+        updateSpendPolicy: vi.fn(async () => {}),
+        deleteSpendPolicy: vi.fn(async (id: string) => {
+          rows = rows.filter((p) => p.id !== id);
+        }),
+      });
+      const { result } = renderHook(
+        () => ({
+          policies: useCreditSpendPolicies(),
+          usage: useCreditUserUsage("bcr_ai"),
+        }),
+        { wrapper: wrap(client) },
+      );
+      await flush();
+      expect(client.fetchCreditUserUsage).toHaveBeenCalledTimes(1);
+
+      const usageFetches = () =>
+        vi.mocked(client.fetchCreditUserUsage).mock.calls.length;
+      const input = { creditId: "bcr_ai", userId: "user_1", maxPerDraw: 5 };
+      const before = usageFetches();
+      await act(() => result.current.policies.create(input));
+      expect(usageFetches()).toBeGreaterThan(before);
+      expect(client.createSpendPolicy).toHaveBeenCalledWith(input);
+      expect(result.current.policies.data).toHaveLength(2);
+
+      await act(() =>
+        result.current.policies.update("csp_2", { maxPerDraw: 8 }),
+      );
+      expect(client.updateSpendPolicy).toHaveBeenCalledWith("csp_2", {
+        maxPerDraw: 8,
+      });
+
+      await act(() => result.current.policies.remove("csp_1"));
+      expect(client.deleteSpendPolicy).toHaveBeenCalledWith("csp_1");
+      expect(result.current.policies.data?.map((p) => p.id)).toEqual(["csp_2"]);
+
+      await flush();
+      expect(client.fetchSpendPolicies).toHaveBeenCalledTimes(4);
+    },
+  );
+
+  it_(
+    "a refused write lands on mutationError and leaves the list alone",
+    async () => {
+      const client = fakeClient({
+        fetchSpendPolicies: vi.fn(async () => [policy("csp_1", "bcr_ai")]),
+        createSpendPolicy: vi.fn(async () => {
+          throw new Error("A cap over this window already exists.");
+        }),
+      });
+      const { result } = renderHook(() => useCreditSpendPolicies(), {
+        wrapper: wrap(client),
+      });
+      await flush();
+
+      let rejected: unknown;
+      await act(async () => {
+        await result.current
+          .create({ creditId: "bcr_ai", maxPerDraw: 5 })
+          .catch((cause: unknown) => {
+            rejected = cause;
+          });
+      });
+      expect(rejected).toEqual(
+        new Error("A cap over this window already exists."),
+      );
+      expect(result.current.mutationError?.message).toBe(
+        "A cap over this window already exists.",
+      );
+      expect(result.current.error).toBeUndefined();
+      expect(client.fetchSpendPolicies).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it_(
+    "a client without spend policies reports it on load and on write",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(() => useCreditSpendPolicies(), {
+        wrapper: wrap(client),
+      });
+      await flush();
+      expect(result.current.error?.message).toBe(
+        "The billing client cannot read spend policies.",
+      );
+
+      let rejected: unknown;
+      await act(async () => {
+        await result.current.remove("csp_1").catch((cause: unknown) => {
+          rejected = cause;
+        });
+      });
+      expect(rejected).toEqual(
+        new Error("The billing client cannot remove spend policies."),
+      );
+    },
+  );
+
+  it_("serves a prefetched list without a request", async () => {
+    const client = fakeClient({ fetchSpendPolicies: vi.fn(async () => []) });
+    const { result } = renderHook(() => useCreditSpendPolicies(), {
+      wrapper: wrap(client, { spendPolicies: [policy("csp_1", "bcr_ai")] }),
+    });
+    expect(result.current.data).toHaveLength(1);
+    await flush();
+    expect(client.fetchSpendPolicies).not.toHaveBeenCalled();
   });
 });

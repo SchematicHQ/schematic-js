@@ -17,6 +17,8 @@ import type {
   InvoiceQuery,
   ResourceState,
   SetupIntent,
+  SpendPolicyChanges,
+  SpendPolicyInput,
   TaxIdInput,
 } from "./contract";
 import type { SessionEvent } from "./client";
@@ -42,6 +44,12 @@ export interface BillingActions {
   createSetupIntent(): Promise<SetupIntent>;
   /** The current hosted URL for invoice `id`; nothing is cached. */
   fetchInvoiceLink(id: string): Promise<string>;
+  /** Adds a spend policy and reloads the list and per-user usage. */
+  createSpendPolicy(input: SpendPolicyInput): Promise<void>;
+  /** Changes spend policy `id`'s cap and reloads as `createSpendPolicy` does. */
+  updateSpendPolicy(id: string, changes: SpendPolicyChanges): Promise<void>;
+  /** Removes spend policy `id` and reloads as `createSpendPolicy` does. */
+  removeSpendPolicy(id: string): Promise<void>;
   /** Cancels the subscription at period end and reloads what that changes. */
   unsubscribe(): Promise<void>;
   /** Sets the company's tax ID and takes the list it answers with. */
@@ -139,6 +147,9 @@ const ACTION_NAMES: readonly (keyof BillingActions)[] = [
   "removePaymentMethod",
   "createSetupIntent",
   "fetchInvoiceLink",
+  "createSpendPolicy",
+  "updateSpendPolicy",
+  "removeSpendPolicy",
   "unsubscribe",
   "updateTaxId",
   "createCheckout",

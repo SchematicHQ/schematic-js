@@ -199,6 +199,10 @@ export function BillingProvider({
         removePaymentMethod: (id) => store.removePaymentMethod(id),
         createSetupIntent: () => store.createSetupIntent(),
         fetchInvoiceLink: (id) => store.fetchInvoiceLink(id),
+        createSpendPolicy: (input) => store.createSpendPolicy(input),
+        updateSpendPolicy: (id, changes) =>
+          store.updateSpendPolicy(id, changes),
+        removeSpendPolicy: (id) => store.removeSpendPolicy(id),
         unsubscribe: () => store.unsubscribe(),
         updateTaxId: (taxId) => store.updateTaxId(taxId),
         createCheckout: (selections) => store.createCheckout(selections),

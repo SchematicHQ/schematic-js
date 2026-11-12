@@ -30,6 +30,9 @@ import type {
   PaymentMethod,
   PublicCatalog,
   SetupIntent,
+  SpendPolicy,
+  SpendPolicyChanges,
+  SpendPolicyInput,
   TaxId,
   TaxIdInput,
   UpcomingInvoice,
@@ -55,7 +58,7 @@ import { hashKey } from "./store";
  * report pending on the server and load on the client. `useCatalog`,
  * `useInvoices`, `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`,
  * `useFeatureUserUsage`, `useCreditBalances`, `useCreditUserUsage`,
- * `useCompany` and `useTaxIds` so far; the other resource hooks ship with
+ * `useCreditSpendPolicies`, `useCompany` and `useTaxIds` so far; the other resource hooks ship with
  * their elements.
  */
 
@@ -210,11 +213,11 @@ const IDLE: Mutation = { inflight: 0, error: undefined };
  * the last lands. A component that wants one at a time disables its buttons
  * on `isMutating`.
  */
-export function usePaymentMethods(): PaymentMethodsHandle {
-  const source = useBillingDataSource();
-  const handle = useBillingResource("paymentMethods", SINGLETON);
+function useMutation(): [
+  Mutation,
+  (write: () => Promise<void>) => Promise<void>,
+] {
   const [mutation, setMutation] = useState<Mutation>(IDLE);
-
   const run = useCallback(async (write: () => Promise<void>) => {
     // Cleared when the write starts, like a resource's error on refetch, so
     // a retry reads as in progress rather than still failed.
@@ -228,6 +231,13 @@ export function usePaymentMethods(): PaymentMethodsHandle {
     }
     setMutation((m) => ({ inflight: m.inflight - 1, error: undefined }));
   }, []);
+  return [mutation, run];
+}
+
+export function usePaymentMethods(): PaymentMethodsHandle {
+  const source = useBillingDataSource();
+  const handle = useBillingResource("paymentMethods", SINGLETON);
+  const [mutation, run] = useMutation();
 
   const setDefault = useCallback(
     (externalId: string) =>
@@ -248,6 +258,85 @@ export function usePaymentMethods(): PaymentMethodsHandle {
       mutationError: mutation.error,
     }),
     [handle, mutation, remove, setDefault],
+  );
+}
+
+export interface CreditSpendPoliciesOptions {
+  /** Only these credits' policies, by id. Every credit's when omitted or empty. */
+  credits?: string[];
+}
+
+export interface CreditSpendPoliciesHandle extends ResourceHandle<
+  SpendPolicy[]
+> {
+  /**
+   * Adds a policy; `data` reloads once it has, and so does every
+   * `useCreditUserUsage`. Rejects with the failure and records it on
+   * `mutationError`, as `usePaymentMethods` does.
+   */
+  create: (input: SpendPolicyInput) => Promise<void>;
+  /** Changes policy `id`'s cap. Reloads and rejects as `create` does. */
+  update: (id: string, changes: SpendPolicyChanges) => Promise<void>;
+  /** Removes policy `id`. Reloads and rejects as `create` does. */
+  remove: (id: string) => Promise<void>;
+  /** A write is in flight. Distinct from `isPending`, which is the list loading. */
+  isMutating: boolean;
+  /** The last write's failure; cleared when the next write starts. */
+  mutationError: Error | undefined;
+}
+
+/**
+ * The spend policies that apply in the company — its own caps and its
+ * members' — with the writes on them. Window caps carry `consumed`,
+ * `headroom` and `resetsAt`. One list backs every call, so filtering by
+ * `credits` costs no request. Writes behave as `usePaymentMethods`'s do.
+ */
+export function useCreditSpendPolicies(
+  options: CreditSpendPoliciesOptions = {},
+): CreditSpendPoliciesHandle {
+  const source = useBillingDataSource();
+  const handle = useBillingResource("spendPolicies", SINGLETON);
+  const [mutation, run] = useMutation();
+  const credits = useStableParams(
+    options.credits === undefined || options.credits.length === 0
+      ? undefined
+      : [...new Set(options.credits)].sort(),
+  );
+
+  const data = useMemo(() => {
+    if (handle.data === undefined || credits === undefined) {
+      return handle.data;
+    }
+    const wanted = new Set(credits);
+    return handle.data.filter((policy) => wanted.has(policy.billingCreditId));
+  }, [credits, handle.data]);
+
+  const create = useCallback(
+    (input: SpendPolicyInput) =>
+      run(() => actionsOf(source).createSpendPolicy(input)),
+    [run, source],
+  );
+  const update = useCallback(
+    (id: string, changes: SpendPolicyChanges) =>
+      run(() => actionsOf(source).updateSpendPolicy(id, changes)),
+    [run, source],
+  );
+  const remove = useCallback(
+    (id: string) => run(() => actionsOf(source).removeSpendPolicy(id)),
+    [run, source],
+  );
+
+  return useMemo(
+    () => ({
+      ...handle,
+      data,
+      create,
+      update,
+      remove,
+      isMutating: mutation.inflight > 0,
+      mutationError: mutation.error,
+    }),
+    [create, data, handle, mutation, remove, update],
   );
 }
 

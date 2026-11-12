@@ -32,6 +32,9 @@ import type {
   PaymentMethod,
   PublicCatalog,
   SetupIntent,
+  SpendPolicy,
+  SpendPolicyChanges,
+  SpendPolicyInput,
   TaxId,
   TaxIdInput,
   UpcomingInvoice,
@@ -159,6 +162,7 @@ interface HeldSeed {
   paymentMethods?: PaymentMethod[];
   featureUsage?: FeatureUsage[];
   creditBalances?: CreditBalanceEntry[];
+  spendPolicies?: SpendPolicy[];
   company?: Company;
   taxIds?: TaxId[];
 }
@@ -202,6 +206,7 @@ export class BillingStore {
     CreditBalanceEntry[],
     Record<string, never>
   >;
+  readonly spendPolicies: KeyedResource<SpendPolicy[], Record<string, never>>;
   readonly company: KeyedResource<Company, Record<string, never>>;
   readonly creditUserUsage: KeyedResource<
     CreditUserUsage,
@@ -299,6 +304,14 @@ export class BillingStore {
       () => this._client.fetchCreditBalances(),
       { readiness },
     );
+    this.spendPolicies = new KeyedResource(
+      () =>
+        this._client.fetchSpendPolicies?.() ??
+        Promise.reject(
+          new Error("The billing client cannot read spend policies."),
+        ),
+      { readiness },
+    );
     this.company = new KeyedResource(() => this._client.fetchCompany(), {
       readiness,
     });
@@ -345,6 +358,9 @@ export class BillingStore {
     if (initialData.creditBalances !== undefined) {
       held.creditBalances = initialData.creditBalances;
     }
+    if (initialData.spendPolicies !== undefined) {
+      held.spendPolicies = initialData.spendPolicies;
+    }
     if (initialData.company !== undefined) {
       held.company = initialData.company;
     }
@@ -358,6 +374,7 @@ export class BillingStore {
       held.paymentMethods !== undefined ||
       held.featureUsage !== undefined ||
       held.creditBalances !== undefined ||
+      held.spendPolicies !== undefined ||
       held.company !== undefined ||
       held.taxIds !== undefined
     ) {
@@ -450,6 +467,9 @@ export class BillingStore {
       }
       if (held.creditBalances !== undefined) {
         this.creditBalances.seed(SINGLETON, held.creditBalances);
+      }
+      if (held.spendPolicies !== undefined) {
+        this.spendPolicies.seed(SINGLETON, held.spendPolicies);
       }
       if (held.company !== undefined) {
         this.company.seed(SINGLETON, held.company);
@@ -572,6 +592,37 @@ export class BillingStore {
   }
 
   /**
+   * Adds a spend policy, then reloads the list and the per-user usage
+   * beside it. Rejects as `setDefaultPaymentMethod` does; a refusal (a 409
+   * for a cap the scope already has) is the client's error.
+   */
+  async createSpendPolicy(input: SpendPolicyInput): Promise<void> {
+    await this._spendPolicyWrite(
+      (client) => client.createSpendPolicy?.(input),
+      "create",
+    );
+  }
+
+  /** Changes spend policy `id`'s cap. Rejects and reloads as `createSpendPolicy` does. */
+  async updateSpendPolicy(
+    id: string,
+    changes: SpendPolicyChanges,
+  ): Promise<void> {
+    await this._spendPolicyWrite(
+      (client) => client.updateSpendPolicy?.(id, changes),
+      "update",
+    );
+  }
+
+  /** Removes spend policy `id`. Rejects and reloads as `createSpendPolicy` does. */
+  async removeSpendPolicy(id: string): Promise<void> {
+    await this._spendPolicyWrite(
+      (client) => client.deleteSpendPolicy?.(id),
+      "remove",
+    );
+  }
+
+  /**
    * Cancels the subscription at period end, then reloads what that changes:
    * the company, its next bill and its credits' renewals. Rejects as
    * `setDefaultPaymentMethod` does.
@@ -651,6 +702,20 @@ export class BillingStore {
     this._unsubscribe?.();
   }
 
+  private async _spendPolicyWrite(
+    write: (client: BillingProviderClient) => Promise<void> | undefined,
+    verb: string,
+  ): Promise<void> {
+    const pending = write(this._client);
+    if (pending === undefined) {
+      throw new Error(`The billing client cannot ${verb} spend policies.`);
+    }
+    await pending;
+    // A user's cap sits beside their usage, so both are stale.
+    this.creditUserUsage.invalidateAll();
+    await this._reload(this.spendPolicies);
+  }
+
   private _reloadPaymentMethods(): Promise<void> {
     return this._reload(this.paymentMethods);
   }
@@ -728,6 +793,7 @@ export const RESOURCE_NAMES: readonly BillingResourceName[] = [
   "paymentMethods",
   "featureUsage",
   "creditBalances",
+  "spendPolicies",
   "company",
   "taxIds",
 ];
