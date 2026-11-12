@@ -99,6 +99,12 @@ models/CompanyCreditBalanceResponseData.ts
 models/CompanyCreditBalancesResponseData.ts
 models/CompanyCreditCompositionResponseData.ts
 models/CompanyCreditGrantResponseData.ts
+models/CompanyCreditLedgerBundleResponseData.ts
+models/CompanyCreditLedgerCreditResponseData.ts
+models/CompanyCreditLedgerEntryResponseData.ts
+models/CompanyCreditLedgerFeatureResponseData.ts
+models/CompanyCreditLedgerResponseData.ts
+models/CompanyCreditLedgerUserResponseData.ts
 models/CompanyCreditUserUsageResponseData.ts
 models/CompanyCreditUserUsageRowResponseData.ts
 models/CompanyCustomerBalance.ts
@@ -146,12 +152,14 @@ models/CreditCompanyGrantView.ts
 models/CreditCurrencyPrice.ts
 models/CreditCurrencyPriceResponseData.ts
 models/CreditGrantDetail.ts
+models/CreditLedgerEntryKind.ts
 models/CreditModelRate.ts
 models/CreditSpendPolicyResponseData.ts
 models/CreditSpendPolicyScope.ts
 models/CreditSpendWindowUnit.ts
 models/CreditTransferView.ts
 models/CreditUsageAggregation.ts
+models/CreditUsageReason.ts
 models/CreditUserUsageResponseData.ts
 models/Currency.ts
 models/CurrencyBalance.ts
@@ -197,6 +205,8 @@ models/GetCatalogViewResponse.ts
 models/GetCheckoutResponse.ts
 models/GetCheckoutTaxIDResponse.ts
 models/GetCompanyCreditBalancesResponse.ts
+models/GetCompanyCreditLedgerParams.ts
+models/GetCompanyCreditLedgerResponse.ts
 models/GetCompanyCreditUserUsageParams.ts
 models/GetCompanyCreditUserUsageResponse.ts
 models/GetCompanyFeatureUsageResponse.ts
