@@ -62,7 +62,7 @@ export interface CompanyCreditCompositionResponseData {
    */
   perLicenseAmount: number;
   /**
-   * day, week, month or year.
+   * day, week, month, quarter or year.
    * @type {string}
    * @memberof CompanyCreditCompositionResponseData
    */
