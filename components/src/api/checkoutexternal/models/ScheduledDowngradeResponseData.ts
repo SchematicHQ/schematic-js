@@ -70,11 +70,23 @@ export interface ScheduledDowngradeResponseData {
    */
   interval: string;
   /**
+   * With interval, the current subscription's billing period: 3 with month is quarterly.
+   * @type {number}
+   * @memberof ScheduledDowngradeResponseData
+   */
+  intervalCount: number;
+  /**
    *
    * @type {string}
    * @memberof ScheduledDowngradeResponseData
    */
   scheduledInterval?: string | null;
+  /**
+   * With scheduled_interval, the scheduled price's billing period: 3 with month is quarterly. Null for a downgrade scheduled before the price was recorded.
+   * @type {number}
+   * @memberof ScheduledDowngradeResponseData
+   */
+  scheduledIntervalCount?: number | null;
   /**
    *
    * @type {number}
@@ -115,6 +127,8 @@ export function instanceOfScheduledDowngradeResponseData(
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
   if (!("interval" in value) || value["interval"] === undefined) return false;
+  if (!("intervalCount" in value) || value["intervalCount"] === undefined)
+    return false;
   if (!("toPlanId" in value) || value["toPlanId"] === undefined) return false;
   if (!("toPlanName" in value) || value["toPlanName"] === undefined)
     return false;
@@ -142,10 +156,15 @@ export function ScheduledDowngradeResponseDataFromJSONTyped(
     fromSubscriptionPrice: json["from_subscription_price"],
     id: json["id"],
     interval: json["interval"],
+    intervalCount: json["interval_count"],
     scheduledInterval:
       json["scheduled_interval"] == null
         ? undefined
         : json["scheduled_interval"],
+    scheduledIntervalCount:
+      json["scheduled_interval_count"] == null
+        ? undefined
+        : json["scheduled_interval_count"],
     scheduledPrice:
       json["scheduled_price"] == null ? undefined : json["scheduled_price"],
     toPlanId: json["to_plan_id"],
@@ -175,7 +194,9 @@ export function ScheduledDowngradeResponseDataToJSONTyped(
     from_subscription_price: value["fromSubscriptionPrice"],
     id: value["id"],
     interval: value["interval"],
+    interval_count: value["intervalCount"],
     scheduled_interval: value["scheduledInterval"],
+    scheduled_interval_count: value["scheduledIntervalCount"],
     scheduled_price: value["scheduledPrice"],
     to_plan_id: value["toPlanId"],
     to_plan_name: value["toPlanName"],
