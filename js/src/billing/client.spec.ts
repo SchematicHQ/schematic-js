@@ -1,5 +1,5 @@
 import { SchematicBillingClient, fetchBillingData } from "./client";
-import { checkoutProblemsOf } from "./contract";
+import { checkoutProblemsOf, normalizeCreditLedgerQuery } from "./contract";
 import {
   fakeFetch,
   tokens,
@@ -1738,5 +1738,139 @@ describe("tax IDs", () => {
       body: { tax_id: { type: "eu_vat", value: "DE123456789" } },
     });
     expect(taxIds).toHaveLength(1);
+  });
+});
+
+const wireCreditLedger = {
+  data: {
+    entries: [
+      {
+        amount: -42,
+        bundle: null,
+        credit: { id: "bcr_ai", name: "AI credits" },
+        event_at: "2026-11-09T12:00:00Z",
+        feature: { id: "feat_gen", name: "Generations" },
+        grant_reason: null,
+        id: "e1",
+        kind: "drawdown",
+        usage_reason: "track",
+        user: { id: "user_1", name: "Ada" },
+        zeroed_out_reason: null,
+      },
+      {
+        amount: 1000,
+        bundle: { id: "bun_boost", name: "Booster pack" },
+        credit: { id: "bcr_ai", name: "AI credits" },
+        event_at: "2026-11-08T12:00:00Z",
+        feature: null,
+        grant_reason: "billing_credit_auto_topup",
+        id: "e2",
+        kind: "grant",
+        usage_reason: null,
+        user: null,
+        zeroed_out_reason: null,
+      },
+    ],
+    next_cursor: "cur_2",
+  },
+};
+
+describe("credit ledger", () => {
+  it("passes paging and filters, and decodes entries", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireCreditLedger }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const page = await client.fetchCreditLedger({
+      credits: ["bcr_ai", "bcr_export"],
+      includeGrants: false,
+      cursor: "cur_1",
+      limit: 3,
+    });
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/credits/ledger?limit=3&cursor=cur_1&credit_ids=bcr_ai&credit_ids=bcr_export&include_grants=false",
+    );
+    expect(page.nextCursor).toBe("cur_2");
+    expect(page.entries[0]).toMatchObject({
+      amount: -42,
+      kind: "drawdown",
+      usageReason: "track",
+      user: { id: "user_1", name: "Ada" },
+    });
+    expect(page.entries[0].eventAt).toEqual(new Date("2026-11-09T12:00:00Z"));
+    expect(page.entries[1]).toMatchObject({
+      bundle: { name: "Booster pack" },
+      grantReason: "billing_credit_auto_topup",
+    });
+    expect(page.entries[1].user).toBeUndefined();
+  });
+
+  it("asks for every credit, grants included, by default", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireCreditLedger }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await client.fetchCreditLedger({ limit: 4000 });
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/credits/ledger?limit=250",
+    );
+  });
+
+  it("reads no activity from a null page or a null entry array", async () => {
+    for (const body of [
+      { data: null },
+      { data: { entries: null, next_cursor: null } },
+    ]) {
+      const { fetchImpl } = fakeFetch(() => ({ body }));
+      const client = new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      });
+      await expect(client.fetchCreditLedger({ limit: 1 })).resolves.toEqual({
+        entries: [],
+      });
+    }
+  });
+
+  it("prefetches the first page of the query it is asked for", async () => {
+    const { calls, fetchImpl } = fakeFetch(
+      byPath({ "/company/credits/ledger": { body: wireCreditLedger } }),
+    );
+    const data = await fetchBillingData(
+      new SchematicBillingClient({
+        session: { company: "comp_a", token: "t" },
+        fetch: fetchImpl,
+      }),
+      {
+        names: ["creditLedger"],
+        creditLedger: {
+          credits: ["bcr_b", "bcr_a", "bcr_b"],
+          includeGrants: true,
+        },
+      },
+    );
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/credits/ledger?limit=20&credit_ids=bcr_a&credit_ids=bcr_b",
+    );
+    expect(data.creditLedger?.entries).toHaveLength(2);
+    expect(data.creditLedger?.nextCursor).toBe("cur_2");
+    expect(data.params?.creditLedger).toEqual({ credits: ["bcr_a", "bcr_b"] });
+  });
+});
+
+describe("normalizeCreditLedgerQuery", () => {
+  it("keys equal queries alike", () => {
+    expect(normalizeCreditLedgerQuery({})).toEqual({});
+    expect(
+      normalizeCreditLedgerQuery({ includeGrants: true, credits: [] }),
+    ).toEqual({});
+    expect(normalizeCreditLedgerQuery({ includeGrants: false })).toEqual({
+      includeGrants: false,
+    });
+    expect(normalizeCreditLedgerQuery({ credits: ["b", "a", "b"] })).toEqual({
+      credits: ["a", "b"],
+    });
   });
 });

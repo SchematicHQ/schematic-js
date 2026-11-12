@@ -12,6 +12,7 @@ import {
   CompanyCatalogResponseDataFromJSON,
   CreateSetupIntentResponseFromJSON,
   GetCompanyCreditBalancesResponseFromJSON,
+  GetCompanyCreditLedgerResponseFromJSON,
   GetCompanyResponseFromJSON,
   GetCompanyCreditUserUsageResponseFromJSON,
   UpdateCheckoutTaxIDResponseDataFromJSON,
@@ -34,6 +35,8 @@ import type {
   CheckoutWrite,
   Company,
   CreditBalanceEntry,
+  CreditLedgerPage,
+  CreditLedgerQuery,
   CreditUserUsage,
   FeatureUsage,
   FeatureUserUsage,
@@ -49,6 +52,7 @@ import type {
 import {
   checkoutSelectionsToJSON,
   normalizeCatalogQuery,
+  normalizeCreditLedgerQuery,
   normalizeInvoiceQuery,
 } from "./contract";
 import type {
@@ -69,6 +73,12 @@ export interface InvoicesRequest extends InvoiceQuery {
  * the page's, and only the caller knows its offset.
  */
 export type InvoicesResult = Omit<InvoicePage, "hasMore">;
+
+export interface CreditLedgerRequest extends CreditLedgerQuery {
+  /** The previous page's `nextCursor`; the newest page when omitted. */
+  cursor?: string;
+  limit: number;
+}
 
 export interface CreditUserUsageRequest {
   creditId: string;
@@ -156,6 +166,8 @@ export interface BillingClient {
   ): Promise<FeatureUserUsage>;
   /** Empty when the company holds no credits and its plan draws on none. */
   fetchCreditBalances(): Promise<CreditBalanceEntry[]>;
+  /** A page of the company's credit activity, newest first. */
+  fetchCreditLedger(params: CreditLedgerRequest): Promise<CreditLedgerPage>;
   /** One credit's consumption by user over the span of its live grants. */
   fetchCreditUserUsage(
     params: CreditUserUsageRequest,
@@ -190,6 +202,8 @@ function dataOf(body: unknown, path: string): unknown {
 }
 
 export const INVOICE_PAGE_SIZE = 12;
+
+export const CREDIT_LEDGER_PAGE_SIZE = 20;
 
 /** A `limit` above this is a 400 (PaginationFilter in schematic-api). */
 export const INVOICE_MAX_PAGE_SIZE = 250;
@@ -491,6 +505,38 @@ export class SchematicBillingClient implements BillingClient {
     });
   }
 
+  fetchCreditLedger(params: CreditLedgerRequest): Promise<CreditLedgerPage> {
+    const query = new URLSearchParams({
+      limit: String(Math.min(params.limit, INVOICE_MAX_PAGE_SIZE)),
+    });
+    if (params.cursor !== undefined) {
+      query.set("cursor", params.cursor);
+    }
+    for (const credit of params.credits ?? []) {
+      query.append("credit_ids", credit);
+    }
+    if (params.includeGrants !== undefined) {
+      query.set("include_grants", String(params.includeGrants));
+    }
+    const path = `/company/credits/ledger?${query}`;
+    return this.session.request(path).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      // As for invoices: the generated decoder throws on a null list where
+      // no activity is the right answer.
+      const data = (body as { data: unknown }).data as {
+        entries?: unknown;
+      } | null;
+      if (data == null || data.entries == null) {
+        return { entries: [] };
+      }
+      const { entries, nextCursor } =
+        GetCompanyCreditLedgerResponseFromJSON(body).data;
+      return nextCursor == null ? { entries } : { entries, nextCursor };
+    });
+  }
+
   fetchCreditUserUsage(
     params: CreditUserUsageRequest,
   ): Promise<CreditUserUsage> {
@@ -546,6 +592,8 @@ export interface BillingPrefetchOptions {
   names: BillingResourceName[];
   /** The invoice query to prefetch for; the element must ask the same one. */
   invoices?: InvoiceQuery;
+  /** The credit ledger query to prefetch for; the element must ask the same one. */
+  creditLedger?: CreditLedgerQuery;
   /**
    * The catalog to prefetch, as `catalog` or `publicCatalog`; the element
    * must ask the same one.
@@ -569,13 +617,22 @@ export async function fetchBillingData(
     options.invoices === undefined
       ? undefined
       : normalizeInvoiceQuery(options.invoices);
+  const creditLedger =
+    options.creditLedger === undefined
+      ? undefined
+      : normalizeCreditLedgerQuery(options.creditLedger);
   const catalog =
     options.catalog === undefined
       ? undefined
       : normalizeCatalogQuery(options.catalog);
-  if (invoices !== undefined || catalog !== undefined) {
+  if (
+    invoices !== undefined ||
+    creditLedger !== undefined ||
+    catalog !== undefined
+  ) {
     data.params = {
       ...(invoices === undefined ? {} : { invoices }),
+      ...(creditLedger === undefined ? {} : { creditLedger }),
       ...(catalog === undefined ? {} : { catalog, publicCatalog: catalog }),
     };
   }
@@ -626,6 +683,13 @@ export async function fetchBillingData(
           }
           case "creditBalances": {
             data.creditBalances = await client.fetchCreditBalances();
+            break;
+          }
+          case "creditLedger": {
+            data.creditLedger = await client.fetchCreditLedger({
+              ...(creditLedger ?? {}),
+              limit: CREDIT_LEDGER_PAGE_SIZE,
+            });
             break;
           }
           case "company": {
