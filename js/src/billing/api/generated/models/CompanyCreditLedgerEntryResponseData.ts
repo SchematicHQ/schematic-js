@@ -125,7 +125,7 @@ export interface CompanyCreditLedgerEntryResponseData {
    */
   kind: CreditLedgerEntryKind;
   /**
-   * On draws: track, inference or manual_adjustment.
+   * On draws: track, inference or manual_adjustment; null on draws recorded before reasons were.
    * @type {CreditUsageReason}
    * @memberof CompanyCreditLedgerEntryResponseData
    */
