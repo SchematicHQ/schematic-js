@@ -15,6 +15,7 @@ import { withTokenDefaults } from "./tokens";
 import { tooltipCss } from "./tooltip";
 import { unsubscribeCss } from "./unsubscribe";
 import { upcomingBillCss } from "./upcoming-bill";
+import { usageControlsCss } from "./usage-controls";
 
 export { iconsCss } from "./icons";
 
@@ -437,6 +438,7 @@ ${tooltipCss}
 ${includedFeaturesCss}
 ${meteredFeaturesCss}
 ${creditUsageCss}
+${usageControlsCss}
 ${planManagerCss}
 ${pricingTableCss}
 ${unsubscribeCss}

@@ -22,6 +22,7 @@ names the tier, not the resource.
 | IncludedFeatures  | `useFeatureUsage`                                      | `deriveIncludedFeatures` | `featureUsage`                                         | [included-features.md](./included-features.md)   |
 | MeteredFeatures   | `useFeatureUsage`, `useFeatureUserUsage`               | `deriveMeteredFeatures`  | `featureUsage`                                         | [metered-features.md](./metered-features.md)     |
 | CreditUsage       | `useCreditBalances`, `useCreditUserUsage`              | `deriveCreditUsage`      | `creditBalances`                                       | [credit-usage.md](./credit-usage.md)             |
+| UsageControls     | `useCreditSpendPolicies`, `useCreditUserUsage`         | `deriveUsageControls`    | `spendPolicies`, `creditBalances`, `company`           | [usage-controls.md](./usage-controls.md)         |
 | PlanManager       | `useCompany`, `useFeatureUsage`, `useCreditBalances`   | `derivePlanManager`      | `company`, `featureUsage`, `creditBalances`            | [plan-manager.md](./plan-manager.md)             |
 | UnsubscribeButton | `useCompany`, `useFeatureUsage`, `useUnsubscribe`      | `deriveUnsubscribe`      | `company`, `featureUsage`                              | [unsubscribe-button.md](./unsubscribe-button.md) |
 | Checkout          | `useCatalog`, `useCompany`, `useCheckout`, `useTaxIds` | `deriveCheckout`         | `catalog`, `company`, `paymentMethods`, `featureUsage` | [checkout.md](./checkout.md)                     |

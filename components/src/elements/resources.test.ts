@@ -8,6 +8,7 @@ import { PlanManager } from "./PlanManager";
 import { PricingTable } from "./PricingTable";
 import { UnsubscribeButton } from "./UnsubscribeButton";
 import { UpcomingBill } from "./UpcomingBill";
+import { UsageControls } from "./UsageControls";
 import { billingResources, type ReadsBillingResources } from "./common";
 
 /**
@@ -24,6 +25,11 @@ describe("what the elements read", () => {
     expect(IncludedFeatures.resources).toEqual(["featureUsage"]);
     expect(MeteredFeatures.resources).toEqual(["featureUsage"]);
     expect(CreditUsage.resources).toEqual(["creditBalances"]);
+    expect(UsageControls.resources).toEqual([
+      "spendPolicies",
+      "creditBalances",
+      "company",
+    ]);
     expect(PlanManager.resources).toEqual([
       "company",
       "featureUsage",

@@ -15,6 +15,7 @@ import { PlanManager } from "../PlanManager";
 import { PricingTable } from "../PricingTable";
 import { UnsubscribeButton } from "../UnsubscribeButton";
 import { UpcomingBill } from "../UpcomingBill";
+import { UsageControls } from "../UsageControls";
 import {
   cardPaymentMethod,
   catalogPrice,
@@ -60,7 +61,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|usage-controls|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -202,6 +203,62 @@ function adding() {
     root.querySelector(".schematic-payment-methods__edit") as Element,
   );
   return root;
+}
+
+/**
+ * Usage controls with the add dialog open on a person (none to pick) after
+ * a failed save, and the edit dialog as it opens and confirming a remove.
+ */
+async function usageControlsOpen() {
+  const multi = SCENARIOS.usageControls();
+  multi.creditBalances = [
+    ...(multi.creditBalances ?? []),
+    creditBalance({ creditId: "bcr_x", creditName: "Export credit" }),
+  ];
+  const adding = tree(
+    <UsageControls allowEdit locale="en-US" />,
+    multi,
+    undefined,
+    { createSpendPolicy: vi.fn().mockRejectedValue(new Error("Nope")) },
+    undefined,
+    { bcr_ai: creditUserUsage({ users: [] }) },
+  );
+  fireEvent.click(
+    adding.querySelector(".schematic-usage-controls__add") as Element,
+  );
+  fireEvent.change(adding.querySelector('input[type="number"]') as Element, {
+    target: { value: "5" },
+  });
+  fireEvent.click(adding.querySelector('button[type="submit"]') as Element);
+  await waitFor(() =>
+    expect(
+      adding.querySelector(".schematic-usage-controls__failure"),
+    ).not.toBeNull(),
+  );
+  for (const button of Array.from(
+    adding.querySelectorAll(".schematic-toggle__option"),
+  )) {
+    if (button.textContent === "One person") fireEvent.click(button);
+  }
+
+  const editing = tree(
+    <UsageControls allowEdit locale="en-US" />,
+    SCENARIOS.usageControls(),
+  );
+  fireEvent.click(
+    editing.querySelector(".schematic-usage-controls__edit") as Element,
+  );
+  const confirming = tree(
+    <UsageControls allowEdit locale="en-US" />,
+    SCENARIOS.usageControls(),
+  );
+  fireEvent.click(
+    confirming.querySelector(".schematic-usage-controls__edit") as Element,
+  );
+  fireEvent.click(
+    confirming.querySelector(".schematic-usage-controls__remove") as Element,
+  );
+  return [adding, editing, confirming];
 }
 
 /** The credits card with every ledger open and the long one shown whole. */
@@ -617,6 +674,17 @@ async function everyCard() {
       featureUsage: { error: boom },
     } as never),
     await creditsOpen(),
+    ...(await usageControlsOpen()),
+    tree(<UsageControls allowEdit locale="en-US" />, {
+      ...SCENARIOS.usageControls(),
+      spendPolicies: [],
+    }),
+    tree(<UsageControls locale="en-US" />, {}, {
+      spendPolicies: { isPending: true },
+    } as never),
+    tree(<UsageControls locale="en-US" />, {}, {
+      spendPolicies: { error: boom },
+    } as never),
     planManagerOpen(),
     unsubscribeOpen(),
     tree(<PlanManager locale="en-US" />, {}, {

@@ -126,6 +126,62 @@ export type ElementStrings = {
   creditUsageCompanyGrant: string;
   creditUsageRenewsOn: string;
 
+  usageControlsLoading: string;
+  usageControlsHeader: string;
+  usageControlsError: string;
+  usageControlsEmpty: string;
+  usageControlsEmptyNote: string;
+  usageControlsAdd: string;
+  usageControlsEdit: string;
+  usageControlsEditLabel: string;
+  usageControlsEveryone: string;
+  usageControlsEveryoneAt: string;
+  usageControlsUnknownUser: string;
+  usageControlsPerHour: string;
+  usageControlsPerDay: string;
+  usageControlsPerWeek: string;
+  usageControlsPerMonth: string;
+  usageControlsPerCalendarMonth: string;
+  usageControlsPerBillingPeriod: string;
+  usageControlsPerUse: string;
+  usageControlsResets: string;
+  usageControlsNearLimit: string;
+  usageControlsLimitReached: string;
+  usageControlsAddTitle: string;
+  usageControlsEditTitle: string;
+  usageControlsClose: string;
+  usageControlsAppliesTo: string;
+  usageControlsOnePerson: string;
+  usageControlsPerson: string;
+  usageControlsChoosePerson: string;
+  usageControlsNoPeople: string;
+  usageControlsCredit: string;
+  usageControlsKind: string;
+  usageControlsKindWindow: string;
+  usageControlsKindPerUse: string;
+  usageControlsPeriod: string;
+  usageControlsHourly: string;
+  usageControlsDaily: string;
+  usageControlsWeekly: string;
+  usageControlsMonthly: string;
+  usageControlsAmount: string;
+  usageControlsPreviewWindow: string;
+  usageControlsPreviewPerUse: string;
+  usageControlsPreviewHour: string;
+  usageControlsPreviewDay: string;
+  usageControlsPreviewWeek: string;
+  usageControlsPreviewMonth: string;
+  usageControlsTaken: string;
+  usageControlsSave: string;
+  usageControlsCancel: string;
+  usageControlsRemove: string;
+  usageControlsRemoveConfirm: string;
+  usageControlsRemoveYes: string;
+  usageControlsRemoveNo: string;
+  usageControlsSaveError: string;
+  usageControlsDuplicateError: string;
+  usageControlsRemoveError: string;
+
   planManagerLoading: string;
   planManagerError: string;
   planManagerUnavailable: string;
@@ -533,6 +589,64 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   creditUsagePerLicense: "{{quantity}} {{licenseName}} × {{perUnit}}",
   creditUsageCompanyGrant: "{{amount}} company grant",
   creditUsageRenewsOn: "Renews on the {{day}}.",
+
+  usageControlsLoading: "Loading usage limits",
+  usageControlsHeader: "Usage limits",
+  usageControlsError: "There was a problem retrieving usage limits.",
+  usageControlsEmpty: "No usage limits",
+  usageControlsEmptyNote: "Everyone shares the company balance.",
+  usageControlsAdd: "Add a policy",
+  usageControlsEdit: "Edit",
+  usageControlsEditLabel: "Edit limit for {{scope}}: {{cap}}",
+  usageControlsEveryone: "Everyone",
+  usageControlsEveryoneAt: "Everyone at {{company}}",
+  usageControlsUnknownUser: "Unknown user",
+  usageControlsPerHour: "{{amount}} {{credits}} per hour",
+  usageControlsPerDay: "{{amount}} {{credits}} per day",
+  usageControlsPerWeek: "{{amount}} {{credits}} per week",
+  usageControlsPerMonth: "{{amount}} {{credits}} per month",
+  usageControlsPerCalendarMonth: "{{amount}} {{credits}} per calendar month",
+  usageControlsPerBillingPeriod: "{{amount}} {{credits}} per billing period",
+  usageControlsPerUse: "{{amount}} {{credits}} per use",
+  usageControlsResets: "Resets {{when}}",
+  usageControlsNearLimit: "Near limit · {{used}} of {{limit}}",
+  usageControlsLimitReached: "Limit reached · {{used}} of {{limit}}",
+  usageControlsAddTitle: "Add a usage limit",
+  usageControlsEditTitle: "Edit usage limit",
+  usageControlsClose: "Close",
+  usageControlsAppliesTo: "Applies to",
+  usageControlsOnePerson: "One person",
+  usageControlsPerson: "Person",
+  usageControlsChoosePerson: "Choose a person",
+  usageControlsNoPeople: "No one has used these credits yet.",
+  usageControlsCredit: "Credit",
+  usageControlsKind: "Limit",
+  usageControlsKindWindow: "Per period",
+  usageControlsKindPerUse: "Per use",
+  usageControlsPeriod: "Period",
+  usageControlsHourly: "Hourly",
+  usageControlsDaily: "Daily",
+  usageControlsWeekly: "Weekly",
+  usageControlsMonthly: "Monthly",
+  usageControlsAmount: "Credits",
+  usageControlsPreviewWindow:
+    "Up to {{amount}} {{credits}} {{period}}, resets {{when}}",
+  usageControlsPreviewPerUse: "Up to {{amount}} {{credits}} on any one use",
+  usageControlsPreviewHour: "an hour",
+  usageControlsPreviewDay: "a day",
+  usageControlsPreviewWeek: "a week",
+  usageControlsPreviewMonth: "a month",
+  usageControlsTaken: "Already has a limit",
+  usageControlsSave: "Save limit",
+  usageControlsCancel: "Cancel",
+  usageControlsRemove: "Remove limit",
+  usageControlsRemoveConfirm: "Remove this limit?",
+  usageControlsRemoveYes: "Remove",
+  usageControlsRemoveNo: "Keep",
+  usageControlsSaveError: "There was a problem saving this limit.",
+  usageControlsDuplicateError:
+    "There is already a limit for that period. Edit that one instead.",
+  usageControlsRemoveError: "There was a problem removing this limit.",
 
   planManagerLoading: "Loading your plan",
   planManagerError: "There was a problem retrieving your plan.",

@@ -23,6 +23,7 @@ import type {
   PerLicenseCreditGrant,
   PublicCatalog,
   PublicCatalogPlan,
+  SpendPolicy,
   UpcomingInvoice,
 } from "@schematichq/schematic-react";
 
@@ -313,6 +314,35 @@ export function creditUserUsage(
       { name: "Ada", share: 0.6, used: 90, userId: "user_ada" },
       { name: "Cy", share: 0.17, used: 25, userId: "user_cy" },
     ],
+    ...overrides,
+  };
+}
+
+/**
+ * A company cap of 100 AI credits a day, 40 spent, resetting at the next UTC
+ * midnight. Override `scopeType`/`userId`/`user` for a member's cap, or
+ * `maxPerDraw` (with the window fields nulled) for a per-use one.
+ */
+export function spendPolicy(overrides: Partial<SpendPolicy> = {}): SpendPolicy {
+  return {
+    billingCreditId: "bcr_ai",
+    companyId: "comp_acme",
+    consumed: 40,
+    createdAt: daysFromNow(-5),
+    credit: {
+      id: "bcr_ai",
+      name: "AI credit",
+      pluralName: "AI credits",
+      singularName: "AI credit",
+    },
+    headroom: 60,
+    id: nextId("csp"),
+    resetsAt: new Date("2026-08-22T00:00:00.000Z"),
+    scopeType: "company",
+    updatedAt: daysFromNow(-5),
+    windowAmount: 100,
+    windowCount: 1,
+    windowUnit: "day",
     ...overrides,
   };
 }

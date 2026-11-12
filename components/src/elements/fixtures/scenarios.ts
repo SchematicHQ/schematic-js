@@ -5,6 +5,7 @@
 
 import type {
   BillingData,
+  CreditUserUsage,
   FeatureUsage,
   PaymentMethod,
 } from "@schematichq/schematic-react";
@@ -22,6 +23,7 @@ import {
   companySubscription,
   creditBalance,
   creditGrant,
+  creditUserUsage,
   daysFromNow,
   discount,
   featureUsage,
@@ -31,6 +33,7 @@ import {
   perLicenseCreditGrant,
   publicCatalog,
   publicCatalogPlan,
+  spendPolicy,
   upcomingInvoice,
   walletPaymentMethod,
 } from "./builders";
@@ -585,6 +588,69 @@ export function pricingTablePublicScenario(): BillingData {
   };
 }
 
+/**
+ * The roadmap's limits on AI credits at Acme: a company cap per billing
+ * period, Ada near her daily cap, Bo at his, Cy capped per use.
+ */
+export function usageControlsScenario(): BillingData {
+  const user = (id: string, name: string) => ({
+    scopeType: "user" as const,
+    user: { id, name },
+    userId: id,
+  });
+  return {
+    company: company({ id: "comp_acme", name: "Acme" }),
+    creditBalances: [
+      creditBalance({
+        creditId: "bcr_ai",
+        creditName: "AI credit",
+        creditPluralName: "AI credits",
+        creditSingularName: "AI credit",
+      }),
+    ],
+    spendPolicies: [
+      spendPolicy({
+        consumed: 3200,
+        headroom: 6800,
+        id: "csp_company",
+        resetsAt: daysFromNow(10),
+        windowAmount: 10000,
+        windowUnit: "billing_period",
+      }),
+      spendPolicy({
+        ...user("user_ada", "Ada"),
+        consumed: 42,
+        headroom: 8,
+        id: "csp_ada",
+        windowAmount: 50,
+      }),
+      spendPolicy({
+        ...user("user_bo", "Bo"),
+        consumed: 200,
+        headroom: 0,
+        id: "csp_bo",
+        windowAmount: 200,
+      }),
+      spendPolicy({
+        ...user("user_cy", "Cy"),
+        consumed: undefined,
+        headroom: undefined,
+        id: "csp_cy",
+        maxPerDraw: 25,
+        resetsAt: undefined,
+        windowAmount: undefined,
+        windowCount: 0,
+        windowUnit: undefined,
+      }),
+    ],
+  };
+}
+
+/** Per-user consumption for the usage-controls scenario's person picker. */
+export function usageControlsUsers(): Record<string, CreditUserUsage> {
+  return { bcr_ai: creditUserUsage() };
+}
+
 export const SCENARIOS = {
   pro: proCompany,
   trialing: trialingCompany,
@@ -599,6 +665,7 @@ export const SCENARIOS = {
   planManagerTrialing: planManagerTrialingScenario,
   pricingTable: pricingTableScenario,
   pricingTablePublic: pricingTablePublicScenario,
+  usageControls: usageControlsScenario,
 } satisfies Record<string, () => BillingData>;
 
 export type ScenarioName = keyof typeof SCENARIOS;
