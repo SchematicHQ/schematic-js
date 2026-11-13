@@ -53,9 +53,28 @@ export const creditLogCss = `
   overflow-x: auto;
 }
 
+/* Fixed layout sizes columns from the headings alone, so loading more rows,
+   or rows with longer text, never moves them. Activity takes what is left. */
 .schematic-credit-log__table {
   border-collapse: collapse;
+  table-layout: fixed;
   width: 100%;
+}
+
+.schematic-credit-log__date-heading {
+  width: 7rem;
+}
+
+.schematic-credit-log__by-heading {
+  width: 20%;
+}
+
+.schematic-credit-log__credit-heading {
+  width: 15%;
+}
+
+.schematic-credit-log__heading.schematic-credit-log__amount-heading {
+  width: 5rem;
 }
 
 .schematic-credit-log__heading {
@@ -72,15 +91,20 @@ export const creditLogCss = `
   vertical-align: baseline;
 }
 
-/* A long name, such as a user named by an ID, is cut with an ellipsis rather
-   than widening its column or wrapping its row. */
+/* A long name, such as a user named by an ID, wraps rather than widening its
+   column, and stops at two lines like the date. */
 .schematic-credit-log__truncate {
+  -webkit-box-orient: vertical;
   color: inherit;
-  display: block;
+  display: -webkit-box;
   font-size: inherit;
-  max-width: 8rem;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+}
+
+.schematic-credit-log__when {
   white-space: nowrap;
 }
 
@@ -98,6 +122,10 @@ export const creditLogCss = `
 /* A narrow card stacks each row: what happened and the amount, then when,
    who and which credit beneath. */
 @container (max-width: 30rem) {
+  .schematic-credit-log__table {
+    table-layout: auto;
+  }
+
   .schematic-credit-log__heading-row {
     display: none;
   }
@@ -108,7 +136,7 @@ export const creditLogCss = `
     grid-template-areas:
       "activity activity activity amount"
       "date by credit credit";
-    grid-template-columns: auto auto 1fr auto;
+    grid-template-columns: auto fit-content(40%) minmax(0, 1fr) auto;
     padding: calc(var(--schematic-space) / 2) 0;
   }
 

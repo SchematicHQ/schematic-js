@@ -176,6 +176,7 @@ describe("deriveCreditLog", () => {
     expect(row({ eventAt: logMinutesAgo(3 * 24 * 60) })).toMatchObject({
       day: null,
       whenText: "Aug 18, 3:00 PM",
+      timeText: "3:00 PM",
     });
   });
 

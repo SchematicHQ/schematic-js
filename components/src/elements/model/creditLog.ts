@@ -65,6 +65,8 @@ export interface CreditLogRow {
   day: "today" | "yesterday" | null;
   /** "Oct 26, 3:40 PM", or the time alone when `day` is set. */
   whenText: string;
+  /** "3:40 PM": the time alone, so the date cell can break before it. */
+  timeText: string;
   source: CreditLedgerEntry;
 }
 
@@ -135,6 +137,7 @@ function logRow(
     day,
     whenText:
       at === null ? "" : formatDateTime(at, locale, { timeOnly: day !== null }),
+    timeText: at === null ? "" : formatDateTime(at, locale, { timeOnly: true }),
     source: entry,
   };
 }

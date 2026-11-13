@@ -194,7 +194,10 @@ export function CreditLog({
                 >
                   <thead>
                     <tr className="schematic-credit-log__heading-row">
-                      <th className="schematic-credit-log__heading" scope="col">
+                      <th
+                        className="schematic-credit-log__heading schematic-credit-log__date-heading"
+                        scope="col"
+                      >
                         {t("creditLogColumnDate")}
                       </th>
                       <th className="schematic-credit-log__heading" scope="col">
@@ -202,7 +205,7 @@ export function CreditLog({
                       </th>
                       {showUser && (
                         <th
-                          className="schematic-credit-log__heading"
+                          className="schematic-credit-log__heading schematic-credit-log__by-heading"
                           scope="col"
                         >
                           {t("creditLogColumnBy")}
@@ -210,7 +213,7 @@ export function CreditLog({
                       )}
                       {showCredit && (
                         <th
-                          className="schematic-credit-log__heading"
+                          className="schematic-credit-log__heading schematic-credit-log__credit-heading"
                           scope="col"
                         >
                           {t("creditLogColumnCredit")}
@@ -234,7 +237,7 @@ export function CreditLog({
                           key={row.id}
                         >
                           <td className="schematic-muted schematic-credit-log__cell schematic-credit-log__date">
-                            {whenText(row, t)}
+                            <WhenText row={row} t={t} />
                           </td>
                           <td className="schematic-credit-log__cell schematic-credit-log__activity">
                             {actionText(row, t)}
@@ -451,6 +454,23 @@ function whenText(row: CreditLogRow, t: Translator): string {
     return t("creditLogYesterday", { time: row.whenText });
   }
   return row.whenText;
+}
+
+/** At most two lines: the day, then the time, each kept whole. */
+function WhenText({ row, t }: { row: CreditLogRow; t: Translator }) {
+  const text = whenText(row, t);
+  const at = row.timeText === "" ? -1 : text.lastIndexOf(row.timeText);
+  if (at <= 0) {
+    return <span className="schematic-credit-log__when">{text}</span>;
+  }
+  const day = text.slice(0, at);
+  return (
+    <>
+      <span className="schematic-credit-log__when">{day.trimEnd()}</span>
+      {day.slice(day.trimEnd().length) || "\u200b"}
+      <span className="schematic-credit-log__when">{text.slice(at)}</span>
+    </>
+  );
 }
 
 function whoText(who: CreditLogWho | null, t: Translator): string | undefined {
