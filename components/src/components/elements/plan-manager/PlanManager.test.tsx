@@ -13,6 +13,9 @@ import { PlanManager } from "./PlanManager";
 const state = vi.hoisted(() => ({
   creditGrants: [] as unknown[],
   includedCreditGrants: [] as unknown[],
+  planPrice: 5000,
+  addOns: [] as unknown[],
+  billingSubscription: undefined as unknown,
 }));
 
 vi.mock("../../../hooks", async (importOriginal) => {
@@ -25,11 +28,12 @@ vi.mock("../../../hooks", async (importOriginal) => {
           plan: {
             id: "plan-1",
             name: "Pro",
-            planPrice: 5000,
+            planPrice: state.planPrice,
             planPeriod: "month",
             includedCreditGrants: state.includedCreditGrants,
           },
-          addOns: [],
+          addOns: state.addOns,
+          billingSubscription: state.billingSubscription,
         },
         creditBundles: [],
         creditGrants: state.creditGrants,
@@ -93,6 +97,57 @@ const sectionFor = (heading: string) => {
 beforeEach(() => {
   state.creditGrants = [];
   state.includedCreditGrants = [];
+  state.planPrice = 5000;
+  state.addOns = [];
+  state.billingSubscription = undefined;
+});
+
+/** A subscription whose recurring product bills on the given interval. */
+const subscriptionOn = (interval: string, intervalCount: number) => ({
+  currency: "usd",
+  interval,
+  status: "active",
+  products: [{ interval, intervalCount }],
+});
+
+describe("`PlanManager` price period", () => {
+  test.each([
+    ["month", 1, "/mo"],
+    ["month", 3, "/qtr"],
+    ["month", 12, "/yr"],
+    ["month", 4, "/4mo"],
+    ["year", 2, "/2yr"],
+  ])(
+    "labels a %s×%i subscription price %s",
+    (interval, intervalCount, suffix) => {
+      state.planPrice = 144000;
+      state.billingSubscription = subscriptionOn(interval, intervalCount);
+
+      const { container } = render(<PlanManager />);
+
+      const suffixes = [...container.querySelectorAll("sub")].map(
+        (sub) => sub.textContent,
+      );
+      expect(suffixes).toContain(suffix);
+    },
+  );
+
+  test("labels a current add-on on the subscription's interval", () => {
+    state.billingSubscription = subscriptionOn("month", 12);
+    state.addOns = [
+      {
+        id: "addon-1",
+        name: "Extra seats",
+        planPrice: 1200,
+        planPeriod: "month",
+      },
+    ];
+
+    render(<PlanManager />);
+
+    const row = screen.getByText("Extra seats").parentElement as HTMLElement;
+    expect(row.querySelector("sub")?.textContent).toBe("/yr");
+  });
 });
 
 describe("`PlanManager` credit list truncation", () => {

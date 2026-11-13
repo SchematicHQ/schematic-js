@@ -1,6 +1,7 @@
 import type {
   BillingPriceResponseData,
   BillingPriceView,
+  BillingSubscriptionView,
   EntitlementCurrencyPricesResponseData,
   PlanEntitlementResponseData,
 } from "../../api/checkoutexternal";
@@ -16,6 +17,8 @@ import {
   getDefaultPlanPeriod,
   getEntitlementPrice,
   getPlanEstimatedPrice,
+  getSubscriptionInterval,
+  getSubscriptionPeriod,
   planOffersCurrencyForPeriod,
 } from "./billing";
 
@@ -36,6 +39,54 @@ function makeCurrencyPlan(): Plan {
     ],
   } as unknown as Plan;
 }
+
+describe("getSubscriptionInterval", () => {
+  const subscription = (
+    overrides: Partial<BillingSubscriptionView> = {},
+  ): BillingSubscriptionView =>
+    ({
+      interval: "month",
+      products: [],
+      ...overrides,
+    }) as BillingSubscriptionView;
+
+  test("reads the recurring product's interval and count", () => {
+    expect(
+      getSubscriptionInterval(
+        subscription({
+          products: [
+            { interval: "one-time" },
+            { interval: "month", intervalCount: 12 },
+          ] as BillingSubscriptionView["products"],
+        }),
+      ),
+    ).toEqual({ interval: "month", intervalCount: 12 });
+  });
+
+  test("falls back to the subscription's own interval", () => {
+    expect(getSubscriptionInterval(subscription({ interval: "year" }))).toEqual(
+      { interval: "year" },
+    );
+  });
+
+  test("is undefined without a subscription", () => {
+    expect(getSubscriptionInterval(undefined)).toBeUndefined();
+  });
+
+  test("leaves the period a month×12 subscription selects unchanged", () => {
+    // Display reads the count; period selection still treats month×12 as
+    // monthly until that is fixed separately.
+    expect(
+      getSubscriptionPeriod(
+        subscription({
+          products: [
+            { interval: "month", intervalCount: 12 },
+          ] as BillingSubscriptionView["products"],
+        }),
+      ),
+    ).toBe("month");
+  });
+});
 
 describe("planOffersCurrencyForPeriod", () => {
   it("returns true when no currency is requested", () => {

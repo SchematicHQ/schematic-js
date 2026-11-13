@@ -5,6 +5,8 @@ import {
 } from "../const";
 import type { Translate } from "../localization";
 
+import { nameInterval, normalizeInterval } from "./date";
+
 /**
  * Zero-decimal currencies where amounts are already in the smallest unit
  * (i.e. no cents). Matches the Stripe list.
@@ -113,9 +115,26 @@ export function formatOrdinal(n: number, t: Translate) {
   return t("Ordinal", { count: n, ordinal: true });
 }
 
-/** "monthly" for "month". The words are bundle keys, so a translation owns them. */
-export function adjectify(period: string, t: Translate) {
-  switch (period) {
+/**
+ * How often a price bills, for a sentence: "monthly", "quarterly", "yearly",
+ * or "every 4 months" for a counted period. Pass the price's interval count,
+ * since a quarterly or yearly price can be interval "month" with a count of 3
+ * or 12. The words are bundle keys, so a translation owns them.
+ */
+export function adjectify(
+  period: string,
+  t: Translate,
+  intervalCount?: number | null,
+) {
+  const { period: unit, count } = normalizeInterval(period, intervalCount);
+
+  if (count > 1) {
+    return t("every period", {
+      period: nameInterval(period, t, intervalCount),
+    });
+  }
+
+  switch (unit) {
     case "day":
       return t("daily");
     case "week":

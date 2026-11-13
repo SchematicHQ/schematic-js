@@ -30,14 +30,21 @@ export function derivePeriod(
   return interval;
 }
 
+/** A price's Stripe interval and how many of it each bill covers. */
+export interface PriceInterval {
+  interval: string;
+  intervalCount?: number | null;
+}
+
 /**
- * Derives the effective period of a current subscription, preferring the
- * recurring products' interval + interval_count (so quarterly is surfaced
- * even when the legacy `interval` field returns "month").
+ * The current subscription's billing interval as Stripe stores it, read from
+ * its recurring products and falling back to the subscription's own
+ * `interval`. Use this to label the subscription's price, so a yearly price
+ * stored as interval "month" with a count of 12 still reads "/yr".
  */
-export function getSubscriptionPeriod(
+export function getSubscriptionInterval(
   billingSubscription?: BillingSubscriptionView | null,
-): string | undefined {
+): PriceInterval | undefined {
   if (!billingSubscription) {
     return undefined;
   }
@@ -46,9 +53,28 @@ export function getSubscriptionPeriod(
     (p) => p.interval && p.interval !== "one-time",
   );
 
-  return (
-    derivePeriod(product?.interval, product?.intervalCount) ??
-    derivePeriod(billingSubscription.interval)
+  if (product?.interval) {
+    return { interval: product.interval, intervalCount: product.intervalCount };
+  }
+
+  return billingSubscription.interval
+    ? { interval: billingSubscription.interval }
+    : undefined;
+}
+
+/**
+ * Derives the effective period of a current subscription, preferring the
+ * recurring products' interval + interval_count (so quarterly is surfaced
+ * even when the legacy `interval` field returns "month").
+ */
+export function getSubscriptionPeriod(
+  billingSubscription?: BillingSubscriptionView | null,
+): string | undefined {
+  const subscriptionInterval = getSubscriptionInterval(billingSubscription);
+
+  return derivePeriod(
+    subscriptionInterval?.interval,
+    subscriptionInterval?.intervalCount,
   );
 }
 
