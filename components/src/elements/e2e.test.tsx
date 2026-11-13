@@ -7,6 +7,7 @@ import { SchematicProvider } from "@schematichq/schematic-react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
+import { CreditLog } from "./CreditLog";
 import { CreditUsage } from "./CreditUsage";
 import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
@@ -41,6 +42,7 @@ function serve(
   const methods = scenario.paymentMethods ?? [];
   const features = scenario.featureUsage ?? [];
   const balances = scenario.creditBalances ?? [];
+  const ledger = scenario.creditLedger?.entries ?? [];
   let held = scenario.company;
   const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
     const url = new URL(String(input));
@@ -79,6 +81,25 @@ function serve(
       return new Response(
         JSON.stringify({
           data: billingApi.CompanyContextResponseDataToJSON(held),
+          params: {},
+        }),
+        { status: 200 },
+      );
+    }
+    if (flagged && url.pathname === "/company/credits/ledger") {
+      // Pages by limit and offset and answers has_more, as the API does.
+      const limit = Number(url.searchParams.get("limit"));
+      const offset = Number(url.searchParams.get("offset"));
+      return new Response(
+        JSON.stringify({
+          data: {
+            entries: ledger
+              .slice(offset, offset + limit)
+              .map((row) =>
+                billingApi.CompanyCreditLedgerEntryResponseDataToJSON(row),
+              ),
+            has_more: offset + limit < ledger.length,
+          },
           params: {},
         }),
         { status: 200 },
@@ -200,6 +221,17 @@ describe("end to end", () => {
     expect(api).toHaveTextContent("250 API calls used");
     await waitFor(() => expect(api).toHaveTextContent("Usage by user"));
     expect(api).toHaveTextContent("Ada");
+  });
+
+  test("CreditLog", async () => {
+    renderStack(<CreditLog locale="en-US" />, "tok", SCENARIOS.creditLog());
+    const rows = await screen.findAllByTestId("schematic-credit-log-entry");
+    expect(rows).toHaveLength(3);
+    expect(rows[1]).toHaveTextContent("Auto top-up, Booster pack");
+    expect(rows[1]).toHaveTextContent("+1,000");
+    expect(
+      document.querySelector(".schematic-credit-log__credit-name"),
+    ).toHaveTextContent("AI credits");
   });
 
   test("CreditUsage", async () => {
