@@ -7,11 +7,12 @@
  * a newer schematic-js meant adopting whatever it added. A resource joins
  * this list with the hook that reads it. The catalog (the company's view and
  * the public one), invoices, upcoming-invoice, payment-methods,
- * feature-usage, credits, company and tax-ID slices so far; the rest of the
+ * feature-usage, credits, credit-ledger, company and tax-ID slices so far; the rest of the
  * contract ships with its elements.
  */
 import {
   normalizeCatalogQuery as normalizeCatalog,
+  normalizeCreditLedgerQuery as normalizeCreditLedger,
   normalizeInvoiceQuery as normalize,
 } from "@schematichq/schematic-js";
 
@@ -20,15 +21,21 @@ import type {
   BillingResourceParams as ContractResourceParams,
   BillingResources as ContractResources,
   CatalogQuery,
+  CreditLedgerQuery,
   InvoiceQuery,
 } from "@schematichq/schematic-js";
 
 export {
+  BillingCreditGrantReason,
+  BillingCreditGrantZeroedOutReason,
   CheckoutDraft,
   CheckoutProblemCode,
   CheckoutStatus,
   checkoutProblemsOf,
+  CreditLedgerEntryKind,
+  CreditUsageReason,
   DEFAULT_CATALOG_QUERY,
+  DEFAULT_CREDIT_LEDGER_QUERY,
   DEFAULT_INVOICE_QUERY,
   InvoiceStatus,
   SINGLETON,
@@ -56,6 +63,9 @@ export {
   type CreditBalanceEntry,
   type CreditComposition,
   type CreditGrant,
+  type CreditLedgerEntry,
+  type CreditLedgerPage,
+  type CreditLedgerQuery,
   type CreditUserUsage,
   type CreditUserUsageRow,
   type CustomPlanBilling,
@@ -88,6 +98,7 @@ export type BillingResourceName =
   | "paymentMethods"
   | "featureUsage"
   | "creditBalances"
+  | "creditLedger"
   | "company"
   | "taxIds";
 export type BillingResources = Pick<ContractResources, BillingResourceName>;
@@ -124,6 +135,7 @@ export type BillingProviderClient = Pick<
   | "fetchFeatureUsage"
   | "fetchFeatureUserUsage"
   | "fetchCreditBalances"
+  | "fetchCreditLedger"
   | "fetchCreditUserUsage"
   | "fetchCompany"
   | "cancelSubscription"
@@ -157,4 +169,15 @@ export function normalizeInvoiceQuery(query: InvoiceQuery): InvoiceQuery {
 export function normalizeCatalogQuery(query: CatalogQuery): CatalogQuery {
   const { catalogId } = normalizeCatalog(query);
   return catalogId === undefined ? {} : { catalogId };
+}
+
+/** As `normalizeInvoiceQuery`: only the credits and `includeGrants` key a ledger. */
+export function normalizeCreditLedgerQuery(
+  query: CreditLedgerQuery,
+): CreditLedgerQuery {
+  const { credits, includeGrants } = normalizeCreditLedger(query);
+  return {
+    ...(credits === undefined ? {} : { credits }),
+    ...(includeGrants === undefined ? {} : { includeGrants }),
+  };
 }

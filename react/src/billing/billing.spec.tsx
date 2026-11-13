@@ -24,6 +24,7 @@ import {
   type CheckoutResult,
   type Company,
   type CreditBalanceEntry,
+  type CreditLedgerEntry,
   type CreditUserUsage,
   type FeatureUsage,
   type FeatureUserUsage,
@@ -45,6 +46,7 @@ import {
   useCheckout,
   useCompany,
   useCreditBalances,
+  useCreditLedger,
   useCreditUserUsage,
   useFeatureUsage,
   useFeatureUserUsage,
@@ -202,6 +204,7 @@ function fakeClient(
     fetchFeatureUserUsage: vi.fn(async ({ featureId }) => userUsage(featureId)),
     fetchCreditBalances: vi.fn(async () => []),
     fetchCreditUserUsage: vi.fn(async ({ creditId }) => creditUsage(creditId)),
+    fetchCreditLedger: vi.fn(async () => ({ entries: [] })),
     fetchCompany: vi.fn(async () => company("Acme")),
     cancelSubscription: vi.fn(async () => {}),
     onSessionChange: (listener) => {
@@ -3047,5 +3050,185 @@ describe("useTaxIds", () => {
       "That tax ID is not valid.",
     );
     expect(result.current.error).toBeUndefined();
+  });
+});
+
+const ledgerEntry = (id: string): CreditLedgerEntry =>
+  ({ id, amount: -1, kind: "drawdown" }) as unknown as CreditLedgerEntry;
+
+/** A fake ledger over `ids` whose cursor is the next index, as a string. */
+const serveLedger =
+  (ids: string[]) =>
+  async ({ cursor, limit }: { cursor?: string; limit: number }) => {
+    const start = cursor === undefined ? 0 : Number(cursor);
+    const entries = ids.slice(start, start + limit).map(ledgerEntry);
+    return start + limit < ids.length
+      ? { entries, nextCursor: String(start + limit) }
+      : { entries };
+  };
+
+describe("useCreditLedger", () => {
+  const wrap = (client: BillingProviderClient, initialData?: BillingData) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client} initialData={initialData}>
+          {children}
+        </BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+  const ids = (n: number) => Array.from({ length: n }, (_, i) => `e${i}`);
+
+  it_("loads the first page and appends the next on loadMore", async () => {
+    const fetchCreditLedger = vi.fn(serveLedger(ids(25)));
+    const client = fakeClient({ fetchCreditLedger });
+    const { result } = renderHook(() => useCreditLedger(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    expect(result.current.data?.entries).toHaveLength(20);
+    expect(result.current.data?.nextCursor).toBe("20");
+    expect(fetchCreditLedger).toHaveBeenLastCalledWith({ limit: 20 });
+
+    act(() => void result.current.loadMore());
+    await flush();
+    expect(result.current.data?.entries).toHaveLength(25);
+    expect(result.current.data?.nextCursor).toBeUndefined();
+    expect(fetchCreditLedger).toHaveBeenLastCalledWith({
+      cursor: "20",
+      limit: 20,
+    });
+
+    await act(() => result.current.loadMore());
+    expect(fetchCreditLedger).toHaveBeenCalledTimes(2);
+  });
+
+  it_("ends the list on an empty page whatever cursor it carries", async () => {
+    const fetchCreditLedger = vi.fn(
+      async ({ cursor }: { cursor?: string; limit: number }) =>
+        cursor === undefined
+          ? { entries: ids(20).map(ledgerEntry), nextCursor: "a" }
+          : { entries: [], nextCursor: "b" },
+    );
+    const { result } = renderHook(() => useCreditLedger(), {
+      wrapper: wrap(fakeClient({ fetchCreditLedger })),
+    });
+    await flush();
+    act(() => void result.current.loadMore());
+    await flush();
+    expect(result.current.data?.nextCursor).toBeUndefined();
+    expect(result.current.data?.entries).toHaveLength(20);
+  });
+
+  it_("adds no row twice when new activity lands between pages", async () => {
+    let rows = ids(30);
+    const fetchCreditLedger = vi.fn(
+      async ({ cursor, limit }: { cursor?: string; limit: number }) => {
+        const start = cursor === undefined ? 0 : rows.indexOf(cursor) + 1;
+        const entries = rows.slice(start, start + limit).map(ledgerEntry);
+        const last = entries[entries.length - 1]?.id;
+        return start + limit < rows.length && last !== undefined
+          ? { entries, nextCursor: last }
+          : { entries };
+      },
+    );
+    const { result } = renderHook(() => useCreditLedger(), {
+      wrapper: wrap(fakeClient({ fetchCreditLedger })),
+    });
+    await flush();
+    rows = ["new2", "new1", ...rows];
+    act(() => void result.current.loadMore());
+    await flush();
+    const loaded = result.current.data?.entries.map((entry) => entry.id) ?? [];
+    expect(loaded).toHaveLength(30);
+    expect(new Set(loaded).size).toBe(30);
+  });
+
+  it_("keys a list by its credits and grants, in any spelling", async () => {
+    const fetchCreditLedger = vi.fn(serveLedger(ids(2)));
+    const client = fakeClient({ fetchCreditLedger });
+    const { result } = renderHook(
+      () =>
+        [
+          useCreditLedger({ credits: ["b", "a"], includeGrants: true }),
+          useCreditLedger({ credits: ["a", "b", "a"] }),
+          useCreditLedger({ includeGrants: false }),
+        ] as const,
+      { wrapper: wrap(client) },
+    );
+    await flush();
+    expect(result.current[1].data).toBe(result.current[0].data);
+    expect(fetchCreditLedger).toHaveBeenCalledTimes(2);
+    expect(fetchCreditLedger).toHaveBeenCalledWith({
+      credits: ["a", "b"],
+      limit: 20,
+    });
+    expect(fetchCreditLedger).toHaveBeenCalledWith({
+      includeGrants: false,
+      limit: 20,
+    });
+  });
+
+  it_(
+    "serves a prefetched page under its query without a request",
+    async () => {
+      const fetchCreditLedger = vi.fn(serveLedger(ids(5)));
+      const { result } = renderHook(
+        () => useCreditLedger({ credits: ["bcr_ai"] }),
+        {
+          wrapper: wrap(fakeClient({ fetchCreditLedger }), {
+            creditLedger: { entries: [ledgerEntry("seeded")] },
+            params: { creditLedger: { credits: ["bcr_ai"] } },
+          }),
+        },
+      );
+      expect(result.current.data?.entries[0].id).toBe("seeded");
+      await flush();
+      expect(fetchCreditLedger).not.toHaveBeenCalled();
+    },
+  );
+
+  it_("refetches the whole window it has loaded", async () => {
+    const fetchCreditLedger = vi.fn(serveLedger(ids(45)));
+    const { result } = renderHook(() => useCreditLedger(), {
+      wrapper: wrap(fakeClient({ fetchCreditLedger })),
+    });
+    await flush();
+    act(() => void result.current.loadMore());
+    await flush();
+    expect(result.current.data?.entries).toHaveLength(40);
+
+    fetchCreditLedger.mockClear();
+    act(() => void result.current.refetch());
+    await flush();
+    expect(fetchCreditLedger).toHaveBeenCalledWith({ limit: 40 });
+    expect(result.current.data?.entries).toHaveLength(40);
+    expect(result.current.data?.nextCursor).toBe("40");
+  });
+
+  it_("serves fixtures and reports loadMore to the host", async () => {
+    const onLoadMoreCreditLedger = vi.fn();
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingDataProvider
+          data={{
+            creditLedger: { entries: [ledgerEntry("f")], nextCursor: "next" },
+          }}
+          onLoadMoreCreditLedger={onLoadMoreCreditLedger}
+        >
+          {children}
+        </BillingDataProvider>
+      );
+    }
+    const { result } = renderHook(
+      () => useCreditLedger({ includeGrants: false }),
+      { wrapper: Wrapper },
+    );
+    expect(result.current.data?.entries[0].id).toBe("f");
+    await act(() => result.current.loadMore());
+    expect(onLoadMoreCreditLedger).toHaveBeenCalledWith({
+      includeGrants: false,
+    });
   });
 });

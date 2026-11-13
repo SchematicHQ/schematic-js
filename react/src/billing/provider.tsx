@@ -192,6 +192,7 @@ export function BillingProvider({
       creditUserUsage: (creditId) =>
         handleOf(store.creditUserUsage.get({ creditId })),
       loadMoreInvoices: (query) => store.loadMoreInvoices(query),
+      loadMoreCreditLedger: (query) => store.loadMoreCreditLedger(query),
       invalidateAll: () => store.invalidateAll(),
       actions: {
         setDefaultPaymentMethod: (externalId) =>
@@ -281,6 +282,7 @@ function staticSource(data: BillingData): BillingDataSource {
       return next as never;
     },
     loadMoreInvoices: () => Promise.resolve(),
+    loadMoreCreditLedger: () => Promise.resolve(),
     invalidateAll: () => {},
     catalogSource: () => catalogSourceOf(data),
   };
