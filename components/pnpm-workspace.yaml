@@ -24,6 +24,10 @@ overrides:
   source-map-js: ^1.2.2
   katex: ~0.18.2
   follow-redirects: ^1.16.2
+  # get-uri 8.0.1 (latest) still asks for ^5.3.1, and every 5.x is affected.
+  # get-uri only calls access/lastMod/list/downloadTo/close, unchanged in 6.x;
+  # 6.0.0's one break is refusing separate transfer hosts by default.
+  basic-ftp: ^6.2.4
   vite: ^8.2.4
 
 allowBuilds:
