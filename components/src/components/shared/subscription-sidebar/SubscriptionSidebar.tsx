@@ -44,6 +44,7 @@ import {
   getFeatureName,
   getPlanPrice,
   getSubscriptionDiscount,
+  getSubscriptionInterval,
   getSubscriptionPeriod,
   groupPlanCreditGrants,
   isScheduledCheckoutConflictMessage,
@@ -979,6 +980,18 @@ export const SubscriptionSidebar = forwardRef<
           })
         : billingPreviewText;
 
+    // The current plan and its add-ons are priced on the subscription's own
+    // interval, which can be counted (a yearly price stored as month×12), so
+    // label them from it rather than from the selected period.
+    const currentPriceInterval = getSubscriptionInterval(
+      billingSubscription,
+    ) ?? { interval: currentPlan?.planPeriod || planPeriod };
+    const currentPriceSuffix = shortenPeriod(
+      currentPriceInterval.interval,
+      t,
+      currentPriceInterval.intervalCount,
+    );
+
     return (
       <Flex
         ref={ref}
@@ -1063,15 +1076,7 @@ export const SubscriptionSidebar = forwardRef<
                         locale,
                         currency: billingSubscription?.currency,
                       })}
-                      <sub>
-                        /
-                        {shortenPeriod(
-                          getSubscriptionPeriod(billingSubscription) ||
-                            currentPlan.planPeriod ||
-                            planPeriod,
-                          t,
-                        )}
-                      </sub>
+                      <sub>/{currentPriceSuffix}</sub>
                     </Text>
                   </Box>
                 )}
@@ -1288,7 +1293,7 @@ export const SubscriptionSidebar = forwardRef<
                               currency: selectedPlanCurrency,
                             })}
                             {addOn.planPeriod !== "one-time" && (
-                              <sub>/{shortenPeriod(planPeriod, t)}</sub>
+                              <sub>/{currentPriceSuffix}</sub>
                             )}
                           </Text>
                         </Box>

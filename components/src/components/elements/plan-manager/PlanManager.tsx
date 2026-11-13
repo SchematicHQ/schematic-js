@@ -10,10 +10,7 @@ import {
   useTrialEnd,
   useTruncatedList,
 } from "../../../hooks";
-import {
-  useTranslation,
-  type SchematicTranslationKey,
-} from "../../../localization";
+import { useTranslation } from "../../../localization";
 import type {
   CreditWithCompanyContext,
   DeepPartial,
@@ -28,12 +25,14 @@ import {
   getAutoTopupAmount,
   getAutoTopupThresholdCredits,
   getFeatureName,
+  getSubscriptionInterval,
   getSubscriptionPeriod,
   groupPlanCreditGrants,
   isAutoTopupEnabled,
   isAutoTopupOff,
   isSelfServiceAutoTopupAvailable,
   lighten,
+  nameInterval,
   resolvePlanCreditQuantity,
   shortenPeriod,
   toPrettyDate,
@@ -254,9 +253,7 @@ export const PlanManager = forwardRef<
     willSubscriptionCancel,
     isTrialSubscription,
   } = useMemo(() => {
-    const subscriptionInterval =
-      getSubscriptionPeriod(billingSubscription) ??
-      billingSubscription?.interval;
+    const subscriptionInterval = getSubscriptionInterval(billingSubscription);
     const subscriptionCurrency = billingSubscription?.currency;
     const isTrialSubscription = billingSubscription?.status === "trialing";
     const willSubscriptionCancel =
@@ -275,6 +272,12 @@ export const PlanManager = forwardRef<
     getSubscriptionPeriod(billingSubscription) ??
     currentPlan?.planPeriod ??
     undefined;
+
+  // Labels the current plan's own price, which is billed on the
+  // subscription's interval. A plan period is only a fallback, with no count.
+  const currentPriceInterval =
+    subscriptionInterval ??
+    (currentPlanPeriod ? { interval: currentPlanPeriod } : undefined);
 
   const { isFreePlan, isUsageBasedPlan } = useMemo(() => {
     const isFreePlan = currentPlan?.planPrice === 0;
@@ -490,9 +493,16 @@ export const PlanManager = forwardRef<
                           })}
                   </Text>
 
-                  {!isFreePlan && currentPlanPeriod && (
+                  {!isFreePlan && currentPriceInterval && (
                     <Text display={props.header.price.fontStyle}>
-                      <sub>/{shortenPeriod(currentPlanPeriod, t)}</sub>
+                      <sub>
+                        /
+                        {shortenPeriod(
+                          currentPriceInterval.interval,
+                          t,
+                          currentPriceInterval.intervalCount,
+                        )}
+                      </sub>
                     </Text>
                   )}
                 </Box>
@@ -521,7 +531,7 @@ export const PlanManager = forwardRef<
                   key={addOnIndex}
                   addOn={addOn}
                   currency={subscriptionCurrency}
-                  period={currentPlanPeriod}
+                  priceInterval={currentPriceInterval}
                   layout={props}
                 />
               ))}
@@ -611,8 +621,9 @@ export const PlanManager = forwardRef<
                   const licenseQuantity = perLicenseGrant?.licenseId
                     ? resolveLicenseQuantity(perLicenseGrant.licenseId)
                     : undefined;
-                  const creditPeriod =
-                    composition.period ?? subscriptionInterval;
+                  const creditInterval = composition.period
+                    ? { interval: composition.period }
+                    : subscriptionInterval;
                   const showPerLicense = !!perLicenseGrant && !!licenseFeature;
 
                   return (
@@ -644,7 +655,7 @@ export const PlanManager = forwardRef<
                                 ),
                               })}
                               {composition.fixedQuantity > 0 &&
-                                creditPeriod && (
+                                creditInterval && (
                                   <>
                                     {" "}
                                     {t("Plus X credits per period", {
@@ -654,8 +665,10 @@ export const PlanManager = forwardRef<
                                         locale,
                                         composition.fixedQuantity,
                                       ),
-                                      period: t(
-                                        creditPeriod as SchematicTranslationKey,
+                                      period: nameInterval(
+                                        creditInterval.interval,
+                                        t,
+                                        creditInterval.intervalCount,
                                       ),
                                     })}
                                   </>
@@ -668,8 +681,10 @@ export const PlanManager = forwardRef<
                               {subscriptionInterval && (
                                 <>
                                   {t("per")}{" "}
-                                  {t(
-                                    subscriptionInterval as SchematicTranslationKey,
+                                  {nameInterval(
+                                    subscriptionInterval.interval,
+                                    t,
+                                    subscriptionInterval.intervalCount,
                                   )}
                                 </>
                               )}
@@ -703,7 +718,7 @@ export const PlanManager = forwardRef<
                       {showPerLicense &&
                         typeof licenseQuantity === "number" &&
                         typeof resolvedTotal === "number" &&
-                        creditPeriod && (
+                        creditInterval && (
                           <Text
                             style={{ opacity: 0.54 }}
                             $size={
@@ -727,7 +742,11 @@ export const PlanManager = forwardRef<
                                     locale,
                                     resolvedTotal,
                                   ),
-                                  period: shortenPeriod(creditPeriod, t),
+                                  period: shortenPeriod(
+                                    creditInterval.interval,
+                                    t,
+                                    creditInterval.intervalCount,
+                                  ),
                                 })
                               : t("X licenses times Y credits", {
                                   quantity: licenseQuantity,
@@ -743,7 +762,11 @@ export const PlanManager = forwardRef<
                                     locale,
                                     resolvedTotal,
                                   ),
-                                  period: shortenPeriod(creditPeriod, t),
+                                  period: shortenPeriod(
+                                    creditInterval.interval,
+                                    t,
+                                    creditInterval.intervalCount,
+                                  ),
                                 })}
                           </Text>
                         )}

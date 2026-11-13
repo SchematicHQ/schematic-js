@@ -254,4 +254,16 @@ describe("adjectify", () => {
 
     expect(adjectify("month", translate)).toBe("mensile");
   });
+
+  test("reads month×3 as quarterly and month×12 as yearly", () => {
+    expect(adjectify("month", t, 1)).toBe("monthly");
+    expect(adjectify("month", t, 3)).toBe("quarterly");
+    expect(adjectify("month", t, 12)).toBe("yearly");
+  });
+
+  test("spells out any other count", () => {
+    expect(adjectify("month", t, 4)).toBe("every 4 months");
+    expect(adjectify("year", t, 2)).toBe("every 2 years");
+    expect(adjectify("week", t, 2)).toBe("every 2 weeks");
+  });
 });
