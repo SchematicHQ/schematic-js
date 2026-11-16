@@ -48,6 +48,13 @@ import {
   BillingPriceSchemeToJSON,
   BillingPriceSchemeToJSONTyped,
 } from "./BillingPriceScheme";
+import type { BillingTiersMode } from "./BillingTiersMode";
+import {
+  BillingTiersModeFromJSON,
+  BillingTiersModeFromJSONTyped,
+  BillingTiersModeToJSON,
+  BillingTiersModeToJSONTyped,
+} from "./BillingTiersMode";
 
 /**
  *
@@ -183,6 +190,12 @@ export interface BillingProductForSubscriptionResponseData {
   subscriptionItemExternalId?: string | null;
   /**
    *
+   * @type {BillingTiersMode}
+   * @memberof BillingProductForSubscriptionResponseData
+   */
+  tiersMode?: BillingTiersMode | null;
+  /**
+   *
    * @type {Date}
    * @memberof BillingProductForSubscriptionResponseData
    */
@@ -272,6 +285,10 @@ export function BillingProductForSubscriptionResponseDataFromJSONTyped(
       json["subscription_item_external_id"] == null
         ? undefined
         : json["subscription_item_external_id"],
+    tiersMode:
+      json["tiers_mode"] == null
+        ? undefined
+        : BillingTiersModeFromJSON(json["tiers_mode"]),
     updatedAt: new Date(json["updated_at"]),
     usageType: BillingPriceUsageTypeFromJSON(json["usage_type"]),
   };
@@ -315,6 +332,7 @@ export function BillingProductForSubscriptionResponseDataToJSONTyped(
     quantity: value["quantity"],
     subscription_id: value["subscriptionId"],
     subscription_item_external_id: value["subscriptionItemExternalId"],
+    tiers_mode: BillingTiersModeToJSON(value["tiersMode"]),
     updated_at: value["updatedAt"].toISOString(),
     usage_type: BillingPriceUsageTypeToJSON(value["usageType"]),
   };
