@@ -53,28 +53,9 @@ export const creditLogCss = `
   overflow-x: auto;
 }
 
-/* Fixed layout sizes columns from the headings alone, so loading more rows,
-   or rows with longer text, never moves them. Activity takes what is left. */
 .schematic-credit-log__table {
   border-collapse: collapse;
-  table-layout: fixed;
   width: 100%;
-}
-
-.schematic-credit-log__date-heading {
-  width: 7rem;
-}
-
-.schematic-credit-log__by-heading {
-  width: 20%;
-}
-
-.schematic-credit-log__credit-heading {
-  width: 15%;
-}
-
-.schematic-credit-log__heading.schematic-credit-log__amount-heading {
-  width: 5rem;
 }
 
 .schematic-credit-log__heading {
@@ -122,10 +103,6 @@ export const creditLogCss = `
 /* A narrow card stacks each row: what happened and the amount, then when,
    who and which credit beneath. */
 @container (max-width: 30rem) {
-  .schematic-credit-log__table {
-    table-layout: auto;
-  }
-
   .schematic-credit-log__heading-row {
     display: none;
   }

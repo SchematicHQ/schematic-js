@@ -194,10 +194,7 @@ export function CreditLog({
                 >
                   <thead>
                     <tr className="schematic-credit-log__heading-row">
-                      <th
-                        className="schematic-credit-log__heading schematic-credit-log__date-heading"
-                        scope="col"
-                      >
+                      <th className="schematic-credit-log__heading" scope="col">
                         {t("creditLogColumnDate")}
                       </th>
                       <th className="schematic-credit-log__heading" scope="col">
@@ -205,7 +202,7 @@ export function CreditLog({
                       </th>
                       {showUser && (
                         <th
-                          className="schematic-credit-log__heading schematic-credit-log__by-heading"
+                          className="schematic-credit-log__heading"
                           scope="col"
                         >
                           {t("creditLogColumnBy")}
@@ -213,7 +210,7 @@ export function CreditLog({
                       )}
                       {showCredit && (
                         <th
-                          className="schematic-credit-log__heading schematic-credit-log__credit-heading"
+                          className="schematic-credit-log__heading"
                           scope="col"
                         >
                           {t("creditLogColumnCredit")}
