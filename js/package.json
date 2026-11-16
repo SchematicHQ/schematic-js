@@ -41,7 +41,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@microsoft/api-extractor": "^7.60.1",
-    "@openapitools/openapi-generator-cli": "^2.42.1",
+    "@openapitools/openapi-generator-cli": "^2.42.2",
     "@types/node": "^26.6.6",
     "@vitest/browser": "^5.1.0",
     "esbuild": "^0.28.2",
@@ -50,9 +50,9 @@
     "happy-dom": "^21.0.4",
     "husky": "^9.1.7",
     "js-yaml": "^5.5.0",
-    "jsdom": "^31.0.0",
+    "jsdom": "^31.0.1",
     "mock-socket": "^9.3.1",
-    "prettier": "^3.9.10",
+    "prettier": "^3.10.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.2",
     "vitest": "^5.1.0"
