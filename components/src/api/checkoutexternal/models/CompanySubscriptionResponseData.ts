@@ -112,6 +112,12 @@ export interface CompanySubscriptionResponseData {
    */
   interval: string;
   /**
+   * With interval, the subscription's billing period: 3 with month is quarterly. Read from the subscription's line items, since interval alone is month for monthly and quarterly alike.
+   * @type {number}
+   * @memberof CompanySubscriptionResponseData
+   */
+  intervalCount?: number | null;
+  /**
    *
    * @type {boolean}
    * @memberof CompanySubscriptionResponseData
@@ -256,6 +262,8 @@ export function CompanySubscriptionResponseDataFromJSONTyped(
     expiredAt:
       json["expired_at"] == null ? undefined : new Date(json["expired_at"]),
     interval: json["interval"],
+    intervalCount:
+      json["interval_count"] == null ? undefined : json["interval_count"],
     isInitial: json["is_initial"],
     latestInvoice:
       json["latest_invoice"] == null
@@ -321,6 +329,7 @@ export function CompanySubscriptionResponseDataToJSONTyped(
         ? undefined
         : (value["expiredAt"] as any).toISOString(),
     interval: value["interval"],
+    interval_count: value["intervalCount"],
     is_initial: value["isInitial"],
     latest_invoice: InvoiceResponseDataToJSON(value["latestInvoice"]),
     pause_behavior: BillingSubscriptionPauseBehaviorToJSON(
