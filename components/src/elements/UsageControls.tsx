@@ -496,16 +496,6 @@ function LimitDialog({
       >
         {row === undefined ? (
           <>
-            <Field label={t("usageControlsAppliesTo")}>
-              <Toggle
-                options={[
-                  { value: false, label: t("usageControlsEveryone") },
-                  { value: true, label: t("usageControlsOnePerson") },
-                ]}
-                value={person}
-                onChange={setPerson}
-              />
-            </Field>
             {view.creditOptions.length > 1 && (
               <Field
                 htmlFor={`${fieldId}-credit`}
@@ -528,6 +518,16 @@ function LimitDialog({
                 </select>
               </Field>
             )}
+            <Field label={t("usageControlsAppliesTo")}>
+              <Toggle
+                options={[
+                  { value: false, label: t("usageControlsEveryone") },
+                  { value: true, label: t("usageControlsOnePerson") },
+                ]}
+                value={person}
+                onChange={setPerson}
+              />
+            </Field>
             {person && (
               <Field
                 htmlFor={`${fieldId}-person`}
