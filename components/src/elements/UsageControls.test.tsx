@@ -114,7 +114,7 @@ describe("UsageControls", () => {
       { allowEdit: true },
       { data: { ...SCENARIOS.usageControls(), spendPolicies: [] } },
     );
-    expect(screen.getByText("No usage limits")).toBeInTheDocument();
+    expect(screen.getByText("No usage controls")).toBeInTheDocument();
     expect(
       screen.getByText("Everyone shares the company balance."),
     ).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe("UsageControls", () => {
       },
     );
     expect(
-      screen.getByText("There was a problem retrieving usage limits."),
+      screen.getByText("There was a problem retrieving usage controls."),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Try again" }),

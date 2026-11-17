@@ -40,7 +40,7 @@ export interface UsageControlsProps extends ElementProps {
    * host turns this on for the people it lets manage them.
    */
   allowEdit?: boolean;
-  /** The "Usage limits" heading. Default true. */
+  /** The "Usage controls" heading. Default true. */
   showHeader?: boolean;
   /** Heading level, so the card fits the host's outline. Default 2. */
   headingLevel?: HeadingLevel;

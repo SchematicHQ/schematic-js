@@ -44,7 +44,7 @@ A policy caps either a window (`windowAmount` per `windowUnit`: `hour`, `day`, `
 | --------------------- | ------- | ------------------------------------------------------------------ |
 | `credits`             | —       | Credit ids whose limits to show and add; every credit when absent. |
 | `allowEdit`           | `false` | Shows Add and Edit.                                                |
-| `showHeader`          | `true`  | The "Usage limits" heading.                                        |
+| `showHeader`          | `true`  | The "Usage controls" heading.                                      |
 | `headingLevel`        | `2`     | The heading's level.                                               |
 | `className`, `locale` | —       | Root class; BCP 47 tag for formatting.                             |
 | `strings`             | —       | Copy for this element by key; wins over the provider's.            |
