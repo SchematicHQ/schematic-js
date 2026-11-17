@@ -678,13 +678,13 @@ export const PlanManager = forwardRef<
                             <>
                               {group.total.value}{" "}
                               {getFeatureName(group, locale, group.total.value)}{" "}
-                              {subscriptionInterval && (
+                              {creditInterval && (
                                 <>
                                   {t("per")}{" "}
                                   {nameInterval(
-                                    subscriptionInterval.interval,
+                                    creditInterval.interval,
                                     t,
-                                    subscriptionInterval.intervalCount,
+                                    creditInterval.intervalCount,
                                   )}
                                 </>
                               )}

@@ -276,6 +276,22 @@ export function entitlementHasCost(
   );
 }
 
+/**
+ * Whether any entitlement bills usage after the fact. Pay-in-advance quantities
+ * are already in the subscription price, and credit burndown draws down credits
+ * rather than adding a charge.
+ */
+export function hasMeteredCosts(
+  entitlements: { priceBehavior?: EntitlementPriceBehavior | null }[],
+) {
+  return entitlements.some(
+    ({ priceBehavior }) =>
+      !!priceBehavior &&
+      priceBehavior !== EntitlementPriceBehavior.PayInAdvance &&
+      priceBehavior !== EntitlementPriceBehavior.CreditBurndown,
+  );
+}
+
 export function entitlementHasHardLimit(entitlement: {
   priceBehavior?: EntitlementPriceBehavior | null;
 }) {

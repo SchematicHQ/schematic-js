@@ -159,4 +159,38 @@ describe("`PeriodToggle` component", () => {
       screen.getByText("Save up to 10% with quarterly billing"),
     ).toBeInTheDocument();
   });
+
+  test("computes the savings from the prices in the checkout currency", () => {
+    const mockPlan = {
+      monthlyPrice: { price: 2500, priceDecimal: "2500", currency: "usd" },
+      yearlyPrice: { price: 20000, priceDecimal: "20000", currency: "usd" },
+      currencyPrices: [
+        {
+          currency: "eur",
+          monthlyPrice: { price: 1800, priceDecimal: "1800", currency: "eur" },
+          yearlyPrice: { price: 18000, priceDecimal: "18000", currency: "eur" },
+        },
+      ],
+    };
+
+    render(
+      <PeriodToggle
+        options={mockOptions}
+        selectedOption="month"
+        selectedPlan={mockPlan as SelectedPlan}
+        currency="EUR"
+        onSelect={mockOnSelect}
+      />,
+    );
+
+    const yearlyOption = screen.getByText("Billed yearly");
+    act(() => {
+      fireEvent.focus(yearlyOption);
+      fireEvent.pointerEnter(yearlyOption);
+    });
+
+    expect(
+      screen.getByText("Save up to 16.67% with yearly billing"),
+    ).toBeInTheDocument();
+  });
 });

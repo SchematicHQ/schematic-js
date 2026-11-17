@@ -1,3 +1,5 @@
+import type { CreditGrant } from "@schematichq/schematic-react";
+
 import {
   NOW,
   company,
@@ -380,6 +382,24 @@ describe("derivePlanManager", () => {
           "15",
         ],
       ]);
+    });
+
+    test("label a plan grant with its own reset period, not the subscription's", () => {
+      const period = (renewalPeriod: CreditGrant["renewalPeriod"]) => {
+        const [row] = derive({
+          company: company({
+            subscription: companySubscription({ period: "quarter" }),
+          }),
+          creditBalances: [
+            creditBalance({ grants: [creditGrant({ renewalPeriod })] }),
+          ],
+        }).planCredits;
+        return row.text.kind === "total" ? row.text.period : undefined;
+      };
+
+      expect(period("monthly")).toBe("month");
+      expect(period("yearly")).toBe("year");
+      expect(period(null)).toBe("quarter");
     });
 
     test("say per license what a composed credit grants, and how it adds up", () => {

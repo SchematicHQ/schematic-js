@@ -1358,7 +1358,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       const updatedShouldTrial = updates.shouldTrial ?? shouldTrial;
       setShouldTrial(updatedShouldTrial);
 
-      if (willTrialWithoutPaymentMethod) {
+      const updatedWillTrialWithoutPaymentMethod =
+        updatedShouldTrial && !trialPaymentMethodRequired;
+      if (updatedWillTrialWithoutPaymentMethod) {
         setSelectedAddOnIds(new Set());
       }
 
@@ -1376,17 +1378,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         period,
         plan,
         shouldTrial: updatedShouldTrial,
-        ...(willTrialWithoutPaymentMethod
-          ? {
-              addOns: [],
-              payInAdvanceEntitlements: [],
-            }
-          : {
-              payInAdvanceEntitlements: updatedUsageBasedEntitlements.filter(
-                ({ priceBehavior }) =>
-                  priceBehavior === EntitlementPriceBehavior.PayInAdvance,
-              ),
-            }),
+        ...(updatedWillTrialWithoutPaymentMethod && { addOns: [] }),
+        payInAdvanceEntitlements: updatedUsageBasedEntitlements.filter(
+          ({ priceBehavior }) =>
+            priceBehavior === EntitlementPriceBehavior.PayInAdvance,
+        ),
         creditBundles: resolvedCreditBundles,
       });
     },
@@ -1398,7 +1394,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       featureUsage,
       bundleCounts,
       shouldTrial,
-      willTrialWithoutPaymentMethod,
+      trialPaymentMethodRequired,
       handlePreviewCheckout,
       checkoutState?.payInAdvanceQuantities,
     ],
@@ -1967,6 +1963,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
                     options={availablePeriods}
                     selectedOption={planPeriod}
                     selectedPlan={selectedPlan}
+                    currency={hasCurrency ? effectiveCurrency : undefined}
                     onSelect={changePlanPeriod}
                   />
                 )}

@@ -20,6 +20,7 @@ import {
   formatCurrency,
   formatDate,
   formatNumber,
+  resetPeriod,
   usableDate,
 } from "./format";
 
@@ -530,7 +531,8 @@ function planCredits(
                 kind: "total",
                 amount: formatCredits(value, locale),
                 creditName: featureName(unit, value, locale),
-                period: subscriptionPeriod,
+                period:
+                  resetPeriod(grants[0].renewalPeriod) ?? subscriptionPeriod,
               }
             : {
                 kind: "perLicense",
