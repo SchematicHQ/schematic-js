@@ -587,4 +587,27 @@ describe("`CheckoutDialog` trialable plan with seats", () => {
     );
     expect(lastPayInAdvance(previewCheckout)).toHaveLength(1);
   });
+
+  it("keeps the first Choose plan click off the trial", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildTrialableSeatsData(),
+      checkoutState: { startTrialIfAvailable: true },
+      previewCheckout,
+    });
+
+    fireEvent.click(chooseButtonOnCard("Professional"));
+    await waitFor(() => expect(previewCheckout).toHaveBeenCalled());
+    await act(async () => {});
+
+    for (const [request] of previewCheckout.mock.calls as unknown as [
+      { skipTrial: boolean },
+    ][]) {
+      expect(request.skipTrial).toBe(true);
+    }
+    expect(screen.queryByText("Trial selected")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getAllByText(/^Next/)[0].closest("button")).toBeEnabled(),
+    );
+  });
 });
