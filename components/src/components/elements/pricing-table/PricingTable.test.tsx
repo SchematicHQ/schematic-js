@@ -651,6 +651,46 @@ describe("`PricingTable`", () => {
       const planButton = within(plans[0]).queryByTestId("sch-plan-cta-button");
       expect(planButton).not.toBeInTheDocument();
     });
+
+    test("Should show a subscriber only the plans priced in the subscription's currency", async () => {
+      server.use(
+        http.get(
+          "https://api.schematichq.com/components/:id/hydrate",
+          async () => {
+            const response = cloneDeep(hydrateJson);
+
+            response.data.subscription.currency = "eur";
+            const basic = response.data.active_plans[0];
+            basic.currency_prices = [
+              {
+                currency: "eur",
+                monthly_price: {
+                  ...basic.monthly_price,
+                  currency: "eur",
+                  id: "bilpp_eur_m",
+                },
+                yearly_price: {
+                  ...basic.yearly_price,
+                  currency: "eur",
+                  id: "bilpp_eur_y",
+                },
+              },
+            ] as unknown as never[];
+
+            return HttpResponse.json(response);
+          },
+        ),
+      );
+
+      render(<SchematicEmbed accessToken="token_0" id="0" />);
+
+      const plans = await screen.findAllByTestId("sch-plan");
+      expect(plans).toHaveLength(1);
+      expect(within(plans[0]).getByText("Basic")).toBeInTheDocument();
+      expect(
+        screen.queryByTestId("sch-currency-select"),
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe("`PricingTable` integration and edge cases", () => {

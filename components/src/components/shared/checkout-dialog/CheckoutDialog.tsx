@@ -319,12 +319,29 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   }, [filterBlocksSubscriptionCurrency, lockedCurrency, debug]);
 
   const {
-    plans: availablePlans,
+    plans: periodPlans,
     addOns: availableAddOns,
     periods: availablePeriods,
   } = useAvailablePlans(planPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
+
+  const requestedPlanId = checkoutState?.planId;
+  const bypassPlanSelection = checkoutState?.bypassPlanSelection;
+  const supportsCheckoutCurrency = useCallback(
+    (plan: SelectedPlan) =>
+      !hasCurrency ||
+      planSupportsCurrency(plan, effectiveCurrency) ||
+      // A plan the host picks and skips past is kept so the currency/period
+      // mismatch notice can say it is unavailable.
+      (!!bypassPlanSelection && plan.id === requestedPlanId),
+    [hasCurrency, effectiveCurrency, bypassPlanSelection, requestedPlanId],
+  );
+
+  const availablePlans = useMemo(
+    () => periodPlans.filter(supportsCheckoutCurrency),
+    [periodPlans, supportsCheckoutCurrency],
+  );
 
   const [selectedPlanId, setSelectedPlanId] = useState<
     string | null | undefined

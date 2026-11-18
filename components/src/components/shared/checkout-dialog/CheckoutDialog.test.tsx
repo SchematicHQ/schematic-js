@@ -358,6 +358,79 @@ describe("`CheckoutDialog` default billing period", () => {
   });
 });
 
+describe("`CheckoutDialog` plan currency", () => {
+  const BASIC_PLAN_ID = "plan_6Nne9wATKg2";
+  const STANDARD_PLAN_ID = "plan_8HMdwCRkuc8";
+
+  function buildSubscriberData(
+    edit: (raw: Json) => void,
+  ): HydrateDataWithCompanyContext {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    raw.checkout_settings = {
+      ...(raw.checkout_settings as Json),
+      bundle_purchase_behavior: CheckoutBundlePurchaseBehavior.Individual,
+    };
+    edit(raw);
+    return ComponentHydrateResponseDataFromJSON(raw);
+  }
+
+  function addEuroPrice(raw: Json, planId: string, keepUsd: boolean) {
+    raw.active_plans = (raw.active_plans as Json[]).map((plan) => {
+      if (plan.id !== planId) {
+        return plan;
+      }
+      const monthly = plan.monthly_price as Json;
+      const euro = {
+        currency: "eur",
+        monthly_price: { ...monthly, id: "bilpp_eur", currency: "eur" },
+      };
+      return {
+        ...plan,
+        currency_prices: keepUsd
+          ? [{ currency: "usd", monthly_price: monthly }, euro]
+          : [euro],
+      };
+    });
+  }
+
+  it("offers a EUR subscriber only the plans priced in EUR", async () => {
+    const data = buildSubscriberData((raw) => {
+      (raw.subscription as Json).currency = "eur";
+      addEuroPrice(raw, BASIC_PLAN_ID, false);
+    });
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({ data, checkoutState: {}, previewCheckout });
+
+    expect(await screen.findByText("Select plan")).toBeInTheDocument();
+    await waitFor(() => expect(previewCheckout).toHaveBeenCalled());
+    expect(screen.getAllByText("Basic").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Standard")).not.toBeInTheDocument();
+    expect(previewCheckout).not.toHaveBeenCalledWith(
+      expect.objectContaining({ newPlanId: STANDARD_PLAN_ID }),
+    );
+  });
+
+  it("still flags a host-picked plan with no price in the host-picked currency", async () => {
+    const data = buildSubscriberData((raw) => {
+      raw.subscription = null;
+      addEuroPrice(raw, BASIC_PLAN_ID, true);
+    });
+    renderCheckoutDialog({
+      data,
+      checkoutState: {
+        planId: STANDARD_PLAN_ID,
+        bypassPlanSelection: true,
+        selectedCurrency: "EUR",
+      },
+      previewCheckout: vi.fn(async () => buildPreviewResponse()),
+    });
+
+    expect(
+      await screen.findByTestId("sch-currency-period-mismatch-notice"),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("`CheckoutDialog` one-time-only purchases", () => {
   const CURRENT_PLAN_ID = "plan_6Nne9wATKg2";
   const OTHER_PLAN_ID = "plan_8HMdwCRkuc8";

@@ -18,6 +18,7 @@ import {
   useAvailableCurrenciesWithInvalid,
   useAvailablePlans,
   useEmbed,
+  useSubscriptionCurrency,
 } from "../../../hooks";
 import { useTranslation } from "../../../localization";
 import type { DeepPartial, ElementProps } from "../../../types";
@@ -176,7 +177,7 @@ export const PricingTable = forwardRef<
 
   const { currencies, invalidFilterEntries } =
     useAvailableCurrenciesWithInvalid();
-  const [selectedCurrency, setSelectedCurrency] = useState(
+  const [chosenCurrency, setSelectedCurrency] = useState(
     () => currencies[0] ?? DEFAULT_CURRENCY,
   );
 
@@ -184,15 +185,21 @@ export const PricingTable = forwardRef<
   // selection is no longer offered. Done during render (not in an effect) to
   // avoid a cascading re-render; the guard converges because the new value is
   // always a member of `currencies`.
-  if (currencies.length > 0 && !currencies.includes(selectedCurrency)) {
+  if (currencies.length > 0 && !currencies.includes(chosenCurrency)) {
     setSelectedCurrency(currencies[0]);
   }
+
+  // A subscription keeps its currency through a change, so a subscriber is
+  // shown only what they can buy in it, as in checkout.
+  const lockedCurrency = useSubscriptionCurrency();
+  const selectedCurrency = lockedCurrency ?? chosenCurrency;
 
   const showPeriodToggle =
     rest.showPeriodToggle ?? data?.displaySettings?.showPeriodToggle ?? true;
   const hasCurrencyFilter = !!currencyFilter && currencyFilter.length > 0;
-  const showCurrencySelector = currencies.length > 1;
-  const hasCurrency = currencies.length > 1 || hasCurrencyFilter;
+  const showCurrencySelector = currencies.length > 1 && !lockedCurrency;
+  const hasCurrency =
+    !!lockedCurrency || currencies.length > 1 || hasCurrencyFilter;
   const hasNoUsableCurrency = currencies.length === 0;
   const {
     plans: allPlans,

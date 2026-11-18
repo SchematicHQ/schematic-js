@@ -30,6 +30,7 @@ import {
   bundlePrice,
   isFree,
   isOneTime,
+  planCurrencies,
   planPeriods,
   planPrice,
   type CatalogPrice,
@@ -654,9 +655,12 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
         periodOptions.length > 1 && display?.showPeriodToggle !== false,
       savings: plan === undefined ? null : periodSavings(plan, cart, locale),
     },
-    plans: catalog.plans.map((p) =>
-      planRow(p, cart, locale, p.id === plan?.id),
-    ),
+    plans: catalog.plans
+      .filter((p) => {
+        const currencies = planCurrencies(p);
+        return currencies.length === 0 || currencies.includes(cart.currency);
+      })
+      .map((p) => planRow(p, cart, locale, p.id === plan?.id)),
     customPlan: customPlanOf(catalog),
     downgradeContact: catalog.preventSelfServiceDowngradeUrl
       ? {
