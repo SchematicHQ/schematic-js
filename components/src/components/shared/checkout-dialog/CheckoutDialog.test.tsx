@@ -3,6 +3,7 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import {
   CheckoutBundlePurchaseBehavior,
   ComponentHydrateResponseDataFromJSON,
+  ResponseError,
   type PreviewCheckoutResponse,
 } from "../../../api/checkoutexternal";
 import { FETCH_DEBOUNCE_TIMEOUT } from "../../../const";
@@ -586,5 +587,191 @@ describe("`CheckoutDialog` trialable plan with seats", () => {
       expect(previewCheckout.mock.calls.length).toBeGreaterThan(calls),
     );
     expect(lastPayInAdvance(previewCheckout)).toHaveLength(1);
+  });
+
+  it("keeps the first Choose plan click off the trial", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildTrialableSeatsData(),
+      checkoutState: { startTrialIfAvailable: true },
+      previewCheckout,
+    });
+
+    fireEvent.click(chooseButtonOnCard("Professional"));
+    await waitFor(() => expect(previewCheckout).toHaveBeenCalled());
+    await act(async () => {});
+
+    for (const [request] of previewCheckout.mock.calls as unknown as [
+      { skipTrial: boolean },
+    ][]) {
+      expect(request.skipTrial).toBe(true);
+    }
+    expect(screen.queryByText("Trial selected")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getAllByText(/^Next/)[0].closest("button"),
+      ).toBeEnabled(),
+    );
+  });
+});
+
+describe("`CheckoutDialog` for a subscriber", () => {
+  const BASIC_PLAN_ID = "plan_6Nne9wATKg2";
+  const STANDARD_PLAN_ID = "plan_8HMdwCRkuc8";
+
+  function buildSubscriberData(
+    edit: (raw: Json) => void,
+  ): HydrateDataWithCompanyContext {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    raw.checkout_settings = {
+      ...(raw.checkout_settings as Json),
+      bundle_purchase_behavior: CheckoutBundlePurchaseBehavior.Individual,
+    };
+    edit(raw);
+    return ComponentHydrateResponseDataFromJSON(raw);
+  }
+
+  it("offers a EUR subscriber only the plans priced in EUR", async () => {
+    const data = buildSubscriberData((raw) => {
+      (raw.subscription as Json).currency = "eur";
+      raw.active_plans = (raw.active_plans as Json[]).map((plan) => {
+        if (plan.id !== BASIC_PLAN_ID) {
+          return plan;
+        }
+        const monthly = plan.monthly_price as Json;
+        return {
+          ...plan,
+          currency_prices: [
+            {
+              currency: "eur",
+              monthly_price: { ...monthly, id: "bilpp_eur", currency: "eur" },
+            },
+          ],
+        };
+      });
+    });
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({ data, checkoutState: {}, previewCheckout });
+
+    expect(await screen.findByText("Select plan")).toBeInTheDocument();
+    await waitFor(() => expect(previewCheckout).toHaveBeenCalled());
+    expect(screen.getAllByText("Basic").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Standard")).not.toBeInTheDocument();
+    expect(previewCheckout).not.toHaveBeenCalledWith(
+      expect.objectContaining({ newPlanId: STANDARD_PLAN_ID }),
+    );
+  });
+
+  it("still flags a host-picked plan with no price in the host-picked currency", async () => {
+    const data = buildSubscriberData((raw) => {
+      raw.subscription = null;
+      raw.active_plans = (raw.active_plans as Json[]).map((plan) => {
+        if (plan.id !== BASIC_PLAN_ID) {
+          return plan;
+        }
+        const monthly = plan.monthly_price as Json;
+        return {
+          ...plan,
+          currency_prices: [
+            { currency: "usd", monthly_price: monthly },
+            {
+              currency: "eur",
+              monthly_price: { ...monthly, id: "bilpp_eur", currency: "eur" },
+            },
+          ],
+        };
+      });
+    });
+    renderCheckoutDialog({
+      data,
+      checkoutState: {
+        planId: STANDARD_PLAN_ID,
+        bypassPlanSelection: true,
+        selectedCurrency: "EUR",
+      },
+      previewCheckout: vi.fn(async () => buildPreviewResponse()),
+    });
+
+    expect(
+      await screen.findByTestId("sch-currency-period-mismatch-notice"),
+    ).toBeInTheDocument();
+  });
+
+  it("restores the current plan when the period is toggled away and back", async () => {
+    const data = buildSubscriberData((raw) => {
+      raw.active_plans = (raw.active_plans as Json[]).map((plan) =>
+        plan.id === BASIC_PLAN_ID ? { ...plan, yearly_price: null } : plan,
+      );
+    });
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({ data, checkoutState: {}, previewCheckout });
+
+    await waitFor(() =>
+      expect(previewCheckout).toHaveBeenLastCalledWith(
+        expect.objectContaining({ newPlanId: BASIC_PLAN_ID }),
+      ),
+    );
+
+    fireEvent.click(await screen.findByText("Billed yearly"));
+    await waitFor(() => expect(dueToday()).not.toBeInTheDocument());
+
+    const calls = previewCheckout.mock.calls.length;
+    fireEvent.click(await screen.findByText("Billed monthly"));
+
+    await waitFor(() =>
+      expect(previewCheckout.mock.calls.length).toBeGreaterThan(calls),
+    );
+    expect(previewCheckout).toHaveBeenLastCalledWith(
+      expect.objectContaining({ newPlanId: BASIC_PLAN_ID }),
+    );
+    await waitFor(() => expect(dueToday()).toBeInTheDocument());
+    expect(screen.getAllByText(/^Next/)[0].closest("button")).toBeEnabled();
+  });
+
+  it("keeps Subscribe disabled and says why while the preview refuses the cart", async () => {
+    const message =
+      "An add-on isn't billed at the same interval as the plan. Choose a matching price or remove it.";
+    const previewCheckout = vi.fn(async () => {
+      throw new ResponseError(
+        new Response(
+          JSON.stringify({
+            error: message,
+            problems: [
+              {
+                blocking: true,
+                code: "add_on_interval_mismatch",
+                message,
+              },
+            ],
+          }),
+          { status: 400 },
+        ),
+      );
+    });
+    renderCheckoutDialog({
+      data: buildSubscriberData(() => {}),
+      checkoutState: {},
+      previewCheckout,
+    });
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "Error retrieving plan details. Please try again in a moment.",
+      ),
+    ).not.toBeInTheDocument();
+
+    for (;;) {
+      const next = screen.queryAllByText(/^Next/)[0]?.closest("button");
+      if (!next) break;
+      expect(next).toBeEnabled();
+      await act(async () => {
+        fireEvent.click(next);
+      });
+    }
+
+    expect(
+      screen.getAllByText("Subscribe and close")[0].closest("button"),
+    ).toBeDisabled();
   });
 });

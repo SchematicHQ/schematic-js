@@ -26,6 +26,7 @@ import type {
 } from "../../../types";
 import {
   ChargeType,
+  blockingProblemsMessage,
   buildAddOnRequestBody,
   buildAutoTopupRequestBody,
   buildCreditBundlesRequestBody,
@@ -84,6 +85,7 @@ interface SubscriptionSidebarProps extends Omit<BoxProps, "children"> {
   checkoutStages?: CheckoutStage[];
   error?: string;
   isLoading: boolean;
+  isPreviewRefused?: boolean;
   isPaymentMethodRequired: boolean;
   optInRequired?: boolean;
   optInAccepted?: boolean;
@@ -128,6 +130,7 @@ export const SubscriptionSidebar = forwardRef<
       checkoutStages,
       error,
       isLoading,
+      isPreviewRefused = false,
       isPaymentMethodRequired,
       optInRequired = false,
       optInAccepted = false,
@@ -772,6 +775,12 @@ export const SubscriptionSidebar = forwardRef<
             );
             return;
           }
+
+          const refusal = blockingProblemsMessage(data);
+          if (refusal) {
+            setError(refusal);
+            return;
+          }
         }
 
         // Default fallback. The original copy assumed every checkout error
@@ -843,6 +852,7 @@ export const SubscriptionSidebar = forwardRef<
             <CheckoutStageButton
               canCheckout={canCheckout}
               isLoading={isLoading}
+              isPreviewRefused={isPreviewRefused}
               isSticky={isSticky}
               inEditMode={settings.mode === "edit"}
               checkoutStage={checkoutStage}
@@ -892,6 +902,7 @@ export const SubscriptionSidebar = forwardRef<
       settings.mode,
       error,
       isLoading,
+      isPreviewRefused,
       isButtonInView,
       checkoutStage,
       setCheckoutStage,

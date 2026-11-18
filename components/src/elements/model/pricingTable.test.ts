@@ -212,6 +212,33 @@ describe("derivePricingTable", () => {
     ).toEqual(["Euro", "Free"]);
   });
 
+  test("shows a subscriber only the plans priced in the subscription's currency", () => {
+    const euro = catalogPlan({
+      currencyPrices: [
+        { currency: "eur", monthlyPrice: catalogPrice({ currency: "eur" }) },
+      ],
+      name: "Euro",
+    });
+    const view = derivePricingTable(
+      {
+        source: "company",
+        catalog: companyCatalog({
+          plans: [catalogPlan({ name: "Pro" }), euro],
+        }),
+      },
+      {
+        locale: L,
+        currency: "usd",
+        company: company({
+          subscription: companySubscription({ currency: "eur" }),
+        }),
+      },
+    );
+    expect(view.currency).toBe("eur");
+    expect(view.currencies).toEqual(["eur"]);
+    expect(view.plans.map((plan) => plan.name)).toEqual(["Euro"]);
+  });
+
   test("reads a zero price as free only when asked, and as usage-based with a priced feature", () => {
     const metered = publicCatalogPlan({
       monthly: 0,

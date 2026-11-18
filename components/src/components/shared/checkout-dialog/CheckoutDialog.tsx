@@ -41,6 +41,7 @@ import type {
 } from "../../../types";
 import {
   ERROR_UNKNOWN,
+  blockingProblemsMessage,
   buildAddOnCompatibilityLookup,
   buildAddOnRequestBody,
   buildAutoTopupRequestBody,
@@ -227,6 +228,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  // Paying sends the cart the preview just priced, so a refused preview means
+  // a refused payment.
+  const [isPreviewRefused, setIsPreviewRefused] = useState(false);
   const [isModal, setIsModal] = useState(true);
 
   const showPeriodToggle = data?.displaySettings?.showPeriodToggle ?? true;
@@ -319,37 +323,61 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   }, [filterBlocksSubscriptionCurrency, lockedCurrency, debug]);
 
   const {
-    plans: availablePlans,
+    plans: periodPlans,
     addOns: availableAddOns,
     periods: availablePeriods,
+    plansForPeriod,
   } = useAvailablePlans(planPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
 
-  const [selectedPlanId, setSelectedPlanId] = useState<
-    string | null | undefined
-  >(undefined);
+  const requestedPlanId = checkoutState?.planId;
+  const bypassPlanSelection = checkoutState?.bypassPlanSelection;
+  const supportsCheckoutCurrency = useCallback(
+    (plan: SelectedPlan) =>
+      !hasCurrency ||
+      planSupportsCurrency(plan, effectiveCurrency) ||
+      // A plan the host picks and skips past is kept so the currency/period
+      // mismatch notice can say it is unavailable.
+      (!!bypassPlanSelection && plan.id === requestedPlanId),
+    [hasCurrency, effectiveCurrency, bypassPlanSelection, requestedPlanId],
+  );
 
-  const selectedPlan = useMemo<SelectedPlan | undefined>(() => {
-    if (selectedPlanId === null) {
-      return undefined;
-    }
+  const availablePlans = useMemo(
+    () => periodPlans.filter(supportsCheckoutCurrency),
+    [periodPlans, supportsCheckoutCurrency],
+  );
 
-    if (selectedPlanId) {
-      return availablePlans.find((p) => p.id === selectedPlanId);
-    }
+  const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>(
+    undefined,
+  );
 
-    if (checkoutState?.planId) {
-      return availablePlans.find((plan) => plan.id === checkoutState.planId);
-    }
+  // The selection is kept by id, so a plan with no price on the toggled
+  // period drops out and comes back when the toggle returns to one it has.
+  const findSelectedPlan = useCallback(
+    (plans: SelectedPlan[]) => {
+      if (selectedPlanId) {
+        return plans.find((p) => p.id === selectedPlanId);
+      }
 
-    return availablePlans.find(
-      (plan) =>
-        plan.current &&
-        // do not initially set the current plan for a trial
-        (!plan.isTrialable || !plan.companyCanTrial),
-    );
-  }, [availablePlans, checkoutState, selectedPlanId]);
+      if (requestedPlanId) {
+        return plans.find((plan) => plan.id === requestedPlanId);
+      }
+
+      return plans.find(
+        (plan) =>
+          plan.current &&
+          // do not initially set the current plan for a trial
+          (!plan.isTrialable || !plan.companyCanTrial),
+      );
+    },
+    [requestedPlanId, selectedPlanId],
+  );
+
+  const selectedPlan = useMemo<SelectedPlan | undefined>(
+    () => findSelectedPlan(availablePlans),
+    [availablePlans, findSelectedPlan],
+  );
 
   const [shouldTrial, setShouldTrial] = useState(false);
 
@@ -477,8 +505,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   // The plan bundle compatibility is checked against, mirroring the API: a
   // subscription change validates against the target plan, and a credit-only
-  // purchase (or a preview that reset selectedPlanId) against the company's
-  // current plan. With neither, only unrestricted bundles pass.
+  // purchase (or a plan with no price on the toggled period) against the
+  // company's current plan. With neither, only unrestricted bundles pass.
   const bundleGatingPlanId = selectedPlan?.id ?? data?.company?.plan?.id;
 
   const creditBundles = useMemo<CreditBundle[]>(() => {
@@ -1031,9 +1059,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         if (isBypassLoading) {
           setIsBypassLoading(false);
         }
-
-        // ensure selected plan is reset if no valid price is found
-        setSelectedPlanId(null);
+        setIsPreviewRefused(false);
         return;
       }
 
@@ -1043,6 +1069,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       setError(undefined);
       setCharges(undefined);
       setIsLoading(true);
+      setIsPreviewRefused(false);
 
       const resolvedAutoTopupConfigs =
         updates.autoTopupConfigs || autoTopupConfigs;
@@ -1169,6 +1196,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             isScheduledCheckoutConflictMessage(data?.error)
           ) {
             setError(t("Downgrade pending."));
+            return;
+          }
+
+          const refusal = blockingProblemsMessage(data);
+          if (refusal) {
+            setIsPreviewRefused(true);
+            setError(refusal);
             return;
           }
 
@@ -1408,9 +1442,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       setPlanPeriod(period);
 
-      const updatedUsageBasedEntitlements = (
-        selectedPlan?.entitlements || []
-      ).reduce(
+      const plan = findSelectedPlan(
+        plansForPeriod(period).filter(supportsCheckoutCurrency),
+      );
+
+      const updatedUsageBasedEntitlements = (plan?.entitlements || []).reduce(
         createActiveUsageBasedEntitlementsReducer(featureUsage, period),
         [...[]] as UsageBasedEntitlement[],
       );
@@ -1450,6 +1486,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       handlePreviewCheckout({
         period,
+        plan,
         payInAdvanceEntitlements: updatedUsageBasedEntitlements.filter(
           ({ priceBehavior }) =>
             priceBehavior === EntitlementPriceBehavior.PayInAdvance,
@@ -1463,7 +1500,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     },
     [
       planPeriod,
-      selectedPlan?.entitlements,
+      plansForPeriod,
+      findSelectedPlan,
+      supportsCheckoutCurrency,
       featureUsage,
       addOns,
       setPlanPeriod,
@@ -1670,8 +1709,14 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   // if the user is already on an available plan
   const hasInitializedPlan = useRef(false);
 
+  // A plan the customer picked (selectedPlanId) was previewed as they chose
+  // it, so only a plan the dialog opened on is selected here.
   useEffect(() => {
-    if (!hasInitializedPlan.current && selectedPlan) {
+    if (
+      !hasInitializedPlan.current &&
+      selectedPlan &&
+      selectedPlanId === undefined
+    ) {
       hasInitializedPlan.current = true;
       const shouldTrial =
         checkoutState?.startTrialIfAvailable &&
@@ -1682,7 +1727,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     // startTrialIfAvailable is set once by initializeWithPlan and is stable
     // for the dialog's lifetime; intentionally excluded from deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPlan, planPeriod, selectPlan]);
+  }, [selectedPlan, selectedPlanId, planPeriod, selectPlan]);
 
   useLayoutEffect(() => {
     const element = dialogRef.current;
@@ -2096,6 +2141,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           checkoutStages={navigableStages}
           error={error}
           isLoading={isLoading}
+          isPreviewRefused={isPreviewRefused}
           isPaymentMethodRequired={isPaymentMethodRequired}
           optInRequired={optInRequired}
           optInAccepted={optInAccepted}

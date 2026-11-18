@@ -230,9 +230,15 @@ export function derivePricingTable(
   const plans: AnyPlan[] = catalog.plans;
   const addOns: AnyPlan[] = catalog.addOns;
 
-  const currencies = unique([...plans, ...addOns].flatMap(currenciesOf));
+  // A subscription keeps its currency through a change, so a subscriber is
+  // shown only what they can buy in it.
+  const locked =
+    options.company?.subscription?.currency?.toLowerCase() || undefined;
+  const offered = unique([...plans, ...addOns].flatMap(currenciesOf));
+  const currencies = locked === undefined ? offered : [locked];
   const defaultCurrency = catalog.defaultCurrency?.toLowerCase();
   const currency =
+    locked ??
     pick(currencies, options.currency?.toLowerCase(), [defaultCurrency]) ??
     defaultCurrency ??
     "usd";
