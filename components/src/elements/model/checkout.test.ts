@@ -181,6 +181,24 @@ describe("deriveCheckout", () => {
     expect(hidden.currency.selectable).toBe(false);
   });
 
+  test("lists only the plans priced in a subscriber's currency", () => {
+    const euro = catalogPlan({
+      currencyPrices: [{ currency: "eur", monthlyPrice: monthly(2300, "eur") }],
+      name: "Euro",
+    });
+    const both = catalog({ plans: [euro, catalogPlan({ name: "Dollar" })] });
+    const eurCompany = company({
+      subscription: subscription({ currency: "eur" }),
+    });
+    const model = deriveCheckout({
+      catalog: both,
+      cart: initialCart({ catalog: both, company: eurCompany }),
+      company: eurCompany,
+      locale: "en-US",
+    });
+    expect(model.plans.map((plan) => plan.name)).toEqual(["Euro"]);
+  });
+
   test("offers no add-ons during a trial, and reports the trial", () => {
     const trialable = catalogPlan({
       companyCanTrial: true,
