@@ -128,6 +128,12 @@ export function planCurrencies(plan: CatalogPlan): string[] {
   return [...currencies];
 }
 
+/** Whether a checkout in this currency can sell the plan; an unpriced plan can. */
+export function pricedIn(plan: CatalogPlan, currency: string): boolean {
+  const currencies = planCurrencies(plan);
+  return currencies.length === 0 || currencies.includes(currency.toLowerCase());
+}
+
 /** Bought ahead in a quantity the customer picks, rather than billed on use. */
 export function isPayInAdvance(entitlement: CatalogEntitlement): boolean {
   return entitlement.priceBehavior === "pay_in_advance";

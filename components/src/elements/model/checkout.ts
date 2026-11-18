@@ -30,9 +30,9 @@ import {
   bundlePrice,
   isFree,
   isOneTime,
-  planCurrencies,
   planPeriods,
   planPrice,
+  pricedIn,
   type CatalogPrice,
   type CheckoutPeriod,
 } from "./checkoutPrices";
@@ -656,10 +656,7 @@ export function deriveCheckout(input: DeriveCheckoutInput): CheckoutModel {
       savings: plan === undefined ? null : periodSavings(plan, cart, locale),
     },
     plans: catalog.plans
-      .filter((p) => {
-        const currencies = planCurrencies(p);
-        return currencies.length === 0 || currencies.includes(cart.currency);
-      })
+      .filter((p) => pricedIn(p, cart.currency))
       .map((p) => planRow(p, cart, locale, p.id === plan?.id)),
     customPlan: customPlanOf(catalog),
     downgradeContact: catalog.preventSelfServiceDowngradeUrl
