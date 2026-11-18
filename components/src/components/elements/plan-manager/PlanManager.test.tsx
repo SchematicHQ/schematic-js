@@ -150,6 +150,34 @@ describe("`PlanManager` price period", () => {
   });
 });
 
+describe("`PlanManager` plan credit period", () => {
+  test.each([
+    ["monthly", "per month"],
+    ["quarterly", "per quarter"],
+  ])(
+    "labels a %s grant on a yearly plan with the grant's own cadence",
+    (resetCadence, label) => {
+      state.billingSubscription = subscriptionOn("year", 1);
+      state.creditGrants = grantsFor(1, BillingCreditGrantReason.Plan, "Token");
+      state.includedCreditGrants = [
+        {
+          id: "pcg-1",
+          creditId: (state.creditGrants[0] as CreditCompanyGrantView)
+            .billingCreditId,
+          creditName: "Token",
+          creditAmount: 100,
+          resetCadence,
+          scaling: "fixed",
+        },
+      ];
+
+      render(<PlanManager />);
+
+      expect(screen.getByText(`100 credits ${label}`)).toBeInTheDocument();
+    },
+  );
+});
+
 describe("`PlanManager` credit list truncation", () => {
   test("caps a credit section at the visible limit and reports the total", () => {
     state.creditGrants = grantsFor(5, BillingCreditGrantReason.Plan, "Token");

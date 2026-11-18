@@ -20,6 +20,8 @@ function getResetCadencePeriod(cadence: PlanCreditGrantView["resetCadence"]) {
   switch (cadence) {
     case BillingPlanCreditGrantResetCadence.Yearly:
       return "year";
+    case BillingPlanCreditGrantResetCadence.Quarterly:
+      return "quarter";
     case BillingPlanCreditGrantResetCadence.Monthly:
       return "month";
     case BillingPlanCreditGrantResetCadence.Weekly:

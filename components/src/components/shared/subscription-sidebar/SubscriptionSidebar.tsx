@@ -47,6 +47,7 @@ import {
   getSubscriptionInterval,
   getSubscriptionPeriod,
   groupPlanCreditGrants,
+  hasMeteredCosts,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
   shortenPeriod,
@@ -533,9 +534,9 @@ export const SubscriptionSidebar = forwardRef<
         addOns.filter(
           (addOn) =>
             addOn.isSelected &&
-            getPlanPrice(addOn, undefined, undefined, currency)?.price,
+            getPlanPrice(addOn, planPeriod, undefined, currency)?.price,
         ),
-      [addOns, currency],
+      [addOns, planPeriod, currency],
     );
 
     const selectedOneTimeAddOns = useMemo(
@@ -552,7 +553,6 @@ export const SubscriptionSidebar = forwardRef<
     const { removedAddOns, willAddOnsChange } = useMemo(() => {
       const addedAddOns = selectedAddOnsWithPrice.filter(
         (selected) =>
-          getPlanPrice(selected, undefined, undefined, currency)?.price &&
           !currentAddOns.some((current) => selected.id === current.id),
       );
 
@@ -573,7 +573,7 @@ export const SubscriptionSidebar = forwardRef<
         removedAddOns,
         willAddOnsChange,
       };
-    }, [currentAddOns, selectedAddOnsWithPrice, currency]);
+    }, [currentAddOns, selectedAddOnsWithPrice]);
 
     const addedCreditBundles = useMemo(
       () => creditBundles.filter((bundle) => bundle.count > 0),
@@ -963,7 +963,10 @@ export const SubscriptionSidebar = forwardRef<
               subscriptionPrice,
               planPeriod,
               periodStart: renewDate,
-              hasUsageBasedCosts: usageBasedEntitlements.length > 0,
+              hasUsageBasedCosts: hasMeteredCosts([
+                ...usageBasedEntitlements,
+                ...addOnUsageBasedEntitlements,
+              ]),
               discount: subscriptionDiscount,
               locale,
             },

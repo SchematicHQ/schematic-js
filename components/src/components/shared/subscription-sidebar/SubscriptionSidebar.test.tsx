@@ -423,3 +423,94 @@ describe("`SubscriptionSidebar` per-license credits", () => {
     expect(screen.queryByText(/^Includes 300/)).not.toBeInTheDocument();
   });
 });
+
+describe("`SubscriptionSidebar` add-ons without a monthly price", () => {
+  const YEARLY_ADD_ON_ID = "plan_aDevbC1pNVr";
+
+  /** The fixture's Simple Add-on, priced yearly only ($50.00/yr). */
+  function buildYearlyOnlyAddOn(): SelectedPlan {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    const addOn = (raw.active_add_ons as Json[]).find(
+      ({ id }) => id === YEARLY_ADD_ON_ID,
+    )!;
+    addOn.monthly_price = null;
+
+    const parsed = ComponentHydrateResponseDataFromJSON(raw).activeAddOns.find(
+      ({ id }) => id === YEARLY_ADD_ON_ID,
+    )!;
+    return { ...parsed, isSelected: true };
+  }
+
+  const isStruckThrough = (element: HTMLElement) => {
+    for (
+      let node: HTMLElement | null = element;
+      node;
+      node = node.parentElement
+    ) {
+      if (getComputedStyle(node).textDecoration.includes("line-through")) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  it("lists a yearly-only add-on being bought at its yearly price", () => {
+    renderSidebar([buildYearlyOnlyAddOn()], [], buildSelectedPlan(), {
+      planPeriod: "year",
+    });
+
+    expect(screen.getByText("Add-ons")).toBeInTheDocument();
+    expect(isStruckThrough(screen.getByText("Simple Add-on"))).toBe(false);
+    expect(screen.getByText("$50.00")).toBeInTheDocument();
+  });
+
+  it("keeps a current yearly-only add-on as current rather than removed", () => {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    const company = raw.company as Json;
+    company.add_ons = [
+      {
+        ...(company.plan as Json),
+        id: YEARLY_ADD_ON_ID,
+        name: "Simple Add-on",
+        plan_period: "year",
+        plan_price: 5000,
+      },
+    ];
+
+    renderSidebar([buildYearlyOnlyAddOn()], [], buildSelectedPlan(), {
+      planPeriod: "year",
+      hydrateData: raw,
+    });
+
+    const names = screen.getAllByText("Simple Add-on");
+    expect(names).toHaveLength(1);
+    expect(isStruckThrough(names[0])).toBe(false);
+  });
+});
+
+describe("`SubscriptionSidebar` usage-based costs in the billing sentence", () => {
+  const meteredEntitlement = (): UsageBasedEntitlement => ({
+    ...buildTieredPayInAdvanceEntitlement(0),
+    priceBehavior: "pay_as_you_go",
+  });
+
+  it("leaves the usage clause out when the only priced entitlement is paid in advance", () => {
+    renderSidebar(
+      [],
+      [buildTieredPayInAdvanceEntitlement(4)],
+      buildSelectedPlan(),
+    );
+
+    expect(screen.getByText(/You will be billed/)).not.toHaveTextContent(
+      "plus usage based costs",
+    );
+  });
+
+  it("adds the usage clause for a metered entitlement", () => {
+    renderSidebar([], [meteredEntitlement()], buildSelectedPlan());
+
+    expect(screen.getByText(/You will be billed/)).toHaveTextContent(
+      "plus usage based costs",
+    );
+  });
+});

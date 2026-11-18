@@ -315,3 +315,17 @@ function isEnglish(locale: string): boolean {
 function orNull(value: string | null | undefined): string | null {
   return value === undefined || value === null || value === "" ? null : value;
 }
+
+const RESET_PERIOD: Record<string, string> = {
+  daily: "day",
+  weekly: "week",
+  monthly: "month",
+  quarterly: "quarter",
+  yearly: "year",
+};
+
+export function resetPeriod(cadence: string | null | undefined): string | null {
+  return cadence === undefined || cadence === null
+    ? null
+    : (RESET_PERIOD[cadence] ?? null);
+}

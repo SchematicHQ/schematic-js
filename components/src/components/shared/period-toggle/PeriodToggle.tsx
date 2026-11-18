@@ -11,6 +11,7 @@ interface PeriodToggleProps {
   options: string[];
   selectedOption: string;
   selectedPlan?: SelectedPlan;
+  currency?: string;
   onSelect: (period: string) => void;
 }
 
@@ -24,6 +25,7 @@ export const PeriodToggle = ({
   options,
   selectedOption,
   selectedPlan,
+  currency,
   onSelect,
 }: PeriodToggleProps) => {
   const { t } = useTranslation();
@@ -38,13 +40,15 @@ export const PeriodToggle = ({
       return result;
     }
 
-    const monthlyPrice = getPlanPrice(selectedPlan, "month")?.price ?? 0;
+    const monthlyPrice =
+      getPlanPrice(selectedPlan, "month", undefined, currency)?.price ?? 0;
     if (monthlyPrice <= 0) {
       return result;
     }
 
     for (const [period, months] of Object.entries(PERIOD_MONTH_COUNT)) {
-      const periodPrice = getPlanPrice(selectedPlan, period)?.price ?? 0;
+      const periodPrice =
+        getPlanPrice(selectedPlan, period, undefined, currency)?.price ?? 0;
       if (periodPrice > 0) {
         const baseline = monthlyPrice * months;
         result[period] =
@@ -53,7 +57,7 @@ export const PeriodToggle = ({
     }
 
     return result;
-  }, [selectedPlan]);
+  }, [selectedPlan, currency]);
 
   return (
     <Flex

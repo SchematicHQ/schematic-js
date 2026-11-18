@@ -518,3 +518,73 @@ describe("`CheckoutDialog` auto top-up stage", () => {
     expect(screen.queryByText(/Auto top-up/)).not.toBeInTheDocument();
   });
 });
+
+describe("`CheckoutDialog` trialable plan with seats", () => {
+  const SEATS_PLAN_ID = "plan_9Qeb3Aqc6jY";
+
+  /** A company with no plan shopping a trialable plan with pay-in-advance seats. */
+  function buildTrialableSeatsData(): HydrateDataWithCompanyContext {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+
+    raw.active_plans = (raw.active_plans as Json[]).map((plan) => ({
+      ...plan,
+      current: false,
+      ...(plan.id === SEATS_PLAN_ID && {
+        is_trialable: true,
+        company_can_trial: true,
+        trial_days: 14,
+      }),
+    }));
+    raw.active_add_ons = [];
+
+    const company = raw.company as Json;
+    company.billing_subscription = null;
+    company.plan = null;
+    company.add_ons = [];
+    raw.subscription = null;
+
+    return ComponentHydrateResponseDataFromJSON(raw);
+  }
+
+  /** The "Choose plan" button on the plan card that names the given plan. */
+  function chooseButtonOnCard(planName: string) {
+    const button = screen.getAllByText("Choose plan").find((element) => {
+      let card: HTMLElement | null = element;
+      while (
+        card &&
+        !/Basic|Standard|Professional|Enterprise/.test(card.textContent ?? "")
+      ) {
+        card = card.parentElement;
+      }
+      return card?.textContent?.includes(planName);
+    });
+    if (!button) {
+      throw new Error(`No "Choose plan" button on the ${planName} card`);
+    }
+    return button;
+  }
+
+  const lastPayInAdvance = (previewCheckout: ReturnType<typeof vi.fn>) =>
+    (previewCheckout.mock.lastCall?.[0] as { payInAdvance: unknown[] })
+      .payInAdvance;
+
+  it("sends the seat quantity with the trial preview and the paid preview after it", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildTrialableSeatsData(),
+      checkoutState: {},
+      previewCheckout,
+    });
+
+    fireEvent.click(await screen.findByText("Start 14 day trial"));
+    await waitFor(() => expect(previewCheckout).toHaveBeenCalled());
+    expect(lastPayInAdvance(previewCheckout)).toHaveLength(1);
+
+    const calls = previewCheckout.mock.calls.length;
+    fireEvent.click(chooseButtonOnCard("Professional"));
+    await waitFor(() =>
+      expect(previewCheckout.mock.calls.length).toBeGreaterThan(calls),
+    );
+    expect(lastPayInAdvance(previewCheckout)).toHaveLength(1);
+  });
+});

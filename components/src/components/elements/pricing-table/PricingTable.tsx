@@ -320,6 +320,7 @@ export const PricingTable = forwardRef<
                   options={periods}
                   selectedOption={selectedPeriod}
                   selectedPlan={currentPlan}
+                  currency={hasCurrency ? selectedCurrency : undefined}
                   onSelect={(period) => {
                     if (period !== selectedPeriod) {
                       setSelectedPeriod(period);

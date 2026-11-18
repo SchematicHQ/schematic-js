@@ -15,6 +15,7 @@ import {
   formatCurrency,
   formatNumber,
   formatPercent,
+  resetPeriod,
 } from "./format";
 
 /**
@@ -905,19 +906,6 @@ function asPeriod(value: string | null | undefined): PricingPeriod | null {
   return value === "month" || value === "quarter" || value === "year"
     ? value
     : null;
-}
-
-const RESET_PERIOD: Record<string, string> = {
-  daily: "day",
-  weekly: "week",
-  monthly: "month",
-  yearly: "year",
-};
-
-function resetPeriod(cadence: string | null | undefined): string | null {
-  return cadence === undefined || cadence === null
-    ? null
-    : (RESET_PERIOD[cadence] ?? null);
 }
 
 const METRIC_PERIOD: Record<string, string> = {
