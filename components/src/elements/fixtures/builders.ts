@@ -12,6 +12,7 @@ import type {
   CompanySubscription,
   CreditBalanceEntry,
   CreditGrant,
+  CreditLedgerEntry,
   CreditUserUsage,
   Discount,
   FeatureUsage,
@@ -313,6 +314,38 @@ export function creditUserUsage(
       { name: "Ada", share: 0.6, used: 90, userId: "user_ada" },
       { name: "Cy", share: 0.17, used: 25, userId: "user_cy" },
     ],
+    ...overrides,
+  };
+}
+
+/**
+ * The local afternoon the credit log fixtures are dated around. Local, not
+ * UTC, so "Today" and the times read the same in every time zone.
+ */
+export const LOG_NOW = new Date(2026, 7, 21, 15, 0);
+
+/** A local time `minutes` before `LOG_NOW`. */
+export const logMinutesAgo = (minutes: number): Date =>
+  new Date(LOG_NOW.getTime() - minutes * 60 * 1000);
+
+/** Ada drawing 25 AI credits on Video generation, 10 minutes ago. */
+export function creditLedgerEntry(
+  overrides: Partial<CreditLedgerEntry> = {},
+): CreditLedgerEntry {
+  return {
+    amount: -25,
+    credit: {
+      id: "bcr_ai",
+      name: "AI credits",
+      pluralName: "AI credits",
+      singularName: "AI credit",
+    },
+    eventAt: logMinutesAgo(10),
+    feature: { id: "feat_video", name: "Video generation" },
+    id: nextId("cle"),
+    kind: "drawdown",
+    usageReason: "track",
+    user: { id: "user_ada", name: "Ada" },
     ...overrides,
   };
 }
