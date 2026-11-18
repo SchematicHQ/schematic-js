@@ -41,6 +41,7 @@ import type {
 } from "../../../types";
 import {
   ERROR_UNKNOWN,
+  blockingProblemsMessage,
   buildAddOnCompatibilityLookup,
   buildAddOnRequestBody,
   buildAutoTopupRequestBody,
@@ -227,6 +228,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  // Paying sends the cart the preview just priced, so a refused preview means
+  // a refused payment.
+  const [isPreviewRefused, setIsPreviewRefused] = useState(false);
   const [isModal, setIsModal] = useState(true);
 
   const showPeriodToggle = data?.displaySettings?.showPeriodToggle ?? true;
@@ -1026,6 +1030,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         // the superseded request will now skip.
         ++previewRequestIdRef.current;
         setError(undefined);
+        setIsPreviewRefused(false);
         setCharges(undefined);
         setIsLoading(false);
         if (isBypassLoading) {
@@ -1043,6 +1048,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       setError(undefined);
       setCharges(undefined);
       setIsLoading(true);
+      setIsPreviewRefused(false);
 
       const resolvedAutoTopupConfigs =
         updates.autoTopupConfigs || autoTopupConfigs;
@@ -1169,6 +1175,13 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             isScheduledCheckoutConflictMessage(data?.error)
           ) {
             setError(t("Downgrade pending."));
+            return;
+          }
+
+          const refusal = blockingProblemsMessage(data);
+          if (refusal) {
+            setIsPreviewRefused(true);
+            setError(refusal);
             return;
           }
 
@@ -2096,6 +2109,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
           checkoutStages={navigableStages}
           error={error}
           isLoading={isLoading}
+          isPreviewRefused={isPreviewRefused}
           isPaymentMethodRequired={isPaymentMethodRequired}
           optInRequired={optInRequired}
           optInAccepted={optInAccepted}
