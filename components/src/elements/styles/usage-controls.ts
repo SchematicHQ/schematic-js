@@ -172,13 +172,6 @@ export const usageControlsCss = `
   color: var(--schematic-danger);
 }
 
-.schematic-usage-controls__confirm {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: calc(var(--schematic-space) / 2);
-}
-
 .schematic-usage-controls__remove-yes {
   background: var(--schematic-danger);
   border-color: var(--schematic-danger);

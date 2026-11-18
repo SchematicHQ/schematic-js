@@ -633,25 +633,7 @@ function LimitDialog({
           {row !== undefined &&
             (confirmingRemove ? (
               <span className="schematic-usage-controls__confirm">
-                <span>{t("usageControlsRemoveConfirm")}</span>
-                <button
-                  className="schematic-cta schematic-cta--small schematic-usage-controls__remove-yes"
-                  disabled={busy}
-                  type="button"
-                  onClick={() =>
-                    void run(() => remove(row.id), "usageControlsRemoveError")
-                  }
-                >
-                  {t("usageControlsRemoveYes")}
-                </button>
-                <button
-                  className="schematic-cta schematic-cta--small schematic-cta--ghost"
-                  disabled={busy}
-                  type="button"
-                  onClick={() => setConfirmingRemove(false)}
-                >
-                  {t("usageControlsRemoveNo")}
-                </button>
+                {t("usageControlsRemoveConfirm")}
               </span>
             ) : (
               <button
@@ -663,24 +645,49 @@ function LimitDialog({
                 {t("usageControlsRemove")}
               </button>
             ))}
-          {!confirmingRemove && (
-            <span className="schematic-usage-controls__actions-end">
-              <button
-                className="schematic-cta schematic-cta--small schematic-cta--ghost"
-                type="button"
-                onClick={onClose}
-              >
-                {t("usageControlsCancel")}
-              </button>
-              <button
-                className="schematic-cta schematic-cta--small"
-                disabled={!canSave}
-                type="submit"
-              >
-                {t("usageControlsSave")}
-              </button>
-            </span>
-          )}
+          {/* The confirm swaps the pair in place: the dismissal first, the
+              action last, where Save sat. */}
+          <span className="schematic-usage-controls__actions-end">
+            {confirmingRemove && row !== undefined ? (
+              <>
+                <button
+                  className="schematic-cta schematic-cta--small schematic-cta--ghost"
+                  disabled={busy}
+                  type="button"
+                  onClick={() => setConfirmingRemove(false)}
+                >
+                  {t("usageControlsRemoveNo")}
+                </button>
+                <button
+                  className="schematic-cta schematic-cta--small schematic-usage-controls__remove-yes"
+                  disabled={busy}
+                  type="button"
+                  onClick={() =>
+                    void run(() => remove(row.id), "usageControlsRemoveError")
+                  }
+                >
+                  {t("usageControlsRemoveYes")}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="schematic-cta schematic-cta--small schematic-cta--ghost"
+                  type="button"
+                  onClick={onClose}
+                >
+                  {t("usageControlsCancel")}
+                </button>
+                <button
+                  className="schematic-cta schematic-cta--small"
+                  disabled={!canSave}
+                  type="submit"
+                >
+                  {t("usageControlsSave")}
+                </button>
+              </>
+            )}
+          </span>
         </div>
       </form>
     </Dialog>

@@ -396,6 +396,15 @@ describe("UsageControls", () => {
       expect(
         within(dialog()).queryByRole("button", { name: "Save limit" }),
       ).toBeNull();
+      // The pair takes Cancel and Save's place: Keep, then Remove last.
+      const end = dialog().querySelector(
+        ".schematic-usage-controls__actions-end",
+      ) as HTMLElement;
+      expect(
+        within(end)
+          .getAllByRole("button")
+          .map((button) => button.textContent),
+      ).toEqual(["Keep", "Remove"]);
       pick("Keep");
       expect(removeSpendPolicy).not.toHaveBeenCalled();
       fireEvent.click(
