@@ -50,6 +50,7 @@ import {
   hasMeteredCosts,
   isScheduledCheckoutConflictMessage,
   mergeCompanyGrants,
+  normalizeInterval,
   shortenPeriod,
   toPrettyDate,
 } from "../../../utils";
@@ -260,6 +261,21 @@ export const SubscriptionSidebar = forwardRef<
           planPrice = planBillingPrice?.price;
           resolvedCurrency = planBillingPrice?.currency;
         } else if (typeof currentPlan?.planPrice === "number") {
+          const currentInterval = getSubscriptionInterval(billingSubscription);
+          const currentPeriod = currentInterval
+            ? normalizeInterval(
+                currentInterval.interval,
+                currentInterval.intervalCount,
+              ).period
+            : currentPlan.planPeriod;
+          if (currentPeriod && currentPeriod !== planPeriod) {
+            return {
+              subscriptionPrice: undefined,
+              subscriptionTotal: 0,
+              subscriptionCurrency: billingSubscription?.currency ?? currency,
+            };
+          }
+
           planPrice = currentPlan.planPrice;
           resolvedCurrency = billingSubscription?.currency;
         }
@@ -318,7 +334,7 @@ export const SubscriptionSidebar = forwardRef<
       }, [
         selectedPlan,
         currentPlan,
-        billingSubscription?.currency,
+        billingSubscription,
         planPeriod,
         addOns,
         payInAdvanceEntitlements,
@@ -1255,9 +1271,9 @@ export const SubscriptionSidebar = forwardRef<
                 <Flex>
                   <Text>
                     -
-                    {formatCurrency(selectedPlanPrice ?? 0, {
+                    {formatCurrency(subscriptionTotal, {
                       locale,
-                      currency: selectedPlanCurrency,
+                      currency: subscriptionCurrency,
                     })}
                     /<sub>{shortenPeriod(planPeriod, t)}</sub>
                   </Text>
@@ -1579,7 +1595,7 @@ export const SubscriptionSidebar = forwardRef<
 
               <Box $whiteSpace="nowrap">
                 <Text>
-                  {subscriptionPrice}
+                  {subscriptionDiscount?.discountedPrice ?? subscriptionPrice}
                   <sub>/{shortenPeriod(planPeriod, t)}</sub>
                 </Text>
               </Box>

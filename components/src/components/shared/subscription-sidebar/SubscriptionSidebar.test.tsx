@@ -4,6 +4,7 @@ import { vi } from "vitest";
 import {
   ComponentHydrateResponseDataFromJSON,
   PlanEntitlementResponseDataFromJSON,
+  type PreviewSubscriptionFinanceResponseData,
 } from "../../../api/checkoutexternal";
 import { EmbedContext, initialContext } from "../../../context";
 import hydrateResponse from "../../../test/mocks/handlers/response/hydrate.json";
@@ -151,12 +152,18 @@ function renderSidebar(
     planPeriod = "month",
     creditBundles,
     checkoutStage,
+    charges,
+    promoCode,
+    shouldTrial,
   }: {
     currency?: string;
     hydrateData?: unknown;
     planPeriod?: string;
     creditBundles?: CreditBundle[];
     checkoutStage?: string;
+    charges?: PreviewSubscriptionFinanceResponseData;
+    promoCode?: string;
+    shouldTrial?: boolean;
   } = {},
 ) {
   return render(
@@ -178,6 +185,9 @@ function renderSidebar(
         creditBundles={creditBundles}
         checkoutStage={checkoutStage}
         usageBasedEntitlements={usageBasedEntitlements}
+        charges={charges}
+        promoCode={promoCode}
+        shouldTrial={shouldTrial}
         isLoading={false}
         isPaymentMethodRequired={false}
         setError={() => {}}
@@ -512,5 +522,73 @@ describe("`SubscriptionSidebar` usage-based costs in the billing sentence", () =
     expect(screen.getByText(/You will be billed/)).toHaveTextContent(
       "plus usage based costs",
     );
+  });
+});
+
+describe("`SubscriptionSidebar` period total", () => {
+  const totalRow = (label: RegExp) =>
+    screen.getByText(label).parentElement!.parentElement!;
+
+  it("takes an applied percent code off the total", () => {
+    const now = new Date();
+    renderSidebar([], [], buildSelectedPlan(), {
+      planPeriod: "year",
+      promoCode: "SAVE25",
+      charges: {
+        amountOff: 0,
+        currency: "usd",
+        customerBalanceApplied: 0,
+        customerBalanceRemaining: 0,
+        discountAmount: 1250,
+        discounts: [
+          {
+            couponName: "25% off",
+            customerFacingCode: "SAVE25",
+            duration: "forever",
+            isActive: true,
+            percentOff: 25,
+            startedAt: now,
+          },
+        ],
+        dueNow: 3750,
+        newCharges: 5000,
+        percentOff: 25,
+        periodEnd: now,
+        periodStart: now,
+        promoCodeApplied: true,
+        proration: 0,
+        taxRequireBillingDetails: false,
+        totalPerBillingPeriod: 3750,
+        upcomingInvoiceLineItems: [],
+      },
+    });
+
+    expect(totalRow(/Yearly total/)).toHaveTextContent(
+      "Yearly total:$37.50/yr",
+    );
+  });
+
+  it("leaves the total out on a period the current plan is not priced in", () => {
+    renderSidebar([], [], undefined, { planPeriod: "year" });
+
+    expect(
+      screen.getByText("Basic").parentElement!.parentElement!,
+    ).toHaveTextContent("$5.00/mo");
+    expect(screen.queryByText(/Yearly total/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/You will be billed/)).not.toBeInTheDocument();
+  });
+});
+
+describe("`SubscriptionSidebar` trial", () => {
+  it("takes the whole period total off, seats included", () => {
+    const plan = { ...buildSelectedPlan(), companyCanTrial: true };
+
+    renderSidebar([], [buildTieredPayInAdvanceEntitlement(4)], plan, {
+      shouldTrial: true,
+    });
+
+    expect(
+      screen.getByText("Trial").parentElement!.parentElement!,
+    ).toHaveTextContent("-$755.00/mo");
   });
 });
