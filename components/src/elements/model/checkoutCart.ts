@@ -21,6 +21,7 @@ import {
   isPayInAdvance,
   planCurrencies,
   planPrice,
+  pricedIn,
   type CatalogPrice,
   type CheckoutPeriod,
 } from "./checkoutPrices";
@@ -134,7 +135,11 @@ export function initialCart({
   if (selection.planId === null) {
     planId = undefined;
   } else if (selection.planId !== undefined) {
-    planId = catalog.plans.some((p) => p.id === selection.planId)
+    // A plan with no price in the cart's currency can't be bought, and the
+    // checkout doesn't list it, so a host's pick of one is no plan.
+    planId = catalog.plans.some(
+      (p) => p.id === selection.planId && pricedIn(p, currency),
+    )
       ? selection.planId
       : undefined;
   } else {

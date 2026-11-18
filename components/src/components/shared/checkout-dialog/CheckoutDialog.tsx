@@ -961,7 +961,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
   // currency/period themselves via the toggles.
   const currencyPeriodMismatch =
     hasCurrency &&
-    !lockedCurrency &&
     !planStageVisible &&
     !!selectedPlan &&
     !planOffersCurrencyForPeriod(selectedPlan, planPeriod, effectiveCurrency);

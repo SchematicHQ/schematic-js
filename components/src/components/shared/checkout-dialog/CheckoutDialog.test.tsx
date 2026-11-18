@@ -429,6 +429,22 @@ describe("`CheckoutDialog` plan currency", () => {
       await screen.findByTestId("sch-currency-period-mismatch-notice"),
     ).toBeInTheDocument();
   });
+
+  it("flags a host-picked plan with no price in a subscriber's currency", async () => {
+    const data = buildSubscriberData((raw) => {
+      (raw.subscription as Json).currency = "eur";
+      addEuroPrice(raw, BASIC_PLAN_ID, false);
+    });
+    renderCheckoutDialog({
+      data,
+      checkoutState: { planId: STANDARD_PLAN_ID, bypassPlanSelection: true },
+      previewCheckout: vi.fn(async () => buildPreviewResponse()),
+    });
+
+    expect(
+      await screen.findByTestId("sch-currency-period-mismatch-notice"),
+    ).toBeInTheDocument();
+  });
 });
 
 describe("`CheckoutDialog` one-time-only purchases", () => {

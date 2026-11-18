@@ -59,6 +59,25 @@ describe("initialCart", () => {
     expect(cart.planId).toBeUndefined();
   });
 
+  test("drops a picked plan with no price in a subscriber's currency", () => {
+    const euro = catalogPlan({
+      currencyPrices: [{ currency: "eur", monthlyPrice: monthly(2300, "eur") }],
+      name: "Euro",
+    });
+    const cat = catalog({ plans: [euro, team] });
+    const eurCompany = company({
+      subscription: subscription({ currency: "eur" }),
+    });
+    const pick = (planId: string) =>
+      initialCart({
+        catalog: cat,
+        company: eurCompany,
+        config: { selection: { planId } },
+      }).planId;
+    expect(pick(team.id)).toBeUndefined();
+    expect(pick(euro.id)).toBe(euro.id);
+  });
+
   // BypassConfig.planId, period, addOnIds, payInAdvanceQuantities, promoCode,
   // startTrialIfAvailable and currency, one row each.
   test.each<
