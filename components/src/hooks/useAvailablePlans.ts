@@ -41,16 +41,19 @@ export function useAvailablePlans(
   }, [data?.activePlans, data?.activeAddOns]);
 
   const getActivePlans = useCallback(
-    (plans: CompanyPlanDetailResponseData[]): SelectedPlan[] => {
+    (
+      plans: CompanyPlanDetailResponseData[],
+      period = activePeriod,
+    ): SelectedPlan[] => {
       const activePlans =
         settings.mode === "edit"
           ? plans.slice()
           : plans.filter((plan) => {
               if (options.useSelectedPeriod) {
                 return (
-                  (activePeriod === "month" && plan.monthlyPrice) ||
-                  (activePeriod === "quarter" && plan.quarterlyPrice) ||
-                  (activePeriod === "year" && plan.yearlyPrice) ||
+                  (period === "month" && plan.monthlyPrice) ||
+                  (period === "quarter" && plan.quarterlyPrice) ||
+                  (period === "year" && plan.yearlyPrice) ||
                   plan.chargeType === ChargeType.oneTime
                 );
               }
@@ -73,6 +76,8 @@ export function useAvailablePlans(
       plans: getActivePlans(data?.activePlans || []),
       addOns: getActivePlans(data?.activeAddOns || []),
       periods: getAvailablePeriods(),
+      plansForPeriod: (period: string) =>
+        getActivePlans(data?.activePlans || [], period),
     };
   }, [
     data?.activePlans,

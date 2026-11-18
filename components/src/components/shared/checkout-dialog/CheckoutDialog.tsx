@@ -322,6 +322,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     plans: periodPlans,
     addOns: availableAddOns,
     periods: availablePeriods,
+    plansForPeriod,
   } = useAvailablePlans(planPeriod, {
     useSelectedPeriod: showPeriodToggle,
   });
@@ -343,30 +344,36 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     [periodPlans, supportsCheckoutCurrency],
   );
 
-  const [selectedPlanId, setSelectedPlanId] = useState<
-    string | null | undefined
-  >(undefined);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>(
+    undefined,
+  );
 
-  const selectedPlan = useMemo<SelectedPlan | undefined>(() => {
-    if (selectedPlanId === null) {
-      return undefined;
-    }
+  // The selection is kept by id, so a plan with no price on the toggled
+  // period drops out and comes back when the toggle returns to one it has.
+  const findSelectedPlan = useCallback(
+    (plans: SelectedPlan[]) => {
+      if (selectedPlanId) {
+        return plans.find((p) => p.id === selectedPlanId);
+      }
 
-    if (selectedPlanId) {
-      return availablePlans.find((p) => p.id === selectedPlanId);
-    }
+      if (requestedPlanId) {
+        return plans.find((plan) => plan.id === requestedPlanId);
+      }
 
-    if (checkoutState?.planId) {
-      return availablePlans.find((plan) => plan.id === checkoutState.planId);
-    }
+      return plans.find(
+        (plan) =>
+          plan.current &&
+          // do not initially set the current plan for a trial
+          (!plan.isTrialable || !plan.companyCanTrial),
+      );
+    },
+    [requestedPlanId, selectedPlanId],
+  );
 
-    return availablePlans.find(
-      (plan) =>
-        plan.current &&
-        // do not initially set the current plan for a trial
-        (!plan.isTrialable || !plan.companyCanTrial),
-    );
-  }, [availablePlans, checkoutState, selectedPlanId]);
+  const selectedPlan = useMemo<SelectedPlan | undefined>(
+    () => findSelectedPlan(availablePlans),
+    [availablePlans, findSelectedPlan],
+  );
 
   const [shouldTrial, setShouldTrial] = useState(false);
 
@@ -494,8 +501,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
   // The plan bundle compatibility is checked against, mirroring the API: a
   // subscription change validates against the target plan, and a credit-only
-  // purchase (or a preview that reset selectedPlanId) against the company's
-  // current plan. With neither, only unrestricted bundles pass.
+  // purchase (or a plan with no price on the toggled period) against the
+  // company's current plan. With neither, only unrestricted bundles pass.
   const bundleGatingPlanId = selectedPlan?.id ?? data?.company?.plan?.id;
 
   const creditBundles = useMemo<CreditBundle[]>(() => {
@@ -1048,9 +1055,6 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         if (isBypassLoading) {
           setIsBypassLoading(false);
         }
-
-        // ensure selected plan is reset if no valid price is found
-        setSelectedPlanId(null);
         return;
       }
 
@@ -1425,9 +1429,11 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       setPlanPeriod(period);
 
-      const updatedUsageBasedEntitlements = (
-        selectedPlan?.entitlements || []
-      ).reduce(
+      const plan = findSelectedPlan(
+        plansForPeriod(period).filter(supportsCheckoutCurrency),
+      );
+
+      const updatedUsageBasedEntitlements = (plan?.entitlements || []).reduce(
         createActiveUsageBasedEntitlementsReducer(featureUsage, period),
         [...[]] as UsageBasedEntitlement[],
       );
@@ -1467,6 +1473,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
 
       handlePreviewCheckout({
         period,
+        plan,
         payInAdvanceEntitlements: updatedUsageBasedEntitlements.filter(
           ({ priceBehavior }) =>
             priceBehavior === EntitlementPriceBehavior.PayInAdvance,
@@ -1480,7 +1487,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     },
     [
       planPeriod,
-      selectedPlan?.entitlements,
+      plansForPeriod,
+      findSelectedPlan,
+      supportsCheckoutCurrency,
       featureUsage,
       addOns,
       setPlanPeriod,
