@@ -218,7 +218,7 @@ describe("UsageControls", () => {
       const createSpendPolicy = vi.fn(async () => {});
       renderControls({ allowEdit: true }, { actions: { createSpendPolicy } });
       fireEvent.click(screen.getByRole("button", { name: "Add a policy" }));
-      expect(dialog()).toHaveTextContent("Add a usage limit");
+      expect(dialog()).toHaveTextContent("Add a policy");
 
       // The company already has a plan-period cap, so Monthly is taken.
       expect(
@@ -231,9 +231,7 @@ describe("UsageControls", () => {
       expect(dialog()).toHaveTextContent(
         /Up to 1,500 AI credits a week, resets /,
       );
-      fireEvent.click(
-        within(dialog()).getByRole("button", { name: "Save limit" }),
-      );
+      fireEvent.click(within(dialog()).getByRole("button", { name: "Save" }));
       await vi.waitFor(() =>
         expect(createSpendPolicy).toHaveBeenCalledWith({
           creditId: "bcr_ai",
@@ -267,9 +265,7 @@ describe("UsageControls", () => {
       expect(dialog()).toHaveTextContent(
         `Up to 300 AI credits a month, resets ${day("2026-09-01T00:00:00Z")}`,
       );
-      fireEvent.click(
-        within(dialog()).getByRole("button", { name: "Save limit" }),
-      );
+      fireEvent.click(within(dialog()).getByRole("button", { name: "Save" }));
       await vi.waitFor(() =>
         expect(createSpendPolicy).toHaveBeenCalledWith({
           creditId: "bcr_ai",
@@ -290,9 +286,7 @@ describe("UsageControls", () => {
         target: { value: "10" },
       });
       expect(dialog()).toHaveTextContent("Up to 10 AI credits on any one use");
-      fireEvent.click(
-        within(dialog()).getByRole("button", { name: "Save limit" }),
-      );
+      fireEvent.click(within(dialog()).getByRole("button", { name: "Save" }));
       await vi.waitFor(() =>
         expect(createSpendPolicy).toHaveBeenCalledWith({
           creditId: "bcr_ai",
@@ -304,7 +298,7 @@ describe("UsageControls", () => {
     test("waits for an amount and a person before saving", () => {
       renderControls({ allowEdit: true });
       fireEvent.click(screen.getByRole("button", { name: "Add a policy" }));
-      const save = within(dialog()).getByRole("button", { name: "Save limit" });
+      const save = within(dialog()).getByRole("button", { name: "Save" });
       expect(save).toBeDisabled();
       fireEvent.change(within(dialog()).getByLabelText("Credits"), {
         target: { value: "5" },
@@ -327,9 +321,7 @@ describe("UsageControls", () => {
       fireEvent.change(within(dialog()).getByLabelText("Credits"), {
         target: { value: "5" },
       });
-      fireEvent.click(
-        within(dialog()).getByRole("button", { name: "Save limit" }),
-      );
+      fireEvent.click(within(dialog()).getByRole("button", { name: "Save" }));
       expect(await within(dialog()).findByRole("alert")).toHaveTextContent(
         "There is already a limit for that period. Edit that one instead.",
       );
@@ -345,15 +337,13 @@ describe("UsageControls", () => {
           name: "Edit limit for Ada: 50 AI credits per day",
         }),
       );
-      expect(dialog()).toHaveTextContent("Edit usage limit");
+      expect(dialog()).toHaveTextContent("Edit policy");
       expect(within(dialog()).queryByText("Applies to")).toBeNull();
       expect(dialog()).toHaveTextContent("AI credits · Per period");
       fireEvent.change(within(dialog()).getByLabelText("Credits"), {
         target: { value: "60" },
       });
-      fireEvent.click(
-        within(dialog()).getByRole("button", { name: "Save limit" }),
-      );
+      fireEvent.click(within(dialog()).getByRole("button", { name: "Save" }));
       await vi.waitFor(() =>
         expect(updateSpendPolicy).toHaveBeenCalledWith("csp_ada", {
           windowAmount: 60,
@@ -370,9 +360,7 @@ describe("UsageControls", () => {
         }),
       );
       pick("Weekly");
-      fireEvent.click(
-        within(dialog()).getByRole("button", { name: "Save limit" }),
-      );
+      fireEvent.click(within(dialog()).getByRole("button", { name: "Save" }));
       await vi.waitFor(() =>
         expect(updateSpendPolicy).toHaveBeenCalledWith("csp_ada", {
           windowAmount: 50,
@@ -389,12 +377,10 @@ describe("UsageControls", () => {
           name: "Edit limit for Cy: 25 AI credits per use",
         }),
       );
-      fireEvent.click(
-        within(dialog()).getByRole("button", { name: "Remove limit" }),
-      );
+      fireEvent.click(within(dialog()).getByRole("button", { name: "Remove" }));
       expect(dialog()).toHaveTextContent("Remove this limit?");
       expect(
-        within(dialog()).queryByRole("button", { name: "Save limit" }),
+        within(dialog()).queryByRole("button", { name: "Save" }),
       ).toBeNull();
       // The pair takes Cancel and Save's place: Keep, then Remove last.
       const end = dialog().querySelector(
@@ -407,9 +393,7 @@ describe("UsageControls", () => {
       ).toEqual(["Keep", "Remove"]);
       pick("Keep");
       expect(removeSpendPolicy).not.toHaveBeenCalled();
-      fireEvent.click(
-        within(dialog()).getByRole("button", { name: "Remove limit" }),
-      );
+      fireEvent.click(within(dialog()).getByRole("button", { name: "Remove" }));
       pick("Remove");
       await vi.waitFor(() =>
         expect(removeSpendPolicy).toHaveBeenCalledWith("csp_cy"),
