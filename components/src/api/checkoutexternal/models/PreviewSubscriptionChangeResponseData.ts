@@ -146,6 +146,12 @@ export interface PreviewSubscriptionChangeResponseData {
    */
   trialEnd?: Date | null;
   /**
+   * Features whose usage so far this billing period is not billed if this change is made, because the new plan does not charge for them and the billing period continues.
+   * @type {Array<string>}
+   * @memberof PreviewSubscriptionChangeResponseData
+   */
+  unbilledUsageFeatureIds: Array<string>;
+  /**
    *
    * @type {Array<FeatureUsageResponseData>}
    * @memberof PreviewSubscriptionChangeResponseData
@@ -183,6 +189,11 @@ export function instanceOfPreviewSubscriptionChangeResponseData(
   if (!("promoCodeApplied" in value) || value["promoCodeApplied"] === undefined)
     return false;
   if (!("proration" in value) || value["proration"] === undefined) return false;
+  if (
+    !("unbilledUsageFeatureIds" in value) ||
+    value["unbilledUsageFeatureIds"] === undefined
+  )
+    return false;
   if (!("usageViolations" in value) || value["usageViolations"] === undefined)
     return false;
   return true;
@@ -227,6 +238,7 @@ export function PreviewSubscriptionChangeResponseDataFromJSONTyped(
         : new Date(json["scheduled_change_time"]),
     trialEnd:
       json["trial_end"] == null ? undefined : new Date(json["trial_end"]),
+    unbilledUsageFeatureIds: json["unbilled_usage_feature_ids"],
     usageViolations: (json["usage_violations"] as Array<any>).map(
       FeatureUsageResponseDataFromJSON,
     ),
@@ -272,6 +284,7 @@ export function PreviewSubscriptionChangeResponseDataToJSONTyped(
       value["trialEnd"] == null
         ? undefined
         : (value["trialEnd"] as any).toISOString(),
+    unbilled_usage_feature_ids: value["unbilledUsageFeatureIds"],
     usage_violations: (value["usageViolations"] as Array<any>).map(
       FeatureUsageResponseDataToJSON,
     ),

@@ -148,6 +148,7 @@ function buildPreviewResponse(): PreviewCheckoutResponse {
       problems: [],
       promoCodeApplied: false,
       proration: 0,
+      unbilledUsageFeatureIds: [],
       usageViolations: [],
     },
     params: {},
