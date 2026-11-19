@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
+import type { RenewalDestinationResponseData } from "./RenewalDestinationResponseData";
+import {
+  RenewalDestinationResponseDataFromJSON,
+  RenewalDestinationResponseDataFromJSONTyped,
+  RenewalDestinationResponseDataToJSON,
+  RenewalDestinationResponseDataToJSONTyped,
+} from "./RenewalDestinationResponseData";
 import type { PlanVersionStatus } from "./PlanVersionStatus";
 import {
   PlanVersionStatusFromJSON,
@@ -97,6 +104,12 @@ export interface PlanVersionResponseData {
    */
   planType: PlanType;
   /**
+   * Where the company moves at term end when renewal_policy is migrate_to_plan. Null for any other policy.
+   * @type {RenewalDestinationResponseData}
+   * @memberof PlanVersionResponseData
+   */
+  renewalDestination?: RenewalDestinationResponseData | null;
+  /**
    *
    * @type {RenewalPolicy}
    * @memberof PlanVersionResponseData
@@ -168,6 +181,10 @@ export function PlanVersionResponseDataFromJSONTyped(
     originalPlanId:
       json["original_plan_id"] == null ? undefined : json["original_plan_id"],
     planType: PlanTypeFromJSON(json["plan_type"]),
+    renewalDestination:
+      json["renewal_destination"] == null
+        ? undefined
+        : RenewalDestinationResponseDataFromJSON(json["renewal_destination"]),
     renewalPolicy: RenewalPolicyFromJSON(json["renewal_policy"]),
     status: PlanVersionStatusFromJSON(json["status"]),
     updatedAt: new Date(json["updated_at"]),
@@ -198,6 +215,9 @@ export function PlanVersionResponseDataToJSONTyped(
     name: value["name"],
     original_plan_id: value["originalPlanId"],
     plan_type: PlanTypeToJSON(value["planType"]),
+    renewal_destination: RenewalDestinationResponseDataToJSON(
+      value["renewalDestination"],
+    ),
     renewal_policy: RenewalPolicyToJSON(value["renewalPolicy"]),
     status: PlanVersionStatusToJSON(value["status"]),
     updated_at: value["updatedAt"].toISOString(),

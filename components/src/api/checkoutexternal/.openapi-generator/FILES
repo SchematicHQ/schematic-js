@@ -270,6 +270,7 @@ models/PreviewSubscriptionProrationResponseData.ts
 models/PreviewSubscriptionUpcomingInvoiceLineItems.ts
 models/ProrationBehavior.ts
 models/ProrationLineKind.ts
+models/RenewalDestinationResponseData.ts
 models/RenewalPolicy.ts
 models/Rule.ts
 models/RuleConditionDetailResponseData.ts

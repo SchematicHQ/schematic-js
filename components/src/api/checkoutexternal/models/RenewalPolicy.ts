@@ -20,6 +20,7 @@ export const RenewalPolicy = {
   AutoRenew: "auto_renew",
   ExpireToDefault: "expire_to_default",
   HoldWithGrace: "hold_with_grace",
+  MigrateToPlan: "migrate_to_plan",
 } as const;
 export type RenewalPolicy = (typeof RenewalPolicy)[keyof typeof RenewalPolicy];
 

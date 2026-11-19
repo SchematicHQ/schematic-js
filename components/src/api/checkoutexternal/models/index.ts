@@ -268,6 +268,7 @@ export * from "./PreviewSubscriptionProrationResponseData";
 export * from "./PreviewSubscriptionUpcomingInvoiceLineItems";
 export * from "./ProrationBehavior";
 export * from "./ProrationLineKind";
+export * from "./RenewalDestinationResponseData";
 export * from "./RenewalPolicy";
 export * from "./Rule";
 export * from "./RuleConditionDetailResponseData";
