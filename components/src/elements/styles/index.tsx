@@ -1,5 +1,6 @@
 import React from "react";
 
+import { balanceBadgeCss } from "./balance-badge";
 import { cardGroupCss } from "./card-group";
 import { checkoutCss } from "./checkout";
 import { creditLogCss } from "./credit-log";
@@ -439,6 +440,7 @@ ${includedFeaturesCss}
 ${meteredFeaturesCss}
 ${creditUsageCss}
 ${creditLogCss}
+${balanceBadgeCss}
 ${planManagerCss}
 ${pricingTableCss}
 ${unsubscribeCss}

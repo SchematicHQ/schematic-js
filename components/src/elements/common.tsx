@@ -8,6 +8,7 @@ import React, {
   useEffect,
   useId,
   useRef,
+  useState,
   useSyncExternalStore,
 } from "react";
 
@@ -316,32 +317,228 @@ export const StatusFrame: React.FC<{
   );
 };
 
-/**
- * An info glyph that shows `children` while hovered or focused. The trigger
- * is a button so a keyboard reaches it, and the content describes it so a
- * screen reader reads it on focus.
- */
-export const Tooltip: React.FC<{
+export type TooltipSide = "top" | "bottom";
+export type TooltipAlign = "start" | "center" | "end";
+
+export type TooltipProps = {
   children: React.ReactNode;
   className?: string;
-  /** The trigger's accessible name. */
-  label: string;
-}> = ({ children, className, label }) => {
+  /** The side the content prefers to open on. Default `"top"`. */
+  placement?: TooltipSide;
+  /**
+   * How the content prefers to line up with the trigger: its start or end
+   * edge in the text direction, or centred on it. Default `"end"`.
+   */
+  align?: TooltipAlign;
+  /**
+   * Flip to the other side or edge when the preferred one would leave the
+   * viewport. Default true.
+   */
+  autoPosition?: boolean;
+} & (
+  | {
+      /** The info glyph's accessible name. */
+      label: string;
+      trigger?: never;
+    }
+  | {
+      label?: never;
+      /**
+       * Renders the trigger in place of the info glyph. Spread the id on
+       * its `aria-describedby`; the trigger must be focusable.
+       */
+      trigger: (describedBy: string) => React.ReactNode;
+    }
+);
+
+/** Space kept between the content and the viewport edge, in px. */
+const TOOLTIP_MARGIN = 8;
+/** Matches the content's offset from the trigger in styles/tooltip.ts. */
+const TOOLTIP_GAP = 8;
+
+export interface TooltipBounds {
+  left?: number;
+  top?: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * The side and edge that keep content of `size` inside `bounds`, keeping
+ * the preferred one when it fits and otherwise the one with more room.
+ */
+export function tooltipPosition(
+  rect: { top: number; bottom: number; left: number; right: number },
+  size: { width: number; height: number },
+  bounds: TooltipBounds,
+  preferred: { side: TooltipSide; align: TooltipAlign },
+  rtl = false,
+): { side: TooltipSide; align: TooltipAlign } {
+  const dx = bounds.left ?? 0;
+  const dy = bounds.top ?? 0;
+  const trigger = {
+    top: rect.top - dy,
+    bottom: rect.bottom - dy,
+    left: rect.left - dx,
+    right: rect.right - dx,
+  };
+  const room: Record<TooltipSide, number> = {
+    top: trigger.top - TOOLTIP_GAP - TOOLTIP_MARGIN,
+    bottom: bounds.height - trigger.bottom - TOOLTIP_GAP - TOOLTIP_MARGIN,
+  };
+  const startEdge = rtl ? trigger.right : trigger.left;
+  const endEdge = rtl ? trigger.left : trigger.right;
+  const spanFrom = (edge: number, towardEnd: boolean) =>
+    towardEnd !== rtl
+      ? bounds.width - TOOLTIP_MARGIN - edge
+      : edge - TOOLTIP_MARGIN;
+  const middle = (trigger.left + trigger.right) / 2;
+  const span: Record<TooltipAlign, number> = {
+    start: spanFrom(startEdge, true),
+    center:
+      2 *
+      Math.min(
+        middle - TOOLTIP_MARGIN,
+        bounds.width - TOOLTIP_MARGIN - middle,
+      ),
+    end: spanFrom(endEdge, false),
+  };
+  const pick = <K extends string>(
+    rooms: Record<K, number>,
+    want: K,
+    other: K,
+    needed: number,
+  ): K => (rooms[want] >= needed || rooms[want] >= rooms[other] ? want : other);
+  return {
+    side: pick(
+      room,
+      preferred.side,
+      preferred.side === "top" ? "bottom" : "top",
+      size.height,
+    ),
+    align:
+      preferred.align === "center"
+        ? span.center >= size.width
+          ? "center"
+          : pick(span, "end", "start", size.width)
+        : pick(
+            span,
+            preferred.align,
+            preferred.align === "end" ? "start" : "end",
+            size.width,
+          ),
+  };
+}
+
+/**
+ * The part of the window `element` can paint in: an ancestor that clips its
+ * overflow cuts off a tooltip as surely as the window edge does.
+ */
+export function tooltipBounds(element: Element): Required<TooltipBounds> {
+  let left = 0;
+  let top = 0;
+  let right = window.innerWidth;
+  let bottom = window.innerHeight;
+  for (let node = element.parentElement; node; node = node.parentElement) {
+    const { overflowX, overflowY } = getComputedStyle(node);
+    if (overflowX === "visible" && overflowY === "visible") {
+      continue;
+    }
+    const box = node.getBoundingClientRect();
+    if (overflowX !== "visible") {
+      left = Math.max(left, box.left);
+      right = Math.min(right, box.right);
+    }
+    if (overflowY !== "visible") {
+      top = Math.max(top, box.top);
+      bottom = Math.min(bottom, box.bottom);
+    }
+  }
+  return {
+    left,
+    top,
+    width: Math.max(0, right - left),
+    height: Math.max(0, bottom - top),
+  };
+}
+
+/**
+ * Shows `children` while the trigger is hovered or focused: an info glyph
+ * by default, or the caller's own element. The content describes the
+ * trigger, so a screen reader reads it on focus.
+ */
+export const Tooltip: React.FC<TooltipProps> = ({
+  align = "end",
+  autoPosition = true,
+  children,
+  className,
+  label,
+  placement = "top",
+  trigger,
+}) => {
   const id = useId();
+  const rootRef = useRef<HTMLSpanElement>(null);
+  const contentRef = useRef<HTMLSpanElement>(null);
+  const [position, setPosition] = useState({ side: placement, align });
+  const [dismissed, setDismissed] = useState(false);
+
+  // Measured as it opens: the content is laid out while hidden, so its
+  // size is known before it shows.
+  const place = useCallback(() => {
+    setDismissed(false);
+    const root = rootRef.current;
+    const content = contentRef.current;
+    if (!autoPosition || root === null || content === null) {
+      return;
+    }
+    setPosition(
+      tooltipPosition(
+        root.getBoundingClientRect(),
+        { width: content.offsetWidth, height: content.offsetHeight },
+        tooltipBounds(root),
+        { side: placement, align },
+        getComputedStyle(root).direction === "rtl",
+      ),
+    );
+  }, [align, autoPosition, placement]);
+  const shown = autoPosition ? position : { side: placement, align };
+
   return (
-    <span className={cx("schematic-tooltip", className)}>
-      <button
-        aria-describedby={id}
-        aria-label={label}
-        className="schematic-tooltip__trigger"
-        type="button"
+    <span
+      className={cx("schematic-tooltip", className)}
+      data-align={shown.align}
+      data-placement={shown.side}
+      ref={rootRef}
+      onFocus={place}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          setDismissed(true);
+        }
+      }}
+      onPointerEnter={place}
+    >
+      {trigger === undefined ? (
+        <button
+          aria-describedby={id}
+          aria-label={label}
+          className="schematic-tooltip__trigger"
+          type="button"
+        >
+          <i
+            aria-hidden="true"
+            className="schematic-icon schematic-icon--info-rounded"
+          />
+        </button>
+      ) : (
+        trigger(id)
+      )}
+      <span
+        className="schematic-tooltip__content"
+        id={id}
+        ref={contentRef}
+        role="tooltip"
+        style={dismissed ? { visibility: "hidden" } : undefined}
       >
-        <i
-          aria-hidden="true"
-          className="schematic-icon schematic-icon--info-rounded"
-        />
-      </button>
-      <span className="schematic-tooltip__content" id={id} role="tooltip">
         {children}
       </span>
     </span>

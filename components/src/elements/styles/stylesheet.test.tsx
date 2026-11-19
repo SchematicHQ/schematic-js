@@ -1,10 +1,12 @@
 import {
   BillingDataProvider,
+  SchematicProvider,
   type BillingData,
 } from "@schematichq/schematic-react";
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
+import { BalanceBadge } from "../BalanceBadge";
 import { Checkout } from "../Checkout";
 import { CreditLog } from "../CreditLog";
 import { CreditUsage } from "../CreditUsage";
@@ -16,6 +18,7 @@ import { PlanManager } from "../PlanManager";
 import { PricingTable } from "../PricingTable";
 import { UnsubscribeButton } from "../UnsubscribeButton";
 import { UpcomingBill } from "../UpcomingBill";
+import { Tooltip } from "../common";
 import {
   cardPaymentMethod,
   catalogPrice,
@@ -48,6 +51,7 @@ import {
   prorationLine,
 } from "../fixtures/checkout";
 import { SCENARIOS, paymentMethodSet } from "../fixtures/scenarios";
+import { fakeStreamClient, streamSpendPolicy } from "../fixtures/stream";
 
 import { withTokenDefaults } from "./tokens";
 
@@ -62,7 +66,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|credit-log|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|credit-log|balance-badge|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -118,6 +122,19 @@ function compounds(selector: string): string[] {
     .replace(/\[[^\]]*\]/g, "[]")
     .split(/[\s>+~]+/)
     .filter((part) => part !== "");
+}
+
+function badgeTree(
+  node: React.ReactNode,
+  data: BillingData,
+  stream = fakeStreamClient(),
+) {
+  const { container } = render(
+    <SchematicProvider client={stream.client}>
+      <BillingDataProvider data={data}>{node}</BillingDataProvider>
+    </SchematicProvider>,
+  );
+  return container.firstElementChild as HTMLElement;
 }
 
 function tree(
@@ -640,6 +657,30 @@ async function everyCard() {
       featureUsage: { error: boom },
     } as never),
     await creditsOpen(),
+    badgeTree(<BalanceBadge locale="en-US" />, {
+      creditBalances: [creditBalance()],
+    }),
+    badgeTree(<BalanceBadge href="/billing" locale="en-US" />, {
+      creditBalances: [creditBalance({ remaining: 0 })],
+    }),
+    badgeTree(
+      <BalanceBadge locale="en-US" onClick={() => {}} />,
+      { creditBalances: [creditBalance({ creditId: "bcr_ai" })] },
+      fakeStreamClient({ policies: [streamSpendPolicy()] }),
+    ),
+    badgeTree(<BalanceBadge locale="en-US" />, {}),
+    tree(
+      <Tooltip align="start" autoPosition={false} label="About">
+        Details
+      </Tooltip>,
+      {},
+    ),
+    tree(
+      <Tooltip align="center" autoPosition={false} label="About">
+        Details
+      </Tooltip>,
+      {},
+    ),
     tree(<CreditLog locale="en-US" />, SCENARIOS.creditLog()),
     tree(<CreditLog locale="en-US" seeAllUrl="/log" />, SCENARIOS.creditLog()),
     tree(

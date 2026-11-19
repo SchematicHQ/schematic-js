@@ -164,6 +164,27 @@ export type ElementStrings = {
   creditLogWhoPlan: string;
   creditLogWhoManual: string;
 
+  balanceBadgeLoading: string;
+  balanceBadgeAmount: string;
+  balanceBadgeResetsOn: string;
+  balanceBadgeResetsIn: string;
+  balanceBadgeUnlocksOn: string;
+  balanceBadgeUnlocksAt: string;
+  balanceBadgeOutOf: string;
+  balanceBadgeLimitReachedHourly: string;
+  balanceBadgeLimitReachedDaily: string;
+  balanceBadgeLimitReachedWeekly: string;
+  balanceBadgeLimitReachedMonthly: string;
+  balanceBadgeLeft: string;
+  balanceBadgeResetsExact: string;
+  balanceBadgeLimitUser: string;
+  balanceBadgeLimitCompany: string;
+  balanceBadgePeriodHourly: string;
+  balanceBadgePeriodDaily: string;
+  balanceBadgePeriodWeekly: string;
+  balanceBadgePeriodMonthly: string;
+  balanceBadgePerUse: string;
+
   planManagerLoading: string;
   planManagerError: string;
   planManagerUnavailable: string;
@@ -609,6 +630,29 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   creditLogWhoPurchase: "Purchase",
   creditLogWhoPlan: "Plan",
   creditLogWhoManual: "Manual",
+
+  balanceBadgeLoading: "Loading credit balance",
+  balanceBadgeAmount: "{{amount}} {{units}}",
+  balanceBadgeResetsOn: "Resets {{date}}",
+  balanceBadgeResetsIn: "Resets in {{duration}}",
+  balanceBadgeUnlocksOn: "Unlocks {{date}}",
+  balanceBadgeUnlocksAt: "Unlocks {{time}}",
+  balanceBadgeOutOf: "Out of {{units}}",
+  balanceBadgeLimitReachedHourly: "Hourly limit reached",
+  balanceBadgeLimitReachedDaily: "Daily limit reached",
+  balanceBadgeLimitReachedWeekly: "Weekly limit reached",
+  balanceBadgeLimitReachedMonthly: "Monthly limit reached",
+  balanceBadgeLeft: "{{remaining}} of {{total}} {{units}} left.",
+  balanceBadgeResetsExact: "Resets {{dateTime}}.",
+  balanceBadgeLimitUser:
+    "Your {{period}} limit: {{consumed}} of {{limit}} used.",
+  balanceBadgeLimitCompany:
+    "Your team's {{period}} limit: {{consumed}} of {{limit}} used.",
+  balanceBadgePeriodHourly: "hourly",
+  balanceBadgePeriodDaily: "daily",
+  balanceBadgePeriodWeekly: "weekly",
+  balanceBadgePeriodMonthly: "monthly",
+  balanceBadgePerUse: "Up to {{limit}} {{units}} per use.",
 
   planManagerLoading: "Loading your plan",
   planManagerError: "There was a problem retrieving your plan.",

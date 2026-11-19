@@ -1,7 +1,6 @@
 export const tooltipCss = `
 .schematic-tooltip {
   display: inline-block;
-  margin-inline-start: 0.25rem;
   position: relative;
   vertical-align: middle;
 }
@@ -13,6 +12,7 @@ export const tooltipCss = `
   cursor: help;
   font-size: 1.5rem;
   line-height: 0;
+  margin-inline-start: 0.25rem;
   padding: 0;
 }
 
@@ -37,6 +37,56 @@ export const tooltipCss = `
   visibility: hidden;
   white-space: nowrap;
   z-index: 1;
+}
+
+.schematic-tooltip__content::before {
+  background: inherit;
+  border: inherit;
+  border-left-color: transparent;
+  border-radius: 0 0 1px;
+  border-top-color: transparent;
+  bottom: calc(-0.3125rem - 1px);
+  content: "";
+  height: 0.625rem;
+  inset-inline-end: 0.5rem;
+  position: absolute;
+  transform: rotate(45deg);
+  width: 0.625rem;
+}
+
+.schematic-tooltip[data-placement="bottom"] .schematic-tooltip__content {
+  bottom: auto;
+  top: calc(100% + 0.5rem);
+}
+
+.schematic-tooltip[data-placement="bottom"] .schematic-tooltip__content::before {
+  border-color: inherit;
+  border-bottom-color: transparent;
+  border-radius: 1px 0 0;
+  border-right-color: transparent;
+  bottom: auto;
+  top: calc(-0.3125rem - 1px);
+}
+
+.schematic-tooltip[data-align="start"] .schematic-tooltip__content {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+}
+
+.schematic-tooltip[data-align="start"] .schematic-tooltip__content::before {
+  inset-inline-end: auto;
+  inset-inline-start: 0.5rem;
+}
+
+.schematic-tooltip[data-align="center"] .schematic-tooltip__content {
+  inset-inline: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.schematic-tooltip[data-align="center"] .schematic-tooltip__content::before {
+  inset-inline: auto;
+  left: calc(50% - 0.3125rem);
 }
 
 .schematic-tooltip:hover .schematic-tooltip__content,

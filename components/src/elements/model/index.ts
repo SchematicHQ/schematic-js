@@ -10,6 +10,7 @@ export * from "./checkoutPrices";
 export * from "./checkoutSelections";
 export * from "./checkoutSteps";
 export * from "./optInText";
+export * from "./balanceBadge";
 export * from "./creditLog";
 export * from "./creditUsage";
 export * from "./featureUsage";
