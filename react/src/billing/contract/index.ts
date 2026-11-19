@@ -7,8 +7,8 @@
  * a newer schematic-js meant adopting whatever it added. A resource joins
  * this list with the hook that reads it. The catalog (the company's view and
  * the public one), invoices, upcoming-invoice, payment-methods,
- * feature-usage, credits, credit-ledger, company and tax-ID slices so far; the rest of the
- * contract ships with its elements.
+ * feature-usage, credits, credit-ledger, usage-history, company and tax-ID
+ * slices so far; the rest of the contract ships with its elements.
  */
 import {
   normalizeCatalogQuery as normalizeCatalog,
@@ -22,7 +22,10 @@ import type {
   BillingResources as ContractResources,
   CatalogQuery,
   CreditLedgerQuery,
+  CreditUsageHistory,
+  FeatureUsageHistory,
   InvoiceQuery,
+  UsageHistoryPeriod,
 } from "@schematichq/schematic-js";
 
 export {
@@ -32,6 +35,7 @@ export {
   CheckoutProblemCode,
   CheckoutStatus,
   checkoutProblemsOf,
+  CreditEventType,
   CreditLedgerEntryKind,
   CreditUsageReason,
   DEFAULT_CATALOG_QUERY,
@@ -39,6 +43,7 @@ export {
   DEFAULT_INVOICE_QUERY,
   InvoiceStatus,
   SINGLETON,
+  UsageHistoryPeriod,
   type BillingData,
   type Catalog,
   type CatalogAutoTopup,
@@ -66,10 +71,16 @@ export {
   type CreditLedgerEntry,
   type CreditLedgerPage,
   type CreditLedgerQuery,
+  type CreditUsageHistory,
+  type CreditUsageHistoryDay,
+  type CreditUsageHistoryEvent,
+  type CreditUsageHistoryFeature,
   type CreditUserUsage,
   type CreditUserUsageRow,
   type CustomPlanBilling,
   type FeatureUsage,
+  type FeatureUsageHistory,
+  type FeatureUsageHistoryDay,
   type FeatureUserUsage,
   type Invoice,
   type InvoicePage,
@@ -133,9 +144,11 @@ export type BillingProviderClient = Pick<
   | "updatePaymentMethod"
   | "deletePaymentMethod"
   | "fetchFeatureUsage"
+  | "fetchFeatureUsageHistory"
   | "fetchFeatureUserUsage"
   | "fetchCreditBalances"
   | "fetchCreditLedger"
+  | "fetchCreditUsageHistory"
   | "fetchCreditUserUsage"
   | "fetchCompany"
   | "cancelSubscription"
@@ -180,4 +193,21 @@ export function normalizeCreditLedgerQuery(
     ...(credits === undefined ? {} : { credits }),
     ...(includeGrants === undefined ? {} : { includeGrants }),
   };
+}
+
+/** One credit's or one feature's history by day; `billing` when `period` is omitted. */
+export type UsageHistoryParams =
+  | { credit: string; feature?: never; period?: UsageHistoryPeriod }
+  | { feature: string; credit?: never; period?: UsageHistoryPeriod };
+
+export type UsageHistory = CreditUsageHistory | FeatureUsageHistory;
+
+/** As `normalizeInvoiceQuery`: `{ credit }` and `{ credit, period: "billing" }` are one history. */
+export function normalizeUsageHistoryParams(
+  params: UsageHistoryParams,
+): UsageHistoryParams {
+  const period = params.period ?? "billing";
+  return params.credit !== undefined
+    ? { credit: params.credit, period }
+    : { feature: params.feature, period };
 }

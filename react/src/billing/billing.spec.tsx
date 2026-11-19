@@ -25,8 +25,10 @@ import {
   type Company,
   type CreditBalanceEntry,
   type CreditLedgerEntry,
+  type CreditUsageHistory,
   type CreditUserUsage,
   type FeatureUsage,
+  type FeatureUsageHistory,
   type FeatureUserUsage,
   type Invoice,
   type PaymentMethod,
@@ -56,6 +58,7 @@ import {
   useUnsubscribe,
   useTaxIds,
   useUpcomingInvoice,
+  useUsageHistory,
 } from "./hooks";
 import { BillingProvider, SESSION_REPLACED_MESSAGE } from "./provider";
 
@@ -136,6 +139,17 @@ const creditUsage = (creditId: string): CreditUserUsage =>
     users: [{ userId: `user_${creditId}`, used: 3 }],
   }) as unknown as CreditUserUsage;
 
+const creditHistory = (creditId: string): CreditUsageHistory =>
+  ({
+    creditId,
+    days: [],
+    events: [],
+    openingBalance: 10,
+  }) as unknown as CreditUsageHistory;
+
+const featureHistory = (featureId: string): FeatureUsageHistory =>
+  ({ days: [], featureId, limit: 100 }) as unknown as FeatureUsageHistory;
+
 const company = (name: string): Company =>
   ({ addOns: [], id: "comp_a", name }) as unknown as Company;
 
@@ -205,6 +219,12 @@ function fakeClient(
     fetchCreditBalances: vi.fn(async () => []),
     fetchCreditUserUsage: vi.fn(async ({ creditId }) => creditUsage(creditId)),
     fetchCreditLedger: vi.fn(async () => ({ entries: [] })),
+    fetchCreditUsageHistory: vi.fn(async ({ creditId }) =>
+      creditHistory(creditId),
+    ),
+    fetchFeatureUsageHistory: vi.fn(async ({ featureId }) =>
+      featureHistory(featureId),
+    ),
     fetchCompany: vi.fn(async () => company("Acme")),
     cancelSubscription: vi.fn(async () => {}),
     onSessionChange: (listener) => {
@@ -2556,6 +2576,102 @@ describe("useCreditUserUsage", () => {
     );
     expect(result.current[0].data?.total).toBe(3);
     expect(result.current[1]).toMatchObject({
+      data: undefined,
+      isPending: true,
+    });
+  });
+});
+
+describe("useUsageHistory", () => {
+  const wrap = (client: BillingProviderClient) =>
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      );
+    };
+
+  it_(
+    "reads a credit's history once per period, billing by default",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(
+        () =>
+          [
+            useUsageHistory({ credit: "a" }),
+            useUsageHistory({ credit: "a", period: "billing" }),
+            useUsageHistory({ credit: "a", period: "7d" }),
+          ] as const,
+        { wrapper: wrap(client) },
+      );
+      await flush();
+      expect(result.current[0].data?.creditId).toBe("a");
+      expect(result.current[1].data).toBe(result.current[0].data);
+      expect(result.current[2].data).not.toBe(result.current[0].data);
+      expect(client.fetchCreditUsageHistory).toHaveBeenCalledTimes(2);
+      expect(client.fetchCreditUsageHistory).toHaveBeenCalledWith({
+        creditId: "a",
+        period: "billing",
+      });
+      expect(client.fetchCreditUsageHistory).toHaveBeenCalledWith({
+        creditId: "a",
+        period: "7d",
+      });
+      expect(client.fetchFeatureUsageHistory).not.toHaveBeenCalled();
+    },
+  );
+
+  it_(
+    "reads a feature's history apart from a credit of the same id",
+    async () => {
+      const client = fakeClient();
+      const { result } = renderHook(
+        () =>
+          [
+            useUsageHistory({ feature: "a", period: "30d" }),
+            useUsageHistory({ credit: "a" }),
+          ] as const,
+        { wrapper: wrap(client) },
+      );
+      await flush();
+      expect(result.current[0].data?.limit).toBe(100);
+      expect(result.current[1].data?.openingBalance).toBe(10);
+      expect(client.fetchFeatureUsageHistory).toHaveBeenCalledWith({
+        featureId: "a",
+        period: "30d",
+      });
+
+      act(() => {
+        client.listeners.forEach((listener) => listener({ type: "changed" }));
+      });
+      await flush();
+      expect(client.fetchFeatureUsageHistory).toHaveBeenCalledTimes(2);
+      expect(client.fetchCreditUsageHistory).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it_("serves fixture histories by id, pending for the rest", () => {
+    const { result } = renderHook(
+      () =>
+        [
+          useUsageHistory({ credit: "a", period: "7d" }),
+          useUsageHistory({ feature: "f" }),
+          useUsageHistory({ credit: "b" }),
+        ] as const,
+      {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <BillingDataProvider
+            creditUsageHistory={{ a: creditHistory("a") }}
+            data={{}}
+            featureUsageHistory={{ f: featureHistory("f") }}
+          >
+            {children}
+          </BillingDataProvider>
+        ),
+      },
+    );
+    expect(result.current[0].data?.creditId).toBe("a");
+    expect(result.current[1].data?.featureId).toBe("f");
+    expect(result.current[2]).toMatchObject({
       data: undefined,
       isPending: true,
     });

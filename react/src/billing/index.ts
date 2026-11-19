@@ -40,6 +40,7 @@ export {
   useUnsubscribe,
   useTaxIds,
   useUpcomingInvoice,
+  useUsageHistory,
   type CheckoutHandle,
   type CreditLedgerHandle,
   type InvoicesHandle,

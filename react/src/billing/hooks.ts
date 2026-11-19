@@ -24,8 +24,10 @@ import type {
   CreditBalanceEntry,
   CreditLedgerPage,
   CreditLedgerQuery,
+  CreditUsageHistory,
   CreditUserUsage,
   FeatureUsage,
+  FeatureUsageHistory,
   FeatureUserUsage,
   InvoicePage,
   InvoiceQuery,
@@ -35,6 +37,9 @@ import type {
   TaxId,
   TaxIdInput,
   UpcomingInvoice,
+  UsageHistory,
+  UsageHistoryParams,
+  UsageHistoryPeriod,
 } from "./contract";
 import {
   CheckoutDraft,
@@ -45,6 +50,7 @@ import {
   normalizeCatalogQuery,
   normalizeCreditLedgerQuery,
   normalizeInvoiceQuery,
+  normalizeUsageHistoryParams,
 } from "./contract";
 import {
   actionsOf,
@@ -58,8 +64,9 @@ import { hashKey } from "./store";
  * Hooks never fetch during server rendering: without `initialData` they
  * report pending on the server and load on the client. `useCatalog`,
  * `useInvoices`, `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`,
- * `useFeatureUserUsage`, `useCreditBalances`, `useCreditLedger`, `useCreditUserUsage`,
- * `useCompany` and `useTaxIds` so far; the other resource hooks ship with
+ * `useFeatureUserUsage`, `useCreditBalances`, `useCreditLedger`,
+ * `useCreditUserUsage`, `useUsageHistory`, `useCompany` and `useTaxIds` so
+ * far; the other resource hooks ship with
  * their elements.
  */
 
@@ -382,6 +389,40 @@ export function useCreditUserUsage(
   const getSnapshot = useCallback(
     () => source.creditUserUsage(creditId),
     [creditId, source],
+  );
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
+/**
+ * One credit's balance and consumption by UTC day, or one event-based
+ * feature's usage by UTC day, over `period` (`billing` when omitted). For a
+ * credit, `billing` spans its live grants; for a feature, its current metric
+ * period. A feature the company has no event-based entitlement to fails with
+ * a 404.
+ */
+export function useUsageHistory(options: {
+  credit: string;
+  period?: UsageHistoryPeriod;
+}): ResourceHandle<CreditUsageHistory>;
+export function useUsageHistory(options: {
+  feature: string;
+  period?: UsageHistoryPeriod;
+}): ResourceHandle<FeatureUsageHistory>;
+export function useUsageHistory(
+  options: UsageHistoryParams,
+): ResourceHandle<UsageHistory>;
+export function useUsageHistory(
+  options: UsageHistoryParams,
+): ResourceHandle<UsageHistory> {
+  const source = useBillingDataSource();
+  const params = useStableParams(normalizeUsageHistoryParams(options));
+  const subscribe = useCallback(
+    (listener: () => void) => source.subscribeUsageHistory(params, listener),
+    [params, source],
+  );
+  const getSnapshot = useCallback(
+    () => source.usageHistory(params),
+    [params, source],
   );
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

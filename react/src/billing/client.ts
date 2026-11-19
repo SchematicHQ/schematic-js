@@ -39,6 +39,8 @@ import type {
   TaxId,
   TaxIdInput,
   UpcomingInvoice,
+  UsageHistory,
+  UsageHistoryParams,
 } from "./contract";
 import {
   DEFAULT_CATALOG_QUERY,
@@ -186,9 +188,10 @@ interface HeldSeed {
  * key, so a session starting, changing or ending leaves it as it is, and its
  * prefetch is adopted whoever turns out to be signed in.
  *
- * `featureUserUsage` and `creditUserUsage` are keyed by feature and by
- * credit, so they are not resource names: a prefetch or fixture holds one
- * value per name. They reset, clear, resume and invalidate with the rest.
+ * `featureUserUsage`, `creditUserUsage` and `usageHistory` are keyed by
+ * feature or credit, so they are not resource names: a prefetch or fixture
+ * holds one value per name. They reset, clear, resume and invalidate with
+ * the rest.
  *
  * Nothing loads before `connect()`: a store that is not listening for the
  * session would fetch under whatever the client held when a subscriber
@@ -224,6 +227,7 @@ export class BillingStore {
     FeatureUserUsage,
     FeatureUserUsageParams
   >;
+  readonly usageHistory: KeyedResource<UsageHistory, UsageHistoryParams>;
   private readonly _pageSize: number;
   private _unsubscribe: (() => void) | undefined;
   private _connected = false;
@@ -329,6 +333,16 @@ export class BillingStore {
           creditId,
           limit: FEATURE_USER_USAGE_LIMIT,
         }),
+      { readiness },
+    );
+    this.usageHistory = new KeyedResource(
+      ({ credit, feature, period }): Promise<UsageHistory> =>
+        credit !== undefined
+          ? this._client.fetchCreditUsageHistory({ creditId: credit, period })
+          : this._client.fetchFeatureUsageHistory({
+              featureId: feature,
+              period,
+            }),
       { readiness },
     );
 
@@ -527,6 +541,7 @@ export class BillingStore {
     }
     this.featureUserUsage.resetAll();
     this.creditUserUsage.resetAll();
+    this.usageHistory.resetAll();
   }
 
   /** Forgets every resource and leaves them empty; nothing reloads. */
@@ -536,6 +551,7 @@ export class BillingStore {
     }
     this.featureUserUsage.clearAll();
     this.creditUserUsage.clearAll();
+    this.usageHistory.clearAll();
   }
 
   /** Loads every resource that is subscribed and has nothing yet. */
@@ -545,6 +561,7 @@ export class BillingStore {
     }
     this.featureUserUsage.resumeAll();
     this.creditUserUsage.resumeAll();
+    this.usageHistory.resumeAll();
   }
 
   /** Reloads every resource that has been loaded, keeping its current data. */
@@ -554,6 +571,7 @@ export class BillingStore {
     }
     this.featureUserUsage.invalidateAll();
     this.creditUserUsage.invalidateAll();
+    this.usageHistory.invalidateAll();
   }
 
   /**

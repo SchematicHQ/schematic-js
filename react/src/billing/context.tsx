@@ -13,12 +13,16 @@ import type {
   CheckoutSelections,
   CheckoutWrite,
   CreditLedgerQuery,
+  CreditUsageHistory,
   CreditUserUsage,
+  FeatureUsageHistory,
   FeatureUserUsage,
   InvoiceQuery,
   ResourceState,
   SetupIntent,
   TaxIdInput,
+  UsageHistory,
+  UsageHistoryParams,
 } from "./contract";
 import type { SessionEvent } from "./client";
 
@@ -93,6 +97,15 @@ export interface BillingDataSource {
   /** One credit's consumption by user, keyed like `featureUserUsage`. */
   subscribeCreditUserUsage(creditId: string, listener: () => void): () => void;
   creditUserUsage(creditId: string): ResourceHandle<CreditUserUsage>;
+  /**
+   * One credit's or feature's history by day, keyed like `featureUserUsage`.
+   * `params` arrive normalized, with `period` set.
+   */
+  subscribeUsageHistory(
+    params: UsageHistoryParams,
+    listener: () => void,
+  ): () => void;
+  usageHistory(params: UsageHistoryParams): ResourceHandle<UsageHistory>;
   /** Never rejects: a failure lands on the resource's `error`. */
   loadMoreInvoices: (query: InvoiceQuery) => Promise<void>;
   /** Never rejects, as `loadMoreInvoices`. */
@@ -193,6 +206,8 @@ export const missingBillingSource: BillingDataSource = {
   featureUserUsage: () => missingHandle,
   subscribeCreditUserUsage: () => () => {},
   creditUserUsage: () => missingHandle,
+  subscribeUsageHistory: () => () => {},
+  usageHistory: () => missingHandle,
   loadMoreInvoices: () => Promise.resolve(),
   loadMoreCreditLedger: () => Promise.resolve(),
   invalidateAll: () => {},
@@ -220,6 +235,13 @@ interface BillingDataProviderDataProps {
   featureUserUsage?: Record<string, FeatureUserUsage>;
   /** Consumption by user, by credit id; a credit left out reports as pending. */
   creditUserUsage?: Record<string, CreditUserUsage>;
+  /**
+   * History by credit id, whatever the period asked; a credit left out
+   * reports as pending.
+   */
+  creditUsageHistory?: Record<string, CreditUsageHistory>;
+  /** As `creditUsageHistory`, by feature id. */
+  featureUsageHistory?: Record<string, FeatureUsageHistory>;
   /** Simulated loading / failure per resource; wins over `data`. */
   status?: BillingDataStatus;
   onRefetch?: (name: BillingResourceName) => void;
@@ -246,8 +268,10 @@ export type BillingDataProviderProps = BillingDataProviderDataProps &
 export function BillingDataProvider({
   actions,
   children,
+  creditUsageHistory,
   creditUserUsage,
   data,
+  featureUsageHistory,
   featureUserUsage,
   locale,
   onLoadMoreCreditLedger,
@@ -268,6 +292,7 @@ export function BillingDataProvider({
       string,
       ResourceHandle<CreditUserUsage>
     >();
+    const historyHandles = new Map<string, ResourceHandle<UsageHistory>>();
     return {
       actions: rejectingActions(
         (name) => new Error(BILLING_ACTION_UNAVAILABLE_MESSAGE(name)),
@@ -322,6 +347,27 @@ export function BillingDataProvider({
         creditUsageHandles.set(creditId, handle);
         return handle;
       },
+      subscribeUsageHistory: () => () => {},
+      usageHistory: ({ credit, feature }) => {
+        const key =
+          credit !== undefined ? `credit:${credit}` : `feature:${feature}`;
+        const cached = historyHandles.get(key);
+        if (cached !== undefined) {
+          return cached;
+        }
+        const value =
+          credit !== undefined
+            ? creditUsageHistory?.[credit]
+            : featureUsageHistory?.[feature];
+        const handle = {
+          data: value,
+          error: undefined,
+          isPending: value === undefined,
+          refetch: () => {},
+        };
+        historyHandles.set(key, handle);
+        return handle;
+      },
       loadMoreInvoices: (query) => {
         onLoadMoreInvoices?.(query);
         return Promise.resolve();
@@ -335,8 +381,10 @@ export function BillingDataProvider({
     };
   }, [
     actions,
+    creditUsageHistory,
     creditUserUsage,
     data,
+    featureUsageHistory,
     featureUserUsage,
     onLoadMoreCreditLedger,
     onLoadMoreInvoices,
