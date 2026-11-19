@@ -448,6 +448,140 @@ describe("`CheckoutDialog` plan currency", () => {
   });
 });
 
+describe("`CheckoutDialog` period toggle", () => {
+  const BASIC_PLAN_ID = "plan_6Nne9wATKg2";
+
+  it("restores the current plan when the period is toggled away and back", async () => {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    raw.checkout_settings = {
+      ...(raw.checkout_settings as Json),
+      bundle_purchase_behavior: CheckoutBundlePurchaseBehavior.Individual,
+    };
+    raw.active_plans = (raw.active_plans as Json[]).map((plan) =>
+      plan.id === BASIC_PLAN_ID ? { ...plan, yearly_price: null } : plan,
+    );
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: ComponentHydrateResponseDataFromJSON(raw),
+      checkoutState: {},
+      previewCheckout,
+    });
+
+    await waitFor(() =>
+      expect(previewCheckout).toHaveBeenLastCalledWith(
+        expect.objectContaining({ newPlanId: BASIC_PLAN_ID }),
+      ),
+    );
+
+    fireEvent.click(await screen.findByText("Billed yearly"));
+    await waitFor(() => expect(dueToday()).not.toBeInTheDocument());
+
+    const calls = previewCheckout.mock.calls.length;
+    fireEvent.click(await screen.findByText("Billed monthly"));
+
+    await waitFor(() =>
+      expect(previewCheckout.mock.calls.length).toBeGreaterThan(calls),
+    );
+    expect(previewCheckout).toHaveBeenLastCalledWith(
+      expect.objectContaining({ newPlanId: BASIC_PLAN_ID }),
+    );
+    await waitFor(() => expect(dueToday()).toBeInTheDocument());
+    expect(screen.getAllByText(/^Next/)[0].closest("button")).toBeEnabled();
+  });
+
+  it("keeps the plan's seat quantity when the period is toggled away and back", async () => {
+    const SEATS_PLAN_ID = "plan_9Qeb3Aqc6jY";
+    const SEATS_FEATURE_ID = "feat_47NF6M6F1MD";
+
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    raw.active_plans = (raw.active_plans as Json[]).map((plan) =>
+      plan.id === SEATS_PLAN_ID ? { ...plan, yearly_price: null } : plan,
+    );
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: ComponentHydrateResponseDataFromJSON(raw),
+      checkoutState: {
+        planId: SEATS_PLAN_ID,
+        payInAdvanceQuantities: { [SEATS_FEATURE_ID]: 7 },
+      },
+      previewCheckout,
+    });
+
+    const lastSeats = () =>
+      (
+        (previewCheckout as ReturnType<typeof vi.fn>).mock.lastCall?.[0] as {
+          payInAdvance: { quantity: number }[];
+        }
+      ).payInAdvance;
+
+    await waitFor(() =>
+      expect(previewCheckout).toHaveBeenLastCalledWith(
+        expect.objectContaining({ newPlanId: SEATS_PLAN_ID }),
+      ),
+    );
+    expect(lastSeats()).toEqual([expect.objectContaining({ quantity: 7 })]);
+
+    fireEvent.click(await screen.findByText("Billed yearly"));
+    await waitFor(() => expect(dueToday()).not.toBeInTheDocument());
+
+    const calls = previewCheckout.mock.calls.length;
+    fireEvent.click(await screen.findByText("Billed monthly"));
+
+    await waitFor(() =>
+      expect(previewCheckout.mock.calls.length).toBeGreaterThan(calls),
+    );
+    expect(previewCheckout).toHaveBeenLastCalledWith(
+      expect.objectContaining({ newPlanId: SEATS_PLAN_ID }),
+    );
+    expect(lastSeats()).toEqual([expect.objectContaining({ quantity: 7 })]);
+  });
+
+  it("keeps an add-on's seat quantity when the period changes", async () => {
+    const ADD_ON_ID = "plan_aDevbC1pNVr";
+    const SEATS_FEATURE_ID = "feat_47NF6M6F1MD";
+
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    // Give the add-on the Professional plan's pay-in-advance seats.
+    const seats = (
+      (raw.active_plans as Json[]).find(
+        (plan) => plan.id === "plan_9Qeb3Aqc6jY",
+      )!.entitlements as Json[]
+    ).find(
+      (entitlement) => (entitlement.feature as Json).id === SEATS_FEATURE_ID,
+    );
+    raw.active_add_ons = (raw.active_add_ons as Json[]).map((addOn) =>
+      addOn.id === ADD_ON_ID ? { ...addOn, entitlements: [seats] } : addOn,
+    );
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: ComponentHydrateResponseDataFromJSON(raw),
+      checkoutState: {
+        addOnIds: [ADD_ON_ID],
+        payInAdvanceQuantities: { [SEATS_FEATURE_ID]: 7 },
+      },
+      previewCheckout,
+    });
+
+    const lastSeats = () =>
+      (
+        (previewCheckout as ReturnType<typeof vi.fn>).mock.lastCall?.[0] as {
+          payInAdvance: { quantity: number }[];
+        }
+      ).payInAdvance;
+
+    await waitFor(() => expect(previewCheckout).toHaveBeenCalled());
+    expect(lastSeats()).toEqual([expect.objectContaining({ quantity: 7 })]);
+
+    const calls = previewCheckout.mock.calls.length;
+    fireEvent.click(await screen.findByText("Billed yearly"));
+
+    await waitFor(() =>
+      expect(previewCheckout.mock.calls.length).toBeGreaterThan(calls),
+    );
+    expect(lastSeats()).toEqual([expect.objectContaining({ quantity: 7 })]);
+  });
+});
+
 describe("`CheckoutDialog` one-time-only purchases", () => {
   const CURRENT_PLAN_ID = "plan_6Nne9wATKg2";
   const OTHER_PLAN_ID = "plan_8HMdwCRkuc8";
