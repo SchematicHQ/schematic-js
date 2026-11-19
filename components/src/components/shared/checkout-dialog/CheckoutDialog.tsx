@@ -1433,22 +1433,29 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
         plansForPeriod(period).filter(supportsCheckoutCurrency),
       );
 
-      const updatedUsageBasedEntitlements = (plan?.entitlements || []).reduce(
-        createActiveUsageBasedEntitlementsReducer(featureUsage, period),
-        [...[]] as UsageBasedEntitlement[],
-      );
+      // Carry the chosen quantities onto the new period's prices, and preview
+      // with them. With no price on this period the plan drops out, but its
+      // quantities are kept so they come back with the plan.
+      const updatedUsageBasedEntitlements = plan
+        ? (plan.entitlements || [])
+            .reduce(
+              createActiveUsageBasedEntitlementsReducer(featureUsage, period),
+              [] as UsageBasedEntitlement[],
+            )
+            .map((updated) => {
+              const current = usageBasedEntitlements.find(
+                ({ featureId }) => featureId === updated.featureId,
+              );
+              if (typeof current?.quantity === "number") {
+                return { ...updated, quantity: current.quantity };
+              }
+              return updated;
+            })
+        : usageBasedEntitlements;
 
-      setUsageBasedEntitlements((prev) =>
-        updatedUsageBasedEntitlements.map((updated) => {
-          const current = prev.find(
-            ({ featureId }) => featureId === updated.featureId,
-          );
-          if (typeof current?.quantity === "number") {
-            return { ...updated, quantity: current.quantity };
-          }
-          return updated;
-        }),
-      );
+      if (plan) {
+        setUsageBasedEntitlements(updatedUsageBasedEntitlements);
+      }
 
       const updatedAddOnUsageBasedEntitlements = addOns
         .filter((addOn) => addOn.isSelected)
@@ -1457,19 +1464,18 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
             createActiveUsageBasedEntitlementsReducer(featureUsage, period),
             [] as UsageBasedEntitlement[],
           ),
-        );
-
-      setAddOnUsageBasedEntitlements((prev) =>
-        updatedAddOnUsageBasedEntitlements.map((updated) => {
-          const current = prev.find(
+        )
+        .map((updated) => {
+          const current = addOnUsageBasedEntitlements.find(
             ({ featureId }) => featureId === updated.featureId,
           );
           if (typeof current?.quantity === "number") {
             return { ...updated, quantity: current.quantity };
           }
           return updated;
-        }),
-      );
+        });
+
+      setAddOnUsageBasedEntitlements(updatedAddOnUsageBasedEntitlements);
 
       handlePreviewCheckout({
         period,
@@ -1491,7 +1497,9 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       findSelectedPlan,
       supportsCheckoutCurrency,
       featureUsage,
+      usageBasedEntitlements,
       addOns,
+      addOnUsageBasedEntitlements,
       setPlanPeriod,
       handlePreviewCheckout,
     ],
