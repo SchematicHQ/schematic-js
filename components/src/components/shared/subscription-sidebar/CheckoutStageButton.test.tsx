@@ -282,6 +282,43 @@ describe("`CheckoutStageButton` component", () => {
     });
   });
 
+  describe("unchanged trial", () => {
+    test("keeps 'Next' enabled so the customer can change something", () => {
+      render(<CheckoutStageButton {...defaultProps} isUnchangedTrial={true} />);
+
+      expect(screen.getByRole("button", { name: /Next/ })).toBeEnabled();
+    });
+
+    test("disables 'Pay now' on the checkout stage", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="checkout"
+          hasPaymentMethod={true}
+          isUnchangedTrial={true}
+        />,
+      );
+
+      expect(screen.getByRole("button", { name: "Pay now" })).toBeDisabled();
+    });
+
+    test("disables the final button when no payment is required", () => {
+      render(
+        <CheckoutStageButton
+          {...defaultProps}
+          checkoutStage="plan"
+          checkoutStages={[{ id: "plan", name: "Plan" }]}
+          isPaymentMethodRequired={false}
+          isUnchangedTrial={true}
+        />,
+      );
+
+      expect(
+        screen.getByRole("button", { name: "Subscribe and close" }),
+      ).toBeDisabled();
+    });
+  });
+
   describe("credit-only purchase flow", () => {
     test("shows 'Buy credits' when credits is the final stage and is credit-only", () => {
       render(

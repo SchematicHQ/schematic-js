@@ -609,6 +609,37 @@ export const SubscriptionSidebar = forwardRef<
       addedCreditBundles.length,
     ]);
 
+    // A company trialing its current plan that changes nothing would only end
+    // the trial and pay for a full period, so there is nothing to check out.
+    const isUnchangedTrial = useMemo(() => {
+      if (
+        billingSubscription?.status !== "trialing" ||
+        !selectedPlan?.current
+      ) {
+        return false;
+      }
+
+      const currentPeriod = getSubscriptionPeriod(billingSubscription);
+      if (currentPeriod && currentPeriod !== planPeriod) {
+        return false;
+      }
+
+      return (
+        !willAddOnsChange &&
+        updatedUsageBasedEntitlements.changed.length === 0 &&
+        selectedOneTimeAddOns.length === 0 &&
+        addedCreditBundles.length === 0
+      );
+    }, [
+      selectedPlan,
+      billingSubscription,
+      planPeriod,
+      willAddOnsChange,
+      updatedUsageBasedEntitlements.changed.length,
+      selectedOneTimeAddOns.length,
+      addedCreditBundles.length,
+    ]);
+
     const discountApplied = useMemo(
       () => promoCode && (amountOff > 0 || percentOff > 0),
       [promoCode, amountOff, percentOff],
@@ -866,6 +897,7 @@ export const SubscriptionSidebar = forwardRef<
               }
               isCreditOnlyPurchase={isCreditOnlyPurchase}
               isOneTimeOnlyPurchase={isOneTimeOnlyPurchase}
+              isUnchangedTrial={isUnchangedTrial}
               checkout={handleCheckout}
             />
           );
@@ -913,6 +945,7 @@ export const SubscriptionSidebar = forwardRef<
       addOnPayInAdvanceEntitlements,
       isCreditOnlyPurchase,
       isOneTimeOnlyPurchase,
+      isUnchangedTrial,
       hasIncompleteRequiredCustomFields,
     ]);
 

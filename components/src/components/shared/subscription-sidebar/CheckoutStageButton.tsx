@@ -68,6 +68,7 @@ type CheckoutStageButtonProps = {
   hasIncompleteRequiredCustomFields?: boolean;
   isCreditOnlyPurchase?: boolean;
   isOneTimeOnlyPurchase?: boolean;
+  isUnchangedTrial?: boolean;
 };
 
 export const CheckoutStageButton = ({
@@ -92,6 +93,7 @@ export const CheckoutStageButton = ({
   hasIncompleteRequiredCustomFields = false,
   isCreditOnlyPurchase = false,
   isOneTimeOnlyPurchase = false,
+  isUnchangedTrial = false,
 }: CheckoutStageButtonProps) => {
   const { t } = useTranslation();
 
@@ -102,6 +104,11 @@ export const CheckoutStageButton = ({
     (!hasPlan && !isCreditOnlyPurchase) ||
     inEditMode ||
     !canCheckout;
+
+  // Checking out a trial unchanged would only end it and charge a full period.
+  // This gates only the buttons that finalize checkout, so the customer can
+  // still move through the stages and change something.
+  const isCheckoutDisabled = isDisabled || isUnchangedTrial;
 
   // The opt-in agreement is collected on the final `checkout` stage, so it must
   // only gate finalizing checkout there — never the "Next" buttons that move
@@ -168,7 +175,7 @@ export const CheckoutStageButton = ({
     if (!isPaymentMethodRequired && !nextStage) {
       return (
         <NoPaymentRequired
-          isDisabled={isDisabled}
+          isDisabled={isCheckoutDisabled}
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
@@ -203,7 +210,7 @@ export const CheckoutStageButton = ({
     if (!isPaymentMethodRequired && !nextStage) {
       return (
         <NoPaymentRequired
-          isDisabled={isDisabled}
+          isDisabled={isCheckoutDisabled}
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
@@ -243,7 +250,7 @@ export const CheckoutStageButton = ({
     if (!isPaymentMethodRequired && !nextStage) {
       return (
         <NoPaymentRequired
-          isDisabled={isDisabled}
+          isDisabled={isCheckoutDisabled}
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
@@ -283,7 +290,7 @@ export const CheckoutStageButton = ({
     if (!isPaymentMethodRequired && !nextStage) {
       return (
         <NoPaymentRequired
-          isDisabled={isDisabled}
+          isDisabled={isCheckoutDisabled}
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
@@ -322,7 +329,7 @@ export const CheckoutStageButton = ({
     if (!isPaymentMethodRequired && !nextStage) {
       return (
         <NoPaymentRequired
-          isDisabled={isDisabled}
+          isDisabled={isCheckoutDisabled}
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
@@ -365,7 +372,7 @@ export const CheckoutStageButton = ({
     if (!nextStage) {
       return (
         <NoPaymentRequired
-          isDisabled={isDisabled}
+          isDisabled={isCheckoutDisabled}
           isLoading={isLoading}
           onClick={checkout}
           isSticky={isSticky}
@@ -411,7 +418,9 @@ export const CheckoutStageButton = ({
         <Flex $flexDirection="column" $gap="0.5rem">
           <NoPaymentRequired
             isDisabled={
-              isDisabled || hasIncompleteRequiredCustomFields || optInUnmet
+              isCheckoutDisabled ||
+              hasIncompleteRequiredCustomFields ||
+              optInUnmet
             }
             isLoading={isLoading}
             onClick={checkout}
@@ -429,7 +438,7 @@ export const CheckoutStageButton = ({
         <Button
           type="button"
           disabled={
-            isDisabled ||
+            isCheckoutDisabled ||
             !hasPaymentMethod ||
             hasIncompleteRequiredCustomFields ||
             optInUnmet
