@@ -373,6 +373,82 @@ describe("`SubscriptionSidebar` checkout button label", () => {
   });
 });
 
+describe("`SubscriptionSidebar` during a trial of the current plan", () => {
+  const checkoutStage = "checkout";
+
+  function trialingHydrateData(status = "trialing") {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    const company = raw.company as Json;
+    company.billing_subscription = {
+      ...(company.billing_subscription as Json),
+      status,
+    };
+    return raw;
+  }
+
+  // The sidebar renders the button inline and again as a sticky footer.
+  const checkoutButtons = () =>
+    screen
+      .getAllByText("Subscribe and close")
+      .map((label) => label.closest("button"));
+
+  it("disables checkout when nothing changes", () => {
+    renderSidebar([], [], buildSelectedPlan(), {
+      hydrateData: trialingHydrateData(),
+      checkoutStage,
+    });
+
+    for (const button of checkoutButtons()) {
+      expect(button).toBeDisabled();
+    }
+  });
+
+  it("enables checkout when a recurring add-on is added", () => {
+    renderSidebar(buildAddOns(), [], buildSelectedPlan(), {
+      hydrateData: trialingHydrateData(),
+      checkoutStage,
+    });
+
+    for (const button of checkoutButtons()) {
+      expect(button).toBeEnabled();
+    }
+  });
+
+  it("enables checkout when the billing period changes", () => {
+    renderSidebar([], [], buildSelectedPlan(), {
+      hydrateData: trialingHydrateData(),
+      planPeriod: "year",
+      checkoutStage,
+    });
+
+    for (const button of checkoutButtons()) {
+      expect(button).toBeEnabled();
+    }
+  });
+
+  it("enables checkout for another plan", () => {
+    renderSidebar([], [], buildSelectedPlan("Standard"), {
+      hydrateData: trialingHydrateData(),
+      checkoutStage,
+    });
+
+    for (const button of checkoutButtons()) {
+      expect(button).toBeEnabled();
+    }
+  });
+
+  it("leaves an unchanged paid subscription alone", () => {
+    renderSidebar([], [], buildSelectedPlan(), {
+      hydrateData: trialingHydrateData("active"),
+      checkoutStage,
+    });
+
+    for (const button of checkoutButtons()) {
+      expect(button).toBeEnabled();
+    }
+  });
+});
+
 describe("`SubscriptionSidebar` per-license credits", () => {
   const LICENSE_ID = "license-seat";
 
