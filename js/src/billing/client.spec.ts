@@ -1874,3 +1874,156 @@ describe("normalizeCreditLedgerQuery", () => {
     });
   });
 });
+
+describe("usage history", () => {
+  const wireCreditHistory = {
+    data: {
+      credit_id: "bcr_ai",
+      days: [
+        {
+          balance: 970,
+          by_feature: [
+            { amount: 30, feature_id: "feat_1", feature_name: "API calls" },
+          ],
+          consumed: 30,
+          date: "2026-11-16T00:00:00Z",
+        },
+        {
+          balance: 970,
+          by_feature: [],
+          consumed: 0,
+          date: "2026-11-17T00:00:00Z",
+        },
+      ],
+      end_time: "2026-11-17T15:00:00Z",
+      events: [
+        {
+          amount: 1000,
+          event_at: "2026-11-16T09:00:00Z",
+          grant_reason: "plan",
+          kind: "grant",
+          zeroed_out_reason: null,
+        },
+      ],
+      external: false,
+      opening_balance: 0,
+      resets_at: null,
+      start_time: "2026-11-16T09:00:00Z",
+    },
+    params: {},
+  };
+
+  const wireFeatureHistory = {
+    data: {
+      days: [
+        { date: "2026-11-01T00:00:00Z", period_to_date: 5, usage: 5 },
+        { date: "2026-11-02T00:00:00Z", period_to_date: 5, usage: 0 },
+      ],
+      end_time: "2026-12-01T00:00:00Z",
+      feature_id: "feat 1",
+      limit: null,
+      start_time: "2026-11-01T00:00:00Z",
+    },
+    params: {},
+  };
+
+  it("decodes one credit's history and passes the period only when set", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({ body: wireCreditHistory }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const history = await client.fetchCreditUsageHistory({
+      creditId: "bcr_ai",
+      period: "7d",
+    });
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/credits/bcr_ai/history?period=7d",
+    );
+    expect(history).toMatchObject({
+      creditId: "bcr_ai",
+      external: false,
+      openingBalance: 0,
+    });
+    expect(history.resetsAt).toBeUndefined();
+    expect(history.startTime).toEqual(new Date("2026-11-16T09:00:00Z"));
+    expect(history.days[0]).toMatchObject({ balance: 970, consumed: 30 });
+    expect(history.days[0].date).toEqual(new Date("2026-11-16T00:00:00Z"));
+    expect(history.days[0].byFeature[0]).toMatchObject({
+      featureId: "feat_1",
+      featureName: "API calls",
+    });
+    expect(history.events[0]).toMatchObject({
+      amount: 1000,
+      grantReason: "plan",
+      kind: "grant",
+    });
+
+    await client.fetchCreditUsageHistory({ creditId: "bcr_ai" });
+    expect(calls[1].url).toBe(
+      "https://api.schematichq.com/company/credits/bcr_ai/history",
+    );
+  });
+
+  it("decodes one feature's history by day", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: wireFeatureHistory,
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const history = await client.fetchFeatureUsageHistory({
+      featureId: "feat 1",
+      period: "billing",
+    });
+    expect(calls[0].url).toBe(
+      "https://api.schematichq.com/company/usage/feat%201/history?period=billing",
+    );
+    expect(history.limit).toBeUndefined();
+    expect(history.endTime).toEqual(new Date("2026-12-01T00:00:00Z"));
+    expect(history.days.map((day) => [day.usage, day.periodToDate])).toEqual([
+      [5, 5],
+      [0, 5],
+    ]);
+  });
+
+  it("keeps a 404 on a history the company cannot read", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 404,
+      body: { error: "not found" },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const credit = await client
+      .fetchCreditUsageHistory({ creditId: "bcr_ai" })
+      .catch((e: unknown) => e);
+    expect(credit).toBeInstanceOf(SchematicApiError);
+    expect(credit).toMatchObject({
+      status: 404,
+      path: "/company/credits/bcr_ai/history",
+    });
+    const feature = await client
+      .fetchFeatureUsageHistory({ featureId: "feat_1", period: "30d" })
+      .catch((e: unknown) => e);
+    expect(feature).toMatchObject({
+      status: 404,
+      path: "/company/usage/feat_1/history?period=30d",
+    });
+  });
+
+  it("reports a malformed history rather than throwing a TypeError", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ body: "nope" }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(
+      client.fetchCreditUsageHistory({ creditId: "bcr_ai" }),
+    ).rejects.toThrow(
+      "Malformed response from /company/credits/bcr_ai/history",
+    );
+  });
+});

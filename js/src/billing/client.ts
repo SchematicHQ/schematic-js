@@ -14,9 +14,11 @@ import {
   GetCompanyCreditBalancesResponseFromJSON,
   GetCompanyCreditLedgerResponseFromJSON,
   GetCompanyResponseFromJSON,
+  GetCompanyCreditUsageHistoryResponseFromJSON,
   GetCompanyCreditUserUsageResponseFromJSON,
   UpdateCheckoutTaxIDResponseDataFromJSON,
   GetCompanyFeatureUsageResponseFromJSON,
+  GetCompanyFeatureUsageHistoryResponseFromJSON,
   GetCompanyFeatureUserUsageResponseFromJSON,
   GetCompanyInvoicesResponseFromJSON,
   GetCompanyPaymentMethodsResponseFromJSON,
@@ -37,8 +39,10 @@ import type {
   CreditBalanceEntry,
   CreditLedgerPage,
   CreditLedgerQuery,
+  CreditUsageHistory,
   CreditUserUsage,
   FeatureUsage,
+  FeatureUsageHistory,
   FeatureUserUsage,
   InvoicePage,
   InvoiceQuery,
@@ -48,6 +52,7 @@ import type {
   TaxId,
   TaxIdInput,
   UpcomingInvoice,
+  UsageHistoryPeriod,
 } from "./contract";
 import {
   checkoutSelectionsToJSON,
@@ -92,6 +97,18 @@ export interface FeatureUserUsageRequest {
   /** Users per page; the server's default when omitted. */
   limit?: number;
   offset?: number;
+}
+
+export interface CreditUsageHistoryRequest {
+  creditId: string;
+  /** `billing` when omitted. */
+  period?: UsageHistoryPeriod;
+}
+
+export interface FeatureUsageHistoryRequest {
+  featureId: string;
+  /** `billing` when omitted. */
+  period?: UsageHistoryPeriod;
 }
 
 /**
@@ -164,6 +181,10 @@ export interface BillingClient {
   fetchFeatureUserUsage(
     params: FeatureUserUsageRequest,
   ): Promise<FeatureUserUsage>;
+  /** One event-based feature's usage by UTC day. */
+  fetchFeatureUsageHistory(
+    params: FeatureUsageHistoryRequest,
+  ): Promise<FeatureUsageHistory>;
   /** Empty when the company holds no credits and its plan draws on none. */
   fetchCreditBalances(): Promise<CreditBalanceEntry[]>;
   /** A page of the company's credit activity, newest first. */
@@ -172,6 +193,10 @@ export interface BillingClient {
   fetchCreditUserUsage(
     params: CreditUserUsageRequest,
   ): Promise<CreditUserUsage>;
+  /** One credit's balance and consumption by UTC day. */
+  fetchCreditUsageHistory(
+    params: CreditUsageHistoryRequest,
+  ): Promise<CreditUsageHistory>;
   /** The company's plan, add-ons, and subscription state. */
   fetchCompany(): Promise<Company>;
 
@@ -199,6 +224,10 @@ function dataOf(body: unknown, path: string): unknown {
     throw new Error(`Malformed response from ${path}`);
   }
   return (body as { data: unknown }).data;
+}
+
+function periodQuery(period: UsageHistoryPeriod | undefined): string {
+  return period === undefined ? "" : `?${new URLSearchParams({ period })}`;
 }
 
 export const INVOICE_PAGE_SIZE = 12;
@@ -556,6 +585,33 @@ export class SchematicBillingClient implements BillingClient {
         throw new Error(`Malformed response from ${path}`);
       }
       return GetCompanyCreditUserUsageResponseFromJSON(body).data;
+    });
+  }
+
+  fetchCreditUsageHistory(
+    params: CreditUsageHistoryRequest,
+  ): Promise<CreditUsageHistory> {
+    const path = `/company/credits/${encodeURIComponent(params.creditId)}/history${periodQuery(params.period)}`;
+    // A credit the environment has no record of is a 404.
+    return this.session.request(path).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return GetCompanyCreditUsageHistoryResponseFromJSON(body).data;
+    });
+  }
+
+  fetchFeatureUsageHistory(
+    params: FeatureUsageHistoryRequest,
+  ): Promise<FeatureUsageHistory> {
+    const path = `/company/usage/${encodeURIComponent(params.featureId)}/history${periodQuery(params.period)}`;
+    // As for the users breakdown: a feature the company has no event-based
+    // entitlement to is a 404.
+    return this.session.request(path).then((body) => {
+      if (body === null || typeof body !== "object" || !("data" in body)) {
+        throw new Error(`Malformed response from ${path}`);
+      }
+      return GetCompanyFeatureUsageHistoryResponseFromJSON(body).data;
     });
   }
 

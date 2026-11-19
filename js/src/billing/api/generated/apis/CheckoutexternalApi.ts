@@ -29,7 +29,9 @@ import type {
   GetCheckoutTaxIDResponse,
   GetCompanyCreditBalancesResponse,
   GetCompanyCreditLedgerResponse,
+  GetCompanyCreditUsageHistoryResponse,
   GetCompanyCreditUserUsageResponse,
+  GetCompanyFeatureUsageHistoryResponse,
   GetCompanyFeatureUsageResponse,
   GetCompanyFeatureUserUsageResponse,
   GetCompanyInvoicesResponse,
@@ -44,6 +46,7 @@ import type {
   UpdateCheckoutTaxIDResponse,
   UpdatePaymentMethodRequestBody,
   UpdatePaymentMethodResponse,
+  UsageHistoryPeriod,
 } from "../models/index";
 import {
   ApiErrorFromJSON,
@@ -76,8 +79,12 @@ import {
   GetCompanyCreditBalancesResponseToJSON,
   GetCompanyCreditLedgerResponseFromJSON,
   GetCompanyCreditLedgerResponseToJSON,
+  GetCompanyCreditUsageHistoryResponseFromJSON,
+  GetCompanyCreditUsageHistoryResponseToJSON,
   GetCompanyCreditUserUsageResponseFromJSON,
   GetCompanyCreditUserUsageResponseToJSON,
+  GetCompanyFeatureUsageHistoryResponseFromJSON,
+  GetCompanyFeatureUsageHistoryResponseToJSON,
   GetCompanyFeatureUsageResponseFromJSON,
   GetCompanyFeatureUsageResponseToJSON,
   GetCompanyFeatureUserUsageResponseFromJSON,
@@ -106,6 +113,8 @@ import {
   UpdatePaymentMethodRequestBodyToJSON,
   UpdatePaymentMethodResponseFromJSON,
   UpdatePaymentMethodResponseToJSON,
+  UsageHistoryPeriodFromJSON,
+  UsageHistoryPeriodToJSON,
 } from "../models/index";
 
 export interface CreateCheckoutOperationRequest {
@@ -137,10 +146,20 @@ export interface GetCompanyCreditLedgerRequest {
   limit?: number;
 }
 
+export interface GetCompanyCreditUsageHistoryRequest {
+  creditId: string;
+  period?: UsageHistoryPeriod;
+}
+
 export interface GetCompanyCreditUserUsageRequest {
   creditId: string;
   limit?: number;
   offset?: number;
+}
+
+export interface GetCompanyFeatureUsageHistoryRequest {
+  featureId: string;
+  period?: UsageHistoryPeriod;
 }
 
 export interface GetCompanyFeatureUserUsageRequest {
@@ -816,6 +835,68 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
+   * The credit\'s balance and consumption by feature for each UTC day of the period, with the grants and expiries that moved the balance.
+   * Get credit usage history
+   */
+  async getCompanyCreditUsageHistoryRaw(
+    requestParameters: GetCompanyCreditUsageHistoryRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyCreditUsageHistoryResponse>> {
+    if (requestParameters["creditId"] == null) {
+      throw new runtime.RequiredError(
+        "creditId",
+        'Required parameter "creditId" was null or undefined when calling getCompanyCreditUsageHistory().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters["period"] != null) {
+      queryParameters["period"] = requestParameters["period"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits/{credit_id}/history`.replace(
+          `{${"credit_id"}}`,
+          encodeURIComponent(String(requestParameters["creditId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyCreditUsageHistoryResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * The credit\'s balance and consumption by feature for each UTC day of the period, with the grants and expiries that moved the balance.
+   * Get credit usage history
+   */
+  async getCompanyCreditUsageHistory(
+    requestParameters: GetCompanyCreditUsageHistoryRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyCreditUsageHistoryResponse> {
+    const response = await this.getCompanyCreditUsageHistoryRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
    * Who in the company consumed the credit, and how much each.
    * List credit usage by user
    */
@@ -921,6 +1002,68 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<GetCompanyFeatureUsageResponse> {
     const response = await this.getCompanyFeatureUsageRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * The feature\'s usage for each UTC day of the period, beside the company\'s limit.
+   * Get feature usage history
+   */
+  async getCompanyFeatureUsageHistoryRaw(
+    requestParameters: GetCompanyFeatureUsageHistoryRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<GetCompanyFeatureUsageHistoryResponse>> {
+    if (requestParameters["featureId"] == null) {
+      throw new runtime.RequiredError(
+        "featureId",
+        'Required parameter "featureId" was null or undefined when calling getCompanyFeatureUsageHistory().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    if (requestParameters["period"] != null) {
+      queryParameters["period"] = requestParameters["period"];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/usage/{feature_id}/history`.replace(
+          `{${"feature_id"}}`,
+          encodeURIComponent(String(requestParameters["featureId"])),
+        ),
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      GetCompanyFeatureUsageHistoryResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * The feature\'s usage for each UTC day of the period, beside the company\'s limit.
+   * Get feature usage history
+   */
+  async getCompanyFeatureUsageHistory(
+    requestParameters: GetCompanyFeatureUsageHistoryRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<GetCompanyFeatureUsageHistoryResponse> {
+    const response = await this.getCompanyFeatureUsageHistoryRaw(
+      requestParameters,
+      initOverrides,
+    );
     return await response.value();
   }
 

@@ -68,9 +68,15 @@ models/CompanyCreditLedgerEntryResponseData.ts
 models/CompanyCreditLedgerFeatureResponseData.ts
 models/CompanyCreditLedgerResponseData.ts
 models/CompanyCreditLedgerUserResponseData.ts
+models/CompanyCreditUsageHistoryDayResponseData.ts
+models/CompanyCreditUsageHistoryEventResponseData.ts
+models/CompanyCreditUsageHistoryFeatureResponseData.ts
+models/CompanyCreditUsageHistoryResponseData.ts
 models/CompanyCreditUserUsageResponseData.ts
 models/CompanyCreditUserUsageRowResponseData.ts
 models/CompanyDiscountResponseData.ts
+models/CompanyFeatureUsageHistoryDayResponseData.ts
+models/CompanyFeatureUsageHistoryResponseData.ts
 models/CompanyFeatureUsageListResponseData.ts
 models/CompanyFeatureUsageResponseData.ts
 models/CompanyFeatureUserUsageResponseData.ts
@@ -85,6 +91,7 @@ models/CompanyUserUsageResponseData.ts
 models/CreateCheckoutRequest.ts
 models/CreateCheckoutResponse.ts
 models/CreateSetupIntentResponse.ts
+models/CreditEventType.ts
 models/CreditLedgerEntryKind.ts
 models/CreditUsageReason.ts
 models/Currency.ts
@@ -104,8 +111,12 @@ models/GetCheckoutTaxIDResponse.ts
 models/GetCompanyCreditBalancesResponse.ts
 models/GetCompanyCreditLedgerParams.ts
 models/GetCompanyCreditLedgerResponse.ts
+models/GetCompanyCreditUsageHistoryParams.ts
+models/GetCompanyCreditUsageHistoryResponse.ts
 models/GetCompanyCreditUserUsageParams.ts
 models/GetCompanyCreditUserUsageResponse.ts
+models/GetCompanyFeatureUsageHistoryParams.ts
+models/GetCompanyFeatureUsageHistoryResponse.ts
 models/GetCompanyFeatureUsageResponse.ts
 models/GetCompanyFeatureUserUsageParams.ts
 models/GetCompanyFeatureUserUsageResponse.ts
@@ -144,5 +155,6 @@ models/UpdateCreditBundleRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
 models/UpdatePaymentMethodResponse.ts
+models/UsageHistoryPeriod.ts
 models/index.ts
 runtime.ts

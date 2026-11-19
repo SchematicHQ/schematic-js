@@ -9,3 +9,4 @@ export * from "./invoices";
 export * from "./paymentMethods";
 export * from "./taxId";
 export * from "./upcoming";
+export * from "./usageHistory";

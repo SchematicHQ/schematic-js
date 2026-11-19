@@ -16,6 +16,8 @@ export {
   type BillingClientOptions,
   type BillingPrefetchOptions,
   type CreditLedgerRequest,
+  type CreditUsageHistoryRequest,
+  type FeatureUsageHistoryRequest,
   type InvoicesRequest,
   type InvoicesResult,
 } from "./client";
