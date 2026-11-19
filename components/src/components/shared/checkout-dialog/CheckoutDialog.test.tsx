@@ -3,6 +3,7 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import {
   CheckoutBundlePurchaseBehavior,
   ComponentHydrateResponseDataFromJSON,
+  ResponseError,
   type PreviewCheckoutResponse,
 } from "../../../api/checkoutexternal";
 import { FETCH_DEBOUNCE_TIMEOUT } from "../../../const";
@@ -341,6 +342,60 @@ describe("`CheckoutDialog` credit-only purchases", () => {
 
     // The superseded response must not repopulate the cleared sidebar.
     expect(dueToday()).not.toBeInTheDocument();
+  });
+});
+
+describe("`CheckoutDialog` refused preview", () => {
+  it("keeps Subscribe disabled and says why while the preview refuses the cart", async () => {
+    const message =
+      "An add-on isn't billed at the same interval as the plan. Choose a matching price or remove it.";
+    const previewCheckout = vi.fn(async () => {
+      throw new ResponseError(
+        new Response(
+          JSON.stringify({
+            error: message,
+            problems: [
+              {
+                blocking: true,
+                code: "add_on_interval_mismatch",
+                message,
+              },
+            ],
+          }),
+          { status: 400 },
+        ),
+      );
+    });
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+    raw.checkout_settings = {
+      ...(raw.checkout_settings as Json),
+      bundle_purchase_behavior: CheckoutBundlePurchaseBehavior.Individual,
+    };
+    renderCheckoutDialog({
+      data: ComponentHydrateResponseDataFromJSON(raw),
+      checkoutState: {},
+      previewCheckout,
+    });
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "Error retrieving plan details. Please try again in a moment.",
+      ),
+    ).not.toBeInTheDocument();
+
+    for (;;) {
+      const next = screen.queryAllByText(/^Next/)[0]?.closest("button");
+      if (!next) break;
+      expect(next).toBeEnabled();
+      await act(async () => {
+        fireEvent.click(next);
+      });
+    }
+
+    expect(
+      screen.getAllByText("Subscribe and close")[0].closest("button"),
+    ).toBeDisabled();
   });
 });
 

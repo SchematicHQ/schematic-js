@@ -133,6 +133,26 @@ export function isScheduledCheckoutConflictMessage(message: unknown): boolean {
   return m.includes("scheduled downgrade") || m.includes("scheduled checkout");
 }
 
+// The messages of the blocking problems in a refused checkout's error body,
+// which the API writes to be shown to the customer.
+export function blockingProblemsMessage(body: unknown): string | undefined {
+  const problems = (body as { problems?: unknown } | null | undefined)
+    ?.problems;
+  if (!Array.isArray(problems)) {
+    return undefined;
+  }
+
+  const messages = problems.flatMap((problem) =>
+    problem?.blocking === true &&
+    typeof problem.message === "string" &&
+    problem.message !== ""
+      ? [problem.message as string]
+      : [],
+  );
+
+  return messages.length > 0 ? messages.join(" ") : undefined;
+}
+
 export function buildCreditBundlesRequestBody(
   creditBundles: CreditBundle[],
 ): UpdateCreditBundleRequestBody[] {
