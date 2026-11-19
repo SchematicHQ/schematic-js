@@ -835,3 +835,88 @@ describe("`CheckoutDialog` trialable plan with seats", () => {
     );
   });
 });
+
+describe("`CheckoutDialog` reopened during a trial", () => {
+  const SEATS_PLAN_ID = "plan_9Qeb3Aqc6jY";
+  const SEATS_FEATURE_ID = "feat_47NF6M6F1MD";
+
+  /** A company trialing a trialable plan with 25 pay-in-advance seats. */
+  function buildTrialingSeatsData(): HydrateDataWithCompanyContext {
+    const raw = structuredClone(hydrateResponse.data) as unknown as Json;
+
+    const plans: Json[] = (raw.active_plans as Json[]).map((plan) => ({
+      ...plan,
+      current: plan.id === SEATS_PLAN_ID,
+      ...(plan.id === SEATS_PLAN_ID && {
+        is_trialable: true,
+        company_can_trial: true,
+        trial_days: 14,
+      }),
+    }));
+    raw.active_plans = plans;
+    raw.active_add_ons = [];
+
+    const seatsPlan = plans.find((plan) => plan.id === SEATS_PLAN_ID)!;
+    const seatsEntitlement = (seatsPlan.entitlements as Json[]).find(
+      (entitlement) => (entitlement.feature as Json).id === SEATS_FEATURE_ID,
+    )!;
+
+    const company = raw.company as Json;
+    company.plan = {
+      ...(company.plan as Json),
+      id: SEATS_PLAN_ID,
+      name: seatsPlan.name,
+    };
+    company.add_ons = [];
+    company.billing_subscription = {
+      ...(company.billing_subscription as Json),
+      status: "trialing",
+    };
+
+    const featureUsage = raw.feature_usage as { features: Json[] };
+    featureUsage.features = [
+      ...featureUsage.features,
+      {
+        ...featureUsage.features[1],
+        allocation: 25,
+        effective_limit: 25,
+        usage: 0,
+        entitlement_id: seatsEntitlement.id,
+        feature: {
+          ...(featureUsage.features[1].feature as Json),
+          id: SEATS_FEATURE_ID,
+        },
+        price_behavior: "pay_in_advance",
+      },
+    ];
+
+    return ComponentHydrateResponseDataFromJSON(raw);
+  }
+
+  it("opens on the trialing plan with its current seat quantity", async () => {
+    const previewCheckout = vi.fn(async () => buildPreviewResponse());
+    renderCheckoutDialog({
+      data: buildTrialingSeatsData(),
+      checkoutState: {},
+      previewCheckout,
+    });
+
+    await waitFor(() =>
+      expect(previewCheckout).toHaveBeenLastCalledWith(
+        expect.objectContaining({ newPlanId: SEATS_PLAN_ID }),
+      ),
+    );
+    expect(
+      (
+        (previewCheckout as ReturnType<typeof vi.fn>).mock.lastCall?.[0] as {
+          payInAdvance: { quantity: number }[];
+        }
+      ).payInAdvance,
+    ).toEqual([expect.objectContaining({ quantity: 25 })]);
+    expect(screen.getByText("Trial in progress")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getAllByText(/^Next/)[0].closest("button")).toBeEnabled(),
+    );
+    expect(screen.getAllByText(/^Next/)[0]).toHaveTextContent("Quantity");
+  });
+});

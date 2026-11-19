@@ -348,6 +348,8 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
     undefined,
   );
 
+  const isTrialing = data?.company?.billingSubscription?.status === "trialing";
+
   // The selection is kept by id, so a plan with no price on the toggled
   // period drops out and comes back when the toggle returns to one it has.
   const findSelectedPlan = useCallback(
@@ -363,11 +365,12 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       return plans.find(
         (plan) =>
           plan.current &&
-          // do not initially set the current plan for a trial
-          (!plan.isTrialable || !plan.companyCanTrial),
+          // A company that could trial its current plan chooses for itself,
+          // unless it is already trialing it.
+          (isTrialing || !plan.isTrialable || !plan.companyCanTrial),
       );
     },
-    [requestedPlanId, selectedPlanId],
+    [requestedPlanId, selectedPlanId, isTrialing],
   );
 
   const selectedPlan = useMemo<SelectedPlan | undefined>(
@@ -1714,6 +1717,7 @@ export const CheckoutDialog = ({ top }: CheckoutDialogProps) => {
       hasInitializedPlan.current = true;
       const shouldTrial =
         checkoutState?.startTrialIfAvailable &&
+        !(isTrialing && selectedPlan.current) &&
         selectedPlan.isTrialable &&
         selectedPlan.companyCanTrial;
       selectPlan({ plan: selectedPlan, period: planPeriod, shouldTrial });
