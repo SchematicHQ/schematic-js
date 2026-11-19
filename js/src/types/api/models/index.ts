@@ -129,6 +129,7 @@ export * from "./PublicCatalogResponseData";
 export * from "./PublicPlansResponseData";
 export * from "./RawEventBatchResponseData";
 export * from "./RawEventResponseData";
+export * from "./RenewalDestinationResponseData";
 export * from "./RenewalPolicy";
 export * from "./RuleConditionDetailResponseData";
 export * from "./RuleConditionGroupDetailResponseData";
