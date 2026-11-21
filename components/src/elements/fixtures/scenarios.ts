@@ -36,6 +36,13 @@ import {
   upcomingInvoice,
   walletPaymentMethod,
 } from "./builders";
+import {
+  catalog as checkoutCatalog,
+  catalogPlan as checkoutPlan,
+  companyOn,
+  creditBundle,
+  oneTime,
+} from "./checkout";
 
 /**
  * Three methods of three kinds, the card the default. Any of them can be
@@ -657,6 +664,53 @@ export function creditLogScenario(): BillingData {
   };
 }
 
+/**
+ * The roadmap's bundles for AI credits on Pro: Booster and Growth on offer,
+ * Scale sold only with Enterprise.
+ */
+export function creditBundlesScenario(): BillingData {
+  const pro = checkoutPlan({ current: true, id: "plan_pro", name: "Pro" });
+  const ai = {
+    creditId: "bcr_ai",
+    creditName: "AI credit",
+    creditPluralName: "AI credits",
+    creditSingularName: "AI credit",
+  };
+  return {
+    catalog: checkoutCatalog({
+      creditBundles: [
+        creditBundle({
+          ...ai,
+          id: "bcb_booster",
+          name: "Booster",
+          price: oneTime(1000),
+          quantity: 500,
+        }),
+        creditBundle({
+          ...ai,
+          expiryType: "duration",
+          expiryUnit: "days",
+          expiryUnitCount: 90,
+          id: "bcb_growth",
+          name: "Growth",
+          price: oneTime(3500),
+          quantity: 2000,
+        }),
+        creditBundle({
+          ...ai,
+          compatiblePlanIds: ["plan_enterprise"],
+          id: "bcb_scale",
+          name: "Scale",
+          price: oneTime(15000),
+          quantity: 10000,
+        }),
+      ],
+      plans: [pro],
+    }),
+    company: companyOn(pro),
+  };
+}
+
 export const SCENARIOS = {
   pro: proCompany,
   trialing: trialingCompany,
@@ -667,6 +721,7 @@ export const SCENARIOS = {
   featureUsage: featureUsageScenario,
   featureUsageEmpty,
   credits: creditsScenario,
+  creditBundles: creditBundlesScenario,
   creditLog: creditLogScenario,
   planManager: planManagerScenario,
   planManagerTrialing: planManagerTrialingScenario,

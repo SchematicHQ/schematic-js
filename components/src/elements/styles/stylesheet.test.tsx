@@ -6,6 +6,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { Checkout } from "../Checkout";
+import { CreditBundles } from "../CreditBundles";
 import { CreditLog } from "../CreditLog";
 import { CreditUsage } from "../CreditUsage";
 import { IncludedFeatures } from "../IncludedFeatures";
@@ -62,7 +63,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|credit-log|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|credit-log|credit-bundles|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -640,6 +641,17 @@ async function everyCard() {
       featureUsage: { error: boom },
     } as never),
     await creditsOpen(),
+    tree(<CreditBundles locale="en-US" />, SCENARIOS.creditBundles()),
+    tree(
+      <CreditBundles credits={["bcr_none"]} locale="en-US" />,
+      SCENARIOS.creditBundles(),
+    ),
+    tree(<CreditBundles locale="en-US" />, {}, {
+      catalog: { isPending: true },
+    } as never),
+    tree(<CreditBundles locale="en-US" />, {}, {
+      catalog: { error: boom },
+    } as never),
     tree(<CreditLog locale="en-US" />, SCENARIOS.creditLog()),
     tree(<CreditLog locale="en-US" seeAllUrl="/log" />, SCENARIOS.creditLog()),
     tree(

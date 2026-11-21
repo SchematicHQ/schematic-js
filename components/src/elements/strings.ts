@@ -126,6 +126,23 @@ export type ElementStrings = {
   creditUsageCompanyGrant: string;
   creditUsageRenewsOn: string;
 
+  creditBundlesLoading: string;
+  creditBundlesHeader: string;
+  creditBundlesError: string;
+  creditBundlesEmpty: string;
+  creditBundlesEmptyNote: string;
+  creditBundlesCredits: string;
+  creditBundlesPerUnit: string;
+  creditBundlesNeverExpire: string;
+  creditBundlesExpireAfterDays: string;
+  creditBundlesExpireAfterPeriods: string;
+  creditBundlesExpirePeriodEnd: string;
+  creditBundlesExpireNextPeriodEnd: string;
+  creditBundlesExpireTrialEnd: string;
+  creditBundlesBuyUnpriced: string;
+  creditBundlesBuyLabel: string;
+  creditBundlesBuyPriceLabel: string;
+
   creditLogLoading: string;
   creditLogHeader: string;
   creditLogError: string;
@@ -572,6 +589,27 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   creditUsageCompanyGrant: "{{amount}} company grant",
   creditUsageRenewsOn: "Renews on the {{day}}.",
 
+  creditBundlesLoading: "Loading credit bundles",
+  creditBundlesHeader: "Credit bundles",
+  creditBundlesError: "There was a problem retrieving credit bundles.",
+  creditBundlesEmpty: "No credit bundles for your plan",
+  creditBundlesEmptyNote: "Contact your account team to add credits.",
+  creditBundlesCredits: "{{amount}} {{credits}}",
+  creditBundlesPerUnit: "{{price}} per {{credit}}",
+  creditBundlesNeverExpire: "Never expire",
+  creditBundlesExpireAfterDays: "Expire after {{count}} days",
+  creditBundlesExpireAfterDays_one: "Expire after {{count}} day",
+  creditBundlesExpireAfterDays_other: "Expire after {{count}} days",
+  creditBundlesExpireAfterPeriods: "Expire after {{count}} billing periods",
+  creditBundlesExpireAfterPeriods_one: "Expire after {{count}} billing period",
+  creditBundlesExpireAfterPeriods_other:
+    "Expire after {{count}} billing periods",
+  creditBundlesExpirePeriodEnd: "Expire at period end",
+  creditBundlesExpireNextPeriodEnd: "Expire at the end of next period",
+  creditBundlesExpireTrialEnd: "Expire when the trial ends",
+  creditBundlesBuyUnpriced: "Buy",
+  creditBundlesBuyLabel: "Buy {{name}}",
+  creditBundlesBuyPriceLabel: "Buy {{name}} for {{price}}",
   creditLogLoading: "Loading credit activity",
   creditLogHeader: "Credit activity",
   creditLogError: "There was a problem retrieving your credit activity.",

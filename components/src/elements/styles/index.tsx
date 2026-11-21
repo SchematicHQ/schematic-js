@@ -2,6 +2,7 @@ import React from "react";
 
 import { cardGroupCss } from "./card-group";
 import { checkoutCss } from "./checkout";
+import { creditBundlesCss } from "./credit-bundles";
 import { creditLogCss } from "./credit-log";
 import { creditUsageCss } from "./credit-usage";
 import { dialogCss } from "./dialog";
@@ -439,6 +440,7 @@ ${includedFeaturesCss}
 ${meteredFeaturesCss}
 ${creditUsageCss}
 ${creditLogCss}
+${creditBundlesCss}
 ${planManagerCss}
 ${pricingTableCss}
 ${unsubscribeCss}
