@@ -27,6 +27,7 @@ import type {
   CreditLedgerEntry,
   CreditLedgerPage,
   CreditLedgerQuery,
+  CreditOverdraftUpdate,
   CreditUserUsage,
   FeatureUsage,
   FeatureUserUsage,
@@ -111,6 +112,9 @@ const READINESS: Record<SessionStatus, Readiness> = {
   active: "ready",
   ended: "never",
 };
+
+const OVERDRAFT_WRITE_UNAVAILABLE =
+  "The billing client cannot change overage limits.";
 
 export type {
   AccessToken,
@@ -649,6 +653,25 @@ export class BillingStore {
       this._reload(this.creditBalances),
       this._reload(this.upcomingInvoice),
     ]);
+  }
+
+  async updateCreditOverdraft(
+    creditId: string,
+    update: CreditOverdraftUpdate,
+  ): Promise<void> {
+    if (this._client.updateCreditOverdraft === undefined) {
+      throw new Error(OVERDRAFT_WRITE_UNAVAILABLE);
+    }
+    await this._client.updateCreditOverdraft(creditId, update);
+    await this._reload(this.creditBalances);
+  }
+
+  async resetCreditOverdraft(creditId: string): Promise<void> {
+    if (this._client.resetCreditOverdraft === undefined) {
+      throw new Error(OVERDRAFT_WRITE_UNAVAILABLE);
+    }
+    await this._client.resetCreditOverdraft(creditId);
+    await this._reload(this.creditBalances);
   }
 
   /**

@@ -33,6 +33,7 @@ export {
   CheckoutStatus,
   checkoutProblemsOf,
   CreditLedgerEntryKind,
+  CreditOverdraftLimitSource,
   CreditUsageReason,
   DEFAULT_CATALOG_QUERY,
   DEFAULT_CREDIT_LEDGER_QUERY,
@@ -66,6 +67,8 @@ export {
   type CreditLedgerEntry,
   type CreditLedgerPage,
   type CreditLedgerQuery,
+  type CreditOverdraft,
+  type CreditOverdraftUpdate,
   type CreditUserUsage,
   type CreditUserUsageRow,
   type CustomPlanBilling,
@@ -145,11 +148,16 @@ export type BillingProviderClient = Pick<
   // Optional, so a host's client written before the public catalog still
   // satisfies this; without them, a reader with no session gets nothing.
   // `fetchInvoiceLink` likewise: without it, an invoice opens at the URL
-  // it was listed with.
+  // it was listed with. Without the overdraft writes, the overage limit
+  // reads but cannot be changed.
   Partial<
     Pick<
       ContractClient,
-      "fetchPublicCatalog" | "hasPublishableKey" | "fetchInvoiceLink"
+      | "fetchPublicCatalog"
+      | "hasPublishableKey"
+      | "fetchInvoiceLink"
+      | "updateCreditOverdraft"
+      | "resetCreditOverdraft"
     >
   >;
 

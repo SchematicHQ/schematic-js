@@ -13,6 +13,7 @@ import type {
   CheckoutSelections,
   CheckoutWrite,
   CreditLedgerQuery,
+  CreditOverdraftUpdate,
   CreditUserUsage,
   FeatureUserUsage,
   InvoiceQuery,
@@ -47,6 +48,13 @@ export interface BillingActions {
   unsubscribe(): Promise<void>;
   /** Sets the company's tax ID and takes the list it answers with. */
   updateTaxId(taxId: TaxIdInput): Promise<void>;
+  /** Sets the company's own overage limit for a credit and reloads the balances. */
+  updateCreditOverdraft(
+    creditId: string,
+    update: CreditOverdraftUpdate,
+  ): Promise<void>;
+  /** Returns a credit's overage limit to the plan's default and reloads the balances. */
+  resetCreditOverdraft(creditId: string): Promise<void>;
   /** Opens a checkout; the store holds nothing of it, `useCheckout` does. */
   createCheckout(selections: CheckoutSelections): Promise<CheckoutWrite>;
   getCheckout(id: string): Promise<Checkout>;
@@ -144,6 +152,8 @@ const ACTION_NAMES: readonly (keyof BillingActions)[] = [
   "fetchInvoiceLink",
   "unsubscribe",
   "updateTaxId",
+  "updateCreditOverdraft",
+  "resetCreditOverdraft",
   "createCheckout",
   "getCheckout",
   "updateCheckout",

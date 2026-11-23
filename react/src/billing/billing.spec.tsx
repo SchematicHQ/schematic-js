@@ -25,6 +25,7 @@ import {
   type Company,
   type CreditBalanceEntry,
   type CreditLedgerEntry,
+  type CreditOverdraft,
   type CreditUserUsage,
   type FeatureUsage,
   type FeatureUserUsage,
@@ -50,7 +51,9 @@ import {
   useCreditUserUsage,
   useFeatureUsage,
   useFeatureUserUsage,
+  pickOverageCredit,
   useInvoices,
+  useOverageLimit,
   usePaymentMethods,
   useSetupIntent,
   useUnsubscribe,
@@ -128,6 +131,31 @@ const balance = (creditId: string): CreditBalanceEntry =>
     creditName: creditId,
     grants: [],
   }) as unknown as CreditBalanceEntry;
+
+const overdraft = (
+  creditId: string,
+  fields: Partial<CreditOverdraft> = {},
+): CreditOverdraft => ({
+  canChangeLimit: true,
+  creditId,
+  currency: "usd",
+  debt: 0,
+  limitSource: "plan",
+  maxLimit: 20000,
+  overdraftLimit: 5000,
+  planDefaultLimit: 5000,
+  planMaxLimit: 20000,
+  postpaidRatePerUnit: 2,
+  ...fields,
+});
+
+const billedBalance = (
+  creditId: string,
+  fields: Partial<CreditOverdraft> = {},
+): CreditBalanceEntry => ({
+  ...balance(creditId),
+  overdraft: overdraft(creditId, fields),
+});
 
 const creditUsage = (creditId: string): CreditUserUsage =>
   ({
@@ -2511,6 +2539,199 @@ describe("useCreditBalances", () => {
       expect(client.fetchCreditBalances).not.toHaveBeenCalled();
     },
   );
+});
+
+describe("useOverageLimit", () => {
+  const wrap = (client: BillingProviderClient) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <BillingProvider billingClient={client}>{children}</BillingProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  const serving = (...balances: CreditBalanceEntry[]) =>
+    fakeClient({ fetchCreditBalances: vi.fn(async () => balances) });
+
+  it("pickOverageCredit takes the only billed credit, or the named one", () => {
+    const plain = balance("plain");
+    const ai = billedBalance("ai");
+    const images = billedBalance("images");
+
+    expect(pickOverageCredit([plain, ai])).toMatchObject({
+      status: "found",
+      balance: { creditId: "ai" },
+      overdraft: { creditId: "ai" },
+    });
+    expect(pickOverageCredit([ai, images])).toEqual({ status: "ambiguous" });
+    expect(pickOverageCredit([ai, images], "images")).toMatchObject({
+      status: "found",
+      balance: { creditId: "images" },
+    });
+    expect(pickOverageCredit([plain, ai], "plain")).toEqual({ status: "none" });
+    expect(pickOverageCredit([plain])).toEqual({ status: "none" });
+    expect(pickOverageCredit([ai], "missing")).toEqual({ status: "none" });
+    expect(
+      pickOverageCredit([{ ...plain, overdraft: null }, ai]),
+    ).toMatchObject({ status: "found", balance: { creditId: "ai" } });
+  });
+
+  it_("is pending, then the picked credit's overdraft", async () => {
+    const { result } = renderHook(() => useOverageLimit(), {
+      wrapper: wrap(serving(balance("plain"), billedBalance("ai"))),
+    });
+    expect(result.current).toMatchObject({ data: undefined, isPending: true });
+    await flush();
+    expect(result.current).toMatchObject({
+      ambiguous: false,
+      data: {
+        balance: { creditId: "ai" },
+        overdraft: { overdraftLimit: 5000 },
+      },
+      isPending: false,
+    });
+  });
+
+  it_("is null and ambiguous for several billed credits", async () => {
+    const { result } = renderHook(() => useOverageLimit(), {
+      wrapper: wrap(serving(billedBalance("ai"), billedBalance("images"))),
+    });
+    await flush();
+    expect(result.current).toMatchObject({ ambiguous: true, data: null });
+  });
+
+  it_(
+    "saves the picked credit's limit, then reloads the balances",
+    async () => {
+      const client = fakeClient({
+        fetchCreditBalances: vi
+          .fn<() => Promise<CreditBalanceEntry[]>>()
+          .mockResolvedValueOnce([billedBalance("ai")])
+          .mockResolvedValueOnce([
+            billedBalance("ai", {
+              companyLimit: 2000,
+              limitSource: "company",
+              overdraftLimit: 2000,
+            }),
+          ]),
+        updateCreditOverdraft: vi.fn(async () => {}),
+      });
+      const { result } = renderHook(() => useOverageLimit({ creditId: "ai" }), {
+        wrapper: wrap(client),
+      });
+      await flush();
+      await act(async () => {
+        await result.current.save({ overdraftLimit: 2000 });
+      });
+      expect(client.updateCreditOverdraft).toHaveBeenCalledWith("ai", {
+        overdraftLimit: 2000,
+      });
+      expect(client.fetchCreditBalances).toHaveBeenCalledTimes(2);
+      expect(result.current.data?.overdraft).toMatchObject({
+        limitSource: "company",
+        overdraftLimit: 2000,
+      });
+      expect(result.current.isMutating).toBe(false);
+    },
+  );
+
+  it_("resets the picked credit's limit", async () => {
+    const client = fakeClient({
+      fetchCreditBalances: vi.fn(async () => [billedBalance("ai")]),
+      resetCreditOverdraft: vi.fn(async () => {}),
+    });
+    const { result } = renderHook(() => useOverageLimit(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    await act(async () => {
+      await result.current.reset();
+    });
+    expect(client.resetCreditOverdraft).toHaveBeenCalledWith("ai");
+    expect(client.fetchCreditBalances).toHaveBeenCalledTimes(2);
+  });
+
+  it_("records a failed write and rejects with it", async () => {
+    const client = fakeClient({
+      fetchCreditBalances: vi.fn(async () => [billedBalance("ai")]),
+      updateCreditOverdraft: vi.fn(async () => {
+        throw new Error("limit is above the plan's maximum");
+      }),
+    });
+    const { result } = renderHook(() => useOverageLimit(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    await act(async () => {
+      await expect(
+        result.current.save({ overdraftLimit: 50000 }),
+      ).rejects.toThrow("limit is above the plan's maximum");
+    });
+    expect(result.current).toMatchObject({
+      isMutating: false,
+      mutationError: { message: "limit is above the plan's maximum" },
+    });
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it_("rejects a write with no credit picked", async () => {
+    const client = fakeClient({
+      fetchCreditBalances: vi.fn(async () => [balance("plain")]),
+      updateCreditOverdraft: vi.fn(async () => {}),
+    });
+    const { result } = renderHook(() => useOverageLimit(), {
+      wrapper: wrap(client),
+    });
+    await flush();
+    await act(async () => {
+      await expect(
+        result.current.save({ overdraftLimit: 100 }),
+      ).rejects.toThrow("No credit with an overage limit");
+    });
+    expect(client.updateCreditOverdraft).not.toHaveBeenCalled();
+  });
+
+  it_("rejects when the host's client cannot write limits", async () => {
+    const { result } = renderHook(() => useOverageLimit(), {
+      wrapper: wrap(serving(billedBalance("ai"))),
+    });
+    await flush();
+    await act(async () => {
+      await expect(result.current.reset()).rejects.toThrow(
+        "cannot change overage limits",
+      );
+    });
+  });
+
+  it_("BillingDataProvider runs the action given, or rejects", async () => {
+    const updateCreditOverdraft = vi.fn(async () => {});
+    const data: BillingData = { creditBalances: [billedBalance("ai")] };
+    const withAction = renderHook(() => useOverageLimit(), {
+      wrapper: ({ children }) => (
+        <BillingDataProvider data={data} actions={{ updateCreditOverdraft }}>
+          {children}
+        </BillingDataProvider>
+      ),
+    });
+    await act(async () => {
+      await withAction.result.current.save({ overdraftLimit: 3000 });
+    });
+    expect(updateCreditOverdraft).toHaveBeenCalledWith("ai", {
+      overdraftLimit: 3000,
+    });
+
+    const without = renderHook(() => useOverageLimit(), {
+      wrapper: ({ children }) => (
+        <BillingDataProvider data={data}>{children}</BillingDataProvider>
+      ),
+    });
+    await act(async () => {
+      await expect(without.result.current.reset()).rejects.toThrow(
+        BILLING_ACTION_UNAVAILABLE_MESSAGE("resetCreditOverdraft"),
+      );
+    });
+  });
 });
 
 describe("useCreditUserUsage", () => {
