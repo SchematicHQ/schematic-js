@@ -29,7 +29,7 @@
     "globals": "^17.14.0",
     "husky": "^9.1.7",
     "jsdom": "^31.0.1",
-    "ng-packagr": "^22.2.6",
+    "ng-packagr": "^22.3.0",
     "prettier": "^3.10.1",
     "rxjs": "^7.8.0",
     "tslib": "^2.9.1",
