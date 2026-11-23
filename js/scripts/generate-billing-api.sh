@@ -25,6 +25,7 @@ node scripts/filter-openapi.mjs "$TMP_DIR/token.json" "$TMP_DIR/token.filtered.j
   /company /company/invoices /company/upcoming-invoice /company/payment-methods \
   /company/usage '/company/usage/{feature_id}/users' \
   /company/credits /company/credits/ledger '/company/credits/{credit_id}/users' \
+  '/company/credits/{credit_id}/overdraft' \
   /catalog/view '/catalogs/{catalog_id}/view' \
   /checkouts '/checkouts/{checkout_id}' '/checkouts/{checkout_id}/finalize' \
   /checkout/tax-id \

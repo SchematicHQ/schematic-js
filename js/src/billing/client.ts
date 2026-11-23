@@ -37,6 +37,7 @@ import type {
   CreditBalanceEntry,
   CreditLedgerPage,
   CreditLedgerQuery,
+  CreditOverdraftUpdate,
   CreditUserUsage,
   FeatureUsage,
   FeatureUserUsage,
@@ -166,6 +167,17 @@ export interface BillingClient {
   ): Promise<FeatureUserUsage>;
   /** Empty when the company holds no credits and its plan draws on none. */
   fetchCreditBalances(): Promise<CreditBalanceEntry[]>;
+  /**
+   * Sets the company's own overdraft limit for a credit, in credits. Rejects
+   * when the plan does not let the company change it, or the limit is above
+   * the plan's maximum.
+   */
+  updateCreditOverdraft(
+    creditId: string,
+    update: CreditOverdraftUpdate,
+  ): Promise<void>;
+  /** Returns a credit's overdraft limit to the plan's default. */
+  resetCreditOverdraft(creditId: string): Promise<void>;
   /** A page of the company's credit activity, newest first. */
   fetchCreditLedger(params: CreditLedgerRequest): Promise<CreditLedgerPage>;
   /** One credit's consumption by user over the span of its live grants. */
@@ -503,6 +515,28 @@ export class SchematicBillingClient implements BillingClient {
       }
       return GetCompanyCreditBalancesResponseFromJSON(body).data.balances;
     });
+  }
+
+  updateCreditOverdraft(
+    creditId: string,
+    update: CreditOverdraftUpdate,
+  ): Promise<void> {
+    // The body is the credit's overdraft, which the balances carry; a caller
+    // re-reads those, as a new limit also moves what the balance may spend.
+    return this.session
+      .request(`/company/credits/${encodeURIComponent(creditId)}/overdraft`, {
+        method: "PUT",
+        body: { overdraft_limit: update.overdraftLimit },
+      })
+      .then(() => undefined);
+  }
+
+  resetCreditOverdraft(creditId: string): Promise<void> {
+    return this.session
+      .request(`/company/credits/${encodeURIComponent(creditId)}/overdraft`, {
+        method: "DELETE",
+      })
+      .then(() => undefined);
   }
 
   fetchCreditLedger(params: CreditLedgerRequest): Promise<CreditLedgerPage> {

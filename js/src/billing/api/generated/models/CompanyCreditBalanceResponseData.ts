@@ -34,6 +34,13 @@ import {
   CompanyCreditCompositionResponseDataToJSON,
   CompanyCreditCompositionResponseDataToJSONTyped,
 } from "./CompanyCreditCompositionResponseData";
+import type { CompanyCreditOverdraftResponseData } from "./CompanyCreditOverdraftResponseData";
+import {
+  CompanyCreditOverdraftResponseDataFromJSON,
+  CompanyCreditOverdraftResponseDataFromJSONTyped,
+  CompanyCreditOverdraftResponseDataToJSON,
+  CompanyCreditOverdraftResponseDataToJSONTyped,
+} from "./CompanyCreditOverdraftResponseData";
 
 /**
  *
@@ -101,6 +108,12 @@ export interface CompanyCreditBalanceResponseData {
    * @memberof CompanyCreditBalanceResponseData
    */
   grants: Array<CompanyCreditGrantResponseData>;
+  /**
+   * How far the balance may go below zero and whether the company may change that; null unless the company's plan bills the credit in arrears.
+   * @type {CompanyCreditOverdraftResponseData}
+   * @memberof CompanyCreditBalanceResponseData
+   */
+  overdraft?: CompanyCreditOverdraftResponseData | null;
   /**
    * Whether a bundle of this credit is on offer to the company's plan.
    * @type {boolean}
@@ -195,6 +208,10 @@ export function CompanyCreditBalanceResponseDataFromJSONTyped(
     grants: (json["grants"] as Array<any>).map(
       CompanyCreditGrantResponseDataFromJSON,
     ),
+    overdraft:
+      json["overdraft"] == null
+        ? undefined
+        : CompanyCreditOverdraftResponseDataFromJSON(json["overdraft"]),
     purchasable: json["purchasable"],
     remaining: json["remaining"],
     resetsAt:
@@ -236,6 +253,7 @@ export function CompanyCreditBalanceResponseDataToJSONTyped(
     grants: (value["grants"] as Array<any>).map(
       CompanyCreditGrantResponseDataToJSON,
     ),
+    overdraft: CompanyCreditOverdraftResponseDataToJSON(value["overdraft"]),
     purchasable: value["purchasable"],
     remaining: value["remaining"],
     resets_at:

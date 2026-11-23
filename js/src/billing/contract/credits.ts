@@ -11,6 +11,7 @@ import type {
   CompanyCreditBalanceResponseData,
   CompanyCreditCompositionResponseData,
   CompanyCreditGrantResponseData,
+  CompanyCreditOverdraftResponseData,
   CompanyCreditUserUsageResponseData,
   CompanyCreditUserUsageRowResponseData,
 } from "../api/generated/models";
@@ -20,9 +21,12 @@ export type {
   CompanyCreditBalanceResponseData,
   CompanyCreditCompositionResponseData,
   CompanyCreditGrantResponseData,
+  CompanyCreditOverdraftResponseData,
   CompanyCreditUserUsageResponseData,
   CompanyCreditUserUsageRowResponseData,
 };
+
+export { CreditOverdraftLimitSource } from "../api/generated/models";
 
 /**
  * One credit's balance. What the server has already decided, so a consumer
@@ -37,10 +41,34 @@ export type {
  * * `composition` — how a per-license plan grant adds up per period.
  * * `autoTopup` — auto top-up for a credit the base plan grants, with the
  *   company's own settings applied.
+ * * `overdraft` — how far below zero the plan lets this credit go, with the
+ *   company's own limit applied. Absent for a credit the plan stops at zero.
  */
 export type CreditBalanceEntry = CompanyCreditBalanceResponseData;
 
 export type CreditAutoTopup = CompanyCreditAutoTopupResponseData;
+
+/**
+ * One credit's overdraft, for a plan that bills usage past zero at the end of
+ * the period. Limits and `debt` are in credits; `postpaidRatePerUnit` prices
+ * one of them, in `currency`'s minor unit.
+ *
+ * * `overdraftLimit` is the limit in force; `limitSource` says whether the
+ *   plan's default, the company's own (`companyLimit`) or an admin's cap
+ *   (`adminLimit`) set it. An admin cap only ever lowers the limit. `null` is
+ *   no limit.
+ * * `maxLimit` is the most the company may set: the plan's `planMaxLimit`,
+ *   or the admin cap when lower.
+ * * `canChangeLimit` — the plan lets the company set its own. A write for a
+ *   credit where it is false is refused.
+ */
+export type CreditOverdraft = CompanyCreditOverdraftResponseData;
+
+/** A change to the company's own overdraft setting for one credit. */
+export interface CreditOverdraftUpdate {
+  /** The limit, in credits. */
+  overdraftLimit: number;
+}
 
 export type CreditGrant = CompanyCreditGrantResponseData;
 
