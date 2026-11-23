@@ -369,7 +369,7 @@ function Fields({
         />
       </div>
       {collectEmail && (
-        <div className="schematic-payment-methods__field">
+        <div className="schematic-field schematic-payment-methods__field">
           <label
             className="schematic-payment-methods__field-label"
             htmlFor={emailId}
@@ -378,7 +378,7 @@ function Fields({
           </label>
           <input
             autoComplete="email"
-            className="schematic-payment-methods__input"
+            className="schematic-input schematic-payment-methods__input"
             id={emailId}
             placeholder={t("paymentMethodsEmailPlaceholder")}
             required

@@ -164,6 +164,43 @@ export type ElementStrings = {
   creditLogWhoPlan: string;
   creditLogWhoManual: string;
 
+  overageLimitLoading: string;
+  overageLimitHeader: string;
+  overageLimitError: string;
+  overageLimitUnavailable: string;
+  overageLimitRate: string;
+  overageLimitAmount: string;
+  overageLimitNoLimit: string;
+  overageLimitAbout: string;
+  overageLimitSourcePlanDefault: string;
+  overageLimitSourcePlan: string;
+  overageLimitSourceCompany: string;
+  overageLimitSourceProvider: string;
+  overageLimitExplainer: string;
+  overageLimitExplainerNoLimit: string;
+  overageLimitNoUsage: string;
+  overageLimitUsed: string;
+  overageLimitLeft: string;
+  overageLimitWarning: string;
+  overageLimitBlocked: string;
+  overageLimitBlockedLocked: string;
+  overageLimitRenews: string;
+  overageLimitPlanSets: string;
+  overageLimitProviderSets: string;
+  overageLimitChange: string;
+  overageLimitReset: string;
+  overageLimitUsePlanDefault: string;
+  overageLimitField: string;
+  overageLimitFieldMax: string;
+  overageLimitFieldMaxProvider: string;
+  overageLimitFieldMoney: string;
+  overageLimitInvalid: string;
+  overageLimitAboveMax: string;
+  overageLimitSave: string;
+  overageLimitCancel: string;
+  overageLimitSaveError: string;
+  overageLimitResetError: string;
+
   planManagerLoading: string;
   planManagerError: string;
   planManagerUnavailable: string;
@@ -609,6 +646,50 @@ export const DEFAULT_STRINGS: ElementStrings & StringCatalog = {
   creditLogWhoPurchase: "Purchase",
   creditLogWhoPlan: "Plan",
   creditLogWhoManual: "Manual",
+
+  overageLimitLoading: "Loading your overage limit",
+  overageLimitHeader: "Overages",
+  overageLimitError: "There was a problem retrieving your overage limit.",
+  overageLimitUnavailable:
+    "Your overage limit is not available for this account.",
+  overageLimitRate: "{{rate}} per extra {{unit}}",
+  overageLimitAmount: "{{amount}} {{units}}",
+  overageLimitNoLimit: "No limit",
+  overageLimitAbout: "About {{amount}}",
+  overageLimitSourcePlanDefault: "your plan's default",
+  overageLimitSourcePlan: "set by your plan",
+  overageLimitSourceCompany: "set by you",
+  overageLimitSourceProvider: "set by your provider",
+  overageLimitExplainer:
+    "When your plan's credits run out, extra usage is billed at the end of the period, up to this limit. After that, usage pauses.",
+  overageLimitExplainerNoLimit:
+    "When your plan's credits run out, extra usage is billed at the end of the period.",
+  overageLimitNoUsage: "No extra usage yet",
+  overageLimitUsed: "{{amount}} extra {{units}} used",
+  overageLimitLeft: "{{amount}} left",
+  overageLimitWarning:
+    "You are close to your limit. Usage pauses at {{amount}} extra {{units}}.",
+  overageLimitBlocked:
+    "Limit reached. Extra usage is paused until you raise the limit or your invoice for it is paid.",
+  overageLimitBlockedLocked:
+    "Limit reached. Extra usage is paused until your invoice for it is paid.",
+  overageLimitRenews: "Your plan's credits renew on {{date}}.",
+  overageLimitPlanSets: "Your plan sets this limit.",
+  overageLimitProviderSets: "Your provider sets this limit.",
+  overageLimitChange: "Change limit",
+  overageLimitReset: "Reset to plan default",
+  overageLimitUsePlanDefault: "Use plan default",
+  overageLimitField: "Limit",
+  overageLimitFieldMax: "Your plan allows up to {{amount}} {{units}}.",
+  overageLimitFieldMaxProvider:
+    "Your provider allows up to {{amount}} {{units}}.",
+  overageLimitFieldMoney: "About {{amount}}.",
+  overageLimitInvalid: "Enter a number of {{units}} above zero.",
+  overageLimitAboveMax: "Enter {{amount}} {{units}} or fewer.",
+  overageLimitSave: "Save",
+  overageLimitCancel: "Cancel",
+  overageLimitSaveError: "Your limit could not be saved.",
+  overageLimitResetError: "Your limit could not be reset.",
 
   planManagerLoading: "Loading your plan",
   planManagerError: "There was a problem retrieving your plan.",

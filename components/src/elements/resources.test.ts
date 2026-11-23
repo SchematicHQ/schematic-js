@@ -4,6 +4,7 @@ import { CreditUsage } from "./CreditUsage";
 import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
 import { MeteredFeatures } from "./MeteredFeatures";
+import { OverageLimit } from "./OverageLimit";
 import { PaymentMethods } from "./PaymentMethods";
 import { PlanManager } from "./PlanManager";
 import { PricingTable } from "./PricingTable";
@@ -26,6 +27,7 @@ describe("what the elements read", () => {
     expect(MeteredFeatures.resources).toEqual(["featureUsage"]);
     expect(CreditUsage.resources).toEqual(["creditBalances"]);
     expect(CreditLog.resources).toEqual(["creditLedger"]);
+    expect(OverageLimit.resources).toEqual(["creditBalances"]);
     expect(PlanManager.resources).toEqual([
       "company",
       "featureUsage",

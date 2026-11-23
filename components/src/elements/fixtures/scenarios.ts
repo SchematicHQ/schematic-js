@@ -23,6 +23,7 @@ import {
   creditBalance,
   creditGrant,
   creditLedgerEntry,
+  creditOverdraft,
   daysFromNow,
   discount,
   featureUsage,
@@ -657,6 +658,32 @@ export function creditLogScenario(): BillingData {
   };
 }
 
+/**
+ * AI credits billed past zero, with a limit of 2,000 the company set and
+ * 1,240 of it used, beside a credit the plan stops at zero.
+ */
+export function overageLimitScenario(): BillingData {
+  return {
+    creditBalances: [
+      creditBalance({
+        creditId: "bcr_ai",
+        overdraft: creditOverdraft({
+          companyLimit: 2000,
+          debt: 1240,
+          limitSource: "company",
+          overdraftLimit: 2000,
+        }),
+        remaining: 0,
+        used: 1000,
+      }),
+      creditBalance({
+        creditId: "bcr_export",
+        creditName: "Export credit",
+      }),
+    ],
+  };
+}
+
 export const SCENARIOS = {
   pro: proCompany,
   trialing: trialingCompany,
@@ -668,6 +695,7 @@ export const SCENARIOS = {
   featureUsageEmpty,
   credits: creditsScenario,
   creditLog: creditLogScenario,
+  overageLimit: overageLimitScenario,
   planManager: planManagerScenario,
   planManagerTrialing: planManagerTrialingScenario,
   pricingTable: pricingTableScenario,
