@@ -17,6 +17,15 @@ updates:
     labels:
       - "npm"
       - "Dependabot"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      # Our own packages are exempt: the cooldown is there to let a hijacked
+      # third-party release get yanked, and we are not that risk to ourselves.
+      # It also keeps Dependabot clear of pnpm's 24h minimumReleaseAge, which
+      # would refuse a version younger than that.
+      exclude:
+        - "@schematichq/*"
     groups:
       # Dependabot puts a dependency in the first group it matches, so the
       # vendor lockstep sets stay above the catch-all.
@@ -55,11 +64,26 @@ updates:
     assignees:
       - "bpapillon"
   - package-ecosystem: "github-actions"
-    directory: "/"
+    # "/" covers .github/workflows only; the glob adds the local composite
+    # actions, whose `uses:` pins would otherwise never move.
+    directories:
+      - "/"
+      - "/.github/actions/*"
     schedule:
       interval: "daily"
     labels:
       - "github-actions"
       - "Dependabot"
+    cooldown:
+      default-days: 7
+      exclude:
+        - "SchematicHQ/*"
+    groups:
+      # Version pins in workflow files: one PR per run for the minors and
+      # patches, majors on their own.
+      actions:
+        patterns:
+          - "*"
+        update-types: ["minor", "patch"]
     assignees:
       - "mhmdio"
