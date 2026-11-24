@@ -11,6 +11,7 @@ import { CreditUsage } from "../CreditUsage";
 import { IncludedFeatures } from "../IncludedFeatures";
 import { Invoices } from "../Invoices";
 import { MeteredFeatures } from "../MeteredFeatures";
+import { OverageLimit } from "../OverageLimit";
 import { PaymentMethods } from "../PaymentMethods";
 import { PlanManager } from "../PlanManager";
 import { PricingTable } from "../PricingTable";
@@ -23,6 +24,7 @@ import {
   creditBalance,
   creditGrant,
   creditLedgerEntry,
+  creditOverdraft,
   creditUserUsage,
   daysFromNow,
   featureUsage,
@@ -62,7 +64,7 @@ import { SCHEMATIC_TOKENS, schematicStylesCss } from ".";
  * skipped.
  */
 const SHIPPED =
-  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|credit-log|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
+  /schematic-(invoices|upcoming-bill|payment-methods|checkout|included-features|metered-features|credit-usage|credit-log|overage-limit|plan-manager|pricing-table|plan-card|badge|toggle|select|unsubscribe|meter|usage-by-user|tooltip|tiers|dialog|row|chip|small|card|header|status|skeleton|muted|error|link-button)/;
 
 /**
  * The pending fallback for an element that passes no skeleton of its own —
@@ -73,10 +75,7 @@ const SHIPPED =
 const UNREACHABLE = new Set([
   ".schematic-skeleton:empty",
   ".schematic-payment-methods__save",
-  ".schematic-payment-methods__field",
   ".schematic-payment-methods__address",
-  ".schematic-payment-methods__input",
-  ".schematic-payment-methods__input:focus-visible",
   ".schematic-payment-methods__select-existing",
 ]);
 
@@ -225,6 +224,31 @@ function creditLogOpen() {
     root.querySelector(".schematic-credit-log__toggle") as Element,
   );
   return root;
+}
+
+function overageLimitEditing() {
+  const root = tree(<OverageLimit locale="en-US" />, SCENARIOS.overageLimit());
+  fireEvent.click(
+    root.querySelector(".schematic-overage-limit__edit") as Element,
+  );
+  fireEvent.change(root.querySelector(".schematic-input") as Element, {
+    target: { value: "0" },
+  });
+  fireEvent.click(
+    root.querySelector(".schematic-overage-limit__save") as Element,
+  );
+  return root;
+}
+
+function overageLimitAt(debt: number) {
+  return tree(<OverageLimit locale="en-US" />, {
+    creditBalances: [
+      creditBalance({
+        creditId: "bcr_ai",
+        overdraft: creditOverdraft({ debt, overdraftLimit: 2000 }),
+      }),
+    ],
+  });
 }
 
 /** The credits card with every ledger open and the long one shown whole. */
@@ -647,6 +671,17 @@ async function everyCard() {
       SCENARIOS.creditLog(),
     ),
     creditLogOpen(),
+    tree(<OverageLimit locale="en-US" />, SCENARIOS.overageLimit()),
+    overageLimitAt(0),
+    overageLimitAt(1720),
+    overageLimitAt(2000),
+    overageLimitEditing(),
+    tree(<OverageLimit locale="en-US" />, {}, {
+      creditBalances: { isPending: true },
+    } as never),
+    tree(<OverageLimit locale="en-US" />, {}, {
+      creditBalances: { error: boom },
+    } as never),
     tree(<CreditLog locale="en-US" />, {
       creditLedger: { entries: [] },
     }),

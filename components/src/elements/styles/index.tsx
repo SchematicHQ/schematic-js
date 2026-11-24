@@ -9,6 +9,7 @@ import { iconsCss } from "./icons";
 import { includedFeaturesCss } from "./included-features";
 import { invoicesCss } from "./invoices";
 import { meteredFeaturesCss } from "./metered-features";
+import { overageLimitCss } from "./overage-limit";
 import { paymentMethodsCss } from "./payment-methods";
 import { planManagerCss } from "./plan-manager";
 import { pricingTableCss } from "./pricing-table";
@@ -266,6 +267,29 @@ const rulesCss = `
   text-decoration: underline;
 }
 
+.schematic-field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--schematic-space) * 0.75);
+}
+
+.schematic-input {
+  background: var(--schematic-background);
+  border: 1px solid var(--schematic-border);
+  border-radius: calc(var(--schematic-radius) * 0.8);
+  box-sizing: border-box;
+  color: var(--schematic-text);
+  font: inherit;
+  padding: 0.75rem;
+  width: 100%;
+}
+
+.schematic-input:focus-visible {
+  border-color: var(--schematic-accent);
+  outline: 2px solid var(--schematic-accent);
+  outline-offset: 0;
+}
+
 .schematic-meter {
   background: var(--schematic-meter-track);
   border-radius: 9999px;
@@ -439,6 +463,7 @@ ${includedFeaturesCss}
 ${meteredFeaturesCss}
 ${creditUsageCss}
 ${creditLogCss}
+${overageLimitCss}
 ${planManagerCss}
 ${pricingTableCss}
 ${unsubscribeCss}

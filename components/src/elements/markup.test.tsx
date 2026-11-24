@@ -7,6 +7,7 @@ import { vi } from "vitest";
 
 import { Checkout } from "./Checkout";
 import { Invoices } from "./Invoices";
+import { OverageLimit } from "./OverageLimit";
 import { PaymentMethods } from "./PaymentMethods";
 import { PricingTable } from "./PricingTable";
 import { UpcomingBill } from "./UpcomingBill";
@@ -692,6 +693,33 @@ describe("every node carries a schematic class", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]);
     await screen.findByRole("alert");
     expect(unclassed(root)).toEqual([]);
+  });
+
+  test.each([
+    ["loaded", SCENARIOS.overageLimit(), undefined],
+    ["pending", {}, { creditBalances: pending }],
+    ["failed", {}, { creditBalances: failed }],
+  ] as const)("OverageLimit, %s", (_state, data, status) => {
+    const { container } = render(
+      <BillingDataProvider data={data} status={status}>
+        <OverageLimit locale="en-US" />
+      </BillingDataProvider>,
+    );
+    expect(unclassed(container.firstElementChild as HTMLElement)).toEqual([]);
+  });
+
+  test("OverageLimit, the form holding a value it refuses", () => {
+    const { container } = render(
+      <BillingDataProvider data={SCENARIOS.overageLimit()}>
+        <OverageLimit locale="en-US" />
+      </BillingDataProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Change limit" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Limit" }), {
+      target: { value: "0" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(unclassed(container.firstElementChild as HTMLElement)).toEqual([]);
   });
 
   test.each([

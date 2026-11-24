@@ -13,6 +13,7 @@ import type {
   CreditBalanceEntry,
   CreditGrant,
   CreditLedgerEntry,
+  CreditOverdraft,
   CreditUserUsage,
   Discount,
   FeatureUsage,
@@ -295,6 +296,26 @@ export function creditBalance(
     resetsAt: daysFromNow(10),
     total: 1000,
     used: 149.75,
+    ...overrides,
+  };
+}
+
+/** A plan default of 5,000 credits at 2¢ each, with up to 20,000 allowed. */
+export function creditOverdraft(
+  overrides: Partial<CreditOverdraft> = {},
+): CreditOverdraft {
+  return {
+    canChangeLimit: true,
+    creditId: "bcr_ai",
+    currency: "usd",
+    debt: 0,
+    limitSource: "plan",
+    maxLimit: 20000,
+    overdraftLimit: 5000,
+    planDefaultLimit: 5000,
+    planMaxLimit: 20000,
+    postpaidRatePerUnit: 2,
+    postpaidRatePerUnitDecimal: "2",
     ...overrides,
   };
 }

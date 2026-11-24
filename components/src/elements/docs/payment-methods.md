@@ -342,12 +342,12 @@ tell them apart. The dialog renders inside the root while it is open.
       <form class="schematic-payment-methods__form" data-state="ready">
         <div class="schematic-payment-methods__fields">…</div>
         <!-- checkoutSettings.collectEmail -->
-        <div class="schematic-payment-methods__field">
+        <div class="schematic-field schematic-payment-methods__field">
           <label class="schematic-payment-methods__field-label" for="…">
             Email
           </label>
           <input
-            class="schematic-payment-methods__input"
+            class="schematic-input schematic-payment-methods__input"
             id="…"
             type="email"
             required

@@ -12,6 +12,7 @@ import { CreditUsage } from "./CreditUsage";
 import { IncludedFeatures } from "./IncludedFeatures";
 import { Invoices } from "./Invoices";
 import { MeteredFeatures } from "./MeteredFeatures";
+import { OverageLimit } from "./OverageLimit";
 import { PaymentMethods } from "./PaymentMethods";
 import { PlanManager } from "./PlanManager";
 import { UnsubscribeButton } from "./UnsubscribeButton";
@@ -44,140 +45,169 @@ function serve(
   const balances = scenario.creditBalances ?? [];
   const ledger = scenario.creditLedger?.entries ?? [];
   let held = scenario.company;
-  const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
-    const url = new URL(String(input));
-    const perUser = /^\/company\/usage\/([^/]+)\/users$/.exec(url.pathname);
-    if (flagged && perUser !== null) {
-      return new Response(
-        JSON.stringify({
-          data: billingApi.CompanyFeatureUserUsageResponseDataToJSON(
-            featureUserUsage(),
-          ),
-          params: { limit: Number(url.searchParams.get("limit")) },
-        }),
-        { status: 200 },
+  let balancesHeld = balances;
+  const fetchImpl = vi.fn(
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(String(input));
+      const perUser = /^\/company\/usage\/([^/]+)\/users$/.exec(url.pathname);
+      if (flagged && perUser !== null) {
+        return new Response(
+          JSON.stringify({
+            data: billingApi.CompanyFeatureUserUsageResponseDataToJSON(
+              featureUserUsage(),
+            ),
+            params: { limit: Number(url.searchParams.get("limit")) },
+          }),
+          { status: 200 },
+        );
+      }
+      if (
+        flagged &&
+        held?.subscription &&
+        url.pathname === "/checkout/unsubscribe"
+      ) {
+        // Like Stripe, cancelling sets a cancellation date the next company read returns.
+        held = {
+          ...held,
+          subscription: {
+            ...held.subscription,
+            cancelAt: new Date("2026-10-01T00:00:00Z"),
+            cancelAtPeriodEnd: true,
+          },
+        };
+        return new Response(
+          JSON.stringify({ data: { deleted: true }, params: {} }),
+          { status: 200 },
+        );
+      }
+      if (flagged && held !== undefined && url.pathname === "/company") {
+        return new Response(
+          JSON.stringify({
+            data: billingApi.CompanyContextResponseDataToJSON(held),
+            params: {},
+          }),
+          { status: 200 },
+        );
+      }
+      if (flagged && url.pathname === "/company/credits/ledger") {
+        // Pages by limit and offset and answers has_more, as the API does.
+        const limit = Number(url.searchParams.get("limit"));
+        const offset = Number(url.searchParams.get("offset"));
+        return new Response(
+          JSON.stringify({
+            data: {
+              entries: ledger
+                .slice(offset, offset + limit)
+                .map((row) =>
+                  billingApi.CompanyCreditLedgerEntryResponseDataToJSON(row),
+                ),
+              has_more: offset + limit < ledger.length,
+            },
+            params: {},
+          }),
+          { status: 200 },
+        );
+      }
+      const overdraft = /^\/company\/credits\/([^/]+)\/overdraft$/.exec(
+        url.pathname,
       );
-    }
-    if (
-      flagged &&
-      held?.subscription &&
-      url.pathname === "/checkout/unsubscribe"
-    ) {
-      // Like Stripe, cancelling sets a cancellation date the next company read returns.
-      held = {
-        ...held,
-        subscription: {
-          ...held.subscription,
-          cancelAt: new Date("2026-10-01T00:00:00Z"),
-          cancelAtPeriodEnd: true,
-        },
-      };
-      return new Response(
-        JSON.stringify({ data: { deleted: true }, params: {} }),
-        { status: 200 },
-      );
-    }
-    if (flagged && held !== undefined && url.pathname === "/company") {
-      return new Response(
-        JSON.stringify({
-          data: billingApi.CompanyContextResponseDataToJSON(held),
-          params: {},
-        }),
-        { status: 200 },
-      );
-    }
-    if (flagged && url.pathname === "/company/credits/ledger") {
-      // Pages by limit and offset and answers has_more, as the API does.
-      const limit = Number(url.searchParams.get("limit"));
-      const offset = Number(url.searchParams.get("offset"));
-      return new Response(
-        JSON.stringify({
-          data: {
-            entries: ledger
-              .slice(offset, offset + limit)
-              .map((row) =>
-                billingApi.CompanyCreditLedgerEntryResponseDataToJSON(row),
+      if (flagged && overdraft !== null && init?.method === "PUT") {
+        const { overdraft_limit: limit } = JSON.parse(String(init.body)) as {
+          overdraft_limit: number;
+        };
+        balancesHeld = balancesHeld.map((row) =>
+          row.creditId === overdraft[1] &&
+          row.overdraft !== undefined &&
+          row.overdraft !== null
+            ? {
+                ...row,
+                overdraft: {
+                  ...row.overdraft,
+                  companyLimit: limit,
+                  limitSource: "company",
+                  overdraftLimit: limit,
+                },
+              }
+            : row,
+        );
+        return new Response(JSON.stringify({ data: {}, params: {} }), {
+          status: 200,
+        });
+      }
+      if (flagged && url.pathname === "/company/credits") {
+        return new Response(
+          JSON.stringify({
+            data: {
+              count: balancesHeld.length,
+              balances: balancesHeld.map((row) =>
+                billingApi.CompanyCreditBalanceResponseDataToJSON(row),
               ),
-            has_more: offset + limit < ledger.length,
-          },
-          params: {},
-        }),
-        { status: 200 },
-      );
-    }
-    if (flagged && url.pathname === "/company/credits") {
-      return new Response(
-        JSON.stringify({
-          data: {
-            count: balances.length,
-            balances: balances.map((row) =>
-              billingApi.CompanyCreditBalanceResponseDataToJSON(row),
-            ),
-          },
-          params: {},
-        }),
-        { status: 200 },
-      );
-    }
-    if (flagged && url.pathname === "/company/usage") {
-      return new Response(
-        JSON.stringify({
-          data: {
-            count: features.length,
-            features: features.map((row) =>
-              billingApi.CompanyFeatureUsageResponseDataToJSON(row),
-            ),
-          },
-          params: {},
-        }),
-        { status: 200 },
-      );
-    }
-    if (flagged && url.pathname === "/company/payment-methods") {
-      return new Response(
-        JSON.stringify({
-          data: {
-            count: methods.length,
-            payment_methods: methods.map((method) =>
-              billingApi.CompanyPaymentMethodResponseDataToJSON(method),
-            ),
-          },
-          params: {},
-        }),
-        { status: 200 },
-      );
-    }
-    if (flagged && url.pathname === "/company/upcoming-invoice") {
-      return upcoming == null
-        ? new Response(null, { status: 204 })
-        : new Response(
-            JSON.stringify({
-              data: billingApi.CompanyUpcomingInvoiceResponseDataToJSON(
-                upcoming,
+            },
+            params: {},
+          }),
+          { status: 200 },
+        );
+      }
+      if (flagged && url.pathname === "/company/usage") {
+        return new Response(
+          JSON.stringify({
+            data: {
+              count: features.length,
+              features: features.map((row) =>
+                billingApi.CompanyFeatureUsageResponseDataToJSON(row),
               ),
-              params: {},
-            }),
-            { status: 200 },
-          );
-    }
-    if (flagged && url.pathname === "/company/invoices") {
-      const limit = Number(url.searchParams.get("limit"));
-      const offset = Number(url.searchParams.get("offset"));
-      const rows = all
-        .slice(offset, offset + limit)
-        .map((row) => billingApi.CompanyInvoiceResponseDataToJSON(row));
-      return new Response(
-        JSON.stringify({
-          data: { count, invoices: rows },
-          params: { limit, offset },
-        }),
-        { status: 200 },
-      );
-    }
-    return new Response(JSON.stringify({ error: "not found" }), {
-      status: 404,
-    });
-  });
+            },
+            params: {},
+          }),
+          { status: 200 },
+        );
+      }
+      if (flagged && url.pathname === "/company/payment-methods") {
+        return new Response(
+          JSON.stringify({
+            data: {
+              count: methods.length,
+              payment_methods: methods.map((method) =>
+                billingApi.CompanyPaymentMethodResponseDataToJSON(method),
+              ),
+            },
+            params: {},
+          }),
+          { status: 200 },
+        );
+      }
+      if (flagged && url.pathname === "/company/upcoming-invoice") {
+        return upcoming == null
+          ? new Response(null, { status: 204 })
+          : new Response(
+              JSON.stringify({
+                data: billingApi.CompanyUpcomingInvoiceResponseDataToJSON(
+                  upcoming,
+                ),
+                params: {},
+              }),
+              { status: 200 },
+            );
+      }
+      if (flagged && url.pathname === "/company/invoices") {
+        const limit = Number(url.searchParams.get("limit"));
+        const offset = Number(url.searchParams.get("offset"));
+        const rows = all
+          .slice(offset, offset + limit)
+          .map((row) => billingApi.CompanyInvoiceResponseDataToJSON(row));
+        return new Response(
+          JSON.stringify({
+            data: { count, invoices: rows },
+            params: { limit, offset },
+          }),
+          { status: 200 },
+        );
+      }
+      return new Response(JSON.stringify({ error: "not found" }), {
+        status: 404,
+      });
+    },
+  );
   return fetchImpl as unknown as typeof fetch;
 }
 
@@ -232,6 +262,23 @@ describe("end to end", () => {
     expect(
       document.querySelector(".schematic-credit-log__credit-name"),
     ).toHaveTextContent("AI credits");
+  });
+
+  test("OverageLimit saves a new limit and shows it once the balances reload", async () => {
+    renderStack(
+      <OverageLimit locale="en-US" />,
+      "tok",
+      SCENARIOS.overageLimit(),
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Change limit" }),
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Limit" }), {
+      target: { value: "3,000" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("3,000 AI credits")).toBeInTheDocument();
+    expect(screen.getByText("1,760 left")).toBeInTheDocument();
   });
 
   test("CreditUsage", async () => {
