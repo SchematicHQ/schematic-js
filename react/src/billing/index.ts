@@ -35,7 +35,9 @@ export {
   useFeatureUserUsage,
   useInvalidateBillingData,
   useInvoices,
+  useOverageLimit,
   usePaymentMethods,
+  pickOverageCredit,
   useSetupIntent,
   useUnsubscribe,
   useTaxIds,
@@ -43,11 +45,15 @@ export {
   type CheckoutHandle,
   type CreditLedgerHandle,
   type InvoicesHandle,
+  type OverageCreditPick,
+  type OverageCredit,
+  type OverageLimitHandle,
   type PaymentMethodsHandle,
   type SetupIntentHandle,
   type UnsubscribeHandle,
   type TaxIdsHandle,
   type UseCheckoutOptions,
+  type UseOverageLimitOptions,
 } from "./hooks";
 export { BillingProvider, type BillingProviderProps } from "./provider";
 // `Resource`, `KeyedResource`, `BillingStore` and `BillingDataContext` stay

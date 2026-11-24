@@ -24,6 +24,8 @@ import type {
   CreditBalanceEntry,
   CreditLedgerPage,
   CreditLedgerQuery,
+  CreditOverdraft,
+  CreditOverdraftUpdate,
   CreditUserUsage,
   FeatureUsage,
   FeatureUserUsage,
@@ -59,8 +61,8 @@ import { hashKey } from "./store";
  * report pending on the server and load on the client. `useCatalog`,
  * `useInvoices`, `useUpcomingInvoice`, `usePaymentMethods`, `useFeatureUsage`,
  * `useFeatureUserUsage`, `useCreditBalances`, `useCreditLedger`, `useCreditUserUsage`,
- * `useCompany` and `useTaxIds` so far; the other resource hooks ship with
- * their elements.
+ * `useCompany`, `useTaxIds` and `useOverageLimit` so far; the other resource
+ * hooks ship with their elements.
  */
 
 /** The same object until the hash of `params` changes. */
@@ -203,20 +205,13 @@ interface Mutation {
 
 const IDLE: Mutation = { inflight: 0, error: undefined };
 
-/**
- * The company's payment methods, with the writes on them. `data` is the
- * list, `isPending` and `error` its load, and `isMutating` and
- * `mutationError` the last write; a write's failure never lands on `error`,
- * which stays the list's own.
- *
- * Writes are not coalesced: a second call while one is in flight runs too,
- * the store reloads the list after each, and `isMutating` stays true until
- * the last lands. A component that wants one at a time disables its buttons
- * on `isMutating`.
- */
-export function usePaymentMethods(): PaymentMethodsHandle {
-  const source = useBillingDataSource();
-  const handle = useBillingResource("paymentMethods", SINGLETON);
+interface MutationTracker {
+  run: (write: () => Promise<void>) => Promise<void>;
+  isMutating: boolean;
+  mutationError: Error | undefined;
+}
+
+function useMutation(): MutationTracker {
   const [mutation, setMutation] = useState<Mutation>(IDLE);
 
   const run = useCallback(async (write: () => Promise<void>) => {
@@ -233,6 +228,32 @@ export function usePaymentMethods(): PaymentMethodsHandle {
     setMutation((m) => ({ inflight: m.inflight - 1, error: undefined }));
   }, []);
 
+  return useMemo(
+    () => ({
+      run,
+      isMutating: mutation.inflight > 0,
+      mutationError: mutation.error,
+    }),
+    [mutation, run],
+  );
+}
+
+/**
+ * The company's payment methods, with the writes on them. `data` is the
+ * list, `isPending` and `error` its load, and `isMutating` and
+ * `mutationError` the last write; a write's failure never lands on `error`,
+ * which stays the list's own.
+ *
+ * Writes are not coalesced: a second call while one is in flight runs too,
+ * the store reloads the list after each, and `isMutating` stays true until
+ * the last lands. A component that wants one at a time disables its buttons
+ * on `isMutating`.
+ */
+export function usePaymentMethods(): PaymentMethodsHandle {
+  const source = useBillingDataSource();
+  const handle = useBillingResource("paymentMethods", SINGLETON);
+  const { run, isMutating, mutationError } = useMutation();
+
   const setDefault = useCallback(
     (externalId: string) =>
       run(() => actionsOf(source).setDefaultPaymentMethod(externalId)),
@@ -248,10 +269,10 @@ export function usePaymentMethods(): PaymentMethodsHandle {
       ...handle,
       setDefault,
       remove,
-      isMutating: mutation.inflight > 0,
-      mutationError: mutation.error,
+      isMutating,
+      mutationError,
     }),
-    [handle, mutation, remove, setDefault],
+    [handle, isMutating, mutationError, remove, setDefault],
   );
 }
 
@@ -488,6 +509,132 @@ export function useCheckout(options: UseCheckoutOptions = {}): CheckoutHandle {
     [finalize, reset, setSelections, state],
   );
 }
+
+/** A credit the company's plan bills past zero, and the balance it is on. */
+export interface OverageCredit {
+  balance: CreditBalanceEntry;
+  overdraft: CreditOverdraft;
+}
+
+export type OverageCreditPick =
+  | ({ status: "found" } & OverageCredit)
+  | { status: "ambiguous" }
+  | { status: "none" };
+
+/**
+ * Which credit's overage limit to show. `creditId` names one; without it,
+ * the company's only credit that has an overdraft. Several such credits and
+ * no `creditId` is `ambiguous`; a named credit without one is `none`.
+ */
+export function pickOverageCredit(
+  balances: readonly CreditBalanceEntry[],
+  creditId?: string,
+): OverageCreditPick {
+  const billed = balances.filter(
+    (balance) =>
+      balance.overdraft !== undefined &&
+      balance.overdraft !== null &&
+      (creditId === undefined || balance.creditId === creditId),
+  );
+  if (billed.length > 1 && creditId === undefined) {
+    return { status: "ambiguous" };
+  }
+  const balance = billed[0];
+  if (
+    balance === undefined ||
+    balance.overdraft === undefined ||
+    balance.overdraft === null
+  ) {
+    return { status: "none" };
+  }
+  return { status: "found", balance, overdraft: balance.overdraft };
+}
+
+export interface UseOverageLimitOptions {
+  /** The credit to read; the company's only credit with an overage limit when absent. */
+  creditId?: string;
+}
+
+export interface OverageLimitHandle extends ResourceHandle<OverageCredit | null> {
+  /**
+   * `null` once the balances load when there is no such credit, or several
+   * and no `creditId`; `ambiguous` says which. `undefined` means not loaded.
+   */
+  data: OverageCredit | null | undefined;
+  /** Several credits have an overage limit and no `creditId` picked one. */
+  ambiguous: boolean;
+  /**
+   * Sets the company's own limit, in credits; the balances reload once it
+   * has. Rejects with the failure and records it on `mutationError`.
+   */
+  save: (update: CreditOverdraftUpdate) => Promise<void>;
+  /** Returns the limit to the plan's default. Rejects as `save` does. */
+  reset: () => Promise<void>;
+  isMutating: boolean;
+  mutationError: Error | undefined;
+}
+
+/**
+ * One credit's overage limit, read from the credit balances, with the writes
+ * that set and reset it. `error` and `isPending` are the balances' load.
+ */
+export function useOverageLimit(
+  options: UseOverageLimitOptions = {},
+): OverageLimitHandle {
+  const { creditId } = options;
+  const source = useBillingDataSource();
+  const handle = useBillingResource("creditBalances", SINGLETON);
+  const { run, isMutating, mutationError } = useMutation();
+
+  const pick = useMemo(
+    () =>
+      handle.data === undefined
+        ? undefined
+        : pickOverageCredit(handle.data, creditId),
+    [creditId, handle.data],
+  );
+  const pickedId = pick?.status === "found" ? pick.balance.creditId : undefined;
+
+  const save = useCallback(
+    (update: CreditOverdraftUpdate) =>
+      run(() =>
+        pickedId === undefined
+          ? Promise.reject(new Error(NO_OVERAGE_CREDIT))
+          : actionsOf(source).updateCreditOverdraft(pickedId, update),
+      ),
+    [pickedId, run, source],
+  );
+  const reset = useCallback(
+    () =>
+      run(() =>
+        pickedId === undefined
+          ? Promise.reject(new Error(NO_OVERAGE_CREDIT))
+          : actionsOf(source).resetCreditOverdraft(pickedId),
+      ),
+    [pickedId, run, source],
+  );
+
+  return useMemo(() => {
+    let data: OverageCredit | null | undefined;
+    if (pick !== undefined) {
+      data =
+        pick.status === "found"
+          ? { balance: pick.balance, overdraft: pick.overdraft }
+          : null;
+    }
+    return {
+      ...handle,
+      data,
+      ambiguous: pick?.status === "ambiguous",
+      save,
+      reset,
+      isMutating,
+      mutationError,
+    };
+  }, [handle, isMutating, mutationError, pick, reset, save]);
+}
+
+const NO_OVERAGE_CREDIT = "No credit with an overage limit to change.";
 
 export interface CreditLedgerHandle extends ResourceHandle<CreditLedgerPage> {
   /** Requests the next page, as `InvoicesHandle.loadMore` does. */

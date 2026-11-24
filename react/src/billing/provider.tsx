@@ -202,6 +202,10 @@ export function BillingProvider({
         fetchInvoiceLink: (id) => store.fetchInvoiceLink(id),
         unsubscribe: () => store.unsubscribe(),
         updateTaxId: (taxId) => store.updateTaxId(taxId),
+        updateCreditOverdraft: (creditId, update) =>
+          store.updateCreditOverdraft(creditId, update),
+        resetCreditOverdraft: (creditId) =>
+          store.resetCreditOverdraft(creditId),
         createCheckout: (selections) => store.createCheckout(selections),
         getCheckout: (id) => store.getCheckout(id),
         updateCheckout: (id, version, selections) =>
