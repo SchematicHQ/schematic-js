@@ -206,7 +206,8 @@ function detailText(row: CreditBundleRow, t: Translator): string {
           credits: row.unitName,
         });
   const expiry = expiryText(row.expiry, t);
-  return expiry === undefined ? amount : `${amount} · ${expiry}`;
+  // No-break space, so a wrapped line never starts with the dot.
+  return expiry === undefined ? amount : `${amount}\u00a0· ${expiry}`;
 }
 
 function expiryText(

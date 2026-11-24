@@ -34,6 +34,9 @@ describe("CreditBundles", () => {
     expect(rows()).toHaveLength(2);
     expect(rows()[0]).toHaveTextContent("Booster");
     expect(rows()[0]).toHaveTextContent("500 AI credits · Never expire");
+    expect(rows()[0].textContent).toContain(
+      "500 AI credits\u00a0· Never expire",
+    );
     expect(rows()[1]).toHaveTextContent(
       "2,000 AI credits · Expire after 90 days",
     );

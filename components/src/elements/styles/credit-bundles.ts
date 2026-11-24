@@ -5,6 +5,7 @@ export const creditBundlesCss = `
 }
 
 .schematic-credit-bundles__list {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--schematic-space);
@@ -36,6 +37,14 @@ export const creditBundlesCss = `
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+@container (max-width: 20rem) {
+  .schematic-credit-bundles__row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: calc(var(--schematic-space) / 2);
+  }
 }
 
 .schematic-credit-bundles__empty {
