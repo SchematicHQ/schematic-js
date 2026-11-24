@@ -7,9 +7,13 @@ on:
       - '!schematic-angular@*-rc*'
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   lint_test:
     name: Lint and Test
+    permissions:
+      contents: read
     uses: ./.github/workflows/lint_test.yml
     with:
       package: schematic-angular

@@ -1,29 +1,38 @@
 name: Lint and Test
 
+# Release gate for the deploy_*.yml workflows. On-demand runners: a spot
+# reclaim here fails a release, not a PR.
+
 on:
   workflow_call:
     inputs:
       package:
-        description: 'Package name (schematic-js, schematic-react, schematic-components, schematic-vue)'
+        description: 'Package name (schematic-js, schematic-react, schematic-components, schematic-vue, schematic-angular)'
         required: true
         type: string
       working_dir:
-        description: 'Working directory (js, react, components, vue)'
+        description: 'Working directory (js, react, components, vue, angular)'
         required: true
         type: string
+
+permissions: {}
 
 jobs:
   lint:
     name: Lint
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache/spot=false
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
-      - uses: runs-on/action@v2.7.1
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: runs-on/action@4a3bfc79f21a9b97e972e2ba75a2b0b1e9688670 # v2.7.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 24.x
-      - name: Enable corepack
-        run: corepack enable pnpm
+          persist-credentials: false
+      - name: Setup Node and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          project: ${{ inputs.working_dir }}
       - name: Install dependencies
         working-directory: ./${{ inputs.working_dir }}
         run: pnpm install --frozen-lockfile
@@ -33,15 +42,19 @@ jobs:
 
   test:
     name: Test
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache/spot=false
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
-      - uses: runs-on/action@v2.7.1
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: runs-on/action@4a3bfc79f21a9b97e972e2ba75a2b0b1e9688670 # v2.7.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 24.x
-      - name: Enable corepack
-        run: corepack enable pnpm
+          persist-credentials: false
+      - name: Setup Node and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          project: ${{ inputs.working_dir }}
       # The components vitest config resolves @schematichq/schematic-js and
       # schematic-react from ../js/src and ../react/src, so their own
       # dependencies must be present.
