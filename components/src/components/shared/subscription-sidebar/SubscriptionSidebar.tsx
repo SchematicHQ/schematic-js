@@ -730,6 +730,7 @@ export const SubscriptionSidebar = forwardRef<
             ? []
             : [...planPayInAdvanceRequestBody, ...addOnPayInAdvanceRequestBody],
           creditBundles: creditBundlesRequestBody,
+          customCreditAmounts: [],
           customFieldValues: Object.entries(customFieldValues).map(
             ([id, value]) => ({ id, value }),
           ),

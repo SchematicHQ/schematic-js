@@ -91,6 +91,7 @@ function normalize(data?: HydrateData): HydrateDataWithCompanyContext {
       creditBundles: [],
       creditGrants: [],
       customCheckoutFields: [],
+      customCreditAmounts: [],
       preventSelfServiceDowngrade: false,
     },
     data,

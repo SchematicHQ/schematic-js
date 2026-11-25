@@ -3513,6 +3513,7 @@
     ],
     "credit_grants": [],
     "custom_checkout_fields": [],
+    "custom_credit_amounts": [],
     "default_plan": {
       "audience_type": "plan",
       "billing_product": null,
