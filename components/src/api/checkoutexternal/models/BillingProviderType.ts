@@ -21,6 +21,7 @@ export const BillingProviderType = {
   Orb: "orb",
   Schematic: "schematic",
   Stripe: "stripe",
+  Zuora: "zuora",
 } as const;
 export type BillingProviderType =
   (typeof BillingProviderType)[keyof typeof BillingProviderType];
