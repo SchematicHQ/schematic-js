@@ -1,0 +1,229 @@
+name: Pull request
+
+# One workflow for every package. `changes` picks the packages a PR touches,
+# and build, lint and test fan out over them as a matrix.
+#
+# Branch protection requires checks named exactly `Build` and `Lint`, so the
+# matrix legs carry the package in their names and the gate jobs at the bottom
+# report under the required names. A PR that touches no package skips the
+# matrix and the gates still pass.
+
+on:
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Changes
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64/spot=capacity-optimized
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      packages: ${{ steps.matrix.outputs.packages }}
+    steps:
+      # Reads the diff from the REST API, so no checkout is needed.
+      - name: Get changed files
+        id: filter
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          use_rest_api: true
+          files_yaml: |
+            shared:
+              - '.github/workflows/**'
+              - '.github/actions/**'
+              - 'scripts/**'
+            js:
+              - 'js/**'
+            react:
+              - 'react/**'
+            components:
+              - 'components/**'
+            vue:
+              - 'vue/**'
+            angular:
+              - 'angular/**'
+
+      - name: Build matrix
+        id: matrix
+        env:
+          shared: ${{ steps.filter.outputs.shared_any_changed }}
+          js: ${{ steps.filter.outputs.js_any_changed }}
+          react: ${{ steps.filter.outputs.react_any_changed }}
+          components: ${{ steps.filter.outputs.components_any_changed }}
+          vue: ${{ steps.filter.outputs.vue_any_changed }}
+          angular: ${{ steps.filter.outputs.angular_any_changed }}
+        run: |
+          set -euo pipefail
+          packages=()
+          for pkg in js react components vue angular; do
+            if [[ "${shared}" == "true" || "${!pkg}" == "true" ]]; then
+              packages+=("${pkg}")
+            fi
+          done
+          json=$(jq -cn '$ARGS.positional' --args "${packages[@]}")
+          echo "packages=${json}" >> "$GITHUB_OUTPUT"
+          echo "::notice::packages: ${json}"
+
+  build:
+    name: Build (${{ matrix.package }})
+    needs: changes
+    if: needs.changes.outputs.packages != '[]'
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache/spot=capacity-optimized
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    steps:
+      - uses: runs-on/action@4a3bfc79f21a9b97e972e2ba75a2b0b1e9688670 # v2.7.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Node and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          project: ${{ matrix.package }}
+      - name: Install dependencies
+        working-directory: ${{ matrix.package }}
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        working-directory: ${{ matrix.package }}
+        run: pnpm run build
+
+  lint:
+    name: Lint (${{ matrix.package }})
+    needs: changes
+    if: needs.changes.outputs.packages != '[]'
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache/spot=capacity-optimized
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    steps:
+      - uses: runs-on/action@4a3bfc79f21a9b97e972e2ba75a2b0b1e9688670 # v2.7.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Node and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          project: ${{ matrix.package }}
+      - name: Install dependencies
+        working-directory: ${{ matrix.package }}
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        working-directory: ${{ matrix.package }}
+        run: pnpm run lint
+
+  test:
+    name: Test (${{ matrix.package }}, Node ${{ matrix.node }})
+    needs: changes
+    if: needs.changes.outputs.packages != '[]'
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache/spot=capacity-optimized
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+        # Both lines sit inside jsdom's engine range (^24.15.0 || >=26.0.0).
+        node: ["24", "26"]
+        exclude:
+          - package: vue
+            node: "26"
+          - package: angular
+            node: "26"
+    steps:
+      - uses: runs-on/action@4a3bfc79f21a9b97e972e2ba75a2b0b1e9688670 # v2.7.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Node and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          project: ${{ matrix.package }}
+          node-version: ${{ matrix.node }}
+      # The components vitest config resolves @schematichq/schematic-js and
+      # schematic-react from ../js/src and ../react/src, so their own
+      # dependencies must be present.
+      - name: Install schematic-js dependencies
+        if: matrix.package == 'components'
+        working-directory: js
+        run: pnpm install --frozen-lockfile
+      - name: Install schematic-react dependencies
+        if: matrix.package == 'components'
+        working-directory: react
+        run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        working-directory: ${{ matrix.package }}
+        run: pnpm install --frozen-lockfile
+      - name: Test
+        working-directory: ${{ matrix.package }}
+        run: pnpm run test
+      - name: Test (React Native)
+        if: matrix.package == 'js' || matrix.package == 'react'
+        working-directory: ${{ matrix.package }}
+        run: pnpm run test:reactnative
+
+  # Gates. A skipped matrix (no package changed) passes; a failed or cancelled
+  # one, or a failed `changes`, does not.
+  build-gate:
+    name: Build
+    needs: [changes, build]
+    if: always()
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64/spot=capacity-optimized
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Check results
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          RESULT: ${{ needs.build.result }}
+        run: |
+          echo "changes: ${CHANGES}, build: ${RESULT}"
+          [[ "${CHANGES}" == "success" && ( "${RESULT}" == "success" || "${RESULT}" == "skipped" ) ]]
+
+  lint-gate:
+    name: Lint
+    needs: [changes, lint]
+    if: always()
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64/spot=capacity-optimized
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Check results
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          RESULT: ${{ needs.lint.result }}
+        run: |
+          echo "changes: ${CHANGES}, lint: ${RESULT}"
+          [[ "${CHANGES}" == "success" && ( "${RESULT}" == "success" || "${RESULT}" == "skipped" ) ]]
+
+  test-gate:
+    name: Test
+    needs: [changes, test]
+    if: always()
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64/spot=capacity-optimized
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Check results
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          RESULT: ${{ needs.test.result }}
+        run: |
+          echo "changes: ${CHANGES}, test: ${RESULT}"
+          [[ "${CHANGES}" == "success" && ( "${RESULT}" == "success" || "${RESULT}" == "skipped" ) ]]

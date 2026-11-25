@@ -6,9 +6,13 @@ on:
       - 'schematic-components@*'
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   lint_test:
     name: Lint and Test
+    permissions:
+      contents: read
     uses: ./.github/workflows/lint_test.yml
     with:
       package: schematic-components
@@ -25,60 +29,73 @@ jobs:
       tag: ${{ github.ref_name }}
 
   update_example_app:
-    name: Update Example App
+    name: Update ${{ matrix.repo }}
     if: ${{ !contains(github.ref_name, '-rc.') }}
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/spot=false
+    timeout-minutes: 15
     needs: [publish]
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: [schematic-next-example, schematic-next-example-orb]
     steps:
-      - uses: runs-on/action@v2.7.1
+      - uses: runs-on/action@4a3bfc79f21a9b97e972e2ba75a2b0b1e9688670 # v2.7.1
       - name: Checkout schematic-components
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: schematic-components
+          persist-credentials: false
 
       - name: Get component version
         id: get_version
         run: |
           cd schematic-components/components
-          echo "SCHEMATIC_COMPONENTS_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          echo "SCHEMATIC_COMPONENTS_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
-      - name: Checkout example app
-        uses: actions/checkout@v7
+      # Credentials stay persisted: create-pull-request pushes from this
+      # checkout with GH_TOKEN.
+      - name: Checkout example app  # zizmor: ignore[artipacked]
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: schematichq/schematic-next-example
-          path: schematic-next-example
+          repository: schematichq/${{ matrix.repo }}
+          path: ${{ matrix.repo }}
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
+          package-manager-cache: false
       - name: Enable corepack
         run: corepack enable pnpm
 
       - name: Wait for version on npm
+        env:
+          VERSION: ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
         run: |
           # The registry can lag the publish job by a minute or two.
-          for i in $(seq 1 30); do
-            npm view @schematichq/schematic-components@${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }} version && exit 0
+          for _ in $(seq 1 30); do
+            npm view "@schematichq/schematic-components@${VERSION}" version && exit 0
             sleep 10
           done
           exit 1
 
       - name: Update example app dependencies
-        run: |
-          cd schematic-next-example
-          pnpm add @schematichq/schematic-components@${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
+        working-directory: ${{ matrix.repo }}
+        env:
+          VERSION: ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
+        run: pnpm add "@schematichq/schematic-components@${VERSION}"
 
       - name: Check for changes
         id: check_changes
-        run: |
-          cd schematic-next-example
-          git diff --exit-code || echo "HAS_CHANGES=true" >> $GITHUB_OUTPUT
+        working-directory: ${{ matrix.repo }}
+        run: git diff --exit-code || echo "HAS_CHANGES=true" >> "$GITHUB_OUTPUT"
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.HAS_CHANGES == 'true'
-        uses: peter-evans/create-pull-request@v8.1.3
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
         with:
           token: ${{ secrets.GH_TOKEN }}
           commit-message: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
@@ -90,83 +107,17 @@ jobs:
           branch: schematic-components-${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
           base: main
           delete-branch: true
-          path: schematic-next-example
-
-  update_example_app_orb:
-    name: Update Example App (Orb)
-    if: ${{ !contains(github.ref_name, '-rc.') }}
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
-    needs: [publish]
-    steps:
-      - uses: runs-on/action@v2.7.1
-      - name: Checkout schematic-components
-        uses: actions/checkout@v7
-        with:
-          path: schematic-components
-
-      - name: Get component version
-        id: get_version
-        run: |
-          cd schematic-components/components
-          echo "SCHEMATIC_COMPONENTS_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Checkout example app
-        uses: actions/checkout@v7
-        with:
-          repository: schematichq/schematic-next-example-orb
-          path: schematic-next-example-orb
-          token: ${{ secrets.GH_TOKEN }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24.x
-      - name: Enable corepack
-        run: corepack enable pnpm
-
-      - name: Wait for version on npm
-        run: |
-          # The registry can lag the publish job by a minute or two.
-          for i in $(seq 1 30); do
-            npm view @schematichq/schematic-components@${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }} version && exit 0
-            sleep 10
-          done
-          exit 1
-
-      - name: Update example app dependencies
-        run: |
-          cd schematic-next-example-orb
-          pnpm add @schematichq/schematic-components@${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
-
-      - name: Check for changes
-        id: check_changes
-        run: |
-          cd schematic-next-example-orb
-          git diff --exit-code || echo "HAS_CHANGES=true" >> $GITHUB_OUTPUT
-
-      - name: Create Pull Request
-        if: steps.check_changes.outputs.HAS_CHANGES == 'true'
-        uses: peter-evans/create-pull-request@v8.1.3
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          commit-message: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
-          title: Update @schematichq/schematic-components to ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
-          body: |
-            This PR updates the @schematichq/schematic-components package to version ${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}.
-
-            This update was automatically created by the schematic-components deployment process.
-          branch: schematic-components-${{ steps.get_version.outputs.SCHEMATIC_COMPONENTS_VERSION }}
-          base: main
-          delete-branch: true
-          path: schematic-next-example-orb
+          path: ${{ matrix.repo }}
 
   notify_slack:
     name: Notify Slack
     if: ${{ !contains(github.ref_name, '-rc.') }}
-    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64/spot=capacity-optimized
+    timeout-minutes: 5
     needs: [publish]
+    permissions: {}
     steps:
-      - uses: rtCamp/action-slack-notify@v2.4.1
+      - uses: rtCamp/action-slack-notify@06cc13f74fa8d4d2296c09455d91e9453e4025f4 # v2.4.1
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: Updated schematic-components

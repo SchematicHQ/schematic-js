@@ -1,9 +1,9 @@
 name: NPM Publish
 
 # Reusable workflow that publishes a package to npm using Trusted Publishing
-# (OIDC). All deploy_*.yml and release_candidate.yml call into this so that
-# only this one filename needs to be registered as the trusted publisher for
-# each @schematichq/* package on npmjs.com.
+# (OIDC). Every deploy_*.yml calls into this so that only this one filename
+# needs to be registered as the trusted publisher for each @schematichq/*
+# package on npmjs.com.
 
 on:
   workflow_call:
@@ -13,34 +13,46 @@ on:
         required: true
         type: string
 
+permissions: {}
+
+env:
+  NPM_VERSION: "12.2.3"
+
 jobs:
   publish:
     name: Publish to NPM
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/spot=false
+    timeout-minutes: 15
     permissions:
       id-token: write
       contents: read
     steps:
-      - uses: runs-on/action@v2.7.1
-      - uses: actions/checkout@v7
+      - uses: runs-on/action@4a3bfc79f21a9b97e972e2ba75a2b0b1e9688670 # v2.7.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
+      # No setup-pnpm and no store cache on purpose: what ships to npm is
+      # installed cold, never from a store another job wrote.
       - name: Set Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
+          package-manager-cache: false
       # `enable pnpm` and not a bare `enable`: the latter also shims npm, which
-      # would shadow the npm@latest installed below for Trusted Publishing.
+      # would shadow the npm installed below for Trusted Publishing.
       - name: Enable corepack
         run: corepack enable pnpm
 
       - name: Upgrade npm for Trusted Publishing
-        run: npm install -g npm@latest
+        run: npm install -g npm@"${NPM_VERSION}" --ignore-scripts
 
       - name: Publish
         env:
+          TAG: ${{ inputs.tag }}
           # Disable provenance attestation: it requires a GitHub-hosted
           # runner and we use self-hosted RunsOn runners. Without this,
           # publish fails with E422 "Unsupported GitHub Actions runner
           # environment: self-hosted". OIDC auth still works regardless.
           NPM_CONFIG_PROVENANCE: "false"
-        run: TAG="${{ inputs.tag }}" ./scripts/publish-package.sh
+        run: ./scripts/publish-package.sh

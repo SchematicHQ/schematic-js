@@ -4,42 +4,48 @@ on:
   pull_request:
     paths:
       - components/**
+      # Run when the pipeline itself changes, not only the package.
+      - .github/workflows/pull_request_vercel.yml
+      - .github/actions/setup-pnpm/**
 
-permissions:
-  contents: read
-  packages: read
-  pull-requests: write
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
 
 env:
   VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+  VERCEL_CLI_VERSION: "66.6.0"
   DEMO_APP_REPO: 'schematichq/schematic-next-example'
 
 jobs:
   deploy:
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache/spot=capacity-optimized
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
-      - uses: runs-on/action@v2.7.1
+      - uses: runs-on/action@4a3bfc79f21a9b97e972e2ba75a2b0b1e9688670 # v2.7.1
       - name: Checkout Components Repository
-        uses: actions/checkout@v7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: '24.x'
+          persist-credentials: false
 
-      # `enable pnpm` and not a bare `enable`: the latter also shims npm, which
-      # would shadow the npm used to install the Vercel CLI below.
-      - name: Enable corepack
-        run: corepack enable pnpm
+      - name: Setup Node and pnpm
+        uses: ./.github/actions/setup-pnpm
+        with:
+          project: components
 
       - name: Install Vercel CLI
-        run: npm install -g vercel
+        run: npm install --global vercel@"${VERCEL_CLI_VERSION}" --ignore-scripts
 
       - name: Build Components Package
+        working-directory: components
         run: |
           echo "🔨 Building components package..."
-          cd components
           pnpm install --frozen-lockfile
           pnpm run build
 
@@ -51,48 +57,53 @@ jobs:
         run: echo "tarball=$(pnpm pack --pack-destination "$RUNNER_TEMP" | tail -n1)" >> "$GITHUB_OUTPUT"
 
       - name: Clone Demo App
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ env.DEMO_APP_REPO }}
-          token: ${{ secrets.GITHUB_TOKEN }}
           path: schematic-next-example
+          persist-credentials: false
 
       - name: Setup Demo App & Install Components
+        working-directory: schematic-next-example
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
         run: |
           echo "🏠 Setting up demo app..."
-          cd schematic-next-example
-
           echo "📦 Installing demo app dependencies against the packed build..."
-          pnpm add "${{ steps.pack.outputs.tarball }}"
-
+          pnpm add "${TARBALL}"
           echo "✅ Components package installed successfully!"
 
       - name: Pull Vercel Environment Information
+        working-directory: schematic-next-example
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          cd schematic-next-example
-          vercel link --yes --scope $VERCEL_ORG_ID --token=${{ secrets.VERCEL_TOKEN }}
-          vercel env pull --yes --scope $VERCEL_ORG_ID --token=${{ secrets.VERCEL_TOKEN }}
-          vercel pull --yes --scope $VERCEL_ORG_ID --token=${{ secrets.VERCEL_TOKEN }}
+          vercel link --yes --scope "$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
+          vercel env pull --yes --scope "$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
+          vercel pull --yes --scope "$VERCEL_ORG_ID" --token="$VERCEL_TOKEN"
 
       - name: Build Project for Vercel
+        working-directory: schematic-next-example
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          cd schematic-next-example
           echo "🏗️ Building Next.js app for Vercel..."
-          vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --token="$VERCEL_TOKEN"
 
       - name: Deploy to Vercel (Preview)
         id: vercel
-        if: github.event_name == 'pull_request'
+        working-directory: schematic-next-example
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          cd schematic-next-example
           echo "🚀 Deploying Preview to Vercel..."
-          DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
-          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> "$GITHUB_ENV"
           echo "Preview URL: $DEPLOYMENT_URL"
 
       - name: Comment PR with Preview URL
-        if: github.event_name == 'pull_request' && env.DEPLOYMENT_URL
-        uses: actions/github-script@v9.0.0
+        if: env.DEPLOYMENT_URL
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const deploymentUrl = process.env.DEPLOYMENT_URL;
@@ -111,16 +122,19 @@ jobs:
 
       - name: Create Deployment Summary
         if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
         run: |
-          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ **Status:** Deployment completed successfully!" >> $GITHUB_STEP_SUMMARY
-            echo "🔗 **URL:** ${{ env.DEPLOYMENT_URL }}" >> $GITHUB_STEP_SUMMARY
-            echo "📦 **Demo App:** ${{ env.DEMO_APP_REPO }}" >> $GITHUB_STEP_SUMMARY
-            echo "🔄 **Components:** Built from commit \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Status:** Deployment failed!" >> $GITHUB_STEP_SUMMARY
-            echo "📋 Check the workflow logs for details." >> $GITHUB_STEP_SUMMARY
-          fi
+          {
+            echo "## 🚀 Deployment Summary"
+            echo ""
+            if [ "$JOB_STATUS" == "success" ]; then
+              echo "✅ **Status:** Deployment completed successfully!"
+              echo "🔗 **URL:** ${DEPLOYMENT_URL:-}"
+              echo "📦 **Demo App:** ${DEMO_APP_REPO}"
+              echo "🔄 **Components:** Built from commit \`${GITHUB_SHA}\`"
+            else
+              echo "❌ **Status:** Deployment failed!"
+              echo "📋 Check the workflow logs for details."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -6,9 +6,13 @@ on:
       - "schematic-js@*"
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   lint_test:
     name: Lint and Test
+    permissions:
+      contents: read
     uses: ./.github/workflows/lint_test.yml
     with:
       package: schematic-js
@@ -17,19 +21,25 @@ jobs:
   deploy:
     name: Browser Deploy
     if: ${{ !contains(github.ref_name, '-rc.') }}
-    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/extras=s3-cache
+    runs-on: runs-on=${{ github.run_id }}/runner=4cpu-linux-x64/spot=false
+    timeout-minutes: 15
     needs: [lint_test]
     permissions:
       id-token: write
       contents: read
     steps:
-      - uses: runs-on/action@v2.7.1
-      - uses: actions/checkout@v7
+      - uses: runs-on/action@4a3bfc79f21a9b97e972e2ba75a2b0b1e9688670 # v2.7.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
+      # No setup-pnpm and no store cache on purpose: the bundle that ships to
+      # the CDN is installed cold, never from a store another job wrote.
       - name: Set Node.js 24.x
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
+          package-manager-cache: false
       - name: Enable corepack
         run: corepack enable pnpm
 
@@ -50,7 +60,7 @@ jobs:
         run: pnpm run build:browser
 
       - name: 🚀auth-oidc-aws-prod
-        uses: aws-actions/configure-aws-credentials@v6.3.0
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ vars.PROD_AWS_ROLE_ARN }}
           aws-region: ${{ vars.PROD_AWS_REGION }}
@@ -62,11 +72,15 @@ jobs:
         working-directory: ./js
 
       - name: Deploy browser build
+        env:
+          BUCKET: ${{ vars.PROD_JS_BUCKET_NAME }}
+          DISTRIBUTION_ID: ${{ vars.PROD_JS_DISTRIBUTION_ID }}
+          VERSION: ${{ steps.package.outputs.version }}
         run: |
-          aws s3 cp dist/schematic.browser.js s3://${{ vars.PROD_JS_BUCKET_NAME }}/js/schematic.js
-          aws s3 cp dist/schematic.browser.js s3://${{ vars.PROD_JS_BUCKET_NAME }}/js/schematic.${{ steps.package.outputs.version }}.js
+          aws s3 cp dist/schematic.browser.js "s3://${BUCKET}/js/schematic.js"
+          aws s3 cp dist/schematic.browser.js "s3://${BUCKET}/js/schematic.${VERSION}.js"
           aws configure set preview.cloudfront true
-          aws cloudfront create-invalidation --distribution-id ${{ vars.PROD_JS_DISTRIBUTION_ID }} --paths "/js/schematic.js" "/js/schematic.${{ steps.package.outputs.version }}.js"
+          aws cloudfront create-invalidation --distribution-id "${DISTRIBUTION_ID}" --paths "/js/schematic.js" "/js/schematic.${VERSION}.js"
         working-directory: ./js
 
   publish:
@@ -82,10 +96,12 @@ jobs:
   notify_slack:
     name: Notify Slack
     if: ${{ !contains(github.ref_name, '-rc.') }}
-    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64/spot=capacity-optimized
+    timeout-minutes: 5
     needs: [deploy, publish]
+    permissions: {}
     steps:
-      - uses: rtCamp/action-slack-notify@v2.4.1
+      - uses: rtCamp/action-slack-notify@06cc13f74fa8d4d2296c09455d91e9453e4025f4 # v2.4.1
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_TITLE: Updated schematic-js

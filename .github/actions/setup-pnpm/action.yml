@@ -1,0 +1,63 @@
+name: Setup pnpm
+description: Install Node and the project's pinned pnpm, with its store cached.
+
+inputs:
+  project:
+    description: Directory holding the package.json and pnpm-lock.yaml (e.g. app).
+    required: true
+  node-version:
+    description: Node major to install.
+    required: false
+    default: "24"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    # corepack rather than pnpm/action-setup, because only corepack enforces
+    # the `+sha512...` in `packageManager`. action-setup hands that whole string
+    # to `pnpm install pnpm@11.9.0+sha512...`, where the suffix is semver build
+    # metadata — ignored in version comparison and silently discarded, so the
+    # tarball is only ever checked against the integrity the registry itself
+    # served. corepack hashes what it downloaded and refuses a mismatch, which
+    # is the property the pin is there for.
+    #
+    # Note the pin is trust-on-first-use: corepack verifies on download, not on
+    # a cache hit. CI always starts cold, so CI always verifies.
+    #
+    # This only buys anything where `packageManager` carries a hash. A project
+    # pinned without one still gets the pinned version, just not the check.
+    - name: Setup pnpm
+      shell: bash
+      run: corepack enable pnpm
+
+    # Resolved from inside the project: corepack reads `packageManager` from the
+    # nearest package.json at invocation time, and this repo has no root one, so
+    # the same command at the root would answer for whatever pnpm corepack falls
+    # back to. That is also why setup-node's own `cache: pnpm` cannot be used
+    # here — it shells out from the workspace root, and a fallback pnpm of a
+    # different major reports a different store directory, which caches a path
+    # the real install never writes to and fails silently as a permanent miss.
+    #
+    # This is the job's first pnpm call, so corepack downloads the pinned
+    # version here. `tail -n1` because anything it writes to stdout doing so
+    # would otherwise become the cache path.
+    - name: Locate pnpm store
+      id: store
+      shell: bash
+      working-directory: ${{ inputs.project }}
+      env:
+        COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+      run: echo "path=$(pnpm store path --silent | tail -n1)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache pnpm store
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.store.outputs.path }}
+        key: pnpm-${{ runner.os }}-${{ inputs.project }}-${{ hashFiles(format('{0}/pnpm-lock.yaml', inputs.project)) }}
+        restore-keys: |
+          pnpm-${{ runner.os }}-${{ inputs.project }}-
