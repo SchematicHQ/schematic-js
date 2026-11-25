@@ -38,6 +38,7 @@ models/CatalogCapabilitiesResponseData.ts
 models/CatalogCreditBundleResponseData.ts
 models/CatalogCreditGrantResponseData.ts
 models/CatalogCurrencyPricesResponseData.ts
+models/CatalogCustomCreditAmountResponseData.ts
 models/CatalogCustomPlanCTAResponseData.ts
 models/CatalogDetailResponseData.ts
 models/CatalogEntitlementResponseData.ts

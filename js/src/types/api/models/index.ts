@@ -39,6 +39,7 @@ export * from "./CatalogCapabilitiesResponseData";
 export * from "./CatalogCreditBundleResponseData";
 export * from "./CatalogCreditGrantResponseData";
 export * from "./CatalogCurrencyPricesResponseData";
+export * from "./CatalogCustomCreditAmountResponseData";
 export * from "./CatalogCustomPlanCTAResponseData";
 export * from "./CatalogDetailResponseData";
 export * from "./CatalogEntitlementResponseData";
