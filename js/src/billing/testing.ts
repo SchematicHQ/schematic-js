@@ -99,6 +99,7 @@ export const wireCatalogView = {
     trial_payment_method_required: null,
     add_ons: [],
     credit_bundles: [],
+    custom_credit_amounts: [],
     plans: [
       {
         available_periods: ["monthly", "quarterly", "yearly"],
@@ -414,6 +415,7 @@ export const wirePublicCatalog = {
         unit_price: null,
       },
     ],
+    custom_credit_amounts: [],
     plans: [
       {
         available_periods: ["monthly"],
@@ -702,6 +704,7 @@ export function wireCheckout(
         coupon_external_id: null,
         credit_bundles: [],
         currency: "usd",
+        custom_credit_amounts: [],
         custom_field_values: [],
         intent: "change",
         new_plan_id: "plan_1",

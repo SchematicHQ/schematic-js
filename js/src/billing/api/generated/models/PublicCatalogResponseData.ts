@@ -34,6 +34,13 @@ import {
   CurrencyToJSON,
   CurrencyToJSONTyped,
 } from "./Currency";
+import type { CatalogCustomCreditAmountResponseData } from "./CatalogCustomCreditAmountResponseData";
+import {
+  CatalogCustomCreditAmountResponseDataFromJSON,
+  CatalogCustomCreditAmountResponseDataFromJSONTyped,
+  CatalogCustomCreditAmountResponseDataToJSON,
+  CatalogCustomCreditAmountResponseDataToJSONTyped,
+} from "./CatalogCustomCreditAmountResponseData";
 import type { CatalogCreditBundleResponseData } from "./CatalogCreditBundleResponseData";
 import {
   CatalogCreditBundleResponseDataFromJSON,
@@ -73,6 +80,12 @@ export interface PublicCatalogResponseData {
    * @memberof PublicCatalogResponseData
    */
   creditBundles: Array<CatalogCreditBundleResponseData>;
+  /**
+   * Credit types a buyer may purchase in any amount between the minimum and maximum, priced per credit.
+   * @type {Array<CatalogCustomCreditAmountResponseData>}
+   * @memberof PublicCatalogResponseData
+   */
+  customCreditAmounts: Array<CatalogCustomCreditAmountResponseData>;
   /**
    * Present when the catalog offers a custom plan; absent when custom plans are hidden.
    * @type {CatalogCustomPlanCTAResponseData}
@@ -134,6 +147,11 @@ export function instanceOfPublicCatalogResponseData(
     return false;
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
+  if (
+    !("customCreditAmounts" in value) ||
+    value["customCreditAmounts"] === undefined
+  )
+    return false;
   if (!("defaultCurrency" in value) || value["defaultCurrency"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
@@ -162,6 +180,9 @@ export function PublicCatalogResponseDataFromJSONTyped(
     capabilities: CatalogCapabilitiesResponseDataFromJSON(json["capabilities"]),
     creditBundles: (json["credit_bundles"] as Array<any>).map(
       CatalogCreditBundleResponseDataFromJSON,
+    ),
+    customCreditAmounts: (json["custom_credit_amounts"] as Array<any>).map(
+      CatalogCustomCreditAmountResponseDataFromJSON,
     ),
     customPlanCta:
       json["custom_plan_cta"] == null
@@ -197,6 +218,9 @@ export function PublicCatalogResponseDataToJSONTyped(
     capabilities: CatalogCapabilitiesResponseDataToJSON(value["capabilities"]),
     credit_bundles: (value["creditBundles"] as Array<any>).map(
       CatalogCreditBundleResponseDataToJSON,
+    ),
+    custom_credit_amounts: (value["customCreditAmounts"] as Array<any>).map(
+      CatalogCustomCreditAmountResponseDataToJSON,
     ),
     custom_plan_cta: CatalogCustomPlanCTAResponseDataToJSON(
       value["customPlanCta"],

@@ -41,6 +41,13 @@ import {
   CurrencyToJSON,
   CurrencyToJSONTyped,
 } from "./Currency";
+import type { CatalogCustomCreditAmountResponseData } from "./CatalogCustomCreditAmountResponseData";
+import {
+  CatalogCustomCreditAmountResponseDataFromJSON,
+  CatalogCustomCreditAmountResponseDataFromJSONTyped,
+  CatalogCustomCreditAmountResponseDataToJSON,
+  CatalogCustomCreditAmountResponseDataToJSONTyped,
+} from "./CatalogCustomCreditAmountResponseData";
 import type { CatalogCreditBundleResponseData } from "./CatalogCreditBundleResponseData";
 import {
   CatalogCreditBundleResponseDataFromJSON,
@@ -93,6 +100,12 @@ export interface CompanyCatalogResponseData {
    * @memberof CompanyCatalogResponseData
    */
   creditBundles: Array<CatalogCreditBundleResponseData>;
+  /**
+   *
+   * @type {Array<CatalogCustomCreditAmountResponseData>}
+   * @memberof CompanyCatalogResponseData
+   */
+  customCreditAmounts: Array<CatalogCustomCreditAmountResponseData>;
   /**
    * Present when the catalog offers a custom plan; absent when custom plans are hidden.
    * @type {CatalogCustomPlanCTAResponseData}
@@ -186,6 +199,11 @@ export function instanceOfCompanyCatalogResponseData(
     return false;
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
+  if (
+    !("customCreditAmounts" in value) ||
+    value["customCreditAmounts"] === undefined
+  )
+    return false;
   if (!("defaultCurrency" in value) || value["defaultCurrency"] === undefined)
     return false;
   if (!("id" in value) || value["id"] === undefined) return false;
@@ -222,6 +240,9 @@ export function CompanyCatalogResponseDataFromJSONTyped(
     ),
     creditBundles: (json["credit_bundles"] as Array<any>).map(
       CatalogCreditBundleResponseDataFromJSON,
+    ),
+    customCreditAmounts: (json["custom_credit_amounts"] as Array<any>).map(
+      CatalogCustomCreditAmountResponseDataFromJSON,
     ),
     customPlanCta:
       json["custom_plan_cta"] == null
@@ -281,6 +302,9 @@ export function CompanyCatalogResponseDataToJSONTyped(
     ),
     credit_bundles: (value["creditBundles"] as Array<any>).map(
       CatalogCreditBundleResponseDataToJSON,
+    ),
+    custom_credit_amounts: (value["customCreditAmounts"] as Array<any>).map(
+      CatalogCustomCreditAmountResponseDataToJSON,
     ),
     custom_plan_cta: CatalogCustomPlanCTAResponseDataToJSON(
       value["customPlanCta"],

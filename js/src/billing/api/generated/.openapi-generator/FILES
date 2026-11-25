@@ -27,6 +27,7 @@ models/CatalogCompanyPlanResponseData.ts
 models/CatalogCreditBundleResponseData.ts
 models/CatalogCreditGrantResponseData.ts
 models/CatalogCurrencyPricesResponseData.ts
+models/CatalogCustomCreditAmountResponseData.ts
 models/CatalogCustomPlanCTAResponseData.ts
 models/CatalogPlanEntitlementResponseData.ts
 models/CatalogPlanRefResponseData.ts
@@ -141,6 +142,7 @@ models/UpdateCheckoutTaxIDRequestBody.ts
 models/UpdateCheckoutTaxIDResponse.ts
 models/UpdateCheckoutTaxIDResponseData.ts
 models/UpdateCreditBundleRequestBody.ts
+models/UpdateCustomCreditAmountRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
 models/UpdatePaymentMethodRequestBody.ts
 models/UpdatePaymentMethodResponse.ts

@@ -60,6 +60,12 @@ export interface CheckoutProblemResponseData {
    */
   code: CheckoutProblemCode;
   /**
+   *
+   * @type {string}
+   * @memberof CheckoutProblemResponseData
+   */
+  creditId?: string | null;
+  /**
    * The currency this problem is about, when it is about one.
    * @type {Currency}
    * @memberof CheckoutProblemResponseData
@@ -145,6 +151,7 @@ export function CheckoutProblemResponseDataFromJSONTyped(
     blocking: json["blocking"],
     bundleId: json["bundle_id"] == null ? undefined : json["bundle_id"],
     code: CheckoutProblemCodeFromJSON(json["code"]),
+    creditId: json["credit_id"] == null ? undefined : json["credit_id"],
     currency:
       json["currency"] == null ? undefined : CurrencyFromJSON(json["currency"]),
     detail: json["detail"] == null ? undefined : json["detail"],
@@ -177,6 +184,7 @@ export function CheckoutProblemResponseDataToJSONTyped(
     blocking: value["blocking"],
     bundle_id: value["bundleId"],
     code: CheckoutProblemCodeToJSON(value["code"]),
+    credit_id: value["creditId"],
     currency: CurrencyToJSON(value["currency"]),
     detail: value["detail"],
     feature_id: value["featureId"],

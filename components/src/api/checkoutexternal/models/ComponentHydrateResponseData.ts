@@ -48,6 +48,13 @@ import {
   BillingCreditBundleViewToJSON,
   BillingCreditBundleViewToJSONTyped,
 } from "./BillingCreditBundleView";
+import type { CatalogCustomCreditAmountResponseData } from "./CatalogCustomCreditAmountResponseData";
+import {
+  CatalogCustomCreditAmountResponseDataFromJSON,
+  CatalogCustomCreditAmountResponseDataFromJSONTyped,
+  CatalogCustomCreditAmountResponseDataToJSON,
+  CatalogCustomCreditAmountResponseDataToJSONTyped,
+} from "./CatalogCustomCreditAmountResponseData";
 import type { StripeEmbedInfo } from "./StripeEmbedInfo";
 import {
   StripeEmbedInfoFromJSON,
@@ -207,6 +214,12 @@ export interface ComponentHydrateResponseData {
   customCheckoutFields: Array<CheckoutFieldWithValue>;
   /**
    *
+   * @type {Array<CatalogCustomCreditAmountResponseData>}
+   * @memberof ComponentHydrateResponseData
+   */
+  customCreditAmounts: Array<CatalogCustomCreditAmountResponseData>;
+  /**
+   *
    * @type {PlanDetailResponseData}
    * @memberof ComponentHydrateResponseData
    */
@@ -338,6 +351,11 @@ export function instanceOfComponentHydrateResponseData(
     value["customCheckoutFields"] === undefined
   )
     return false;
+  if (
+    !("customCreditAmounts" in value) ||
+    value["customCreditAmounts"] === undefined
+  )
+    return false;
   if (!("displaySettings" in value) || value["displaySettings"] === undefined)
     return false;
   if (
@@ -411,6 +429,9 @@ export function ComponentHydrateResponseDataFromJSONTyped(
     ),
     customCheckoutFields: (json["custom_checkout_fields"] as Array<any>).map(
       CheckoutFieldWithValueFromJSON,
+    ),
+    customCreditAmounts: (json["custom_credit_amounts"] as Array<any>).map(
+      CatalogCustomCreditAmountResponseDataFromJSON,
     ),
     defaultPlan:
       json["default_plan"] == null
@@ -502,6 +523,9 @@ export function ComponentHydrateResponseDataToJSONTyped(
     ),
     custom_checkout_fields: (value["customCheckoutFields"] as Array<any>).map(
       CheckoutFieldWithValueToJSON,
+    ),
+    custom_credit_amounts: (value["customCreditAmounts"] as Array<any>).map(
+      CatalogCustomCreditAmountResponseDataToJSON,
     ),
     default_plan: PlanDetailResponseDataToJSON(value["defaultPlan"]),
     display_settings: ComponentDisplaySettingsToJSON(value["displaySettings"]),

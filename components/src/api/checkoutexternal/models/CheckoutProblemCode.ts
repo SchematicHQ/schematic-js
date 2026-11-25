@@ -39,6 +39,8 @@ export const CheckoutProblemCode = {
   CreditBundleUnavailable: "credit_bundle_unavailable",
   CreditBundlesActivateOnPayment: "credit_bundles_activate_on_payment",
   CurrencyMismatch: "currency_mismatch",
+  CustomCreditAmountOutOfRange: "custom_credit_amount_out_of_range",
+  CustomCreditAmountUnavailable: "custom_credit_amount_unavailable",
   CustomFieldRequired: "custom_field_required",
   DiscountIneligible: "discount_ineligible",
   DowngradeNotPermitted: "downgrade_not_permitted",

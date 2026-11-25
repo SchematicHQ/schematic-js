@@ -27,6 +27,13 @@ import {
   UpdateCreditBundleRequestBodyToJSON,
   UpdateCreditBundleRequestBodyToJSONTyped,
 } from "./UpdateCreditBundleRequestBody";
+import type { UpdateCustomCreditAmountRequestBody } from "./UpdateCustomCreditAmountRequestBody";
+import {
+  UpdateCustomCreditAmountRequestBodyFromJSON,
+  UpdateCustomCreditAmountRequestBodyFromJSONTyped,
+  UpdateCustomCreditAmountRequestBodyToJSON,
+  UpdateCustomCreditAmountRequestBodyToJSONTyped,
+} from "./UpdateCustomCreditAmountRequestBody";
 import type { CheckoutFieldValue } from "./CheckoutFieldValue";
 import {
   CheckoutFieldValueFromJSON,
@@ -112,6 +119,12 @@ export interface CreateCheckoutRequest {
    */
   currency?: Currency | null;
   /**
+   * Credits bought in a custom amount, each under a catalog's custom credit amount rule for that credit type.
+   * @type {Array<UpdateCustomCreditAmountRequestBody>}
+   * @memberof CreateCheckoutRequest
+   */
+  customCreditAmounts: Array<UpdateCustomCreditAmountRequestBody>;
+  /**
    *
    * @type {Array<CheckoutFieldValue>}
    * @memberof CreateCheckoutRequest
@@ -182,6 +195,11 @@ export function instanceOfCreateCheckoutRequest(
   if (!("creditBundles" in value) || value["creditBundles"] === undefined)
     return false;
   if (
+    !("customCreditAmounts" in value) ||
+    value["customCreditAmounts"] === undefined
+  )
+    return false;
+  if (
     !("customFieldValues" in value) ||
     value["customFieldValues"] === undefined
   )
@@ -227,6 +245,9 @@ export function CreateCheckoutRequestFromJSONTyped(
     ),
     currency:
       json["currency"] == null ? undefined : CurrencyFromJSON(json["currency"]),
+    customCreditAmounts: (json["custom_credit_amounts"] as Array<any>).map(
+      UpdateCustomCreditAmountRequestBodyFromJSON,
+    ),
     customFieldValues: (json["custom_field_values"] as Array<any>).map(
       CheckoutFieldValueFromJSON,
     ),
@@ -274,6 +295,9 @@ export function CreateCheckoutRequestToJSONTyped(
       UpdateCreditBundleRequestBodyToJSON,
     ),
     currency: CurrencyToJSON(value["currency"]),
+    custom_credit_amounts: (value["customCreditAmounts"] as Array<any>).map(
+      UpdateCustomCreditAmountRequestBodyToJSON,
+    ),
     custom_field_values: (value["customFieldValues"] as Array<any>).map(
       CheckoutFieldValueToJSON,
     ),
