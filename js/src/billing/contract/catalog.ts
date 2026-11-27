@@ -15,6 +15,7 @@ import type {
   CatalogCompanyPlanResponseData,
   CatalogCreditBundleResponseData,
   CatalogCurrencyPricesResponseData,
+  CatalogCustomCreditAmountResponseData,
   CatalogPlanEntitlementResponseData,
   CatalogPlanResponseData,
   CompanyCatalogResponseData,
@@ -29,6 +30,7 @@ export type {
   CatalogCompanyPlanResponseData,
   CatalogCreditBundleResponseData,
   CatalogCurrencyPricesResponseData,
+  CatalogCustomCreditAmountResponseData,
   CatalogPlanEntitlementResponseData,
   CatalogPlanResponseData,
   CompanyCatalogResponseData,
@@ -51,6 +53,8 @@ export type Catalog = CompanyCatalogResponseData;
 export type CatalogPlan = CatalogCompanyPlanResponseData;
 
 export type CatalogCreditBundle = CatalogCreditBundleResponseData;
+
+export type CatalogCustomCreditAmount = CatalogCustomCreditAmountResponseData;
 
 export type CatalogAutoTopup = CatalogAutoTopupResponseData;
 

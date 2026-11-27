@@ -15,6 +15,7 @@ import type {
   UpdateAddOnRequestBody,
   UpdateAutoTopupOverrideRequestBody,
   UpdateCreditBundleRequestBody,
+  UpdateCustomCreditAmountRequestBody,
   UpdatePayInAdvanceRequestBody,
 } from "../api/generated/models";
 import {
@@ -23,6 +24,7 @@ import {
   UpdateAddOnRequestBodyToJSON,
   UpdateAutoTopupOverrideRequestBodyToJSON,
   UpdateCreditBundleRequestBodyToJSON,
+  UpdateCustomCreditAmountRequestBodyToJSON,
   UpdatePayInAdvanceRequestBodyToJSON,
 } from "../api/generated/models";
 import { SchematicApiError } from "../session";
@@ -68,6 +70,7 @@ export interface CheckoutSelections {
   creditBundles?: UpdateCreditBundleRequestBody[];
   /** ISO 4217. A cart that prices in another currency reports a problem. */
   currency?: string;
+  customCreditAmounts?: UpdateCustomCreditAmountRequestBody[];
   customFieldValues?: CheckoutFieldValue[];
   /** `cancel` ends the subscription; the default is a change to the cart. */
   intent?: "change" | "cancel";
@@ -104,6 +107,9 @@ export function checkoutSelectionsToJSON(
     ),
     credit_bundles: (selections.creditBundles ?? []).map((b) =>
       UpdateCreditBundleRequestBodyToJSON(b),
+    ),
+    custom_credit_amounts: (selections.customCreditAmounts ?? []).map((c) =>
+      UpdateCustomCreditAmountRequestBodyToJSON(c),
     ),
     custom_field_values: (selections.customFieldValues ?? []).map((v) =>
       CheckoutFieldValueToJSON(v),
