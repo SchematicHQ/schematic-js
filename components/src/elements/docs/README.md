@@ -23,6 +23,7 @@ names the tier, not the resource.
 | MeteredFeatures   | `useFeatureUsage`, `useFeatureUserUsage`               | `deriveMeteredFeatures`  | `featureUsage`                                         | [metered-features.md](./metered-features.md)     |
 | CreditUsage       | `useCreditBalances`, `useCreditUserUsage`              | `deriveCreditUsage`      | `creditBalances`                                       | [credit-usage.md](./credit-usage.md)             |
 | CreditLog         | `useCreditLedger`                                      | `deriveCreditLog`        | `creditLedger`                                         | [credit-log.md](./credit-log.md)                 |
+| CreditBundles     | `useCatalog`, `useCompany`                             | `deriveCreditBundles`    | `catalog`, `company`                                   | [credit-bundles.md](./credit-bundles.md)         |
 | PlanManager       | `useCompany`, `useFeatureUsage`, `useCreditBalances`   | `derivePlanManager`      | `company`, `featureUsage`, `creditBalances`            | [plan-manager.md](./plan-manager.md)             |
 | UnsubscribeButton | `useCompany`, `useFeatureUsage`, `useUnsubscribe`      | `deriveUnsubscribe`      | `company`, `featureUsage`                              | [unsubscribe-button.md](./unsubscribe-button.md) |
 | Checkout          | `useCatalog`, `useCompany`, `useCheckout`, `useTaxIds` | `deriveCheckout`         | `catalog`, `company`, `paymentMethods`, `featureUsage` | [checkout.md](./checkout.md)                     |

@@ -1,4 +1,5 @@
 import { Checkout } from "./Checkout";
+import { CreditBundles } from "./CreditBundles";
 import { CreditLog } from "./CreditLog";
 import { CreditUsage } from "./CreditUsage";
 import { IncludedFeatures } from "./IncludedFeatures";
@@ -26,6 +27,7 @@ describe("what the elements read", () => {
     expect(MeteredFeatures.resources).toEqual(["featureUsage"]);
     expect(CreditUsage.resources).toEqual(["creditBalances"]);
     expect(CreditLog.resources).toEqual(["creditLedger"]);
+    expect(CreditBundles.resources).toEqual(["catalog", "company"]);
     expect(PlanManager.resources).toEqual([
       "company",
       "featureUsage",
