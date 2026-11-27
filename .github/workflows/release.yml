@@ -1,0 +1,58 @@
+name: GitHub Release
+
+# Creates (or updates) a GitHub Release for a module tag, with release notes
+# scoped to that module's directory. Runs alongside the per-module deploy_*.yml
+# workflows — both trigger on the same schematic-<module>@<version> tag.
+#
+# RC tags (…-rc.N) are published as prereleases. Use the workflow_dispatch input
+# to (re)generate notes for an existing tag.
+
+on:
+  push:
+    tags:
+      - "schematic-js@*"
+      - "schematic-react@*"
+      - "schematic-components@*"
+      - "schematic-vue@*"
+      - "schematic-angular@*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)generate a release for (e.g. schematic-js@1.5.0)"
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: runs-on=${{ github.run_id }}/runner=1cpu-linux-arm64
+    permissions:
+      contents: write
+    steps:
+      - uses: runs-on/action@v2.0.3
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # full history so the changelog range resolves
+          fetch-tags: true # need every module's tags to find the previous one
+
+      - name: Resolve tag
+        id: tag
+        run: echo "tag=${{ github.event.inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        run: TAG="${{ steps.tag.outputs.tag }}" ./scripts/release-notes.sh > release-notes.md
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          PRERELEASE=""
+          if [[ "$TAG" =~ -rc\.[0-9]+$ ]]; then PRERELEASE="--prerelease"; fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release exists; updating notes."
+            gh release edit "$TAG" --notes-file release-notes.md $PRERELEASE
+          else
+            echo "Creating release."
+            gh release create "$TAG" --title "$TAG" --notes-file release-notes.md --verify-tag $PRERELEASE
+          fi
