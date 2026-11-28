@@ -38,10 +38,13 @@ import type {
   GetCompanyUpcomingInvoiceResponse,
   GetInvoiceLinkResponse,
   ListCheckoutsResponse,
+  ResetCompanyCreditOverdraftResponse,
   UpdateCheckoutRequest,
   UpdateCheckoutResponse,
   UpdateCheckoutTaxIDRequestBody,
   UpdateCheckoutTaxIDResponse,
+  UpdateCompanyCreditOverdraftRequestBody,
+  UpdateCompanyCreditOverdraftResponse,
   UpdatePaymentMethodRequestBody,
   UpdatePaymentMethodResponse,
 } from "../models/index";
@@ -94,6 +97,8 @@ import {
   GetInvoiceLinkResponseToJSON,
   ListCheckoutsResponseFromJSON,
   ListCheckoutsResponseToJSON,
+  ResetCompanyCreditOverdraftResponseFromJSON,
+  ResetCompanyCreditOverdraftResponseToJSON,
   UpdateCheckoutRequestFromJSON,
   UpdateCheckoutRequestToJSON,
   UpdateCheckoutResponseFromJSON,
@@ -102,6 +107,10 @@ import {
   UpdateCheckoutTaxIDRequestBodyToJSON,
   UpdateCheckoutTaxIDResponseFromJSON,
   UpdateCheckoutTaxIDResponseToJSON,
+  UpdateCompanyCreditOverdraftRequestBodyFromJSON,
+  UpdateCompanyCreditOverdraftRequestBodyToJSON,
+  UpdateCompanyCreditOverdraftResponseFromJSON,
+  UpdateCompanyCreditOverdraftResponseToJSON,
   UpdatePaymentMethodRequestBodyFromJSON,
   UpdatePaymentMethodRequestBodyToJSON,
   UpdatePaymentMethodResponseFromJSON,
@@ -166,6 +175,10 @@ export interface ListCheckoutsRequest {
   offset?: number;
 }
 
+export interface ResetCompanyCreditOverdraftRequest {
+  creditId: string;
+}
+
 export interface UpdateCheckoutOperationRequest {
   checkoutId: string;
   updateCheckoutRequest: UpdateCheckoutRequest;
@@ -173,6 +186,11 @@ export interface UpdateCheckoutOperationRequest {
 
 export interface UpdateCheckoutTaxIDRequest {
   updateCheckoutTaxIDRequestBody: UpdateCheckoutTaxIDRequestBody;
+}
+
+export interface UpdateCompanyCreditOverdraftRequest {
+  creditId: string;
+  updateCompanyCreditOverdraftRequestBody: UpdateCompanyCreditOverdraftRequestBody;
 }
 
 export interface UpdatePaymentMethodRequest {
@@ -1264,6 +1282,62 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
   }
 
   /**
+   * Reset company credit overdraft
+   */
+  async resetCompanyCreditOverdraftRaw(
+    requestParameters: ResetCompanyCreditOverdraftRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<ResetCompanyCreditOverdraftResponse>> {
+    if (requestParameters["creditId"] == null) {
+      throw new runtime.RequiredError(
+        "creditId",
+        'Required parameter "creditId" was null or undefined when calling resetCompanyCreditOverdraft().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits/{credit_id}/overdraft`.replace(
+          `{${"credit_id"}}`,
+          encodeURIComponent(String(requestParameters["creditId"])),
+        ),
+        method: "DELETE",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      ResetCompanyCreditOverdraftResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Reset company credit overdraft
+   */
+  async resetCompanyCreditOverdraft(
+    requestParameters: ResetCompanyCreditOverdraftRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<ResetCompanyCreditOverdraftResponse> {
+    const response = await this.resetCompanyCreditOverdraftRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
    * Replaces the cart and prices it again. Send the `version` last read; a stale one answers 409 and changes nothing, so read the checkout and send the write again at its version. A cart the purchase rules reject is saved with its price cleared and one problem saying why, and the version still advances. The `X-Checkout-Session-ID` response header names the session this price belongs to; send it back on the finalize that follows.
    * Update a checkout
    */
@@ -1387,6 +1461,74 @@ export class CheckoutexternalApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<UpdateCheckoutTaxIDResponse> {
     const response = await this.updateCheckoutTaxIDRaw(
+      requestParameters,
+      initOverrides,
+    );
+    return await response.value();
+  }
+
+  /**
+   * Update company credit overdraft
+   */
+  async updateCompanyCreditOverdraftRaw(
+    requestParameters: UpdateCompanyCreditOverdraftRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UpdateCompanyCreditOverdraftResponse>> {
+    if (requestParameters["creditId"] == null) {
+      throw new runtime.RequiredError(
+        "creditId",
+        'Required parameter "creditId" was null or undefined when calling updateCompanyCreditOverdraft().',
+      );
+    }
+
+    if (requestParameters["updateCompanyCreditOverdraftRequestBody"] == null) {
+      throw new runtime.RequiredError(
+        "updateCompanyCreditOverdraftRequestBody",
+        'Required parameter "updateCompanyCreditOverdraftRequestBody" was null or undefined when calling updateCompanyCreditOverdraft().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters["Content-Type"] = "application/json";
+
+    if (this.configuration && this.configuration.apiKey) {
+      headerParameters["X-Schematic-Api-Key"] = await this.configuration.apiKey(
+        "X-Schematic-Api-Key",
+      ); // ApiKeyAuth authentication
+    }
+
+    const response = await this.request(
+      {
+        path: `/company/credits/{credit_id}/overdraft`.replace(
+          `{${"credit_id"}}`,
+          encodeURIComponent(String(requestParameters["creditId"])),
+        ),
+        method: "PUT",
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdateCompanyCreditOverdraftRequestBodyToJSON(
+          requestParameters["updateCompanyCreditOverdraftRequestBody"],
+        ),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      UpdateCompanyCreditOverdraftResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Update company credit overdraft
+   */
+  async updateCompanyCreditOverdraft(
+    requestParameters: UpdateCompanyCreditOverdraftRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UpdateCompanyCreditOverdraftResponse> {
+    const response = await this.updateCompanyCreditOverdraftRaw(
       requestParameters,
       initOverrides,
     );

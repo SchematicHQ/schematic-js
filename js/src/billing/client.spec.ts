@@ -1,5 +1,9 @@
 import { SchematicBillingClient, fetchBillingData } from "./client";
-import { checkoutProblemsOf, normalizeCreditLedgerQuery } from "./contract";
+import {
+  checkoutProblemsOf,
+  CreditOverdraftLimitSource,
+  normalizeCreditLedgerQuery,
+} from "./contract";
 import {
   fakeFetch,
   tokens,
@@ -1220,6 +1224,122 @@ describe("company", () => {
       { names: ["company"] },
     );
     expect(data.company?.name).toBe("Acme");
+  });
+
+  it("decodes a credit's overdraft", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      body: {
+        data: {
+          count: 1,
+          balances: [
+            {
+              ...wireCredits.data.balances[1],
+              overdraft: {
+                admin_limit: 2000,
+                can_change_limit: true,
+                company_limit: 8000,
+                credit_id: "bilcr_ai",
+                currency: "usd",
+                debt: 1240,
+                limit_source: "admin",
+                max_limit: 2000,
+                overdraft_limit: 2000,
+                plan_default_limit: 5000,
+                plan_max_limit: 20000,
+                postpaid_rate_per_unit: 2,
+                postpaid_rate_per_unit_decimal: "2",
+              },
+            },
+          ],
+        },
+      },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const [balance] = await client.fetchCreditBalances();
+    expect(balance.overdraft).toEqual({
+      adminLimit: 2000,
+      canChangeLimit: true,
+      companyLimit: 8000,
+      creditId: "bilcr_ai",
+      currency: "usd",
+      debt: 1240,
+      limitSource: CreditOverdraftLimitSource.Admin,
+      maxLimit: 2000,
+      overdraftLimit: 2000,
+      planDefaultLimit: 5000,
+      planMaxLimit: 20000,
+      postpaidRatePerUnit: 2,
+      postpaidRatePerUnitDecimal: "2",
+    });
+  });
+
+  it("leaves overdraft off a credit the plan stops at zero", async () => {
+    const { fetchImpl } = fakeFetch(() => ({ body: wireCredits }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const balances = await client.fetchCreditBalances();
+    expect(balances.every((balance) => balance.overdraft == null)).toBe(true);
+  });
+
+  it("sets a credit's overdraft limit", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: { data: { credit_id: "bilcr_ai" }, params: {} },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(
+      client.updateCreditOverdraft("bilcr/ai", { overdraftLimit: 2000 }),
+    ).resolves.toBeUndefined();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/company/credits/bilcr%2Fai/overdraft",
+      method: "PUT",
+      body: { overdraft_limit: 2000 },
+    });
+  });
+
+  it("resets a credit's overdraft limit to the plan's default", async () => {
+    const { calls, fetchImpl } = fakeFetch(() => ({
+      body: { data: { deleted: true }, params: {} },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    await expect(
+      client.resetCreditOverdraft("bilcr_ai"),
+    ).resolves.toBeUndefined();
+    expect(calls[0]).toMatchObject({
+      url: "https://api.schematichq.com/company/credits/bilcr_ai/overdraft",
+      method: "DELETE",
+      body: undefined,
+    });
+  });
+
+  it("throws SchematicApiError when an overdraft limit is refused", async () => {
+    const { fetchImpl } = fakeFetch(() => ({
+      status: 400,
+      body: { error: "The limit can't be higher than 20000 credits." },
+    }));
+    const client = new SchematicBillingClient({
+      session: { company: "comp_a", token: "t" },
+      fetch: fetchImpl,
+    });
+    const error = await client
+      .updateCreditOverdraft("bilcr_ai", { overdraftLimit: 50000 })
+      .catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SchematicApiError);
+    expect(error).toMatchObject({
+      status: 400,
+      path: "/company/credits/bilcr_ai/overdraft",
+      message: "The limit can't be higher than 20000 credits.",
+    });
   });
 
   it("decodes a credit's auto top-up", async () => {

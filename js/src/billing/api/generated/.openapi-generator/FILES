@@ -69,6 +69,7 @@ models/CompanyCreditLedgerEntryResponseData.ts
 models/CompanyCreditLedgerFeatureResponseData.ts
 models/CompanyCreditLedgerResponseData.ts
 models/CompanyCreditLedgerUserResponseData.ts
+models/CompanyCreditOverdraftResponseData.ts
 models/CompanyCreditUserUsageResponseData.ts
 models/CompanyCreditUserUsageRowResponseData.ts
 models/CompanyDiscountResponseData.ts
@@ -87,6 +88,7 @@ models/CreateCheckoutRequest.ts
 models/CreateCheckoutResponse.ts
 models/CreateSetupIntentResponse.ts
 models/CreditLedgerEntryKind.ts
+models/CreditOverdraftLimitSource.ts
 models/CreditUsageReason.ts
 models/Currency.ts
 models/CustomPlanActivationStrategy.ts
@@ -130,6 +132,7 @@ models/PlanPriceCadence.ts
 models/ProrationBehavior.ts
 models/ProrationLineKind.ts
 models/PublicCatalogResponseData.ts
+models/ResetCompanyCreditOverdraftResponse.ts
 models/ScheduledDowngradeConfigBehavior.ts
 models/SetupIntentResponseData.ts
 models/TaxIDInput.ts
@@ -141,6 +144,8 @@ models/UpdateCheckoutResponse.ts
 models/UpdateCheckoutTaxIDRequestBody.ts
 models/UpdateCheckoutTaxIDResponse.ts
 models/UpdateCheckoutTaxIDResponseData.ts
+models/UpdateCompanyCreditOverdraftRequestBody.ts
+models/UpdateCompanyCreditOverdraftResponse.ts
 models/UpdateCreditBundleRequestBody.ts
 models/UpdateCustomCreditAmountRequestBody.ts
 models/UpdatePayInAdvanceRequestBody.ts
